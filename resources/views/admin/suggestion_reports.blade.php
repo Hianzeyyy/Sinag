@@ -1,0 +1,21 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div><div class="text-uppercase text-muted small">Participatory Suggestions</div><h1 class="h3 fw-bold mb-0">Reported Posts and Comments</h1></div>
+        <a href="{{ route('admin.suggestions') }}" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-arrow-left me-1"></i>Back to Suggestions</a>
+    </div>
+    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive"><table class="table align-middle mb-0"><thead class="table-light"><tr><th>Type</th><th>Reported content</th><th>Reason</th><th>Reported by</th><th>Status</th><th class="text-end">Actions</th></tr></thead><tbody>
+        @forelse($reports as $report)
+            <tr><td><span class="badge text-bg-secondary">{{ $report->comment_id ? 'Comment' : 'Post' }}</span></td><td class="text-break" style="max-width:320px;">{{ $report->comment_id ? optional($report->comment)->comment : optional($report->suggestion)->message }}</td><td>{{ $report->reason }}</td><td>{{ optional($report->reporter)->name ?: 'Unknown' }}</td><td>{{ ucfirst($report->status) }}</td><td class="text-end"><button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#reportModal{{ $report->id }}">View</button></td></tr>
+            <div class="modal fade" id="reportModal{{ $report->id }}" tabindex="-1" aria-labelledby="reportModalLabel{{ $report->id }}" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg rounded-4"><div class="modal-header"><h2 class="modal-title h5" id="reportModalLabel{{ $report->id }}">Reported {{ $report->comment_id ? 'Comment' : 'Post' }}</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><div class="small text-muted mb-2">Reason</div><p>{{ $report->reason }}</p><div class="small text-muted mb-2">Content</div><div class="p-3 bg-light rounded-3" style="white-space:pre-wrap;">{{ $report->comment_id ? optional($report->comment)->comment : optional($report->suggestion)->message }}</div></div><div class="modal-footer"><form method="POST" action="{{ route('admin.suggestions.reports.dismiss', $report) }}">@csrf<button class="btn btn-outline-secondary" type="submit">Dismiss</button></form><form method="POST" action="{{ route('admin.suggestions.reports.delete', $report) }}" onsubmit="return confirm('Delete this reported content?');">@csrf @method('DELETE')<button class="btn btn-secondary" type="submit">Delete Content</button></form></div></div></div></div>
+        @empty
+            <tr><td colspan="6" class="text-center py-5 text-muted">No reports yet.</td></tr>
+        @endforelse
+        </tbody></table></div><div class="p-3">{{ $reports->links() }}</div>
+    </div>
+</div>
+@endsection
