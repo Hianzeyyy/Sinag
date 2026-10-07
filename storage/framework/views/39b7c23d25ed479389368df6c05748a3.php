@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <style>
     .sinag-violet-badge { background: #d8cdfc; color: #5b4b9b; border-color: #c4b5fd !important; }
     .sinag-yellow-badge { background: #f8cb12; color: #4a3500; border-color: #e5b900 !important; }
@@ -30,7 +30,7 @@
 </style>
 
 <div class="container py-4">
-    @php
+    <?php
         $pendingCount = (int) ($userCounts->pending ?? 0);
         $activeCount = (int) ($userCounts->active ?? 0);
         $rejectedCount = (int) ($userCounts->rejected ?? 0);
@@ -63,9 +63,9 @@
             'BS Business Administration (BSBA)' => 'Bachelor of Science in Business Administration',
             'BSBA' => 'Bachelor of Science in Business Administration',
         ];
-    @endphp
+    ?>
 
-    <form method="GET" action="{{ route('admin.users') }}" id="userFiltersForm">
+    <form method="GET" action="<?php echo e(route('admin.users')); ?>" id="userFiltersForm">
         <div class="row mb-4 align-items-center">
             <div class="col-md-6">
                 <h3 class="fw-bold mb-1" style="color: #A594F9;">User Management</h3>
@@ -75,7 +75,7 @@
                 <div class="d-flex gap-2 justify-content-md-end mt-3 mt-md-0">
                     <div class="input-group input-group-sm w-75 shadow-sm">
                         <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="search" id="userSearch" name="q" value="{{ request('q') }}" class="form-control border-start-0" placeholder="Search name, email, phone...">
+                        <input type="search" id="userSearch" name="q" value="<?php echo e(request('q')); ?>" class="form-control border-start-0" placeholder="Search name, email, phone...">
                     </div>
                     <button type="submit" class="btn btn-sm btn-primary px-3"><i class="bi bi-search me-1"></i>Search</button>
                 </div>
@@ -83,45 +83,45 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2 mb-3" aria-label="Account status filters">
-            <button type="submit" name="status" value="active" class="btn btn-sm sinag-violet-badge rounded-pill px-3 status-filter-btn">Active: {{ $activeCount }}</button>
-            <button type="submit" name="status" value="pending" class="btn btn-sm sinag-yellow-badge rounded-pill px-3 status-filter-btn">Pending: {{ $pendingCount }}</button>
-            <button type="submit" name="status" value="rejected" class="btn btn-sm bg-secondary-subtle text-secondary rounded-pill px-3 status-filter-btn">Rejected: {{ $rejectedCount }}</button>
+            <button type="submit" name="status" value="active" class="btn btn-sm sinag-violet-badge rounded-pill px-3 status-filter-btn">Active: <?php echo e($activeCount); ?></button>
+            <button type="submit" name="status" value="pending" class="btn btn-sm sinag-yellow-badge rounded-pill px-3 status-filter-btn">Pending: <?php echo e($pendingCount); ?></button>
+            <button type="submit" name="status" value="rejected" class="btn btn-sm bg-secondary-subtle text-secondary rounded-pill px-3 status-filter-btn">Rejected: <?php echo e($rejectedCount); ?></button>
         </div>
 
         <div class="row g-2 mb-4 users-filter-row">
             <div class="col-md-3">
                 <select id="accountTypeFilter" name="account_type" class="form-select form-select-sm">
                     <option value="">All Account Types</option>
-                    <option value="student" {{ request('account_type') === 'student' ? 'selected' : '' }}>Students</option>
-                    <option value="teaching" {{ request('account_type') === 'teaching' ? 'selected' : '' }}>Teaching</option>
-                    <option value="non_teaching" {{ request('account_type') === 'non_teaching' ? 'selected' : '' }}>Non-teaching</option>
+                    <option value="student" <?php echo e(request('account_type') === 'student' ? 'selected' : ''); ?>>Students</option>
+                    <option value="teaching" <?php echo e(request('account_type') === 'teaching' ? 'selected' : ''); ?>>Teaching</option>
+                    <option value="non_teaching" <?php echo e(request('account_type') === 'non_teaching' ? 'selected' : ''); ?>>Non-teaching</option>
                 </select>
             </div>
             <div class="col-md-3">
                 <select id="genderFilter" name="gender" class="form-select form-select-sm">
                     <option value="">All Genders</option>
-                    <option value="Male" {{ request('gender') === 'Male' ? 'selected' : '' }}>Male</option>
-                    <option value="Female" {{ request('gender') === 'Female' ? 'selected' : '' }}>Female</option>
-                    <option value="Prefer not to say" {{ request('gender') === 'Prefer not to say' ? 'selected' : '' }}>Prefer not to say</option>
+                    <option value="Male" <?php echo e(request('gender') === 'Male' ? 'selected' : ''); ?>>Male</option>
+                    <option value="Female" <?php echo e(request('gender') === 'Female' ? 'selected' : ''); ?>>Female</option>
+                    <option value="Prefer not to say" <?php echo e(request('gender') === 'Prefer not to say' ? 'selected' : ''); ?>>Prefer not to say</option>
                 </select>
             </div>
             <div class="col-md-3">
                 <select id="departmentFilter" name="department" class="form-select form-select-sm">
                     <option value="">All Departments</option>
-                    @foreach($departments as $departmentValue => $departmentLabel)
-                        <option value="{{ $departmentValue }}" {{ request('department') === $departmentValue ? 'selected' : '' }}>{{ $departmentLabel }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $departmentValue => $departmentLabel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($departmentValue); ?>" <?php echo e(request('department') === $departmentValue ? 'selected' : ''); ?>><?php echo e($departmentLabel); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
             </div>
         </div>
     </form>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
+    <?php if(session('success')): ?>
+        <div class="alert alert-success"><?php echo e(session('success')); ?></div>
+    <?php endif; ?>
+    <?php if(session('error')): ?>
+        <div class="alert alert-danger"><?php echo e(session('error')); ?></div>
+    <?php endif; ?>
 
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
         <div style="height: 5px; background: linear-gradient(90deg, #A594F9, #c4b5fd);"></div>
@@ -138,46 +138,47 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($users as $user)
-                        @php
+                    <?php $__empty_1 = true; $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php
                             $accountStatus = $user->account_status ?? 'pending';
                             $accountType = $user->role === 'admin' ? 'admin' : ($user->account_type ?? 'student');
                             $displayType = $user->role === 'admin' ? 'Administrator' : ($accountType === 'employee' ? ucfirst(str_replace('_', ' ', $user->employee_category ?? 'employee')) : 'Student');
                             $fullDepartment = $departmentLabels[$user->department] ?? ($user->department ?: 'Department not provided');
                             $isOnline = $user->last_seen_at && $user->last_seen_at->greaterThan(now()->subMinutes(5));
                             $presenceStatus = $isOnline ? (($user->availability_status ?? 'active') === 'do_not_disturb' ? 'busy' : ($user->availability_status ?: 'active')) : 'offline';
-                        @endphp
+                        ?>
                         <tr>
-                            <td class="ps-4 small text-muted">{{ optional($user->created_at)->format('M d, Y') }}</td>
+                            <td class="ps-4 small text-muted"><?php echo e(optional($user->created_at)->format('M d, Y')); ?></td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width:40px;height:40px;background:{{ $user->role === 'admin' ? '#A594F9' : '#f3e8ff' }};color:{{ $user->role === 'admin' ? '#fff' : '#A594F9' }};font-weight:bold;">
-                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width:40px;height:40px;background:<?php echo e($user->role === 'admin' ? '#A594F9' : '#f3e8ff'); ?>;color:<?php echo e($user->role === 'admin' ? '#fff' : '#A594F9'); ?>;font-weight:bold;">
+                                        <?php echo e(strtoupper(substr($user->name, 0, 1))); ?>
+
                                     </div>
-                                    <div><span class="d-block fw-bold text-dark">{{ $user->name }}</span><span class="d-block small text-muted">{{ $fullDepartment }}</span></div>
+                                    <div><span class="d-block fw-bold text-dark"><?php echo e($user->name); ?></span><span class="d-block small text-muted"><?php echo e($fullDepartment); ?></span></div>
                                 </div>
                             </td>
-                            <td><span class="small text-dark">{{ $user->email }}</span></td>
-                            <td><span class="badge bg-light text-dark border rounded-pill px-3 py-2">{{ $displayType }}</span></td>
+                            <td><span class="small text-dark"><?php echo e($user->email); ?></span></td>
+                            <td><span class="badge bg-light text-dark border rounded-pill px-3 py-2"><?php echo e($displayType); ?></span></td>
                             <td>
-                                @if(in_array($accountStatus, ['active', 'approved'], true))<span class="badge sinag-violet-badge rounded-pill px-3 py-2">ACTIVE</span>
-                                @elseif($accountStatus === 'pending')<span class="badge sinag-yellow-badge rounded-pill px-3 py-2">PENDING</span>
-                                @else<span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2">REJECTED</span>@endif
+                                <?php if(in_array($accountStatus, ['active', 'approved'], true)): ?><span class="badge sinag-violet-badge rounded-pill px-3 py-2">ACTIVE</span>
+                                <?php elseif($accountStatus === 'pending'): ?><span class="badge sinag-yellow-badge rounded-pill px-3 py-2">PENDING</span>
+                                <?php else: ?><span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2">REJECTED</span><?php endif; ?>
                             </td>
                             <td class="text-end pe-4">
                                 <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm view-user-btn" style="background:#A594F9;border:none;" data-bs-toggle="modal" data-bs-target="#viewUserModal"
-                                    data-user-name="{{ $user->name }}" data-user-email="{{ $user->email }}" data-user-id="UID-{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}" data-user-type="{{ $displayType }}" data-user-department="{{ $fullDepartment }}" data-user-status="{{ ucfirst($accountStatus) }}" data-user-phone="{{ $user->phone_number ?: 'Not provided' }}" data-user-gender="{{ $user->gender ?: 'Not provided' }}" data-user-age="{{ $user->age ?: 'Not provided' }}" data-user-joined="{{ optional($user->created_at)->format('F d, Y h:i A') }}" data-user-photo="{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : '' }}" data-user-id-picture="{{ ($user->id_image_path ?: $user->selfie_image_path) ? asset('storage/' . ($user->id_image_path ?: $user->selfie_image_path)) : '' }}" data-personal-data-url="{{ route('admin.users.personal-data', $user->id) }}" data-approve-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.approve', $user->id) : '' }}" data-reject-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.reject', $user->id) : '' }}">
+                                    data-user-name="<?php echo e($user->name); ?>" data-user-email="<?php echo e($user->email); ?>" data-user-id="UID-<?php echo e(str_pad($user->id, 5, '0', STR_PAD_LEFT)); ?>" data-user-type="<?php echo e($displayType); ?>" data-user-department="<?php echo e($fullDepartment); ?>" data-user-status="<?php echo e(ucfirst($accountStatus)); ?>" data-user-phone="<?php echo e($user->phone_number ?: 'Not provided'); ?>" data-user-gender="<?php echo e($user->gender ?: 'Not provided'); ?>" data-user-age="<?php echo e($user->age ?: 'Not provided'); ?>" data-user-joined="<?php echo e(optional($user->created_at)->format('F d, Y h:i A')); ?>" data-user-photo="<?php echo e($user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : ''); ?>" data-user-id-picture="<?php echo e(($user->id_image_path ?: $user->selfie_image_path) ? asset('storage/' . ($user->id_image_path ?: $user->selfie_image_path)) : ''); ?>" data-personal-data-url="<?php echo e(route('admin.users.personal-data', $user->id)); ?>" data-approve-url="<?php echo e($user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.approve', $user->id) : ''); ?>" data-reject-url="<?php echo e($user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.reject', $user->id) : ''); ?>">
                                     <i class="bi bi-eye me-1"></i>View
                                 </button>
                             </td>
                         </tr>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr><td colspan="6" class="text-center py-5 text-muted">No users found.</td></tr>
-                    @endforelse
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
-        <div class="p-3">{{ $users->onEachSide(1)->links() }}</div>
+        <div class="p-3"><?php echo e($users->onEachSide(1)->links()); ?></div>
     </div>
 </div>
 
@@ -198,7 +199,7 @@
                 <div id="viewUserIdPictureWrap" class="mt-4 d-none"><div class="small text-muted fw-bold text-uppercase mb-2">ID Picture</div><img id="viewUserIdPicture" src="" alt="Selected user's ID picture" class="img-fluid rounded-3 border" style="max-height:320px;object-fit:contain;"></div>
                 <div class="text-muted small mt-4"><i class="bi bi-calendar-event me-1"></i>Registered <span id="viewUserJoined"></span></div>
             </div>
-            <div class="modal-footer border-0 bg-light justify-content-between"><div class="d-flex gap-2"><a id="viewPersonalDataLink" href="#" class="btn btn-outline-secondary"><i class="bi bi-person-vcard me-1"></i>Full personal information</a><form id="viewApproveForm" method="POST" class="d-none">@csrf<button type="submit" class="btn" style="background:#8f72f5;color:#fff;"><i class="bi bi-check-circle me-1"></i>Approve</button></form><form id="viewRejectForm" method="POST" class="d-none">@csrf<input type="hidden" name="rejection_reason" value="Rejected by administrator"><button type="submit" class="btn btn-warning"><i class="bi bi-x-circle me-1"></i>Reject</button></form></div><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+            <div class="modal-footer border-0 bg-light justify-content-between"><div class="d-flex gap-2"><a id="viewPersonalDataLink" href="#" class="btn btn-outline-secondary"><i class="bi bi-person-vcard me-1"></i>Full personal information</a><form id="viewApproveForm" method="POST" class="d-none"><?php echo csrf_field(); ?><button type="submit" class="btn" style="background:#8f72f5;color:#fff;"><i class="bi bi-check-circle me-1"></i>Approve</button></form><form id="viewRejectForm" method="POST" class="d-none"><?php echo csrf_field(); ?><input type="hidden" name="rejection_reason" value="Rejected by administrator"><button type="submit" class="btn btn-warning"><i class="bi bi-x-circle me-1"></i>Reject</button></form></div><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
         </div>
     </div>
 </div>
@@ -250,4 +251,6 @@
         });
     });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\sinag\resources\views/admin/users-list.blade.php ENDPATH**/ ?>

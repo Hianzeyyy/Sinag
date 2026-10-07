@@ -57,13 +57,21 @@ class AdminController extends Controller
                                 ->take(5)
                                 ->get();
         
+        $officeInfo = \Illuminate\Support\Facades\Cache::get('gad_office_info', [
+            'phone_number' => Auth::user()->phone_number ?: '0919-777-7377',
+            'office_hours' => 'Mon – Fri, 8:00 AM – 5:00 PM',
+            'office_location' => 'Admin Building, Room 105',
+            'office_email' => Auth::user()->email ?: 'gad@psu.edu.ph',
+        ]);
+        
         return view('admin.dashboard', compact(
             'totalReports', 
             'pendingReports', 
             'resolvedReports', 
             'totalSuggestions',
             'activeEmergencies',
-            'recentReports'
+            'recentReports',
+            'officeInfo'
         )); 
     }
 
@@ -744,6 +752,39 @@ class AdminController extends Controller
         $appointment->update(['admin_notes' => $validated['admin_notes']]);
 
         return back()->with('success', 'Administrative details added successfully.');
+    }
+
+    /**
+     * Update GAD Office information and hotline phone number.
+     */
+    public function updateOfficeInfo(Request $request)
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'phone_number' => ['required', 'string', 'max:50'],
+            'office_hours' => ['nullable', 'string', 'max:100'],
+            'office_location' => ['nullable', 'string', 'max:150'],
+            'office_email' => ['nullable', 'email', 'max:150'],
+        ]);
+
+        $user = Auth::user();
+        $user->phone_number = $validated['phone_number'];
+        if (!empty($validated['office_email'])) {
+            $user->email = $validated['office_email'];
+        }
+        $user->save();
+
+        \Illuminate\Support\Facades\Cache::forever('gad_office_info', [
+            'phone_number' => $validated['phone_number'],
+            'office_hours' => $validated['office_hours'] ?? 'Mon – Fri, 8:00 AM – 5:00 PM',
+            'office_location' => $validated['office_location'] ?? 'Admin Building, Room 105',
+            'office_email' => $validated['office_email'] ?? $user->email ?? 'gad@psu.edu.ph',
+        ]);
+
+        return back()->with('success', 'GAD Office information and contact number updated successfully.');
     }
 
 }

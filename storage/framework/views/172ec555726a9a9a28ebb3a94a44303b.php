@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <style>
     nav, .navbar { display: none !important; }
     body { overflow-x: hidden; overflow-y: auto; }
@@ -245,8 +243,8 @@
                     <div class="row g-0">
                         <div class="login-brand-panel col-md-5 d-flex flex-column align-items-center justify-content-center p-5 text-center">
                             <div class="login-logo-pair mb-4" aria-label="Pangasinan State University Gender and Development">
-                                <img src="{{ asset('images/psulogo.png') }}" alt="PSU Logo" class="login-logo" style="filter: drop-shadow(0 0 20px rgba(165, 148, 249, 0.35));">
-                                <img src="{{ asset('images/gadlogo.png') }}" alt="GAD Logo" class="login-logo login-gad-logo" style="filter: drop-shadow(0 0 20px rgba(165, 148, 249, 0.35));">
+                                <img src="<?php echo e(asset('images/psulogo.png')); ?>" alt="PSU Logo" class="login-logo" style="filter: drop-shadow(0 0 20px rgba(165, 148, 249, 0.35));">
+                                <img src="<?php echo e(asset('images/gadlogo.png')); ?>" alt="GAD Logo" class="login-logo login-gad-logo" style="filter: drop-shadow(0 0 20px rgba(165, 148, 249, 0.35));">
                             </div>
                             <h1 class="login-brand-name fw-bold mb-0" style="letter-spacing: 5px; text-shadow: 0 4px 15px rgba(0,0,0,0.5);">
                                 <span style="color: #ede9fe;">SI</span><span style="color: #facc15;">NAG</span>
@@ -260,24 +258,26 @@
                         </div>
 
                         <div class="login-form-panel col-md-7 p-4 p-lg-5">
-                            @if(session('status'))
+                            <?php if(session('status')): ?>
                                 <div class="login-alert alert border-0 mb-3">
-                                    <i class="bi bi-check-circle-fill me-1"></i> {{ session('status') }}
-                                </div>
-                            @endif
+                                    <i class="bi bi-check-circle-fill me-1"></i> <?php echo e(session('status')); ?>
 
-                            @if(session('error'))
-                                <div class="login-alert alert border-0 mb-3">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ session('error') }}
                                 </div>
-                            @endif
+                            <?php endif; ?>
+
+                            <?php if(session('error')): ?>
+                                <div class="login-alert alert border-0 mb-3">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> <?php echo e(session('error')); ?>
+
+                                </div>
+                            <?php endif; ?>
 
                             <div class="d-flex justify-content-end mb-5">
                                 
                             </div>
 
-                            <form method="POST" action="{{ route('login') }}" id="loginForm" autocomplete="off">
-                                @csrf
+                            <form method="POST" action="<?php echo e(route('login')); ?>" id="loginForm" autocomplete="off">
+                                <?php echo csrf_field(); ?>
 
                                 <div class="mb-4">
                                     <label class="form-label text-white small fw-bold text-uppercase" style="letter-spacing: 1px;">Username</label>
@@ -286,7 +286,7 @@
                                             <i class="bi bi-envelope-at fs-5"></i>
                                         </span>
                                                                                          <input id="email" type="email" class="login-input form-control form-control-lg bg-dark border-0 text-white py-3" 
-                                                                                             name="email" value="{{ old('email', request()->cookie('remembered_email', '')) }}" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" autofocus 
+                                                                                             name="email" value="<?php echo e(old('email', request()->cookie('remembered_email', ''))); ?>" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" autofocus 
                                                placeholder="admin@psu.edu.ph" style="font-size: 1rem;">
                                     </div>
                                 </div>
@@ -315,7 +315,7 @@
 
                                 <div class="mb-4 px-1">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="remember" id="remember" value="1" {{ old('remember') || request()->hasCookie('remembered_email') ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="checkbox" name="remember" id="remember" value="1" <?php echo e(old('remember') || request()->hasCookie('remembered_email') ? 'checked' : ''); ?>>
                                         <label class="form-check-label text-white small" for="remember">Keep session active</label>
                                     </div>
                                 </div>
@@ -326,18 +326,18 @@
                                         LOG IN
                                     </button>
 
-                                    <a href="{{ route('register') }}" class="login-signup btn btn-lg shadow-lg fw-bold py-3 fs-5 flex-fill d-inline-flex align-items-center justify-content-center text-decoration-none" 
+                                    <a href="<?php echo e(route('register')); ?>" class="login-signup btn btn-lg shadow-lg fw-bold py-3 fs-5 flex-fill d-inline-flex align-items-center justify-content-center text-decoration-none" 
                                        style="background: rgba(255, 255, 255, 0.12); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 12px; transition: 0.3s; letter-spacing: 3px; min-width: 0;">
                                         SIGN UP
                                     </a>
                                 </div>
 
                                 <div class="text-center mt-3">
-                                    <a class="login-forgot text-decoration-none small fw-bold" href="{{ route('password.code.form') }}">
+                                    <a class="login-forgot text-decoration-none small fw-bold" href="<?php echo e(route('password.code.form')); ?>">
                                         Forgot Password?
                                     </a>
                                     <span class="text-white-50 mx-2">|</span>
-                                    <a class="login-forgot text-decoration-none small fw-bold" href="{{ route('password.status.form') }}">
+                                    <a class="login-forgot text-decoration-none small fw-bold" href="<?php echo e(route('password.status.form')); ?>">
                                         Check Request Status
                                     </a>
                                 </div>
@@ -376,4 +376,5 @@
         passwordValue.value = loginPassword.value;
     });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\sinag\resources\views/auth/login.blade.php ENDPATH**/ ?>

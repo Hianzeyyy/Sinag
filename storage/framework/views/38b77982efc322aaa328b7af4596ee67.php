@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <style>
     .student-dashboard-page {
         --accent: #A594F9;
@@ -600,24 +600,24 @@
     <div class="student-dashboard-wrap">
         <div class="gad-card-carousel mb-4" aria-label="GAD events carousel">
             <div class="gad-card-stage" id="gadCardStage">
-                @foreach([
+                <?php $__currentLoopData = [
                     ['file' => 'carousel1', 'title' => 'Stop Violence Against Women'],
                     ['file' => 'carousel2', 'title' => 'Gender Equality and Inclusive Society'],
                     ['file' => 'carousel3', 'title' => 'Gender and Development Awareness'],
                     ['file' => 'carousel4', 'title' => 'Safe Space and Support'],
-                ] as $carousel)
-                    <a class="gad-card-slide rounded-xl overflow-hidden" data-gad-index="{{ $loop->index }}" href="{{ route('student.event', ['id' => $loop->iteration]) }}">
-                        <img class="w-full h-auto" src="{{ asset('images/' . $carousel['file'] . '.jpg') }}" alt="{{ $carousel['title'] }}">
-                        <span class="gad-card-slide-title">{{ $carousel['title'] }}</span>
+                ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $carousel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <a class="gad-card-slide rounded-xl overflow-hidden" data-gad-index="<?php echo e($loop->index); ?>" href="<?php echo e(route('student.event', ['id' => $loop->iteration])); ?>">
+                        <img class="w-full h-auto" src="<?php echo e(asset('images/' . $carousel['file'] . '.jpg')); ?>" alt="<?php echo e($carousel['title']); ?>">
+                        <span class="gad-card-slide-title"><?php echo e($carousel['title']); ?></span>
                     </a>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
             <button type="button" class="gad-card-control prev" id="gadCardPrev" aria-label="Previous GAD event"><i class="bi bi-chevron-left"></i></button>
             <button type="button" class="gad-card-control next" id="gadCardNext" aria-label="Next GAD event"><i class="bi bi-chevron-right"></i></button>
             <div class="gad-card-suns" aria-label="GAD event position">
-                @foreach([1, 2, 3, 4] as $sun)
-                    <button type="button" class="gad-card-sun" data-gad-target="{{ $loop->index }}" aria-label="Show GAD event {{ $sun }}"><i class="bi bi-sun-fill"></i></button>
-                @endforeach
+                <?php $__currentLoopData = [1, 2, 3, 4]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sun): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <button type="button" class="gad-card-sun" data-gad-target="<?php echo e($loop->index); ?>" aria-label="Show GAD event <?php echo e($sun); ?>"><i class="bi bi-sun-fill"></i></button>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
 
@@ -630,36 +630,36 @@
                 </div>
                 <div class="carousel-inner">
                     <div class="carousel-item active">
-                        <a href="{{ route('student.event', ['id' => 1]) }}" class="d-block text-decoration-none">
-                            <img src="{{ asset('images/gadevent1.jpg') }}" alt="Campus event 1">
+                        <a href="<?php echo e(route('student.event', ['id' => 1])); ?>" class="d-block text-decoration-none">
+                            <img src="<?php echo e(asset('images/gadevent1.jpg')); ?>" alt="Campus event 1">
                         </a>
                         <div class="carousel-caption">
                             <div class="carousel-caption-kicker">Campus Event</div>
                             <h3 class="carousel-caption-title">A safer campus starts with informed students.</h3>
                             <p class="carousel-caption-text mb-2">Tap through the current GAD stories and event highlights to stay connected with the office.</p>
-                            <a href="{{ route('student.event', ['id' => 1]) }}" class="btn btn-sm btn-light rounded-pill px-3 fw-bold">View event</a>
+                            <a href="<?php echo e(route('student.event', ['id' => 1])); ?>" class="btn btn-sm btn-light rounded-pill px-3 fw-bold">View event</a>
                         </div>
                     </div>
                     <div class="carousel-item">
-                        <a href="{{ route('student.event', ['id' => 2]) }}" class="d-block text-decoration-none">
-                            <img src="{{ asset('images/gadevent3.jpg') }}" alt="Campus event 3">
+                        <a href="<?php echo e(route('student.event', ['id' => 2])); ?>" class="d-block text-decoration-none">
+                            <img src="<?php echo e(asset('images/gadevent3.jpg')); ?>" alt="Campus event 3">
                         </a>
                         <div class="carousel-caption">
                             <div class="carousel-caption-kicker">Awareness Drive</div>
                             <h3 class="carousel-caption-title">Know the channels for reports, support, and guidance.</h3>
                             <p class="carousel-caption-text mb-2">Use the dashboard tools below whenever you need a fast way to reach the right service.</p>
-                            <a href="{{ route('student.event', ['id' => 2]) }}" class="btn btn-sm btn-light rounded-pill px-3 fw-bold">View event</a>
+                            <a href="<?php echo e(route('student.event', ['id' => 2])); ?>" class="btn btn-sm btn-light rounded-pill px-3 fw-bold">View event</a>
                         </div>
                     </div>
                     <div class="carousel-item">
-                        <a href="{{ route('student.event', ['id' => 3]) }}" class="d-block text-decoration-none">
-                            <img src="{{ asset('images/gadevent4.jpg') }}" alt="Campus event 4">
+                        <a href="<?php echo e(route('student.event', ['id' => 3])); ?>" class="d-block text-decoration-none">
+                            <img src="<?php echo e(asset('images/gadevent4.jpg')); ?>" alt="Campus event 4">
                         </a>
                         <div class="carousel-caption">
                             <div class="carousel-caption-kicker">Support Spotlight</div>
                             <h3 class="carousel-caption-title">Visible support makes reporting easier.</h3>
                             <p class="carousel-caption-text mb-2">Student safety information is kept close to the top so you do not have to hunt for it.</p>
-                            <a href="{{ route('student.event', ['id' => 3]) }}" class="btn btn-sm btn-light rounded-pill px-3 fw-bold">View event</a>
+                            <a href="<?php echo e(route('student.event', ['id' => 3])); ?>" class="btn btn-sm btn-light rounded-pill px-3 fw-bold">View event</a>
                         </div>
                     </div>
                 </div>
@@ -690,7 +690,7 @@
             <div class="card-body p-4 p-lg-4 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
                 <div>
                     <div class="daily-quote-label mb-2"><i class="bi bi-stars me-1"></i>Daily Quote</div>
-                    <div class="daily-quote-text">{{ $motivationQuote ?? 'Your safety matters.' }}</div>
+                    <div class="daily-quote-text"><?php echo e($motivationQuote ?? 'Your safety matters.'); ?></div>
                 </div>
                 <div class="text-lg-end text-muted small fw-semibold" style="max-width: 18rem;">
                     A new reminder appears each day to keep support visible and close.
@@ -703,7 +703,7 @@
                 <div class="stat-card" style="background: linear-gradient(130deg, #8f72f5 0%, #A594F9 100%);">
                     <div class="position-relative h-100 p-3">
                         <div class="stat-label text-white-50 mb-2">Announcements</div>
-                        <h2 class="fw-bold mb-1">{{ ($announcements ?? collect())->count() }}</h2>
+                        <h2 class="fw-bold mb-1"><?php echo e(($announcements ?? collect())->count()); ?></h2>
                         <small class="text-white-50">Latest campus updates</small>
                     </div>
                 </div>
@@ -731,7 +731,7 @@
                     <div class="position-relative h-100 p-3">
                         <div class="stat-label text-white-50 mb-2">Support Quote</div>
                         <h2 class="fw-bold mb-1">Go</h2>
-                        <small class="text-white-50">{{ $motivationQuote ?? 'Your voice is valid.' }}</small>
+                        <small class="text-white-50"><?php echo e($motivationQuote ?? 'Your voice is valid.'); ?></small>
                     </div>
                 </div>
             </div>
@@ -746,32 +746,33 @@
                                 <div class="section-title mb-1">Recent Announcements</div>
                                 <div class="section-subtitle">Updates from the GAD office and school administrators.</div>
                             </div>
-                            <a href="{{ route('student.messaging') }}" class="btn btn-sm rounded-pill px-3 fw-bold" style="background:#A594F9; color:#fff;">Open Messages</a>
+                            <a href="<?php echo e(route('student.messaging')); ?>" class="btn btn-sm rounded-pill px-3 fw-bold" style="background:#A594F9; color:#fff;">Open Messages</a>
                         </div>
                     </div>
                     <div class="card-body p-3 p-lg-4">
-                        @forelse(($announcements ?? collect())->take(3) as $announcement)
-                            <a href="{{ route('student.announcement', ['id' => $announcement->id]) }}" class="announcement-link d-block text-decoration-none mb-3">
+                        <?php $__empty_1 = true; $__currentLoopData = ($announcements ?? collect())->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $announcement): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <a href="<?php echo e(route('student.announcement', ['id' => $announcement->id])); ?>" class="announcement-link d-block text-decoration-none mb-3">
                                 <div class="announcement-item p-3 h-100">
                                     <div class="d-flex align-items-start justify-content-between gap-3">
                                         <div>
                                             <div class="chip mb-2">Announcement</div>
-                                            <h5 class="fw-bold mb-1 text-dark">{{ $announcement->title }}</h5>
+                                            <h5 class="fw-bold mb-1 text-dark"><?php echo e($announcement->title); ?></h5>
                                             <div class="announcement-meta mb-2">
-                                                <i class="bi bi-calendar-event me-1"></i>{{ optional($announcement->created_at)->format('M d, Y') ?? 'Recently posted' }}
+                                                <i class="bi bi-calendar-event me-1"></i><?php echo e(optional($announcement->created_at)->format('M d, Y') ?? 'Recently posted'); ?>
+
                                             </div>
                                         </div>
                                         <span class="chip flex-shrink-0">Open</span>
                                     </div>
-                                    <p class="mb-0 text-muted" style="line-height:1.75;">{{ \Illuminate\Support\Str::limit($announcement->body ?? $announcement->content ?? '', 180) }}</p>
+                                    <p class="mb-0 text-muted" style="line-height:1.75;"><?php echo e(\Illuminate\Support\Str::limit($announcement->body ?? $announcement->content ?? '', 180)); ?></p>
                                 </div>
                             </a>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <div class="text-center py-5 text-muted">
                                 <i class="bi bi-megaphone-fill fs-2 d-block mb-2"></i>
                                 No announcements yet.
                             </div>
-                        @endforelse
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -784,10 +785,10 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="d-grid gap-3">
-                            <a href="{{ route('student.report') }}" class="quick-action-btn primary">File a Report</a>
-                            <a href="{{ route('student.vault') }}" class="quick-action-btn">Stealth Vault</a>
-                            <a href="{{ route('student.boses') }}" class="quick-action-btn">Community Suggestions</a>
-                            <a href="{{ route('student.messaging') }}" class="quick-action-btn">Message GAD</a>
+                            <a href="<?php echo e(route('student.report')); ?>" class="quick-action-btn primary">File a Report</a>
+                            <a href="<?php echo e(route('student.vault')); ?>" class="quick-action-btn">Stealth Vault</a>
+                            <a href="<?php echo e(route('student.boses')); ?>" class="quick-action-btn">Community Suggestions</a>
+                            <a href="<?php echo e(route('student.messaging')); ?>" class="quick-action-btn">Message GAD</a>
                         </div>
                         <div class="mt-4 p-3 rounded-4" style="background: rgba(124,58,237,0.05); border:1px solid rgba(124,58,237,0.08);">
                             <div class="fw-bold mb-2" style="color:#8f72f5;">Quick reminders</div>
@@ -821,24 +822,24 @@
                 </div>
             </div>
             <div class="row g-3">
-                @foreach([
+                <?php $__currentLoopData = [
                     ['id' => 1, 'image' => 'gadeventnew1.png', 'title' => 'GAD Graphics Launch', 'text' => 'Explore the latest GAD visual stories and campus messages.'],
                     ['id' => 2, 'image' => 'gadevent2.1.jpg', 'title' => 'Awareness and Support Week', 'text' => 'Learn where to find reporting, privacy, and support channels.'],
                     ['id' => 3, 'image' => 'gadevent3.1.jpg', 'title' => 'Student Safety Connect', 'text' => 'Discover activities that connect students with GAD support.'],
                     ['id' => 4, 'image' => 'gadevent4.1.jpg', 'title' => 'Support Spotlight', 'text' => 'Keep visible support close whenever you need guidance.'],
                     ['id' => 5, 'image' => 'gadevent3.jpg', 'title' => 'Community Awareness', 'text' => 'Build a safer, more informed, and inclusive campus community.'],
-                ] as $event)
+                ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $event): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="col-6 col-lg-4 col-xl">
-                        <a href="{{ route('student.event', ['id' => $event['id']]) }}" class="dashboard-event-card d-block">
-                            <img src="{{ asset('images/' . $event['image']) }}" alt="{{ $event['title'] }}">
+                        <a href="<?php echo e(route('student.event', ['id' => $event['id']])); ?>" class="dashboard-event-card d-block">
+                            <img src="<?php echo e(asset('images/' . $event['image'])); ?>" alt="<?php echo e($event['title']); ?>">
                             <div class="dashboard-event-card-body">
-                                <div class="dashboard-event-card-title">{{ $event['title'] }}</div>
-                                <div class="small mt-1">{{ $event['text'] }}</div>
+                                <div class="dashboard-event-card-title"><?php echo e($event['title']); ?></div>
+                                <div class="small mt-1"><?php echo e($event['text']); ?></div>
                                 <div class="small fw-bold mt-2" style="color:#8f72f5;">Open event <i class="bi bi-arrow-right"></i></div>
                             </div>
                         </a>
                     </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </section>
 
@@ -854,7 +855,7 @@
                         </div>
                     </div>
                     <div class="card-body p-4">
-                        @php
+                        <?php
                             $referencePreviewItems = [
                                 ['slug' => 'hivaids', 'title' => 'HIV/AIDS Awareness', 'summary' => 'HIV/AIDS awareness helps students understand prevention, care, and responsible behavior.', 'image' => 'images/hivaids.jpg'],
                                 ['slug' => 'antisexualharassmentpolicy', 'title' => 'Anti-Sexual Harassment Policy', 'summary' => 'This policy explains how the institution defines and handles sexual harassment.', 'image' => 'images/antisexualharassmentpolicy.jpg'],
@@ -863,23 +864,23 @@
                                 ['slug' => 'ra9208', 'title' => 'Republic Act 9208', 'summary' => 'Republic Act 9208 targets trafficking in persons, especially women and children.', 'image' => 'images/ra9208.jpg'],
                                 ['slug' => 'ra9710', 'title' => 'Republic Act 9710', 'summary' => 'Republic Act 9710 affirms the rights and dignity of women and girls.', 'image' => 'images/ra9710.jpg'],
                             ];
-                        @endphp
+                        ?>
 
                         <div class="row g-3">
-                            @foreach($referencePreviewItems as $reference)
+                            <?php $__currentLoopData = $referencePreviewItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $reference): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="col-6 col-md-4 col-xl-2">
                                     <div class="reference-card h-100" style="cursor: default;">
-                                        <div class="reference-card-visual" style="background-image:url('{{ asset($reference['image']) }}'); min-height: 200px;"></div>
+                                        <div class="reference-card-visual" style="background-image:url('<?php echo e(asset($reference['image'])); ?>'); min-height: 200px;"></div>
                                         <div class="reference-card-content text-center">
-                                            <div class="reference-card-title">{{ $reference['title'] }}</div>
-                                            <div class="reference-card-body">{{ $reference['summary'] }}</div>
-                                            <a href="{{ route('student.reference', ['slug' => $reference['slug']]) }}" class="reference-link mt-2 d-inline-block">
+                                            <div class="reference-card-title"><?php echo e($reference['title']); ?></div>
+                                            <div class="reference-card-body"><?php echo e($reference['summary']); ?></div>
+                                            <a href="<?php echo e(route('student.reference', ['slug' => $reference['slug']])); ?>" class="reference-link mt-2 d-inline-block">
                                                 <i class="bi bi-arrow-right-short me-1"></i>Read More
                                             </a>
                                         </div>
                                     </div>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                     </div>
                 </div>
@@ -891,24 +892,24 @@
     <footer class="student-dashboard-footer">
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-2">
-                    <img src="{{ asset('images/gadlogo.png') }}" alt="SINAG GAD logo" style="width:38px;height:38px;object-fit:cover;border-radius:50%;">
+                    <img src="<?php echo e(asset('images/gadlogo.png')); ?>" alt="SINAG GAD logo" style="width:38px;height:38px;object-fit:cover;border-radius:50%;">
                     <div>
                         <div class="student-dashboard-footer-brand">SI<span style="color:#facc15;">NAG</span></div>
                         <div class="small mt-1">Safety and Integrity Network for Abuse and Gender-bias</div>
                     </div>
                 </div>
-                @php
+                <?php
                     $footerOfficeInfo = \Illuminate\Support\Facades\Cache::get('gad_office_info', [
                         'phone_number' => '0919-777-7377',
                         'office_email' => 'gad@psu.edu.ph',
                     ]);
                     $footerPhone = $footerOfficeInfo['phone_number'] ?? '0919-777-7377';
                     $footerEmail = $footerOfficeInfo['office_email'] ?? 'gad@psu.edu.ph';
-                @endphp
+                ?>
                 <div class="small text-md-end">
                     <div>PSU Gender and Development Office</div>
-                    <div class="mt-1"><i class="bi bi-envelope me-1"></i> <a href="mailto:{{ $footerEmail }}" class="text-white text-decoration-none">{{ $footerEmail }}</a></div>
-                    <div class="mt-1"><i class="bi bi-telephone me-1"></i> <a href="tel:{{ $footerPhone }}" class="text-white text-decoration-none">{{ $footerPhone }}</a></div>
+                    <div class="mt-1"><i class="bi bi-envelope me-1"></i> <a href="mailto:<?php echo e($footerEmail); ?>" class="text-white text-decoration-none"><?php echo e($footerEmail); ?></a></div>
+                    <div class="mt-1"><i class="bi bi-telephone me-1"></i> <a href="tel:<?php echo e($footerPhone); ?>" class="text-white text-decoration-none"><?php echo e($footerPhone); ?></a></div>
                     <div class="mt-1"><i class="bi bi-shield-check me-1"></i> Your safety matters.</div>
                 </div>
             </div>
@@ -964,4 +965,6 @@
         window.setInterval(advanceSlide, 8000);
     });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\sinag\resources\views/student/dashboard.blade.php ENDPATH**/ ?>

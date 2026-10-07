@@ -153,7 +153,7 @@
                             <td>
                                 <div class="small">
                                     <div class="text-dark fw-medium"><i class="bi bi-envelope-at me-1"></i>{{ $user->email }}</div>
-                                    <div class="text-dark fw-medium mt-1"><i class="bi bi-phone me-1"></i>{{ $user->phone_number ?? 'No phone submitted' }}</div>
+                                    <div class="text-dark fw-medium mt-1"><i class="bi bi-phone me-1"></i><a href="tel:{{ $user->phone_number }}">{{ $user->phone_number ?? 'No phone submitted' }}</a></div>
                                 </div>
                             </td>
 
@@ -209,7 +209,7 @@
                                             <div><span>Department / Course</span><strong>{{ $user->department ?: 'N/A' }}</strong></div>
                                             <div><span>Age</span><strong>{{ $user->age ?: 'N/A' }}</strong></div>
                                             <div><span>Gender</span><strong>{{ $user->gender ?: 'N/A' }}</strong></div>
-                                            <div><span>Phone</span><strong>{{ $user->phone_number ?: 'N/A' }}</strong></div>
+                                            <div><span>Phone</span><strong>@if($user->phone_number)<a href="tel:{{ $user->phone_number }}" class="text-decoration-none text-primary"><i class="bi bi-telephone-outbound me-1"></i>{{ $user->phone_number }}</a>@else N/A @endif</strong></div>
                                             <div><span>Status</span><strong>{{ ucfirst($accountStatus) }}</strong></div>
                                         </div>
                                         <div class="resume-id-section">

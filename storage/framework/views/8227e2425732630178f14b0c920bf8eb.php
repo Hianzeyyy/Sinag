@@ -1,10 +1,10 @@
-@extends('layouts.app')
 
-@php
+
+<?php
     use Illuminate\Support\Facades\Auth;
-@endphp
+?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -498,12 +498,12 @@ body {
 <div class="msg-page">
     <div class="msg-layout">
 
-        {{-- ── LEFT: CHAT ─────────────────────────── --}}
+        
         <div class="msg-chat-card">
 
-            {{-- Chat header --}}
+            
             <div class="msg-chat-header">
-                <img src="{{ asset('images/gadlogo.png') }}" alt="GAD" class="msg-chat-header-avatar">
+                <img src="<?php echo e(asset('images/gadlogo.png')); ?>" alt="GAD" class="msg-chat-header-avatar">
                 <div class="msg-chat-header-info">
                     <div class="msg-chat-header-name">GAD Office</div>
                     <div class="msg-chat-header-status">
@@ -513,47 +513,47 @@ body {
                 </div>
             </div>
 
-            {{-- Messages thread --}}
+            
             <div class="msg-thread" id="messagingThread">
-                @if($messages->isEmpty())
+                <?php if($messages->isEmpty()): ?>
                     <div class="msg-empty">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                         </svg>
                         <p>No messages yet. Start a conversation with the GAD office!</p>
                     </div>
-                @else
-                    @foreach($messages as $message)
-                        <div class="msg-group {{ $message->sender_id === Auth::id() ? 'user' : 'admin' }}"
-                             data-message-id="{{ $message->id }}">
+                <?php else: ?>
+                    <?php $__currentLoopData = $messages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $message): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <div class="msg-group <?php echo e($message->sender_id === Auth::id() ? 'user' : 'admin'); ?>"
+                             data-message-id="<?php echo e($message->id); ?>">
 
-                            @if($message->sender_id !== Auth::id())
-                                <img src="{{ asset('images/gadlogo.png') }}" alt="GAD" class="msg-admin-avatar">
-                            @endif
+                            <?php if($message->sender_id !== Auth::id()): ?>
+                                <img src="<?php echo e(asset('images/gadlogo.png')); ?>" alt="GAD" class="msg-admin-avatar">
+                            <?php endif; ?>
 
                             <div class="msg-bubble-wrap">
-                                @if($message->sender_id !== Auth::id())
+                                <?php if($message->sender_id !== Auth::id()): ?>
                                     <div class="msg-sender-name">GAD Office</div>
-                                @endif
+                                <?php endif; ?>
 
-                                <div class="msg-bubble" id="bubble-{{ $message->id }}">
-                                    <span class="message-text" id="message-text-{{ $message->id }}">{{ $message->message }}</span>
+                                <div class="msg-bubble" id="bubble-<?php echo e($message->id); ?>">
+                                    <span class="message-text" id="message-text-<?php echo e($message->id); ?>"><?php echo e($message->message); ?></span>
                                 </div>
 
                                 <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                                    <div class="msg-time">{{ $message->created_at->format('M d, g:i A') }}</div>
-                                    @if($message->sender_id === Auth::id())
-                                        <button class="msg-action-btn edit" onclick="startEdit({{ $message->id }})">Edit</button>
-                                        <button class="msg-action-btn delete" onclick="confirmDelete({{ $message->id }})">Delete</button>
-                                    @endif
+                                    <div class="msg-time"><?php echo e($message->created_at->format('M d, g:i A')); ?></div>
+                                    <?php if($message->sender_id === Auth::id()): ?>
+                                        <button class="msg-action-btn edit" onclick="startEdit(<?php echo e($message->id); ?>)">Edit</button>
+                                        <button class="msg-action-btn delete" onclick="confirmDelete(<?php echo e($message->id); ?>)">Delete</button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                    @endforeach
-                @endif
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php endif; ?>
             </div>
 
-            {{-- Input area --}}
+            
             <div class="msg-input-area">
                 <textarea class="msg-textarea" id="messageInput"
                           placeholder="Type your message…" rows="2"></textarea>
@@ -567,10 +567,10 @@ body {
             </div>
         </div>
 
-        {{-- ── RIGHT COLUMN ────────────────────────── --}}
+        
         <div class="msg-right">
 
-            {{-- Urgent Video Call --}}
+            
             <div class="msg-urgent-card">
                 <div class="msg-urgent-badge">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -592,7 +592,7 @@ body {
                 </button>
             </div>
 
-            {{-- Office Info --}}
+            
             <div class="msg-info-card">
                 <div class="msg-info-title">Office Info</div>
 
@@ -603,7 +603,8 @@ body {
                             <polyline points="12 6 12 12 16 14"/>
                         </svg>
                     </div>
-                    {{ $officeInfo['office_hours'] ?? 'Mon – Fri, 8:00 AM – 5:00 PM' }}
+                    <?php echo e($officeInfo['office_hours'] ?? 'Mon – Fri, 8:00 AM – 5:00 PM'); ?>
+
                 </div>
 
                 <div class="msg-info-row">
@@ -613,7 +614,8 @@ body {
                             <circle cx="12" cy="10" r="3"/>
                         </svg>
                     </div>
-                    {{ $officeInfo['office_location'] ?? 'Admin Building, Room 105' }}
+                    <?php echo e($officeInfo['office_location'] ?? 'Admin Building, Room 105'); ?>
+
                 </div>
 
                 <div class="msg-info-row">
@@ -623,20 +625,20 @@ body {
                             <polyline points="22,6 12,13 2,6"/>
                         </svg>
                     </div>
-                    <a href="mailto:{{ $officeInfo['office_email'] ?? 'gad@psu.edu.ph' }}" class="msg-info-link">{{ $officeInfo['office_email'] ?? 'gad@psu.edu.ph' }}</a>
+                    <a href="mailto:<?php echo e($officeInfo['office_email'] ?? 'gad@psu.edu.ph'); ?>" class="msg-info-link"><?php echo e($officeInfo['office_email'] ?? 'gad@psu.edu.ph'); ?></a>
                 </div>
 
-                @php
+                <?php
                     $gadPhone = $officeInfo['phone_number'] ?? ($admin->phone_number ?? '0919-777-7377');
-                @endphp
+                ?>
                 <div class="msg-info-row">
                     <div class="msg-info-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                         </svg>
                     </div>
-                    <a href="tel:{{ $gadPhone }}" class="msg-info-link" title="Click to call GAD Office">
-                        <span>{{ $gadPhone }}</span>
+                    <a href="tel:<?php echo e($gadPhone); ?>" class="msg-info-link" title="Click to call GAD Office">
+                        <span><?php echo e($gadPhone); ?></span>
                         <span class="msg-call-badge"><i class="bi bi-telephone-outbound me-1"></i>Call</span>
                     </a>
                 </div>
@@ -647,7 +649,7 @@ body {
 </div>
 
 <script>
-const CSRF = '{{ csrf_token() }}';
+const CSRF = '<?php echo e(csrf_token()); ?>';
 
 function escapeHtml(text) {
     const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' };
@@ -663,7 +665,7 @@ function sendMessage() {
     btn.disabled = true;
     input.disabled = true;
 
-    fetch("{{ route('student.messages.store') }}", {
+    fetch("<?php echo e(route('student.messages.store')); ?>", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify({ message })
@@ -696,7 +698,7 @@ document.getElementById('messageInput').addEventListener('keydown', function(e) 
 });
 
 document.getElementById('urgentCallBtn').addEventListener('click', function() {
-    window.location.href = "{{ route('student.urgent') }}";
+    window.location.href = "<?php echo e(route('student.urgent')); ?>";
 });
 
 window.addEventListener('load', function() {
@@ -762,4 +764,5 @@ function confirmDelete(id) {
     .catch(() => alert('Failed to delete message'));
 }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\sinag\resources\views/student/messaging.blade.php ENDPATH**/ ?>

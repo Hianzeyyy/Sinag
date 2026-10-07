@@ -217,7 +217,14 @@ class StudentController extends Controller
                   ->where('receiver_id', $userId);
         })->orderBy('created_at', 'asc')->get();
         
-        return view('student.messaging', compact('messages', 'admin'));
+        $officeInfo = \Illuminate\Support\Facades\Cache::get('gad_office_info', [
+            'phone_number' => $admin?->phone_number ?: '0919-777-7377',
+            'office_hours' => 'Mon – Fri, 8:00 AM – 5:00 PM',
+            'office_location' => 'Admin Building, Room 105',
+            'office_email' => $admin?->email ?: 'gad@psu.edu.ph',
+        ]);
+        
+        return view('student.messaging', compact('messages', 'admin', 'officeInfo'));
     }
 
     /**

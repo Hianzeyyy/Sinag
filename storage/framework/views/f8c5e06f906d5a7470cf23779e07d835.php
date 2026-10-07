@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <style>
     .sinag-violet-badge { background: #d8cdfc; color: #5b4b9b; }
     .sinag-yellow-badge { background: #f8cb12; color: #4a3500; }
@@ -241,15 +241,15 @@
 
 <div class="container-fluid admin-dashboard-page">
     <div class="admin-dashboard-wrap">
-        @if(session('success'))
+        <?php if(session('success')): ?>
             <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between p-3" role="alert" style="background: #eefdf3; color: #166534;">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                    <span class="fw-medium">{{ session('success') }}</span>
+                    <span class="fw-medium"><?php echo e(session('success')); ?></span>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        @endif
+        <?php endif; ?>
 
         <div class="card admin-hero mb-4">
             <div class="card-body p-4 p-lg-5">
@@ -266,16 +266,16 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2" aria-labelledby="exportGadReportDropdown" style="min-width: 270px;">
                                 <li><h6 class="dropdown-header text-uppercase fw-bold small text-muted px-3 py-1"><i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> PDF Reports</h6></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'pdf','period'=>'weekly']) }}"><i class="bi bi-calendar-week me-2 text-primary"></i>Weekly (Last 7 Days)</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'pdf','period'=>'30days']) }}"><i class="bi bi-calendar3 me-2 text-primary"></i>Last 30 Days</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'pdf','period'=>'monthly']) }}"><i class="bi bi-calendar-month me-2 text-primary"></i>This Month</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'pdf','period'=>'yearly']) }}"><i class="bi bi-calendar-check me-2 text-primary"></i>This Year</a></li>
+                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="<?php echo e(route('admin.gad-report.export', ['format'=>'pdf','period'=>'weekly'])); ?>"><i class="bi bi-calendar-week me-2 text-primary"></i>Weekly (Last 7 Days)</a></li>
+                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="<?php echo e(route('admin.gad-report.export', ['format'=>'pdf','period'=>'30days'])); ?>"><i class="bi bi-calendar3 me-2 text-primary"></i>Last 30 Days</a></li>
+                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="<?php echo e(route('admin.gad-report.export', ['format'=>'pdf','period'=>'monthly'])); ?>"><i class="bi bi-calendar-month me-2 text-primary"></i>This Month</a></li>
+                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="<?php echo e(route('admin.gad-report.export', ['format'=>'pdf','period'=>'yearly'])); ?>"><i class="bi bi-calendar-check me-2 text-primary"></i>This Year</a></li>
                                 <li><hr class="dropdown-divider my-2"></li>
                                 <li><h6 class="dropdown-header text-uppercase fw-bold small text-muted px-3 py-1"><i class="bi bi-file-earmark-excel-fill text-success me-1"></i> Excel / CSV Spreadsheets</h6></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'excel','period'=>'weekly']) }}"><i class="bi bi-calendar-week me-2 text-success"></i>Weekly (Last 7 Days)</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'excel','period'=>'30days']) }}"><i class="bi bi-calendar3 me-2 text-success"></i>Last 30 Days</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'excel','period'=>'monthly']) }}"><i class="bi bi-calendar-month me-2 text-success"></i>This Month</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'excel','period'=>'yearly']) }}"><i class="bi bi-calendar-check me-2 text-success"></i>This Year</a></li>
+                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="<?php echo e(route('admin.gad-report.export', ['format'=>'excel','period'=>'weekly'])); ?>"><i class="bi bi-calendar-week me-2 text-success"></i>Weekly (Last 7 Days)</a></li>
+                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="<?php echo e(route('admin.gad-report.export', ['format'=>'excel','period'=>'30days'])); ?>"><i class="bi bi-calendar3 me-2 text-success"></i>Last 30 Days</a></li>
+                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="<?php echo e(route('admin.gad-report.export', ['format'=>'excel','period'=>'monthly'])); ?>"><i class="bi bi-calendar-month me-2 text-success"></i>This Month</a></li>
+                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="<?php echo e(route('admin.gad-report.export', ['format'=>'excel','period'=>'yearly'])); ?>"><i class="bi bi-calendar-check me-2 text-success"></i>This Year</a></li>
                             </ul>
                         </div>
                     </div>
@@ -288,7 +288,7 @@
                 <div class="card metric-card h-100" style="background: linear-gradient(130deg, #8f72f5 0%, #A594F9 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Total Reports</h6>
-                        <h2 class="fw-bold mb-1">{{ $totalReports ?? 0 }}</h2>
+                        <h2 class="fw-bold mb-1"><?php echo e($totalReports ?? 0); ?></h2>
                         <small class="text-white-50">Active database records</small>
                     </div>
                 </div>
@@ -297,7 +297,7 @@
                 <div class="card metric-card h-100" style="background: linear-gradient(130deg, #c084fc 0%, #facc15 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Pending Review</h6>
-                        <h2 class="fw-bold mb-1">{{ $pendingReports ?? 0 }}</h2>
+                        <h2 class="fw-bold mb-1"><?php echo e($pendingReports ?? 0); ?></h2>
                         <small class="text-white-50">Requires attention</small>
                     </div>
                 </div>
@@ -306,7 +306,7 @@
                 <div class="card metric-card h-100" style="background: linear-gradient(130deg, #A594F9 0%, #c4b5fd 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Resolved Cases</h6>
-                        <h2 class="fw-bold mb-1">{{ $resolvedReports ?? 0 }}</h2>
+                        <h2 class="fw-bold mb-1"><?php echo e($resolvedReports ?? 0); ?></h2>
                         <small class="text-white-50">Completed actions</small>
                     </div>
                 </div>
@@ -328,7 +328,7 @@
                     <div class="card-header py-3 border-0">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-inbox-fill me-2" style="color: #8f72f5;"></i>Recent Reports</h5>
-                            <a href="{{ route('admin.reports') }}" class="btn btn-sm text-decoration-none fw-bold" style="color: #8f72f5;">See All <i class="bi bi-arrow-right"></i></a>
+                            <a href="<?php echo e(route('admin.reports')); ?>" class="btn btn-sm text-decoration-none fw-bold" style="color: #8f72f5;">See All <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -343,24 +343,25 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($recentReports ?? [] as $report)
+                                    <?php $__empty_1 = true; $__currentLoopData = $recentReports ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $report): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                     <tr>
-                                        <td class="ps-4 fw-bold">#{{ $report->incident_id }}</td>
-                                        <td class="small">{{ $report->nature }}</td>
+                                        <td class="ps-4 fw-bold">#<?php echo e($report->incident_id); ?></td>
+                                        <td class="small"><?php echo e($report->nature); ?></td>
                                         <td>
-                                            <span class="badge rounded-pill {{ $report->status == 'Pending' ? 'sinag-yellow-badge' : 'sinag-violet-badge' }}">
-                                                {{ $report->status }}
+                                            <span class="badge rounded-pill <?php echo e($report->status == 'Pending' ? 'sinag-yellow-badge' : 'sinag-violet-badge'); ?>">
+                                                <?php echo e($report->status); ?>
+
                                             </span>
                                         </td>
                                         <td class="text-end pe-4">
-                                            <a href="{{ route('admin.reports') }}" class="btn btn-sm rounded-pill px-3 py-1 review-btn">Review</a>
+                                            <a href="<?php echo e(route('admin.reports')); ?>" class="btn btn-sm rounded-pill px-3 py-1 review-btn">Review</a>
                                         </td>
                                     </tr>
-                                    @empty
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                     <tr>
                                         <td colspan="4" class="text-center py-4 text-muted small">No recent reports found.</td>
                                     </tr>
-                                    @endforelse
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -383,7 +384,7 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-3">
-                            <a href="{{ route('admin.users') }}" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn admin-tool-users">
+                            <a href="<?php echo e(route('admin.users')); ?>" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn admin-tool-users">
                                 <div class="d-flex align-items-center">
                                     <div class="tool-icon me-3" style="background: rgba(255,255,255,0.7);">
                                         <i class="bi bi-people-fill" style="color: #8f72f5;"></i>
@@ -396,7 +397,7 @@
                                 </div>
                             </a>
 
-                            <a href="{{ route('admin.suggestions') }}" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn admin-tool-boses">
+                            <a href="<?php echo e(route('admin.suggestions')); ?>" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn admin-tool-boses">
                                 <div class="d-flex align-items-center">
                                     <div class="tool-icon me-3" style="background: rgba(255,255,255,0.7);">
                                         <i class="bi bi-chat-square-dots-fill" style="color:#8f72f5;"></i>
@@ -409,7 +410,7 @@
                                 </div>
                             </a>
 
-                            <a href="{{ route('admin.announcements.index') }}" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn admin-tool-announcements">
+                            <a href="<?php echo e(route('admin.announcements.index')); ?>" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn admin-tool-announcements">
                                 <div class="d-flex align-items-center">
                                     <div class="tool-icon me-3" style="background: rgba(255,255,255,0.7);">
                                         <i class="bi bi-megaphone-fill" style="color: #A594F9;"></i>
@@ -422,7 +423,7 @@
                                 </div>
                             </a>
 
-                            <a href="{{ route('admin.gad-schedules.index') }}" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);">
+                            <a href="<?php echo e(route('admin.gad-schedules.index')); ?>" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);">
                                 <div class="d-flex align-items-center">
                                     <div class="tool-icon me-3" style="background: rgba(255,255,255,0.8);">
                                         <i class="bi bi-calendar2-week-fill" style="color:#8f72f5;"></i>
@@ -442,7 +443,7 @@
                                     </div>
                                     <div>
                                         <span class="d-block fw-bold text-dark small">Office Info & Hotline</span>
-                                        <small class="text-muted">{{ $officeInfo['phone_number'] ?? 'Set hotline number' }}</small>
+                                        <small class="text-muted"><?php echo e($officeInfo['phone_number'] ?? 'Set hotline number'); ?></small>
                                     </div>
                                     <span class="admin-tool-arrow ms-auto"><i class="bi bi-pencil-fill" style="font-size: 0.75rem;"></i></span>
                                 </div>
@@ -462,7 +463,7 @@
     </div>
 </div>
 
-{{-- Edit GAD Office Info Modal --}}
+
 <div class="modal fade" id="editOfficeInfoModal" tabindex="-1" aria-labelledby="editOfficeInfoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
@@ -473,14 +474,14 @@
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('admin.office-info.update') }}" method="POST">
-                @csrf
+            <form action="<?php echo e(route('admin.office-info.update')); ?>" method="POST">
+                <?php echo csrf_field(); ?>
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">GAD Hotline / Phone Number <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0"><i class="bi bi-telephone text-primary"></i></span>
-                            <input type="text" name="phone_number" class="form-control bg-light border-start-0 ps-0" value="{{ old('phone_number', $officeInfo['phone_number'] ?? auth()->user()->phone_number ?? '0919-777-7377') }}" placeholder="e.g. 0919-777-7377 or (075) 653-9000" required>
+                            <input type="text" name="phone_number" class="form-control bg-light border-start-0 ps-0" value="<?php echo e(old('phone_number', $officeInfo['phone_number'] ?? auth()->user()->phone_number ?? '0919-777-7377')); ?>" placeholder="e.g. 0919-777-7377 or (075) 653-9000" required>
                         </div>
                         <small class="text-muted">This phone number will be clickable (click-to-call) for students and faculty.</small>
                     </div>
@@ -489,7 +490,7 @@
                         <label class="form-label small fw-bold text-uppercase text-muted">Office Location / Room</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
-                            <input type="text" name="office_location" class="form-control bg-light border-start-0 ps-0" value="{{ old('office_location', $officeInfo['office_location'] ?? 'Admin Building, Room 105') }}" placeholder="e.g. Admin Building, Room 105">
+                            <input type="text" name="office_location" class="form-control bg-light border-start-0 ps-0" value="<?php echo e(old('office_location', $officeInfo['office_location'] ?? 'Admin Building, Room 105')); ?>" placeholder="e.g. Admin Building, Room 105">
                         </div>
                     </div>
 
@@ -497,7 +498,7 @@
                         <label class="form-label small fw-bold text-uppercase text-muted">Office Hours</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0"><i class="bi bi-clock text-primary"></i></span>
-                            <input type="text" name="office_hours" class="form-control bg-light border-start-0 ps-0" value="{{ old('office_hours', $officeInfo['office_hours'] ?? 'Mon – Fri, 8:00 AM – 5:00 PM') }}" placeholder="e.g. Mon – Fri, 8:00 AM – 5:00 PM">
+                            <input type="text" name="office_hours" class="form-control bg-light border-start-0 ps-0" value="<?php echo e(old('office_hours', $officeInfo['office_hours'] ?? 'Mon – Fri, 8:00 AM – 5:00 PM')); ?>" placeholder="e.g. Mon – Fri, 8:00 AM – 5:00 PM">
                         </div>
                     </div>
 
@@ -505,7 +506,7 @@
                         <label class="form-label small fw-bold text-uppercase text-muted">Official GAD Email</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-primary"></i></span>
-                            <input type="email" name="office_email" class="form-control bg-light border-start-0 ps-0" value="{{ old('office_email', $officeInfo['office_email'] ?? auth()->user()->email ?? 'gad@psu.edu.ph') }}" placeholder="e.g. gad@psu.edu.ph">
+                            <input type="email" name="office_email" class="form-control bg-light border-start-0 ps-0" value="<?php echo e(old('office_email', $officeInfo['office_email'] ?? auth()->user()->email ?? 'gad@psu.edu.ph')); ?>" placeholder="e.g. gad@psu.edu.ph">
                         </div>
                     </div>
                 </div>
@@ -517,4 +518,5 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\sinag\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>

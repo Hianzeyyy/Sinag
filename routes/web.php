@@ -5,7 +5,9 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\AdminController; 
+
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ExportGADReportController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SuggestionController;
@@ -64,6 +66,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/messages/store', [AdminController::class, 'storeMessage'])->name('messages.store');
         Route::get('/gad-schedules', [AdminController::class, 'gadSchedules'])->name('gad-schedules.index');
         Route::post('/gad-schedules/sync', [AdminController::class, 'syncGadSchedule'])->name('gad-schedules.sync');
+        Route::post('/office-info', [AdminController::class, 'updateOfficeInfo'])->name('office-info.update');
+        // Export GAD report (admin only)
+        Route::get('/gad-report/export/{format}/{period?}', [ExportGADReportController::class, 'export'])->name('gad-report.export');
         Route::post('/gad-schedules', [AdminController::class, 'storeGadSchedule'])->name('gad-schedules.store');
         Route::put('/gad-schedules/{id}', [AdminController::class, 'updateGadSchedule'])->name('gad-schedules.update');
         Route::post('/gad-schedules/{id}/status', [AdminController::class, 'updateGadScheduleStatus'])->name('gad-schedules.status');
