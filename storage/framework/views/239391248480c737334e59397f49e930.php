@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <style>
     .gad-student * { box-sizing: border-box; }
     .gad-student {
@@ -180,7 +180,7 @@
     }
 </style>
 
-@php
+<?php
     $schedulePayload = $schedules->map(function($s) {
         $type = 'hours';
         if ($s->status === 'unavailable' || $s->details === 'unavailable') {
@@ -199,12 +199,12 @@
             'details'           => $s->details,
         ];
     })->values();
-@endphp
+?>
 
 <div class="gad-student">
     <div class="panel">
 
-        {{-- Header --}}
+        
         <div class="cal-header">
             <div>
                 <div class="cal-label">GAD Office availability</div>
@@ -217,7 +217,7 @@
             </div>
         </div>
 
-        {{-- Calendar --}}
+        
         <div class="cal-body">
             <div class="cal-grid" id="calGrid"></div>
         </div>
@@ -226,7 +226,7 @@
 </div>
 
 <script>
-const scheduleData = @json($schedulePayload);
+const scheduleData = <?php echo json_encode($schedulePayload, 15, 512) ?>;
 const scheduleMap = {};
 
 let currentMonth = new Date().getMonth();
@@ -371,4 +371,5 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar(currentMonth, currentYear);
 });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\sinag\resources\views/student/gad_schedule.blade.php ENDPATH**/ ?>

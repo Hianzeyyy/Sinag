@@ -10,9 +10,14 @@
 </h1>
             <p class="text-muted"></p>
         </div>
-        <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none;">
-            <i class="bi bi-plus-circle"></i> New Appointment
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('student.gad-schedule') }}" class="btn btn-lg fw-semibold btn-outline-secondary" style="border-radius: 0.75rem;">
+                <i class="bi bi-calendar3 me-1"></i> GAD Office Hours
+            </a>
+            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none; border-radius: 0.75rem;">
+                <i class="bi bi-plus-circle"></i> New Appointment
+            </a>
+        </div>
     </div>
 
     @if (session('success'))

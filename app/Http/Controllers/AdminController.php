@@ -470,8 +470,7 @@ class AdminController extends Controller
 
     /**
      * Sync calendar day toggles from the admin calendar UI.
-     * Tinatanggap nito ang array ng { date, available } objects
-     * at ino-update ang GadSchedule records accordingly.
+     * Handles available (all day), specific period hours, and unavailable statuses.
      */
     public function syncGadSchedule(Request $request)
     {
@@ -480,39 +479,65 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'updates'              => ['required', 'array'],
-            'updates.*.date'       => ['required', 'date_format:Y-m-d'],
-            'updates.*.start_time' => ['nullable', 'date_format:H:i'],
-            'updates.*.end_time'   => ['nullable', 'date_format:H:i'],
-            'updates.*.remove'     => ['nullable', 'boolean'],
+            'updates'                     => ['required', 'array'],
+            'updates.*.date'              => ['required', 'date_format:Y-m-d'],
+            'updates.*.availability_type' => ['nullable', 'in:available,hours,unavailable,remove'],
+            'updates.*.start_time'        => ['nullable', 'date_format:H:i'],
+            'updates.*.end_time'          => ['nullable', 'date_format:H:i'],
+            'updates.*.remove'            => ['nullable', 'boolean'],
         ]);
 
         foreach ($request->updates as $update) {
             $date      = $update['date'];
             $remove    = (bool) ($update['remove'] ?? false);
+            $type      = $update['availability_type'] ?? 'hours';
             $startTime = $update['start_time'] ?? null;
             $endTime   = $update['end_time'] ?? null;
 
             $existing = GadSchedule::whereDate('available_from', $date)->first();
 
-            if ($remove || (!$startTime && !$endTime)) {
+            if ($remove || $type === 'remove') {
                 if ($existing) {
                     $existing->delete();
                 }
                 continue;
             }
 
-            if ($startTime > $endTime) {
-                return response()->json(['message' => 'Start time must be earlier than end time.'], 422);
-            }
+            if ($type === 'unavailable') {
+                $payload = [
+                    'title'           => 'Unavailable / Closed',
+                    'location'        => 'GAD Office',
+                    'available_from'  => $date . ' 00:00:00',
+                    'available_until' => $date . ' 23:59:59',
+                    'details'         => 'unavailable',
+                    'status'          => 'unavailable',
+                ];
+            } elseif ($type === 'available') {
+                $payload = [
+                    'title'           => 'Available (All Day)',
+                    'location'        => 'GAD Office',
+                    'available_from'  => $date . ' 08:00:00',
+                    'available_until' => $date . ' 17:00:00',
+                    'details'         => 'all_day',
+                    'status'          => 'active',
+                ];
+            } else {
+                $startTime = $startTime ?: '09:00';
+                $endTime   = $endTime ?: '17:00';
 
-            $payload = [
-                'title'           => 'Office Hours',
-                'location'        => 'GAD Office',
-                'available_from'  => $date . ' ' . $startTime . ':00',
-                'available_until' => $date . ' ' . $endTime . ':00',
-                'status'          => 'active',
-            ];
+                if ($startTime > $endTime) {
+                    return response()->json(['message' => 'Start time must be earlier than end time.'], 422);
+                }
+
+                $payload = [
+                    'title'           => 'Office Hours',
+                    'location'        => 'GAD Office',
+                    'available_from'  => $date . ' ' . $startTime . ':00',
+                    'available_until' => $date . ' ' . $endTime . ':00',
+                    'details'         => 'specific_hours',
+                    'status'          => 'active',
+                ];
+            }
 
             if ($existing) {
                 $existing->update($payload);

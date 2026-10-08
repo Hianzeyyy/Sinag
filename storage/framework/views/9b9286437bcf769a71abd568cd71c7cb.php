@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <style>
     .gad-page * { box-sizing: border-box; }
     .gad-page { padding: clamp(0.5rem, 2vw, 1rem) 0; }
@@ -388,15 +388,16 @@
 
 <div class="gad-page">
 
-    @if(session('success'))
+    <?php if(session('success')): ?>
         <div class="alert alert-success">
-            <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+            <i class="bi bi-check-circle-fill me-2"></i><?php echo e(session('success')); ?>
+
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="panel">
 
-        {{-- Header --}}
+        
         <div class="cal-header">
             <div>
                 <div class="cal-label">Admin calendar</div>
@@ -409,12 +410,12 @@
             </div>
         </div>
 
-        {{-- Calendar grid --}}
+        
         <div class="cal-body">
             <div class="cal-grid" id="adminCalGrid"></div>
         </div>
 
-        {{-- Save bar --}}
+        
         <div class="save-bar">
             <div class="save-bar-note" id="adminChangeNote">No changes yet. Click a day to configure schedule.</div>
             <button class="save-cal-btn" id="saveCalBtn" onclick="saveCalendar()" disabled>Save changes</button>
@@ -433,7 +434,7 @@
             <button type="button" class="schedule-modal-close" id="scheduleModalClose" aria-label="Close">&times;</button>
         </div>
         <div class="schedule-modal-body">
-            {{-- Choice: Available / Specific Period Hours / Unavailable --}}
+            
             <div class="mb-3">
                 <label class="schedule-time-label mb-2">Availability status</label>
                 <div class="schedule-type-grid">
@@ -472,7 +473,7 @@
                 </div>
             </div>
 
-            {{-- Period hours inputs (shown when "hours" is selected) --}}
+            
             <div id="scheduleTimeSection">
                 <div class="schedule-time-grid">
                     <div>
@@ -486,7 +487,7 @@
                 </div>
             </div>
 
-            {{-- Informational status banners for All Day & Unavailable --}}
+            
             <div class="alert alert-success p-2 mb-0 mt-2 d-none" id="scheduleAvailableBanner" style="font-size:0.8rem; border-radius:0.7rem; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">
                 <i class="bi bi-check-circle-fill me-1"></i> Office is available all day (8:00 AM – 5:00 PM).
             </div>
@@ -506,7 +507,7 @@
     </div>
 </div>
 
-@php
+<?php
     $adminPayload = $schedules->map(function($s) {
         $type = 'hours';
         if ($s->status === 'unavailable' || $s->details === 'unavailable') {
@@ -526,10 +527,10 @@
             'details'           => $s->details,
         ];
     })->values();
-@endphp
+?>
 
 <script>
-const scheduleData = @json($adminPayload);
+const scheduleData = <?php echo json_encode($adminPayload, 15, 512) ?>;
 const scheduleMap = {};
 
 let adminMonth = new Date().getMonth();
@@ -802,11 +803,11 @@ function saveCalendar() {
     btn.disabled = true;
     btn.textContent = 'Saving…';
 
-    fetch('{{ route('admin.gad-schedules.sync') }}', {
+    fetch('<?php echo e(route('admin.gad-schedules.sync')); ?>', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
         },
         body: JSON.stringify({ updates })
     })
@@ -848,4 +849,5 @@ document.addEventListener('DOMContentLoaded', () => {
     updateChangeNote();
 });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\sinag\resources\views/admin/gad_schedules.blade.php ENDPATH**/ ?>

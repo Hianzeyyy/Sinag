@@ -41,7 +41,12 @@
 
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label for="scheduled_date" class="form-label fw-semibold" style="color: #A594F9;">Preferred Date</label>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="scheduled_date" class="form-label fw-semibold mb-0" style="color: #A594F9;">Preferred Date</label>
+                                    <a href="{{ route('student.gad-schedule') }}" target="_blank" class="small text-decoration-none fw-bold" style="color: #8b5cf6;">
+                                        <i class="bi bi-calendar3 me-1"></i>View Office Hours
+                                    </a>
+                                </div>
                                 <input type="date" class="form-control form-control-lg @error('scheduled_date') is-invalid @enderror" id="scheduled_date" name="scheduled_date" value="{{ old('scheduled_date') }}" min="{{ now()->toDateString() }}" required>
                                 @error('scheduled_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>

@@ -73,7 +73,7 @@ class StudentController extends Controller
     public function gadSchedule()
     {
         $schedules = GadSchedule::with('creator')
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'unavailable', 'inactive'])
             ->orderBy('available_from')
             ->get();
 
