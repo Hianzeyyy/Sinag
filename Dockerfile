@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libonig-dev \
     libxml2-dev \
     && docker-php-ext-install pdo_mysql mbstring bcmath exif pcntl gd zip \
-    && a2enmod rewrite \
+    && a2dismod mpm_event mpm_worker || true \
+    && a2enmod mpm_prefork rewrite \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
