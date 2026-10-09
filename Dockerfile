@@ -54,3 +54,4 @@ RUN sed -ri "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" \
     && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
+CMD ["sh", "-c", "if [ -f storage/logs/laravel.log ]; then tail -n 100 storage/logs/laravel.log; fi; exec apache2-foreground"]
