@@ -1,4 +1,4 @@
-
+```dockerfile
 # Build Laravel frontend assets
 FROM node:20-alpine AS frontend
 
@@ -16,6 +16,7 @@ FROM php:8.3-apache
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
+# Install PHP extensions and configure Apache MPM
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
@@ -24,7 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libonig-dev \
     libxml2-dev \
     && docker-php-ext-install pdo_mysql mbstring bcmath exif pcntl gd zip \
-    && a2enmod rewrite \
+    && a2dismod mpm_event mpm_worker 2>/dev/null || true
+
+RUN a2enmod mpm_prefork rewrite \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
@@ -54,4 +57,7 @@ RUN sed -ri "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" \
     && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
-CMD ["sh", "-c", "if [ -f storage/logs/laravel.log ]; then tail -n 100 storage/logs/laravel.log; fi; exec apache2-foreground"]
+
+# Ensure only one MPM is enabled before starting Apache
+CMD ["sh", "-c", "a2dismod mpm_event mpm_worker >/dev/null 2>&1 || true; rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.*; a2enmod mpm_prefork >/dev/null 2>&1; apache2ctl -t && exec apache2-foreground"]
+```
