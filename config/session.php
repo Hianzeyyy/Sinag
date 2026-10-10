@@ -4,9 +4,8 @@ use Illuminate\Support\Str;
 
 $sessionDriver = env('SESSION_DRIVER', 'file');
 if (env('APP_ENV', 'production') === 'production'
-    && $sessionDriver === 'database'
     && ! filter_var(env('SESSION_ALLOW_DATABASE', false), FILTER_VALIDATE_BOOL)) {
-    $sessionDriver = 'file';
+    $sessionDriver = 'cookie';
 }
 
 return [
