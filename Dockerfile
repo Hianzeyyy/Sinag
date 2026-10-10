@@ -59,4 +59,3 @@ EXPOSE 80
 
 # Ensure only one MPM is enabled before starting Apache
 CMD ["sh", "-c", "a2dismod mpm_event mpm_worker >/dev/null 2>&1 || true; rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.*; a2enmod mpm_prefork >/dev/null 2>&1; apache2ctl -t && exec apache2-foreground"]
-```
