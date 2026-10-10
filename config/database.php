@@ -4,7 +4,7 @@ use Illuminate\Support\Str;
 use Pdo\Mysql;
 
 $configuredConnection = strtolower(trim((string) env('DB_CONNECTION', 'sqlite')));
-$databaseUrl = env('DB_URL', env('DATABASE_URL'));
+$databaseUrl = env('DB_URL');
 $urlScheme = strtolower((string) parse_url((string) $databaseUrl, PHP_URL_SCHEME));
 $urlDriver = match ($urlScheme) {
     'mysql', 'mysql2' => 'mysql',
