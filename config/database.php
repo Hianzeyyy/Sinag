@@ -22,8 +22,11 @@ $databaseHost = env('DB_HOST', '127.0.0.1');
 $databasePort = env('DB_PORT', '3306');
 if (env('APP_ENV', 'production') === 'production'
     && $urlDriver === null
-    && ! in_array($configuredConnection, $supportedConnections, true)
-    && in_array($databaseHost, ['127.0.0.1', 'localhost'], true)) {
+    && in_array($databaseHost, ['127.0.0.1', 'localhost'], true)
+    && (
+        ! in_array($configuredConnection, $supportedConnections, true)
+        || (string) $databasePort === '4000'
+    )) {
     $databaseHost = 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com';
     $databasePort = '4000';
 }
