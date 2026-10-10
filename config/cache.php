@@ -2,6 +2,13 @@
 
 use Illuminate\Support\Str;
 
+$cacheStore = env('CACHE_STORE', 'file');
+if (env('APP_ENV', 'production') === 'production'
+    && $cacheStore === 'database'
+    && ! filter_var(env('CACHE_ALLOW_DATABASE', false), FILTER_VALIDATE_BOOL)) {
+    $cacheStore = 'file';
+}
+
 return [
 
     /*
@@ -15,7 +22,7 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => $cacheStore,
 
     /*
     |--------------------------------------------------------------------------
