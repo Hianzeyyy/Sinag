@@ -3,6 +3,19 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+$configuredConnection = (string) env('DB_CONNECTION', 'sqlite');
+$supportedConnections = ['sqlite', 'mysql', 'mariadb', 'pgsql', 'sqlsrv'];
+$databaseConnection = in_array($configuredConnection, $supportedConnections, true)
+    ? $configuredConnection
+    : 'mysql';
+
+$databaseHost = env('DB_HOST', '127.0.0.1');
+if (env('APP_ENV', 'production') === 'production'
+    && in_array($databaseHost, ['127.0.0.1', 'localhost'], true)
+    && (string) env('DB_PORT', '3306') === '4000') {
+    $databaseHost = 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com';
+}
+
 return [
 
     /*
@@ -17,7 +30,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => $databaseConnection,
 
     /*
     |--------------------------------------------------------------------------
@@ -47,7 +60,7 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => $databaseHost,
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
@@ -67,7 +80,7 @@ return [
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => $databaseHost,
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
