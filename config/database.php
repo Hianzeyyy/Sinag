@@ -25,7 +25,7 @@ if (env('APP_ENV', 'production') === 'production'
     && in_array($databaseHost, ['127.0.0.1', 'localhost'], true)
     && (
         ! in_array($configuredConnection, $supportedConnections, true)
-        || (string) $databasePort === '4000'
+        || in_array((string) $databasePort, ['3306', '4000'], true)
     )) {
     $databaseHost = 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com';
     $databasePort = '4000';
