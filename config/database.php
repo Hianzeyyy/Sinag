@@ -19,10 +19,13 @@ $databaseConnection = in_array($configuredConnection, $supportedConnections, tru
     : ($urlDriver ?? 'mysql');
 
 $databaseHost = env('DB_HOST', '127.0.0.1');
+$databasePort = env('DB_PORT', '3306');
 if (env('APP_ENV', 'production') === 'production'
-    && in_array($databaseHost, ['127.0.0.1', 'localhost'], true)
-    && (string) env('DB_PORT', '3306') === '4000') {
+    && $urlDriver === null
+    && ! in_array($configuredConnection, $supportedConnections, true)
+    && in_array($databaseHost, ['127.0.0.1', 'localhost'], true)) {
     $databaseHost = 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com';
+    $databasePort = '4000';
 }
 
 return [
@@ -70,7 +73,7 @@ return [
             'driver' => 'mysql',
             'url' => $databaseUrl,
             'host' => $databaseHost,
-            'port' => env('DB_PORT', '3306'),
+            'port' => $databasePort,
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
@@ -90,7 +93,7 @@ return [
             'driver' => 'mariadb',
             'url' => $databaseUrl,
             'host' => $databaseHost,
-            'port' => env('DB_PORT', '3306'),
+            'port' => $databasePort,
             'database' => env('DB_DATABASE', 'laravel'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
