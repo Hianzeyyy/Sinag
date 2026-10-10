@@ -1,4 +1,3 @@
-```dockerfile
 # Build Laravel frontend assets
 FROM node:20-alpine AS frontend
 
