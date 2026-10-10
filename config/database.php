@@ -18,11 +18,13 @@ $databaseConnection = in_array($configuredConnection, $supportedConnections, tru
     ? $configuredConnection
     : ($urlDriver ?? 'mysql');
 
-$databaseHost = env('DB_HOST', '127.0.0.1');
-$databasePort = env('DB_PORT', '3306');
+$databaseHost = trim((string) env('DB_HOST', ''));
+$databasePort = (string) env('DB_PORT', '3306');
+$databaseName = trim((string) env('DB_DATABASE', ''));
+$databaseName = $databaseName !== '' ? $databaseName : 'sinag_db';
 if (env('APP_ENV', 'production') === 'production'
     && $urlDriver === null
-    && in_array($databaseHost, ['127.0.0.1', 'localhost'], true)
+    && ($databaseHost === '' || in_array($databaseHost, ['127.0.0.1', 'localhost'], true))
     && (
         ! in_array($configuredConnection, $supportedConnections, true)
         || in_array((string) $databasePort, ['3306', '4000'], true)
@@ -77,7 +79,7 @@ return [
             'url' => $databaseUrl,
             'host' => $databaseHost,
             'port' => $databasePort,
-            'database' => env('DB_DATABASE', 'laravel'),
+            'database' => $databaseName,
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
@@ -97,7 +99,7 @@ return [
             'url' => $databaseUrl,
             'host' => $databaseHost,
             'port' => $databasePort,
-            'database' => env('DB_DATABASE', 'laravel'),
+            'database' => $databaseName,
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
