@@ -82,6 +82,14 @@
             margin-bottom: 8px;
             text-transform: uppercase;
         }
+        h3.sub-section {
+            color: #5b21b6;
+            font-size: 11px;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            padding-left: 4px;
+            border-left: 3px solid #a78bfa;
+        }
         table.data-table {
             width: 100%;
             border-collapse: collapse;
@@ -90,21 +98,42 @@
         table.data-table th {
             background-color: #ede9fe;
             color: #4c1d95;
-            font-size: 9.5px;
+            font-size: 9px;
             font-weight: bold;
             text-align: left;
-            padding: 6px 7px;
+            padding: 5px 5px;
             border: 1px solid #ddd6fe;
             text-transform: uppercase;
         }
         table.data-table td {
-            font-size: 9.5px;
-            padding: 5px 7px;
+            font-size: 9px;
+            padding: 4px 5px;
             border: 1px solid #e5e7eb;
             vertical-align: top;
         }
         table.data-table tr:nth-child(even) {
             background-color: #faf5ff;
+        }
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+        .detail-table td {
+            font-size: 9px;
+            padding: 3px 6px;
+            border: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+        .detail-table .dl {
+            color: #6b7280;
+            font-weight: 600;
+            width: 25%;
+            background-color: #f9fafb;
+        }
+        .detail-table .dv {
+            color: #111827;
+            width: 25%;
         }
         .badge {
             display: inline-block;
@@ -120,6 +149,22 @@
         .badge-high { background-color: #fee2e2; color: #b91c1c; }
         .badge-normal { background-color: #e0e7ff; color: #3730a3; }
         .badge-low { background-color: #f3f4f6; color: #4b5563; }
+        .user-block {
+            margin-bottom: 14px;
+            border: 1px solid #ddd6fe;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .user-block-header {
+            background-color: #ede9fe;
+            padding: 6px 10px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #4c1d95;
+        }
+        .user-block-body {
+            padding: 6px 10px;
+        }
         .footer {
             margin-top: 25px;
             border-top: 1px solid #e5e7eb;
@@ -166,49 +211,432 @@
         </tr>
     </table>
 
-    <!-- 1. NEW USERS -->
-    <h2 class="section-title">1. New Registered Users & Personal Information (<?php echo e($users->count()); ?>)</h2>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th style="width: 5%;">#</th>
-                <th style="width: 22%;">Name / Email</th>
-                <th style="width: 14%;">Phone / Contact</th>
-                <th style="width: 8%;">Age / Gender</th>
-                <th style="width: 25%;">Department</th>
-                <th style="width: 12%;">Role / Status</th>
-                <th style="width: 14%;">Registered At</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php $__empty_1 = true; $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $u): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                <tr>
-                    <td><?php echo e($index + 1); ?></td>
-                    <td>
-                        <strong><?php echo e($u->name); ?></strong><br>
-                        <span style="color: #6b7280;"><?php echo e($u->email); ?></span>
-                    </td>
-                    <td><?php echo e($u->phone_number ?? 'N/A'); ?></td>
-                    <td><?php echo e($u->age ?? 'N/A'); ?> / <?php echo e($u->gender ?? 'N/A'); ?></td>
-                    <td><?php echo e($u->department ?? 'N/A'); ?></td>
-                    <td>
-                        <?php echo e(ucfirst($u->role ?? 'User')); ?><br>
-                        <span class="badge badge-<?php echo e($u->account_status == 'active' || $u->account_status == 'approved' ? 'active' : ($u->account_status == 'rejected' ? 'rejected' : 'pending')); ?>">
-                            <?php echo e(ucfirst($u->account_status ?? 'Pending')); ?>
+    <!-- ================================================================ -->
+    <!-- 1. REGISTERED USERS WITH COMPLETE PERSONAL DATA                  -->
+    <!-- ================================================================ -->
+    <h2 class="section-title">1. Registered Users &amp; Complete Personal Data (<?php echo e($users->count()); ?>)</h2>
 
-                        </span>
-                    </td>
-                    <td><?php echo e(optional($u->created_at)->format('M d, Y')); ?></td>
-                </tr>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                <tr>
-                    <td colspan="7" style="text-align: center; color: #6b7280; padding: 12px;">No new users registered during this period.</td>
-                </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+    <?php $__empty_1 = true; $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $u): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+        <?php
+            $pi = $u->personal_information ?? [];
+            $fb = $u->family_background ?? [];
+            $si = $u->student_information ?? [];
+            $oi = $u->other_information ?? [];
+            $isStudent = in_array($u->account_type ?? $u->role, ['student']);
+            $isEmployee = ($u->account_type ?? $u->role) === 'employee';
+        ?>
 
-    <!-- 2. INCIDENT REPORTS -->
+        <div class="user-block">
+            <div class="user-block-header">
+                #<?php echo e($index + 1); ?> — <?php echo e($u->last_name ?? ''); ?>, <?php echo e($u->first_name ?? ''); ?> <?php echo e($u->middle_name ?? ''); ?>
+
+                (<?php echo e($u->email); ?>)
+                <span class="badge badge-<?php echo e($u->account_status == 'active' || $u->account_status == 'approved' ? 'active' : ($u->account_status == 'rejected' ? 'rejected' : 'pending')); ?>" style="float: right;">
+                    <?php echo e(ucfirst($u->account_status ?? 'Pending')); ?>
+
+                </span>
+            </div>
+            <div class="user-block-body">
+
+                
+                <h3 class="sub-section">A. Basic Account Information</h3>
+                <table class="detail-table">
+                    <tr>
+                        <td class="dl">User ID</td>
+                        <td class="dv"><?php echo e($u->id); ?></td>
+                        <td class="dl">Display Name</td>
+                        <td class="dv"><?php echo e($u->name); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Email</td>
+                        <td class="dv"><?php echo e($u->email); ?></td>
+                        <td class="dl">Phone Number</td>
+                        <td class="dv"><?php echo e($u->phone_number ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Account Type</td>
+                        <td class="dv"><?php echo e(ucfirst($u->account_type ?? 'N/A')); ?></td>
+                        <td class="dl">Employee Category</td>
+                        <td class="dv"><?php echo e(ucfirst($u->employee_category ?? 'N/A')); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Role</td>
+                        <td class="dv"><?php echo e(ucfirst($u->role ?? 'User')); ?></td>
+                        <td class="dl">Department</td>
+                        <td class="dv"><?php echo e($u->department ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Age</td>
+                        <td class="dv"><?php echo e($u->age ?? 'N/A'); ?></td>
+                        <td class="dl">Gender</td>
+                        <td class="dv"><?php echo e($u->gender ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Cloak Alias</td>
+                        <td class="dv"><?php echo e($u->cloak_alias ?? 'N/A'); ?></td>
+                        <td class="dl">Registered</td>
+                        <td class="dv"><?php echo e(optional($u->created_at)->format('M d, Y h:i A')); ?></td>
+                    </tr>
+                </table>
+
+                
+                <h3 class="sub-section">B. Personal Information</h3>
+                <table class="detail-table">
+                    <tr>
+                        <td class="dl">Date of Birth</td>
+                        <td class="dv"><?php echo e($pi['date_of_birth'] ?? 'N/A'); ?></td>
+                        <td class="dl">Place of Birth</td>
+                        <td class="dv"><?php echo e($pi['place_of_birth'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Sex</td>
+                        <td class="dv"><?php echo e($pi['sex'] ?? 'N/A'); ?></td>
+                        <td class="dl">Gender Identity</td>
+                        <td class="dv"><?php echo e($pi['gender_identity'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Citizenship</td>
+                        <td class="dv"><?php echo e($pi['citizenship'] ?? 'N/A'); ?></td>
+                        <td class="dl">Blood Type</td>
+                        <td class="dv"><?php echo e($pi['blood_type'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Height</td>
+                        <td class="dv"><?php echo e($pi['height'] ?? 'N/A'); ?></td>
+                        <td class="dl">Weight</td>
+                        <td class="dv"><?php echo e($pi['weight'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Landline Number</td>
+                        <td class="dv"><?php echo e($pi['landline_number'] ?? 'N/A'); ?></td>
+                        <td class="dl">Civil Status</td>
+                        <td class="dv"><?php echo e($pi['civil_status'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Religion</td>
+                        <td class="dv"><?php echo e($pi['religion'] ?? 'N/A'); ?><?php if(!empty($pi['religion_other'])): ?> (<?php echo e($pi['religion_other']); ?>)<?php endif; ?></td>
+                        <td class="dl">Disabilities</td>
+                        <td class="dv">
+                            <?php if(!empty($pi['disabilities']) && is_array($pi['disabilities'])): ?>
+                                <?php echo e(implode(', ', $pi['disabilities'])); ?>
+
+                            <?php else: ?>
+                                <?php echo e($pi['disabilities'] ?? 'None'); ?>
+
+                            <?php endif; ?>
+                            <?php if(!empty($pi['disability_other'])): ?> (<?php echo e($pi['disability_other']); ?>)<?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Current Address</td>
+                        <td class="dv" colspan="3"><?php echo e($pi['current_address'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Home Address</td>
+                        <td class="dv" colspan="3"><?php echo e($pi['home_address'] ?? 'N/A'); ?></td>
+                    </tr>
+                </table>
+
+                
+                <h3 class="sub-section">C. Family Background</h3>
+                <table class="detail-table">
+                    <tr>
+                        <td class="dl">Spouse Name</td>
+                        <td class="dv"><?php echo e($fb['spouse_name'] ?? 'N/A'); ?></td>
+                        <td class="dl">Spouse Occupation</td>
+                        <td class="dv"><?php echo e($fb['spouse_occupation'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Father's Name</td>
+                        <td class="dv"><?php echo e($fb['father_name'] ?? 'N/A'); ?></td>
+                        <td class="dl">Father's Occupation</td>
+                        <td class="dv"><?php echo e($fb['father_occupation'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Father's Age</td>
+                        <td class="dv"><?php echo e($fb['father_age'] ?? 'N/A'); ?></td>
+                        <td class="dl">Mother's Name</td>
+                        <td class="dv"><?php echo e($fb['mother_name'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Mother's Occupation</td>
+                        <td class="dv"><?php echo e($fb['mother_occupation'] ?? 'N/A'); ?></td>
+                        <td class="dl">Mother's Age</td>
+                        <td class="dv"><?php echo e($fb['mother_age'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Total Children</td>
+                        <td class="dv"><?php echo e($fb['children_total'] ?? 'N/A'); ?> (Boys: <?php echo e($fb['children_boys'] ?? '0'); ?>, Girls: <?php echo e($fb['children_girls'] ?? '0'); ?>)</td>
+                        <td class="dl">Siblings</td>
+                        <td class="dv">Brothers: <?php echo e($fb['brothers_count'] ?? '0'); ?>, Sisters: <?php echo e($fb['sisters_count'] ?? '0'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Monthly Income</td>
+                        <td class="dv"><?php echo e($fb['monthly_income'] ?? 'N/A'); ?></td>
+                        <td class="dl">Family Type</td>
+                        <td class="dv"><?php echo e($fb['family_type'] ?? 'N/A'); ?><?php if(!empty($fb['family_type_other'])): ?> (<?php echo e($fb['family_type_other']); ?>)<?php endif; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="dl">Home Ownership</td>
+                        <td class="dv"><?php echo e($fb['home_ownership_type'] ?? 'N/A'); ?><?php if(!empty($fb['home_ownership_other'])): ?> (<?php echo e($fb['home_ownership_other']); ?>)<?php endif; ?></td>
+                        <td class="dl">Residential Home Type</td>
+                        <td class="dv"><?php echo e($fb['residential_home_type'] ?? 'N/A'); ?><?php if(!empty($fb['residential_home_other'])): ?> (<?php echo e($fb['residential_home_other']); ?>)<?php endif; ?></td>
+                    </tr>
+                </table>
+
+                
+                <?php if($isStudent): ?>
+                    <h3 class="sub-section">D. Student Information</h3>
+                    <table class="detail-table">
+                        <tr>
+                            <td class="dl">Year Level</td>
+                            <td class="dv"><?php echo e($si['year_level'] ?? 'N/A'); ?></td>
+                            <td class="dl">School Type</td>
+                            <td class="dv"><?php echo e($si['school_type'] ?? 'N/A'); ?></td>
+                        </tr>
+                        <tr>
+                            <td class="dl">Last School Attended</td>
+                            <td class="dv" colspan="3"><?php echo e($si['last_school_attended'] ?? 'N/A'); ?></td>
+                        </tr>
+                        <tr>
+                            <td class="dl">Achievements</td>
+                            <td class="dv" colspan="3">
+                                <?php if(!empty($si['achievements']) && is_array($si['achievements'])): ?>
+                                    <?php echo e(implode(', ', $si['achievements'])); ?>
+
+                                <?php else: ?>
+                                    <?php echo e($si['achievements'] ?? 'N/A'); ?>
+
+                                <?php endif; ?>
+                                <?php if(!empty($si['achievement_other_rank'])): ?> — Other Rank: <?php echo e($si['achievement_other_rank']); ?><?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="dl">Financing Sources</td>
+                            <td class="dv" colspan="3">
+                                <?php if(!empty($si['financing_sources']) && is_array($si['financing_sources'])): ?>
+                                    <?php echo e(implode(', ', $si['financing_sources'])); ?>
+
+                                <?php else: ?>
+                                    <?php echo e($si['financing_sources'] ?? 'N/A'); ?>
+
+                                <?php endif; ?>
+                                <?php if(!empty($si['financing_other_work'])): ?> — Other: <?php echo e($si['financing_other_work']); ?><?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="dl">GAD Training Attended</td>
+                            <td class="dv"><?php echo e(isset($si['gad_training_attended']) ? ($si['gad_training_attended'] ? 'Yes' : 'No') : 'N/A'); ?></td>
+                            <td class="dl">Training Details</td>
+                            <td class="dv"><?php echo e($si['gad_training_details'] ?? 'N/A'); ?></td>
+                        </tr>
+                    </table>
+                <?php endif; ?>
+
+                
+                <?php if($isEmployee): ?>
+                    
+                    <?php $empEd = $u->employee_education ?? []; ?>
+                    <?php if(!empty($empEd)): ?>
+                        <h3 class="sub-section">D. Employee Education</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Level</th>
+                                    <th>School Name</th>
+                                    <th>Degree/Course</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Units</th>
+                                    <th>Graduated</th>
+                                    <th>Honors</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $__currentLoopData = $empEd; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $rec): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <td><?php echo e($i + 1); ?></td>
+                                        <td><?php echo e($rec['level'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['school_name'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['degree_course'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['year_from'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['year_to'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['units_earned'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['year_graduated'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['academic_honors'] ?? 'N/A'); ?></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+
+                    
+                    <?php $cse = $u->civil_service_eligibility ?? []; ?>
+                    <?php if(!empty($cse)): ?>
+                        <h3 class="sub-section">E. Civil Service Eligibility</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Eligibility Title</th>
+                                    <th>Rating</th>
+                                    <th>Date of Exam</th>
+                                    <th>Place of Exam</th>
+                                    <th>License No.</th>
+                                    <th>Validity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $__currentLoopData = $cse; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $rec): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <td><?php echo e($i + 1); ?></td>
+                                        <td><?php echo e($rec['eligibility_title'] ?? $rec['title'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['rating'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['date_of_exam'] ?? $rec['exam_date'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['place_of_exam'] ?? $rec['exam_place'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['license_number'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['license_validity'] ?? 'N/A'); ?></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+
+                    
+                    <?php $we = $u->work_experience ?? []; ?>
+                    <?php if(!empty($we)): ?>
+                        <h3 class="sub-section">F. Work Experience</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Position</th>
+                                    <th>Dept/Agency</th>
+                                    <th>Salary</th>
+                                    <th>Grade</th>
+                                    <th>Status</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Gov't</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $__currentLoopData = $we; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $rec): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <td><?php echo e($i + 1); ?></td>
+                                        <td><?php echo e($rec['position_title'] ?? $rec['position'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['department_agency'] ?? $rec['department'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['monthly_salary'] ?? $rec['salary'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['salary_grade'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['status_of_appointment'] ?? $rec['status'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['date_from'] ?? $rec['from'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['date_to'] ?? $rec['to'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['government_service'] ?? $rec['govt_service'] ?? 'N/A'); ?></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+
+                    
+                    <?php $vw = $u->voluntary_work ?? []; ?>
+                    <?php if(!empty($vw)): ?>
+                        <h3 class="sub-section">G. Voluntary Work / Civic Engagement</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Organization</th>
+                                    <th>Position / Nature of Work</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $__currentLoopData = $vw; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $rec): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <td><?php echo e($i + 1); ?></td>
+                                        <td><?php echo e($rec['organization_name'] ?? $rec['organization'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['position'] ?? $rec['nature_of_work'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['date_from'] ?? $rec['from'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['date_to'] ?? $rec['to'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['number_of_hours'] ?? $rec['hours'] ?? 'N/A'); ?></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+
+                    
+                    <?php $gt = $u->gad_training ?? []; ?>
+                    <?php if(!empty($gt)): ?>
+                        <h3 class="sub-section">H. GAD Training / Learning & Development</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Training Title</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Hours</th>
+                                    <th>Type of LD</th>
+                                    <th>Conducted By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $__currentLoopData = $gt; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $rec): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <td><?php echo e($i + 1); ?></td>
+                                        <td><?php echo e($rec['training_title'] ?? $rec['title'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['date_from'] ?? $rec['from'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['date_to'] ?? $rec['to'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['number_of_hours'] ?? $rec['hours'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['type_of_ld'] ?? $rec['type'] ?? 'N/A'); ?></td>
+                                        <td><?php echo e($rec['conducted_by'] ?? $rec['sponsor'] ?? 'N/A'); ?></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+
+                    
+                    <?php if(!empty($oi)): ?>
+                        <h3 class="sub-section">I. Other Information</h3>
+                        <table class="detail-table">
+                            <tr>
+                                <td class="dl">Skills / Hobbies</td>
+                                <td class="dv" colspan="3"><?php echo e($oi['emp_skills_hobbies'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <td class="dl">Non-Academic Distinctions</td>
+                                <td class="dv" colspan="3"><?php echo e($oi['emp_distinctions'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <td class="dl">Membership in Associations</td>
+                                <td class="dv" colspan="3"><?php echo e($oi['emp_membership'] ?? 'N/A'); ?></td>
+                            </tr>
+                        </table>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+            </div>
+        </div>
+
+        <?php if(!$loop->last): ?>
+            <div class="page-break"></div>
+        <?php endif; ?>
+
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+        <p style="text-align: center; color: #6b7280; padding: 20px;">No users registered during this period.</p>
+    <?php endif; ?>
+
+    <div class="page-break"></div>
+
+    <!-- ================================================================ -->
+    <!-- 2. INCIDENT REPORTS                                              -->
+    <!-- ================================================================ -->
     <h2 class="section-title">2. Incident Reports (<?php echo e($reports->count()); ?>)</h2>
     <table class="data-table">
         <thead>
@@ -251,7 +679,9 @@
         </tbody>
     </table>
 
-    <!-- 3. SUGGESTIONS -->
+    <!-- ================================================================ -->
+    <!-- 3. SUGGESTIONS                                                   -->
+    <!-- ================================================================ -->
     <h2 class="section-title">3. Suggestions & Community Feedback (<?php echo e($suggestions->count()); ?>)</h2>
     <table class="data-table">
         <thead>
