@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate; // Import Gate facade
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Cache\RateLimiting\Limit;
 use App\Models\User; // Import User model
 use App\Models\Report;
@@ -29,6 +30,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         RateLimiter::for('password-reset-request', function ($request) {
             return Limit::perMinute(10)->by($request->ip() . '|' . strtolower((string) $request->input('email')));
         });
