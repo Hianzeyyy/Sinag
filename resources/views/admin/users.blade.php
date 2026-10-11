@@ -51,7 +51,7 @@
     </div>
 
     <div class="row g-2 mb-4">
-        <div class="col-md-2">
+        <div class="col-12 col-sm-6 col-lg-2">
             <select id="accountTypeFilter" name="account_type" class="form-select form-select-sm">
                 <option value="">All Account Types</option>
                 <option value="student" {{ request('account_type') === 'student' ? 'selected' : '' }}>Students</option>
@@ -59,7 +59,7 @@
                 <option value="non_teaching" {{ request('account_type') === 'non_teaching' ? 'selected' : '' }}>Non-teaching</option>
             </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-12 col-sm-6 col-lg-2">
             <select id="genderFilter" name="gender" class="form-select form-select-sm">
                 <option value="">All Genders</option>
                 <option value="Male" {{ request('gender') === 'Male' ? 'selected' : '' }}>Male</option>
@@ -67,7 +67,7 @@
                 <option value="Prefer not to say" {{ request('gender') === 'Prefer not to say' ? 'selected' : '' }}>Prefer not to say</option>
             </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-12 col-sm-6 col-lg-3">
             <select id="departmentFilter" name="department" class="form-select form-select-sm">
                 <option value="">All Departments</option>
                 <option value="Bachelor of Science in Accountancy">BSA</option>

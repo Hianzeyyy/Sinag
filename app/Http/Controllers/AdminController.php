@@ -630,26 +630,17 @@ class AdminController extends Controller
 
         $user = User::findOrFail($id);
 
-        $user->update([
+        \DB::table('users')->where('id', $user->id)->update([
             'account_status'   => 'active',
             'approved_at'      => now(),
             'approved_by'      => Auth::id(),
             'rejection_reason' => null,
+            'updated_at'       => now(),
         ]);
 
-        try {
-            Mail::raw(
-                "Hello {$user->name},\n\nYour SINAG account has been approved by the GAD admin. You can now sign in and use the system.\n\nThank you.",
-                function ($message) use ($user) {
-                    $message->to($user->email)
-                        ->subject('SINAG Account Approved');
-                }
-            );
-        } catch (\Throwable $e) {
-            \Log::warning('Approval email failed for user ' . $user->id . ': ' . $e->getMessage());
-        }
+        \Log::info('SINAG account approved', ['user_id' => $user->id, 'admin_id' => Auth::id()]);
 
-        return back()->with('success', "User {$user->name} has been approved.");
+        return redirect()->route('admin.users')->with('success', "User {$user->name} has been approved.");
     }
 
     /**
@@ -663,11 +654,12 @@ class AdminController extends Controller
 
         $reason = $request->input('rejection_reason');
 
-        $user->update([
+        \DB::table('users')->where('id', $user->id)->update([
             'account_status'   => 'rejected',
             'approved_at'      => null,
             'approved_by'      => Auth::id(),
             'rejection_reason' => $reason,
+            'updated_at'       => now(),
         ]);
 
         $reasonText = $reason ? "Reason: {$reason}\n\n" : '';
