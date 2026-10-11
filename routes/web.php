@@ -132,7 +132,9 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // --- SHARED ACTIONS ---
-    Route::post('/submit-report', [ReportController::class, 'store'])->name('reports.store');
+    Route::post('/submit-report', [ReportController::class, 'store'])
+        ->middleware('auth')
+        ->name('reports.store');
     Route::get('/reports/{report}/evidence/{index}', [ReportController::class, 'viewEvidence'])
         ->whereNumber('index')
         ->name('reports.evidence.view');

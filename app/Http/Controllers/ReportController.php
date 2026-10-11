@@ -29,7 +29,7 @@ class ReportController extends Controller
                 'message' => $exception->getMessage(),
             ]);
 
-            return redirect()->back()->withInput()->withErrors([
+            return redirect()->route('student.report')->withInput()->withErrors([
                 'report' => 'The report could not be submitted right now. Please try again. If the problem continues, contact the GAD office.',
             ]);
         }
@@ -67,7 +67,11 @@ class ReportController extends Controller
             ? trim((string) $request->other_nature)
             : $request->nature;
 
-        $user = Auth::user();
+        $user = $request->user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $cloakAlias = $user->cloak_alias;
 
         // Backward-safe: auto-generate alias for old accounts that were created without one.
@@ -105,7 +109,7 @@ class ReportController extends Controller
         $incidentId = 'SN-' . strtoupper(Str::random(6));
         $reportData = [
             'id'            => $reportId,
-            'user_id'       => Auth::id(),
+            'user_id'       => $user->id,
             'incident_id'   => $incidentId,
             'cloak_alias'   => $cloakAlias,
             'nature'        => $finalNature,
@@ -130,7 +134,7 @@ class ReportController extends Controller
                 'message' => $exception->getMessage(),
             ]);
 
-            return redirect()->back()->withInput()->withErrors([
+            return redirect()->route('student.report')->withInput()->withErrors([
                 'report' => 'The report could not be saved. Please try again or contact the GAD office if the problem continues.',
             ]);
         }
