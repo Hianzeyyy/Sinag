@@ -439,6 +439,35 @@ class AdminController extends Controller
         return view('admin.gad_schedules', compact('schedules'));
     }
 
+    public function scheduleFeed()
+    {
+        if (!Auth::user()) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $schedules = GadSchedule::query()
+            ->whereIn('status', ['active', 'unavailable', 'inactive'])
+            ->orderBy('available_from')
+            ->get()
+            ->map(function (GadSchedule $schedule) {
+                $type = $schedule->status === 'unavailable' || $schedule->details === 'unavailable'
+                    ? 'unavailable'
+                    : ($schedule->details === 'all_day' ? 'available' : 'hours');
+
+                return [
+                    'date' => optional($schedule->available_from)->format('Y-m-d'),
+                    'start_time' => optional($schedule->available_from)->format('H:i'),
+                    'end_date' => $schedule->available_until?->format('Y-m-d'),
+                    'end_time' => $schedule->available_until?->format('H:i'),
+                    'status' => $schedule->status,
+                    'availability_type' => $type,
+                ];
+            })
+            ->values();
+
+        return response()->json(['schedules' => $schedules]);
+    }
+
     /**
      * Store a new schedule entry for students.
      */

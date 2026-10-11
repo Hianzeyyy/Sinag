@@ -132,6 +132,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // --- SHARED ACTIONS ---
+    Route::get('/schedule-feed', [AdminController::class, 'scheduleFeed'])->name('schedule.feed');
     Route::post('/submit-report', [ReportController::class, 'store'])
         ->middleware('auth')
         ->name('reports.store');

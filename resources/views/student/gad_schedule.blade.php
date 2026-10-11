@@ -277,6 +277,24 @@ function buildScheduleMap() {
     });
 }
 
+async function refreshScheduleData() {
+    try {
+        const response = await fetch('{{ route('schedule.feed') }}', {
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin',
+            cache: 'no-store'
+        });
+        if (!response.ok) return;
+
+        const payload = await response.json();
+        scheduleData.splice(0, scheduleData.length, ...(payload.schedules || []));
+        buildScheduleMap();
+        renderCalendar(currentMonth, currentYear);
+    } catch (error) {
+        // Keep the last successfully loaded schedule visible.
+    }
+}
+
 function renderCalendar(month, year) {
     const grid  = document.getElementById('calGrid');
     const label = document.getElementById('monthLabel');
@@ -369,6 +387,7 @@ function changeMonth(diff) {
 document.addEventListener('DOMContentLoaded', () => {
     buildScheduleMap();
     renderCalendar(currentMonth, currentYear);
+    window.setInterval(refreshScheduleData, 15000);
 });
 </script>
 @endsection
