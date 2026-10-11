@@ -22,11 +22,9 @@ class ReportController extends Controller
         } catch (\Illuminate\Validation\ValidationException $exception) {
             throw $exception;
         } catch (\Throwable $exception) {
-            report($exception);
-            \Log::error('Unhandled report submission failure', [
+            $this->logReportFailure($exception, [
                 'user_id' => Auth::id(),
-                'exception' => $exception::class,
-                'message' => $exception->getMessage(),
+                'stage' => 'controller',
             ]);
 
             return redirect()->route('student.report')->withInput()->withErrors([
@@ -126,12 +124,10 @@ class ReportController extends Controller
         try {
             \DB::table('reports')->insert($reportData);
         } catch (\Throwable $exception) {
-            report($exception);
-            \Log::error('Report submission failed', [
+            $this->logReportFailure($exception, [
                 'user_id' => Auth::id(),
                 'columns' => array_keys($reportData),
-                'exception' => $exception::class,
-                'message' => $exception->getMessage(),
+                'stage' => 'insert',
             ]);
 
             return redirect()->route('student.report')->withInput()->withErrors([
@@ -147,6 +143,18 @@ class ReportController extends Controller
         return redirect()->back()
             ->with('success', 'Report submitted successfully! Case ID: ' . $incidentId . '. This has been delivered to the GAD Admin inbox for review.')
             ->with('report_case_id', $incidentId);
+    }
+
+    private function logReportFailure(\Throwable $exception, array $context): void
+    {
+        try {
+            \Log::error('Report submission failed', $context + [
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+        } catch (\Throwable $loggingException) {
+            // Logging must never replace the user-facing report error response.
+        }
     }
 
     /**

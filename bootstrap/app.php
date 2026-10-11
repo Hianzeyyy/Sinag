@@ -23,8 +23,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $exception, Request $request) {
             if ($request->isMethod('POST') && $request->is('submit-report')) {
-                report($exception);
-
                 return redirect()
                     ->route('student.report')
                     ->withInput()
