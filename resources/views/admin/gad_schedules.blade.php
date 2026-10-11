@@ -810,14 +810,26 @@ function saveCalendar() {
         },
         body: JSON.stringify({ updates })
     })
-    .then(res => {
+    .then(async res => {
         if (res.ok) {
             window.location.reload();
-        } else {
-            alert('Save failed. Please try again.');
-            btn.disabled = false;
-            btn.textContent = 'Save changes';
+            return;
         }
+
+        let message = 'Save failed. Please try again.';
+        try {
+            const payload = await res.json();
+            if (payload.message) message = payload.message;
+            if (payload.errors) {
+                message = Object.values(payload.errors).flat().join('\n');
+            }
+        } catch (error) {
+            // Keep the generic message when the server did not return JSON.
+        }
+
+        alert(message);
+        btn.disabled = false;
+        btn.textContent = 'Save changes';
     })
     .catch(() => {
         alert('Network error. Please try again.');

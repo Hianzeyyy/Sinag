@@ -452,7 +452,7 @@ class AdminController extends Controller
             'available_from'  => ['required', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
             'details'         => ['nullable', 'string', 'max:1000'],
-            'status'          => ['required', 'in:active,inactive'],
+            'status'          => ['required', 'in:active,inactive,unavailable'],
         ]);
 
         $scheduleId = ((int) \DB::table('gad_schedules')->max('id')) + 1;
@@ -480,11 +480,14 @@ class AdminController extends Controller
             'available_from'  => ['required', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
             'details'         => ['nullable', 'string', 'max:1000'],
-            'status'          => ['required', 'in:active,inactive'],
+            'status'          => ['required', 'in:active,inactive,unavailable'],
         ]);
 
         $schedule = GadSchedule::findOrFail($id);
-        $schedule->update($validated);
+        \DB::table('gad_schedules')->where('id', $schedule->id)->update([
+            ...$validated,
+            'updated_at' => now(),
+        ]);
 
         return back()->with('success', 'GAD schedule updated successfully.');
     }
@@ -497,11 +500,14 @@ class AdminController extends Controller
         if (Auth::user()->role !== 'admin') return redirect()->route('home');
 
         $validated = $request->validate([
-            'status' => ['required', 'in:active,inactive'],
+            'status' => ['required', 'in:active,inactive,unavailable'],
         ]);
 
         $schedule = GadSchedule::findOrFail($id);
-        $schedule->update(['status' => $validated['status']]);
+        \DB::table('gad_schedules')->where('id', $schedule->id)->update([
+            'status' => $validated['status'],
+            'updated_at' => now(),
+        ]);
 
         return back()->with('success', 'Schedule status updated.');
     }
@@ -536,7 +542,7 @@ class AdminController extends Controller
 
             if ($remove || $type === 'remove') {
                 if ($existing) {
-                    $existing->delete();
+                    \DB::table('gad_schedules')->where('id', $existing->id)->delete();
                 }
                 continue;
             }
@@ -578,7 +584,10 @@ class AdminController extends Controller
             }
 
             if ($existing) {
-                $existing->update($payload);
+                \DB::table('gad_schedules')->where('id', $existing->id)->update([
+                    ...$payload,
+                    'updated_at' => now(),
+                ]);
             } else {
                 $scheduleId = ((int) \DB::table('gad_schedules')->max('id')) + 1;
                 \DB::table('gad_schedules')->insert($payload + [
