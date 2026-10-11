@@ -87,10 +87,11 @@ class ReportController extends Controller
         ]);
 
         $reportId = ((int) \DB::table('reports')->max('id')) + 1;
+        $incidentId = 'SN-' . strtoupper(Str::random(6));
         $reportData = [
             'id'            => $reportId,
             'user_id'       => Auth::id(),
-            'incident_id'   => 'SN-' . strtoupper(Str::random(6)), // Halimbawa: SN-A1B2C3
+            'incident_id'   => $incidentId,
             'cloak_alias'   => $cloakAlias,
             'nature'        => $finalNature,
             'incident_date' => $request->incident_date,
@@ -124,17 +125,15 @@ class ReportController extends Controller
                 'report' => 'The report could not be saved. Please try again or contact the GAD office if the problem continues.',
             ]);
         }
-        $report = Report::findOrFail($reportId);
-
         \Log::info('DEBUG: Report saved', [
-            'report_id' => $report->id,
-            'incident_id' => $report->incident_id
+            'report_id' => $reportId,
+            'incident_id' => $incidentId,
         ]);
 
         // 4. Redirect back
         return redirect()->back()
-            ->with('success', 'Report submitted successfully! Case ID: ' . $report->incident_id . '. This has been delivered to the GAD Admin inbox for review.')
-            ->with('report_case_id', $report->incident_id);
+            ->with('success', 'Report submitted successfully! Case ID: ' . $incidentId . '. This has been delivered to the GAD Admin inbox for review.')
+            ->with('report_case_id', $incidentId);
     }
 
     /**
