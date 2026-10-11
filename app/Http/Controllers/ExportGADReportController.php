@@ -54,11 +54,29 @@ class ExportGADReportController extends Controller
         $format = strtolower($format);
 
         if ($format === 'pdf') {
-            $pdf = Pdf::loadView('admin.gad-report-pdf', compact('data', 'period', 'periodLabel', 'users', 'reports', 'suggestions', 'startDate', 'endDate'))
-                ->setPaper('a4', 'portrait');
-
             $filename = "GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . ".pdf";
-            return $pdf->download($filename);
+
+            try {
+                $pdf = Pdf::loadView('admin.gad-report-pdf', compact('data', 'period', 'periodLabel', 'users', 'reports', 'suggestions', 'startDate', 'endDate'))
+                    ->setPaper('a4', 'portrait');
+                $content = $pdf->output();
+            } catch (\Throwable $exception) {
+                report($exception);
+                \Log::error('Detailed GAD PDF rendering failed; using summary export.', [
+                    'period' => $period,
+                    'exception' => $exception::class,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                $pdf = Pdf::loadView('admin.gad-report-pdf-summary', compact('data', 'period', 'periodLabel', 'users', 'reports', 'suggestions'))
+                    ->setPaper('a4', 'portrait');
+                $content = $pdf->output();
+            }
+
+            return response($content, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ]);
         }
 
         if ($format === 'excel' || $format === 'csv') {
