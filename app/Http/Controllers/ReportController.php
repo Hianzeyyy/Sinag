@@ -150,7 +150,7 @@ class ReportController extends Controller
                 ]);
 
                 return redirect()->route('student.report')->withInput()->withErrors([
-                    'report' => 'The report could not be saved. Please try again or contact the GAD office if the problem continues.',
+                    'report' => 'The report could not be saved. ' . $this->safeFailureMessage($fallbackException),
                 ]);
             }
         }
@@ -175,6 +175,12 @@ class ReportController extends Controller
         } catch (\Throwable $loggingException) {
             // Logging must never replace the user-facing report error response.
         }
+    }
+
+    private function safeFailureMessage(\Throwable $exception): string
+    {
+        $message = trim(preg_replace('/\s+/', ' ', $exception->getMessage()));
+        return $message !== '' ? 'Server details: ' . \Illuminate\Support\Str::limit($message, 240) : 'Please try again or contact the GAD office.';
     }
 
     /**

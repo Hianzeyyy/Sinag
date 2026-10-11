@@ -669,7 +669,10 @@ class AdminController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'The schedule could not be saved. Please refresh and try again.',
+                'message' => 'The schedule could not be saved: ' . \Illuminate\Support\Str::limit(
+                    trim(preg_replace('/\s+/', ' ', $exception->getMessage())),
+                    240
+                ),
             ], 500);
         }
     }
