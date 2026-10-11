@@ -92,6 +92,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/reports/{id}/seen', [AdminController::class, 'markSeen'])->name('reports.seen');
         Route::get('/reports/{id}/pdf', [AdminController::class, 'downloadReportPdf'])->name('reports.pdf');
         Route::post('/suggestions/{id}/review', [AdminController::class, 'reviewSuggestion'])->name('suggestions.review');
+        Route::delete('/suggestions/{id}/delete', [AdminController::class, 'deleteSuggestion'])->name('suggestions.delete');
         Route::post('/reveal-identity/{report_id}', [AdminController::class, 'requestReveal'])->name('reveal');
         Route::delete('/reports/{id}/delete', [AdminController::class, 'deleteReport'])->name('reports.delete');
 

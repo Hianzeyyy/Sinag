@@ -218,6 +218,20 @@ class AdminController extends Controller
         return back()->with('success', 'Suggestion status updated successfully.');
     }
 
+    public function deleteSuggestion($id)
+    {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
+            return redirect()->route('home');
+        }
+
+        $suggestion = Suggestion::findOrFail($id);
+        $suggestion->comments()->delete();
+        \DB::table('suggestion_user_upvotes')->where('suggestion_id', $suggestion->id)->delete();
+        $suggestion->delete();
+
+        return back()->with('success', 'Suggestion deleted successfully.');
+    }
+
     /**
      * User Management: Listahan ng mga rehistradong account.
      */

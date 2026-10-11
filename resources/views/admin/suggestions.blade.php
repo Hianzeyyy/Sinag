@@ -77,7 +77,7 @@
                         <button type="button" class="fw-btn-view border-0" data-bs-toggle="modal" data-bs-target="#suggestionModal{{ $suggestion->id }}">
                             <i class="bi bi-eye me-1"></i> View
                         </button>
-                        <form action="{{ route('suggestions.destroy', $suggestion->id) }}" method="POST"
+                        <form action="{{ route('admin.suggestions.delete', $suggestion->id) }}" method="POST"
                               onsubmit="return confirm('Delete this post from the freedom wall?');" style="display:inline">
                             @csrf
                             @method('DELETE')
