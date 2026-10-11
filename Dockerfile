@@ -27,8 +27,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-install pdo_mysql mbstring bcmath exif pcntl gd zip \
     && rm -rf /var/lib/apt/lists/*
 
-# Enable Apache rewrite module
-RUN a2enmod rewrite
+# Use one Apache MPM only. The PHP Apache base image uses prefork for mod_php;
+# explicitly disable other MPMs so inherited image configuration cannot load
+# multiple MPM modules.
+RUN a2dismod mpm_event mpm_worker mpm_prefork 2>/dev/null || true \
+    && a2enmod mpm_prefork rewrite
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
