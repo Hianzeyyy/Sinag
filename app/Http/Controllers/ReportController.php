@@ -104,11 +104,15 @@ class ReportController extends Controller
             $incidentId = 'SN-' . strtoupper(Str::random(6));
         }
         $reportData = [
+            'id'            => ((int) \DB::table('reports')->max('id')) + 1,
             'user_id'       => $user->id,
             'incident_id'   => $incidentId,
             'cloak_alias'   => $cloakAlias,
             'nature'        => $finalNature,
             'incident_date' => $request->incident_date,
+            'incident_time' => $request->input('incident_time'),
+            'course'        => $request->input('course'),
+            'gender'        => $request->input('gender'),
             'location'      => $request->location,
             'description'   => $request->description,
             'evidence'      => json_encode($evidencePaths, JSON_THROW_ON_ERROR),
@@ -118,14 +122,9 @@ class ReportController extends Controller
             'updated_at'    => now(),
         ];
 
-        $optionalData = [
-            'course' => $request->input('course'),
-            'gender' => $request->input('gender'),
-            'incident_time' => $request->input('incident_time'),
-        ];
-
         try {
-            \DB::table('reports')->insertGetId($reportData);
+            $columns = array_flip(Schema::getColumnListing('reports'));
+            \DB::table('reports')->insert(array_intersect_key($reportData, $columns));
         } catch (\Throwable $exception) {
             $this->logReportFailure($exception, [
                 'user_id' => Auth::id(),
@@ -133,22 +132,6 @@ class ReportController extends Controller
             ]);
 
             throw $exception;
-        }
-
-        try {
-            $columns = array_flip(Schema::getColumnListing('reports'));
-            $metadata = array_intersect_key($optionalData, $columns);
-
-            if ($metadata !== []) {
-                \DB::table('reports')->where('incident_id', $incidentId)->update($metadata);
-            }
-        } catch (\Throwable $exception) {
-            \Log::warning('Report saved without optional metadata', [
-                'user_id' => $user->id,
-                'incident_id' => $incidentId,
-                'exception' => $exception::class,
-                'message' => $exception->getMessage(),
-            ]);
         }
 
         // 4. Redirect back

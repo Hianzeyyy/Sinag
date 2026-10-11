@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -44,6 +45,20 @@ class ReportSubmissionTest extends TestCase
             'cloak_alias' => 'StudentTest',
         ]);
 
+        DB::table('reports')->insert([
+            'id' => 4,
+            'user_id' => $user->id,
+            'incident_id' => 'SN-EXIST',
+            'cloak_alias' => 'StudentTest',
+            'nature' => 'Catcalling',
+            'location' => 'Existing location',
+            'description' => 'Existing report.',
+            'priority' => 'Medium',
+            'status' => 'Pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         $response = $this->actingAs($user)->post(route('reports.store'), [
             'nature' => 'Catcalling',
             'course' => 'BS Information Technology (BSIT)',
@@ -56,9 +71,9 @@ class ReportSubmissionTest extends TestCase
 
         $response->assertRedirect(route('student.report'));
         $response->assertSessionHas('success');
-        $this->assertDatabaseCount('reports', 1);
+        $this->assertDatabaseCount('reports', 2);
         $this->assertDatabaseHas('reports', [
-            'id' => 1,
+            'id' => 5,
             'user_id' => $user->id,
             'nature' => 'Catcalling',
             'location' => 'Test location',
