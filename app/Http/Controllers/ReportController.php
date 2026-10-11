@@ -92,11 +92,13 @@ class ReportController extends Controller
             'incident_id'   => 'SN-' . strtoupper(Str::random(6)), // Halimbawa: SN-A1B2C3
             'cloak_alias'   => $cloakAlias,
             'nature'        => $finalNature,
+            'course'        => $request->input('course'),
+            'gender'        => $request->input('gender'),
             'incident_date' => $request->incident_date,
             'incident_time' => $request->incident_time,
             'location'      => $request->location,
             'description'   => $request->description,
-            'evidence'      => $evidencePaths,
+            'evidence'      => json_encode($evidencePaths, JSON_THROW_ON_ERROR),
             'priority'      => 'Medium', // Default priority
             'status'        => 'Pending', // Default status
             'created_at'    => now(),
