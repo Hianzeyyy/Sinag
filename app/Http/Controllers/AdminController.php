@@ -631,7 +631,6 @@ class AdminController extends Controller
                     ]);
                 }
             }
-        }
 
             $savedSchedules = GadSchedule::query()
                 ->whereIn('status', ['active', 'unavailable', 'inactive'])
