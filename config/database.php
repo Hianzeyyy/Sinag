@@ -22,11 +22,14 @@ $databaseHost = trim((string) env('DB_HOST', ''));
 $databasePort = (string) env('DB_PORT', '3306');
 $databaseName = trim((string) env('DB_DATABASE', ''));
 $databaseName = $databaseName !== '' ? $databaseName : 'sinag_db';
-$databaseCa = trim((string) env('DB_SSL_CA', env('MYSQL_ATTR_SSL_CA', '')));
+$databaseCa = trim((string) env(
+    'DB_SSL_CA',
+    env('MYSQL_ATTR_SSL_CA', '/etc/ssl/certs/ca-certificates.crt')
+));
 $databaseSslOptions = [];
 if (extension_loaded('pdo_mysql')) {
     $databaseSslOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = filter_var(
-        env('DB_SSL_VERIFY_SERVER_CERT', false),
+        env('DB_SSL_VERIFY_SERVER_CERT', true),
         FILTER_VALIDATE_BOOL
     );
 
