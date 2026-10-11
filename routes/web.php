@@ -106,9 +106,7 @@ Route::middleware(['auth'])->group(function () {
         // Core Modules
         Route::get('/report', [StudentController::class, 'report'])->name('report'); 
         Route::get('/vault', [StudentController::class, 'vault'])->name('vault');   
-        Route::middleware('profile.complete')->group(function () {
-            Route::get('/boses', [StudentController::class, 'boses'])->name('boses');
-        });
+        Route::get('/boses', [StudentController::class, 'boses'])->name('boses');
         Route::get('/gad-schedule', [StudentController::class, 'gadSchedule'])->name('gad-schedule');
         Route::get('/schedule-appointment', [StudentController::class, 'appointmentForm'])->name('schedule-appointment');
         Route::post('/schedule-appointment', [StudentController::class, 'storeAppointment'])->name('schedule-appointment.store');

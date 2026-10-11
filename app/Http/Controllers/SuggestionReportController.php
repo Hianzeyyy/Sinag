@@ -14,7 +14,16 @@ class SuggestionReportController extends Controller
     public function storePost(Request $request, Suggestion $suggestion)
     {
         $validated = $request->validate(['reason' => ['required', 'string', 'max:500']]);
-        SuggestionReport::firstOrCreate(['reporter_id' => Auth::id(), 'suggestion_id' => $suggestion->id, 'status' => 'pending'], ['reason' => $validated['reason']]);
+        $attributes = ['reporter_id' => Auth::id(), 'suggestion_id' => $suggestion->id, 'status' => 'pending'];
+        if (!SuggestionReport::where($attributes)->exists()) {
+            $reportId = ((int) \DB::table('suggestion_reports')->max('id')) + 1;
+            \DB::table('suggestion_reports')->insert($attributes + [
+                'id' => $reportId,
+                'reason' => $validated['reason'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
         Log::info('Suggestion post reported', ['suggestion_id' => $suggestion->id, 'reporter_id' => Auth::id()]);
         return back()->with('success', 'Post reported to the administrator.');
     }
@@ -22,7 +31,17 @@ class SuggestionReportController extends Controller
     public function storeComment(Request $request, SuggestionComment $comment)
     {
         $validated = $request->validate(['reason' => ['required', 'string', 'max:500']]);
-        SuggestionReport::firstOrCreate(['reporter_id' => Auth::id(), 'comment_id' => $comment->id, 'status' => 'pending'], ['reason' => $validated['reason'], 'suggestion_id' => $comment->suggestion_id]);
+        $attributes = ['reporter_id' => Auth::id(), 'comment_id' => $comment->id, 'status' => 'pending'];
+        if (!SuggestionReport::where($attributes)->exists()) {
+            $reportId = ((int) \DB::table('suggestion_reports')->max('id')) + 1;
+            \DB::table('suggestion_reports')->insert($attributes + [
+                'id' => $reportId,
+                'reason' => $validated['reason'],
+                'suggestion_id' => $comment->suggestion_id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
         Log::info('Suggestion comment reported', ['comment_id' => $comment->id, 'reporter_id' => Auth::id()]);
         return back()->with('success', 'Comment reported to the administrator.');
     }

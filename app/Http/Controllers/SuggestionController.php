@@ -20,7 +20,14 @@ class SuggestionController extends Controller
             $suggestion->upvotes()->detach($user->id);
             $upvoted = false;
         } else {
-            $suggestion->upvotes()->attach($user->id);
+            $pivotId = ((int) \DB::table('suggestion_user_upvotes')->max('id')) + 1;
+            \DB::table('suggestion_user_upvotes')->insert([
+                'id' => $pivotId,
+                'suggestion_id' => $suggestion->id,
+                'user_id' => $user->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
             $upvoted = true;
         }
 
@@ -61,12 +68,16 @@ class SuggestionController extends Controller
         }
 
         // 2. Save to Database
-        Suggestion::create([
+        $suggestionId = ((int) \DB::table('suggestions')->max('id')) + 1;
+        \DB::table('suggestions')->insert([
+            'id' => $suggestionId,
             'user_id' => Auth::id(),
             'category' => $request->category,
             'message' => $message,
             'is_anonymous' => $request->has('is_anonymous') ? true : false,
             'status' => 'Pending',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         // 3. Redirect back with Success Message
