@@ -265,13 +265,7 @@
                                 <i class="bi bi-file-earmark-arrow-down me-2"></i>Export GAD Report
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2" aria-labelledby="exportGadReportDropdown" style="min-width: 270px;">
-                                <li><h6 class="dropdown-header text-uppercase fw-bold small text-muted px-3 py-1"><i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> PDF Reports</h6></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'pdf','period'=>'weekly']) }}"><i class="bi bi-calendar-week me-2 text-primary"></i>Weekly (Last 7 Days)</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'pdf','period'=>'30days']) }}"><i class="bi bi-calendar3 me-2 text-primary"></i>Last 30 Days</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'pdf','period'=>'monthly']) }}"><i class="bi bi-calendar-month me-2 text-primary"></i>This Month</a></li>
-                                <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'pdf','period'=>'yearly']) }}"><i class="bi bi-calendar-check me-2 text-primary"></i>This Year</a></li>
-                                <li><hr class="dropdown-divider my-2"></li>
-                                <li><h6 class="dropdown-header text-uppercase fw-bold small text-muted px-3 py-1"><i class="bi bi-file-earmark-excel-fill text-success me-1"></i> Excel / CSV Spreadsheets</h6></li>
+                                <li><h6 class="dropdown-header text-uppercase fw-bold small text-muted px-3 py-1"><i class="bi bi-file-earmark-spreadsheet-fill text-success me-1"></i> Downloadable Reports (CSV)</h6></li>
                                 <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'excel','period'=>'weekly']) }}"><i class="bi bi-calendar-week me-2 text-success"></i>Weekly (Last 7 Days)</a></li>
                                 <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'excel','period'=>'30days']) }}"><i class="bi bi-calendar3 me-2 text-success"></i>Last 30 Days</a></li>
                                 <li><a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['format'=>'excel','period'=>'monthly']) }}"><i class="bi bi-calendar-month me-2 text-success"></i>This Month</a></li>

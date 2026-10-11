@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Report;
@@ -54,40 +53,11 @@ class ExportGADReportController extends Controller
         $format = strtolower($format);
 
         if ($format === 'pdf') {
-            $filename = "GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . ".pdf";
-
-            try {
-                $pdf = Pdf::loadView('admin.gad-report-pdf', compact('data', 'period', 'periodLabel', 'users', 'reports', 'suggestions', 'startDate', 'endDate'))
-                    ->setPaper('a4', 'portrait');
-                $content = $pdf->output();
-            } catch (\Throwable $exception) {
-                report($exception);
-                \Log::error('Detailed GAD PDF rendering failed; using summary export.', [
-                    'period' => $period,
-                    'exception' => $exception::class,
-                    'message' => $exception->getMessage(),
-                ]);
-
-                try {
-                    $pdf = Pdf::loadView('admin.gad-report-pdf-summary', compact('data', 'period', 'periodLabel', 'users', 'reports', 'suggestions'))
-                        ->setPaper('a4', 'portrait');
-                    $content = $pdf->output();
-                } catch (\Throwable $fallbackException) {
-                    report($fallbackException);
-                    \Log::error('GAD PDF summary rendering failed; returning CSV export.', [
-                        'period' => $period,
-                        'exception' => $fallbackException::class,
-                        'message' => $fallbackException->getMessage(),
-                    ]);
-
-                    return $this->exportExcelCsv($data, $users, $reports, $suggestions, $period);
-                }
-            }
-
-            return response($content, 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            \Log::warning('PDF export requested; returning the reliable CSV report format.', [
+                'period' => $period,
             ]);
+
+            return $this->exportExcelCsv($data, $users, $reports, $suggestions, $period);
         }
 
         if ($format === 'excel' || $format === 'csv') {
