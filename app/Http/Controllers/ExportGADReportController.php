@@ -70,7 +70,18 @@ class ExportGADReportController extends Controller
 
                 $pdf = Pdf::loadView('admin.gad-report-pdf-summary', compact('data', 'period', 'periodLabel', 'users', 'reports', 'suggestions'))
                     ->setPaper('a4', 'portrait');
-                $content = $pdf->output();
+                try {
+                    $content = $pdf->output();
+                } catch (\Throwable $fallbackException) {
+                    report($fallbackException);
+                    \Log::error('GAD PDF summary rendering failed; returning CSV export.', [
+                        'period' => $period,
+                        'exception' => $fallbackException::class,
+                        'message' => $fallbackException->getMessage(),
+                    ]);
+
+                    return $this->exportExcelCsv($data, $users, $reports, $suggestions, $period);
+                }
             }
 
             return response($content, 200, [
