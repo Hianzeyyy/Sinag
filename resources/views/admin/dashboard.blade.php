@@ -260,31 +260,9 @@
                         <p class="hero-copy mb-0">Real-time monitoring of campus safety, incident escalation, and response status across the reporting system.</p>
                     </div>
                     <div class="text-lg-end">
-                        <div class="d-flex justify-content-end align-items-center gap-2">
-                            <a class="btn hero-action px-4 py-2" href="{{ route('admin.gad-report.export', ['period' => '30days']) }}" title="Download the last 30 days GAD report as PDF">
-                                <i class="bi bi-file-earmark-pdf me-2"></i>Export GAD Report PDF
-                            </a>
-                            <div class="dropdown d-inline-block">
-                                <button class="btn hero-action px-4 py-2 dropdown-toggle" type="button" id="exportGadReportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-calendar-range me-2"></i>Other PDF Periods
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2" aria-labelledby="exportGadReportDropdown" style="min-width: 270px;">
-                                <li><h6 class="dropdown-header text-uppercase fw-bold small text-muted px-3 py-1"><i class="bi bi-file-earmark-pdf-fill text-primary me-1"></i> GAD Report PDFs</h6></li>
-                                @foreach([
-                                    ['period' => 'weekly', 'label' => 'Weekly (Last 7 Days)', 'icon' => 'calendar-week'],
-                                    ['period' => '30days', 'label' => 'Last 30 Days', 'icon' => 'calendar3'],
-                                    ['period' => 'monthly', 'label' => 'This Month', 'icon' => 'calendar-month'],
-                                    ['period' => 'yearly', 'label' => 'This Year', 'icon' => 'calendar-check'],
-                                ] as $exportPeriod)
-                                    <li>
-                                        <a class="dropdown-item rounded-3 py-2 px-3 small" href="{{ route('admin.gad-report.export', ['period' => $exportPeriod['period']]) }}" aria-label="Download {{ $exportPeriod['label'] }} GAD report as PDF">
-                                            <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>{{ $exportPeriod['label'] }} PDF
-                                        </a>
-                                    </li>
-                                @endforeach
-                                </ul>
-                            </div>
-                        </div>
+                        <a class="btn hero-action px-4 py-2" href="{{ route('admin.gad-report.export', ['period' => '30days']) }}" title="Download the last 30 days GAD report as PDF">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Export GAD Report
+                        </a>
                     </div>
                 </div>
             </div>
