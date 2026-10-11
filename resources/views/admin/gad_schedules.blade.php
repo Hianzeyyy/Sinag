@@ -806,6 +806,8 @@ function saveCalendar() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         body: JSON.stringify({ updates })
@@ -820,6 +822,12 @@ function saveCalendar() {
             updateChangeNote();
             btn.textContent = 'Saved';
             setTimeout(() => { btn.textContent = 'Save changes'; }, 1200);
+            return;
+        }
+
+        if (res.status === 401 || res.status === 403 || res.status === 419) {
+            alert('Your session has expired. The page will refresh so you can sign in again.');
+            window.location.reload();
             return;
         }
 

@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -122,19 +121,7 @@ class ReportController extends Controller
             'updated_at'    => now(),
         ];
 
-        foreach ([
-            'course' => $request->input('course'),
-            'gender' => $request->input('gender'),
-            'incident_time' => $request->input('incident_time'),
-        ] as $column => $value) {
-            if (Schema::hasColumn('reports', $column)) {
-                $reportData[$column] = $value;
-            }
-        }
-
         try {
-            $availableColumns = array_flip(Schema::getColumnListing('reports'));
-            $reportData = array_intersect_key($reportData, $availableColumns);
             \DB::table('reports')->insert($reportData);
         } catch (\Throwable $exception) {
             $this->logReportFailure($exception, [
