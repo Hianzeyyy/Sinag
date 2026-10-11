@@ -133,6 +133,8 @@ class ReportController extends Controller
         }
 
         try {
+            $availableColumns = array_flip(Schema::getColumnListing('reports'));
+            $reportData = array_intersect_key($reportData, $availableColumns);
             \DB::table('reports')->insert($reportData);
         } catch (\Throwable $exception) {
             $this->logReportFailure($exception, [

@@ -465,7 +465,8 @@ class AdminController extends Controller
             })
             ->values();
 
-        return response()->json(['schedules' => $schedules]);
+        return response()->json(['schedules' => $schedules])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**
@@ -629,7 +630,25 @@ class AdminController extends Controller
             }
         }
 
-            return response()->json(['success' => true]);
+            $savedSchedules = GadSchedule::query()
+                ->whereIn('status', ['active', 'unavailable', 'inactive'])
+                ->orderBy('available_from')
+                ->get()
+                ->map(fn (GadSchedule $schedule) => [
+                    'date' => optional($schedule->available_from)->format('Y-m-d'),
+                    'start_time' => optional($schedule->available_from)->format('H:i'),
+                    'end_date' => $schedule->available_until?->format('Y-m-d'),
+                    'end_time' => $schedule->available_until?->format('H:i'),
+                    'status' => $schedule->status,
+                    'availability_type' => $schedule->details === 'all_day'
+                        ? 'available'
+                        : ($schedule->status === 'unavailable' || $schedule->details === 'unavailable'
+                            ? 'unavailable'
+                            : 'hours'),
+                ])->values();
+
+            return response()->json(['success' => true, 'schedules' => $savedSchedules])
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
         } catch (\Illuminate\Validation\ValidationException $exception) {
             throw $exception;
         } catch (\Throwable $exception) {
