@@ -138,7 +138,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-uppercase" style="letter-spacing: 1px; color:#A594F9;">Department / Program</label>
                                 <select name="course" class="form-select border-0 bg-white shadow-sm" required style="border-radius: 14px; font-size: 1rem;">
-                                    <option value="" selected disabled>Select your department or program...</option>
+                                    <option value="" disabled {{ old('course') ? '' : 'selected' }}>Select your department or program...</option>
                                     <optgroup label="Student Programs">
                                     <option value="Bachelor Industrial Technology - Major in Electrical Technology" {{ old('course') === 'Bachelor Industrial Technology - Major in Electrical Technology' ? 'selected' : '' }}>Bachelor Industrial Technology - Major in Electrical Technology</option>
                                     <option value="Bachelor Industrial Technology - Major in Food Management Service" {{ old('course') === 'Bachelor Industrial Technology - Major in Food Management Service' ? 'selected' : '' }}>Bachelor Industrial Technology - Major in Food Management Service</option>
@@ -160,7 +160,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-uppercase" style="letter-spacing: 1px; color:#A594F9;">Gender</label>
                                 <select name="gender" class="form-select border-0 bg-white shadow-sm" required style="border-radius: 14px; font-size: 1rem;">
-                                    <option value="" selected disabled>Select gender...</option>
+                                    <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Select gender...</option>
                                     <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
                                     <option value="Male" {{ old('gender') === 'Male' ? 'selected' : '' }}>Male</option>
                                 </select>
@@ -196,9 +196,9 @@
                         {{-- Incident Description --}}
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-uppercase" style="letter-spacing: 1px; color:#A594F9;">Detailed Description</label>
-                            <textarea name="description" class="form-control border-0 bg-white shadow-sm" rows="5" 
+                            <textarea name="description" class="form-control border-0 bg-white shadow-sm" rows="5"
                                 placeholder="Tell us what happened... (When, Where, Who)" 
-                                style="border-radius: 14px; font-size: 1rem;" required></textarea>
+                                style="border-radius: 14px; font-size: 1rem;" required>{{ old('description') }}</textarea>
                             <div class="form-text text-muted mt-2">
                                 <i class="bi bi-info-circle me-1"></i> Be as specific as possible to help us assist you better.
                             </div>
@@ -208,7 +208,7 @@
                         {{-- Incident Location --}}
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-uppercase" style="letter-spacing: 1px; color:#A594F9;">Location of Incident</label>
-                            <input type="text" name="location" class="form-control border-0 bg-white shadow-sm" placeholder="Where did it happen?" style="border-radius: 14px; font-size: 1rem;" required>
+                            <input type="text" name="location" value="{{ old('location') }}" class="form-control border-0 bg-white shadow-sm" placeholder="Where did it happen?" style="border-radius: 14px; font-size: 1rem;" required>
                         </div>
 
                         {{-- Evidence Upload --}}
@@ -220,7 +220,7 @@
                                 </span>
                                 <input type="file" name="evidence[]" class="form-control border-0 bg-white shadow-sm" id="inputGroupFile02" multiple style="border-radius: 0 12px 12px 0;">
                             </div>
-                            <small class="text-muted">Upload screenshots, photos, or documents (Max 1GB per file).</small>
+                            <small class="text-muted">Upload screenshots, photos, or documents (Max 10 MB per file).</small>
                         </div>
 
                         <hr class="my-4 opacity-25">

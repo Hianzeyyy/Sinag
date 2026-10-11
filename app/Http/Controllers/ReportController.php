@@ -59,7 +59,9 @@ class ReportController extends Controller
             'incident_time' => 'required|date_format:H:i',
             'description' => 'required|string|min:5',
             'location' => 'required|string|max:255',
-            'evidence.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx|max:1048576',
+            'course' => 'nullable|string|max:120',
+            'gender' => 'required|string|in:Female,Male',
+            'evidence.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx|max:10240',
         ]);
 
         $finalNature = $request->nature === 'Other GAD-related Concern'
@@ -94,23 +96,11 @@ class ReportController extends Controller
         }
 
         // 3. Create the Report Record gamit ang bagong Schema
-        \Log::info('DEBUG: Attempting to save report', [
-            'user_id' => Auth::id(),
-            'cloak_alias' => $cloakAlias,
-            'nature' => $finalNature,
-            'incident_date' => $request->incident_date,
-            'incident_time' => $request->incident_time,
-            'location' => $request->location,
-            'description' => $request->description
-        ]);
-
-        $reportId = ((int) \DB::table('reports')->max('id')) + 1;
         $incidentId = 'SN-' . strtoupper(Str::random(6));
         while (\DB::table('reports')->where('incident_id', $incidentId)->exists()) {
             $incidentId = 'SN-' . strtoupper(Str::random(6));
         }
         $reportData = [
-            'id'            => $reportId,
             'user_id'       => $user->id,
             'incident_id'   => $incidentId,
             'cloak_alias'   => $cloakAlias,
@@ -125,48 +115,41 @@ class ReportController extends Controller
             'updated_at'    => now(),
         ];
 
-        $reportData += [
+        $optionalData = [
             'course' => $request->input('course'),
             'gender' => $request->input('gender'),
             'incident_time' => $request->input('incident_time'),
         ];
 
         try {
-            $columns = array_flip(Schema::getColumnListing('reports'));
-            $insertData = array_intersect_key($reportData, $columns);
-            \DB::table('reports')->insert($insertData);
+            \DB::table('reports')->insertGetId($reportData);
         } catch (\Throwable $exception) {
             $this->logReportFailure($exception, [
                 'user_id' => Auth::id(),
-                'columns' => array_keys($insertData ?? []),
-                'stage' => 'insert-primary',
+                'stage' => 'insert-report',
             ]);
 
-            $coreReportData = $reportData;
-            unset($coreReportData['course'], $coreReportData['gender'], $coreReportData['incident_time']);
-
-            try {
-                $columns = array_flip(Schema::getColumnListing('reports'));
-                \DB::table('reports')->insert(array_intersect_key($coreReportData, $columns));
-            } catch (\Throwable $fallbackException) {
-                $this->logReportFailure($fallbackException, [
-                    'user_id' => Auth::id(),
-                    'columns' => array_keys($coreReportData),
-                    'stage' => 'insert-fallback',
-                ]);
-
-                return redirect()->route('student.report')->withInput()->withErrors([
-                    'report' => 'The report could not be saved. Please try again or contact the GAD office.',
-                ]);
-            }
+            throw $exception;
         }
-        \Log::info('DEBUG: Report saved', [
-            'report_id' => $reportId,
-            'incident_id' => $incidentId,
-        ]);
+
+        try {
+            $columns = array_flip(Schema::getColumnListing('reports'));
+            $metadata = array_intersect_key($optionalData, $columns);
+
+            if ($metadata !== []) {
+                \DB::table('reports')->where('incident_id', $incidentId)->update($metadata);
+            }
+        } catch (\Throwable $exception) {
+            \Log::warning('Report saved without optional metadata', [
+                'user_id' => $user->id,
+                'incident_id' => $incidentId,
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+        }
 
         // 4. Redirect back
-        return redirect()->back()
+        return redirect()->route('student.report')
             ->with('success', 'Report submitted successfully! Case ID: ' . $incidentId . '. This has been delivered to the GAD Admin inbox for review.')
             ->with('report_case_id', $incidentId);
     }
