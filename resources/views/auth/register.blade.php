@@ -34,9 +34,16 @@
     .register-card input.form-control,
     .register-card select.form-select,
     .register-card input[type="file"] {
+        min-width: 0;
+        max-width: 100%;
         background: #fff !important;
         color: #111827 !important;
         border: 1px solid rgba(148, 163, 184, 0.32) !important;
+    }
+
+    .register-card input[type="file"] {
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .register-card .input-group-text {
@@ -107,6 +114,12 @@
         flex-grow: 0 !important;
     }
 
+    @media (min-width: 768px) {
+        .register-form-panel {
+            min-width: 0;
+        }
+    }
+
     @media (max-width: 767.98px) {
         .register-shell { align-items: flex-start !important; padding: 0.75rem 0 !important; }
         .register-shell > .container { width: 100%; padding-inline: 0.75rem; }
@@ -130,8 +143,7 @@
     </div>
 @endif
 
-<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-0 register-shell" 
-    style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 56%, #8f72f5 100%); position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;">
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-0 register-shell">
     
     <div class="container" style="position: relative; z-index: 10; animation: fadeInUp 0.8s ease-out;">
         <div class="row justify-content-center">

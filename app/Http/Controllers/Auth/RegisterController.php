@@ -117,6 +117,7 @@ class RegisterController extends Controller
         try {
             return DB::transaction(function () use ($data, $accountType, $cloakAlias, $profilePhotoPath, $selfieImagePath) {
                 return User::create([
+                    'id' => ((int) User::query()->max('id')) + 1,
                     'name' => trim($data['name']),
                     'email' => strtolower(trim($data['email'])),
                     'age' => $data['age'],
