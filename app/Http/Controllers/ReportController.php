@@ -7,6 +7,7 @@ use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -86,16 +87,13 @@ class ReportController extends Controller
         ]);
 
         $reportId = ((int) \DB::table('reports')->max('id')) + 1;
-        \DB::table('reports')->insert([
+        $reportData = [
             'id'            => $reportId,
             'user_id'       => Auth::id(),
             'incident_id'   => 'SN-' . strtoupper(Str::random(6)), // Halimbawa: SN-A1B2C3
             'cloak_alias'   => $cloakAlias,
             'nature'        => $finalNature,
-            'course'        => $request->input('course'),
-            'gender'        => $request->input('gender'),
             'incident_date' => $request->incident_date,
-            'incident_time' => $request->incident_time,
             'location'      => $request->location,
             'description'   => $request->description,
             'evidence'      => json_encode($evidencePaths, JSON_THROW_ON_ERROR),
@@ -103,7 +101,29 @@ class ReportController extends Controller
             'status'        => 'Pending', // Default status
             'created_at'    => now(),
             'updated_at'    => now(),
-        ]);
+        ];
+
+        foreach (['course', 'gender', 'incident_time'] as $optionalColumn) {
+            if (Schema::hasColumn('reports', $optionalColumn)) {
+                $reportData[$optionalColumn] = $request->input($optionalColumn);
+            }
+        }
+
+        try {
+            \DB::table('reports')->insert($reportData);
+        } catch (\Throwable $exception) {
+            report($exception);
+            \Log::error('Report submission failed', [
+                'user_id' => Auth::id(),
+                'columns' => array_keys($reportData),
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return redirect()->back()->withInput()->withErrors([
+                'report' => 'The report could not be saved. Please try again or contact the GAD office if the problem continues.',
+            ]);
+        }
         $report = Report::findOrFail($reportId);
 
         \Log::info('DEBUG: Report saved', [
