@@ -13,30 +13,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Gumawa ng Default Admin Account
-        User::create([
+        // Keep the known support accounts available without creating duplicates
+        // when the seeder is run during a deployment.
+        User::updateOrCreate(['email' => 'admin@psu.edu.ph'], [
             'name' => 'GAD Admin',
-            'email' => 'admin@psu.edu.ph', // Gamitin ito sa login screen
             'password' => Hash::make('password123'), // Ang iyong password
             'role' => 'admin',
             'cloak_alias' => 'AdminCloak',
             'account_status' => 'active', // Dapat active para sa enum requirement
         ]);
 
-        // Optional: Gumawa rin ng Test Student account para sa testing
-        User::create([
+        $student = User::updateOrCreate(['email' => 'student@psu.edu.ph'], [
             'name' => 'Test Student',
-            'email' => 'student@psu.edu.ph',
             'password' => Hash::make('password123'),
             'role' => 'student',
             'cloak_alias' => 'StudentCloak',
+            'account_status' => 'active',
         ]);
-        // Maglagay ng sample suggestion para sa Participatory Suggestions
-        \App\Models\Suggestion::create([
-            'user_id' => 2, // Test Student
+
+        \App\Models\Suggestion::firstOrCreate([
+            'user_id' => $student->id,
             'category' => 'Campus Safety',
-            // 'subject' => 'Mas maliwanag na ilaw sa gate', // Removed: No longer used
             'message' => 'Sana dagdagan pa ang ilaw sa main gate para mas safe umuwi ang mga estudyante sa gabi.',
+        ], [
             'is_anonymous' => true,
             'status' => 'New',
         ]);

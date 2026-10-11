@@ -61,4 +61,4 @@ RUN mkdir -p storage/framework/sessions storage/framework/views storage/framewor
     && chmod -R 775 storage bootstrap/cache
 
 # Render provides PORT at runtime, so configure Apache when the container starts.
-CMD ["sh", "-c", "port=${PORT:-10000}; sed -ri \"s/^Listen [0-9]+/Listen ${port}/\" /etc/apache2/ports.conf; sed -ri \"s/:80>/:${port}>/\" /etc/apache2/sites-available/000-default.conf; exec apache2-foreground"]
+CMD ["sh", "-c", "port=${PORT:-10000}; sed -ri \"s/^Listen [0-9]+/Listen ${port}/\" /etc/apache2/ports.conf; sed -ri \"s/:80>/:${port}>/\" /etc/apache2/sites-available/000-default.conf; php artisan migrate --force || echo 'Laravel migrations skipped; Apache will still start.'; php artisan db:seed --force || echo 'Laravel seed skipped; Apache will still start.'; exec apache2-foreground"]
