@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,7 +21,18 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\TrackUserPresence::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Throwable $exception, Request $request) {
+            if ($request->isMethod('POST') && $request->is('submit-report')) {
+                report($exception);
+
+                return redirect()
+                    ->route('student.report')
+                    ->withInput()
+                    ->withErrors([
+                        'report' => 'The report could not be submitted right now. Please try again or contact the GAD office if the problem continues.',
+                    ]);
+            }
+        });
     })->create();
 
 /*
