@@ -429,7 +429,9 @@ class AdminController extends Controller
      */
     public function gadSchedules()
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
+            return redirect()->route('home');
+        }
 
         $schedules = GadSchedule::with('creator')
             ->orderByDesc('available_from')
@@ -474,7 +476,9 @@ class AdminController extends Controller
      */
     public function storeGadSchedule(Request $request)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
+            return redirect()->route('home');
+        }
 
         $validated = $request->validate([
             'title'           => ['required', 'string', 'max:255'],
@@ -502,7 +506,9 @@ class AdminController extends Controller
      */
     public function updateGadSchedule(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
+            return redirect()->route('home');
+        }
 
         $validated = $request->validate([
             'title'           => ['required', 'string', 'max:255'],
@@ -527,7 +533,9 @@ class AdminController extends Controller
      */
     public function updateGadScheduleStatus(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
+            return redirect()->route('home');
+        }
 
         $validated = $request->validate([
             'status' => ['required', 'in:active,inactive,unavailable'],
@@ -548,7 +556,7 @@ class AdminController extends Controller
      */
     public function syncGadSchedule(Request $request)
     {
-        if (!Auth::user() || Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

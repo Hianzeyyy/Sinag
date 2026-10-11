@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -131,13 +132,16 @@ class ReportController extends Controller
         ];
 
         try {
-            \DB::table('reports')->insert($reportData);
+            $columns = array_flip(Schema::getColumnListing('reports'));
+            $insertData = array_intersect_key($reportData, $columns);
+            \DB::table('reports')->insert($insertData);
         } catch (\Throwable $exception) {
             $coreReportData = $reportData;
             unset($coreReportData['course'], $coreReportData['gender'], $coreReportData['incident_time']);
 
             try {
-                \DB::table('reports')->insert($coreReportData);
+                $columns = array_flip(Schema::getColumnListing('reports'));
+                \DB::table('reports')->insert(array_intersect_key($coreReportData, $columns));
             } catch (\Throwable $fallbackException) {
                 $this->logReportFailure($fallbackException, [
                     'user_id' => Auth::id(),
