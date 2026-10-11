@@ -116,9 +116,13 @@ class RegisterController extends Controller
 
         try {
             return DB::transaction(function () use ($data, $accountType, $cloakAlias, $profilePhotoPath, $selfieImagePath) {
-                $user = new User([
+                $id = ((int) DB::table('users')->max('id')) + 1;
+                $email = strtolower(trim($data['email']));
+
+                DB::table('users')->insert([
+                    'id' => $id,
                     'name' => trim($data['name']),
-                    'email' => strtolower(trim($data['email'])),
+                    'email' => $email,
                     'age' => $data['age'],
                     'gender' => $data['gender'],
                     'department' => $data['department'],
@@ -131,12 +135,11 @@ class RegisterController extends Controller
                     'profile_photo_path' => $profilePhotoPath,
                     'selfie_image_path' => $selfieImagePath,
                     'account_status' => 'pending',
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
 
-                $user->id = ((int) User::query()->max('id')) + 1;
-                $user->save();
-
-                return $user;
+                return User::query()->findOrFail($id);
             });
         } catch (\Throwable $exception) {
             foreach ($storedFiles as $storedFile) {
