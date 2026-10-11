@@ -68,9 +68,9 @@ class ExportGADReportController extends Controller
                     'message' => $exception->getMessage(),
                 ]);
 
-                $pdf = Pdf::loadView('admin.gad-report-pdf-summary', compact('data', 'period', 'periodLabel', 'users', 'reports', 'suggestions'))
-                    ->setPaper('a4', 'portrait');
                 try {
+                    $pdf = Pdf::loadView('admin.gad-report-pdf-summary', compact('data', 'period', 'periodLabel', 'users', 'reports', 'suggestions'))
+                        ->setPaper('a4', 'portrait');
                     $content = $pdf->output();
                 } catch (\Throwable $fallbackException) {
                     report($fallbackException);
