@@ -108,13 +108,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/vault', [StudentController::class, 'vault'])->name('vault');   
         Route::middleware('profile.complete')->group(function () {
             Route::get('/boses', [StudentController::class, 'boses'])->name('boses');
-            Route::get('/gad-schedule', [StudentController::class, 'gadSchedule'])->name('gad-schedule');
-            Route::get('/schedule-appointment', [StudentController::class, 'appointmentForm'])->name('schedule-appointment');
-            Route::post('/schedule-appointment', [StudentController::class, 'storeAppointment'])->name('schedule-appointment.store');
-            Route::get('/appointments', [StudentController::class, 'myAppointments'])->name('appointments');
-            Route::put('/appointments/{id}', [StudentController::class, 'updateAppointment'])->name('appointments.update');
-            Route::post('/appointments/{id}/cancel', [StudentController::class, 'cancelAppointment'])->name('appointments.cancel');
         });
+        Route::get('/gad-schedule', [StudentController::class, 'gadSchedule'])->name('gad-schedule');
+        Route::get('/schedule-appointment', [StudentController::class, 'appointmentForm'])->name('schedule-appointment');
+        Route::post('/schedule-appointment', [StudentController::class, 'storeAppointment'])->name('schedule-appointment.store');
+        Route::get('/appointments', [StudentController::class, 'myAppointments'])->name('appointments');
+        Route::put('/appointments/{id}', [StudentController::class, 'updateAppointment'])->name('appointments.update');
+        Route::post('/appointments/{id}/cancel', [StudentController::class, 'cancelAppointment'])->name('appointments.cancel');
         
         // Safety & Wellness
         Route::get('/wellness', [StudentController::class, 'wellness'])->name('wellness'); 
