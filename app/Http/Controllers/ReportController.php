@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -125,29 +124,31 @@ class ReportController extends Controller
             'updated_at'    => now(),
         ];
 
-        foreach ([
+        $reportData += [
             'course' => $request->input('course'),
             'gender' => $request->input('gender'),
             'incident_time' => $request->input('incident_time'),
-        ] as $column => $value) {
-            if (Schema::hasColumn('reports', $column)) {
-                $reportData[$column] = $value;
-            }
-        }
+        ];
 
         try {
-            $columns = array_flip(Schema::getColumnListing('reports'));
-            \DB::table('reports')->insert(array_intersect_key($reportData, $columns));
+            \DB::table('reports')->insert($reportData);
         } catch (\Throwable $exception) {
-            $this->logReportFailure($exception, [
-                'user_id' => Auth::id(),
-                'columns' => array_keys($reportData),
-                'stage' => 'insert',
-            ]);
+            $coreReportData = $reportData;
+            unset($coreReportData['course'], $coreReportData['gender'], $coreReportData['incident_time']);
 
-            return redirect()->route('student.report')->withInput()->withErrors([
-                'report' => 'The report could not be saved. Please try again or contact the GAD office if the problem continues.',
-            ]);
+            try {
+                \DB::table('reports')->insert($coreReportData);
+            } catch (\Throwable $fallbackException) {
+                $this->logReportFailure($fallbackException, [
+                    'user_id' => Auth::id(),
+                    'columns' => array_keys($coreReportData),
+                    'stage' => 'insert-fallback',
+                ]);
+
+                return redirect()->route('student.report')->withInput()->withErrors([
+                    'report' => 'The report could not be saved. Please try again or contact the GAD office if the problem continues.',
+                ]);
+            }
         }
         \Log::info('DEBUG: Report saved', [
             'report_id' => $reportId,

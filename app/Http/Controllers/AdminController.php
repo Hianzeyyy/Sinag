@@ -562,23 +562,25 @@ class AdminController extends Controller
                 'updates.*.remove'            => ['nullable', 'boolean'],
             ]);
 
-        foreach ($validated['updates'] as $update) {
+            foreach ($validated['updates'] as $update) {
             $date      = $update['date'];
             $remove    = (bool) ($update['remove'] ?? false);
             $type      = $update['availability_type'] ?? 'hours';
             $startTime = $update['start_time'] ?? null;
             $endTime   = $update['end_time'] ?? null;
 
-            $existing = GadSchedule::whereDate('available_from', $date)->first();
+                $existing = \DB::table('gad_schedules')
+                    ->whereDate('available_from', $date)
+                    ->first();
 
-            if ($remove || $type === 'remove') {
-                if ($existing) {
-                    \DB::table('gad_schedules')->where('id', $existing->id)->delete();
+                if ($remove || $type === 'remove') {
+                    if ($existing) {
+                        \DB::table('gad_schedules')->where('id', $existing->id)->delete();
+                    }
+                    continue;
                 }
-                continue;
-            }
 
-            if ($type === 'unavailable') {
+                if ($type === 'unavailable') {
                 $payload = [
                     'title'           => 'Unavailable / Closed',
                     'location'        => 'GAD Office',
@@ -587,7 +589,7 @@ class AdminController extends Controller
                     'details'         => 'unavailable',
                     'status'          => 'unavailable',
                 ];
-            } elseif ($type === 'available') {
+                } elseif ($type === 'available') {
                 $payload = [
                     'title'           => 'Available (All Day)',
                     'location'        => 'GAD Office',
@@ -596,7 +598,7 @@ class AdminController extends Controller
                     'details'         => 'all_day',
                     'status'          => 'active',
                 ];
-            } else {
+                } else {
                 $startTime = $startTime ?: '09:00';
                 $endTime   = $endTime ?: '17:00';
 
@@ -614,19 +616,20 @@ class AdminController extends Controller
                 ];
             }
 
-            if ($existing) {
-                \DB::table('gad_schedules')->where('id', $existing->id)->update([
+                if ($existing) {
+                    \DB::table('gad_schedules')->where('id', $existing->id)->update([
                     ...$payload,
                     'updated_at' => now(),
                 ]);
-            } else {
-                $scheduleId = ((int) \DB::table('gad_schedules')->max('id')) + 1;
-                \DB::table('gad_schedules')->insert($payload + [
+                } else {
+                    $scheduleId = ((int) \DB::table('gad_schedules')->max('id')) + 1;
+                    \DB::table('gad_schedules')->insert($payload + [
                     'id' => $scheduleId,
                     'created_by' => Auth::id(),
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                    ]);
+                }
             }
         }
 
