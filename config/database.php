@@ -22,6 +22,14 @@ $databaseHost = trim((string) env('DB_HOST', ''));
 $databasePort = (string) env('DB_PORT', '3306');
 $databaseName = trim((string) env('DB_DATABASE', ''));
 $databaseName = $databaseName !== '' ? $databaseName : 'sinag_db';
+$databaseCa = trim((string) env('DB_SSL_CA', env('MYSQL_ATTR_SSL_CA', '')));
+$databaseSslOptions = [];
+if ($databaseCa !== '' && is_readable($databaseCa)) {
+    $databaseSslOptions[PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA] = $databaseCa;
+    if (filter_var(env('DB_SSL_VERIFY_SERVER_CERT', true), FILTER_VALIDATE_BOOL)) {
+        $databaseSslOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+    }
+}
 if (env('APP_ENV', 'production') === 'production'
     && $urlDriver === null
     && ($databaseHost === '' || in_array($databaseHost, ['127.0.0.1', 'localhost'], true))
@@ -89,13 +97,7 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('DB_SSL_CA', env('MYSQL_ATTR_SSL_CA')),
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => filter_var(
-                    env('DB_SSL_VERIFY_SERVER_CERT', true),
-                    FILTER_VALIDATE_BOOL
-                ),
-            ]) : [],
+            'options' => extension_loaded('pdo_mysql') ? $databaseSslOptions : [],
         ],
 
         'mariadb' => [
@@ -113,13 +115,7 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('DB_SSL_CA', env('MYSQL_ATTR_SSL_CA')),
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => filter_var(
-                    env('DB_SSL_VERIFY_SERVER_CERT', true),
-                    FILTER_VALIDATE_BOOL
-                ),
-            ]) : [],
+            'options' => extension_loaded('pdo_mysql') ? $databaseSslOptions : [],
         ],
 
         'pgsql' => [
