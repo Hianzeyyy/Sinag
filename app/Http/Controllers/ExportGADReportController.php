@@ -7,18 +7,17 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Report;
 use App\Models\Suggestion;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ExportGADReportController extends Controller
 {
     /**
-     * Export GAD report in specified format and period.
+     * Download the comprehensive GAD report as a PDF.
      *
-     * @param string $format  excel, csv, or pdf
      * @param string $period  weekly, monthly, yearly, 30days
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function export(string $format, string $period = '30days')
+    public function export(string $period = '30days')
     {
         $dates = $this->resolvePeriod($period);
         $startDate = $dates['start'];
@@ -50,21 +49,15 @@ class ExportGADReportController extends Controller
             'generated_at' => Carbon::now()->format('F d, Y h:i A'),
         ];
 
-        $format = strtolower($format);
+        $pdf = Pdf::loadView('admin.gad-report-pdf', [
+            'data' => $data,
+            'periodLabel' => $periodLabel,
+            'users' => $users,
+            'reports' => $reports,
+            'suggestions' => $suggestions,
+        ])->setPaper('a4', 'portrait');
 
-        if ($format === 'pdf') {
-            \Log::warning('PDF export requested; returning the reliable CSV report format.', [
-                'period' => $period,
-            ]);
-
-            return $this->exportExcelCsv($data, $users, $reports, $suggestions, $period);
-        }
-
-        if ($format === 'excel' || $format === 'csv') {
-            return $this->exportExcelCsv($data, $users, $reports, $suggestions, $period);
-        }
-
-        abort(400, 'Unsupported export format.');
+        return $pdf->download("GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf');
     }
 
     /**
@@ -109,128 +102,4 @@ class ExportGADReportController extends Controller
         ];
     }
 
-    /**
-     * Stream CSV formatted for Microsoft Excel.
-     */
-    private function exportExcelCsv(array $data, $users, $reports, $suggestions, string $period): StreamedResponse
-    {
-        $filename = "GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . ".csv";
-
-        $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-            'Pragma'              => 'no-cache',
-            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires'             => '0',
-        ];
-
-        $callback = function () use ($data, $users, $reports, $suggestions) {
-            $handle = fopen('php://output', 'w');
-            // Write UTF-8 BOM so Excel opens accented & special characters cleanly
-            fputs($handle, "\xEF\xBB\xBF");
-
-            // --- HEADER ---
-            fputcsv($handle, ['SINAG - GENDER AND DEVELOPMENT (GAD) OFFICE COMPREHENSIVE REPORT']);
-            fputcsv($handle, ['Coverage Period:', $data['period_label'] . " ({$data['start_date']} to {$data['end_date']})"]);
-            fputcsv($handle, ['Generated At:', $data['generated_at']]);
-            fputcsv($handle, []);
-
-            // --- SUMMARY METRICS ---
-            fputcsv($handle, ['--- EXECUTIVE SUMMARY ---']);
-            fputcsv($handle, ['Metric', 'Count']);
-            fputcsv($handle, ['Total New Users Registered', $data['total_users']]);
-            fputcsv($handle, ['Total Incident Reports Filed', $data['total_reports']]);
-            fputcsv($handle, ['Total Suggestions Submitted', $data['total_suggestions']]);
-            fputcsv($handle, []);
-
-            // --- SECTION 1: NEW USERS ---
-            fputcsv($handle, ['--- 1. NEW USERS & PERSONAL INFORMATION ---']);
-            fputcsv($handle, [
-                'User ID',
-                'Full Name',
-                'Email Address',
-                'Phone Number',
-                'Account Type / Role',
-                'Gender',
-                'Age',
-                'Department / College',
-                'Account Status',
-                'Registration Date',
-            ]);
-
-            foreach ($users as $user) {
-                fputcsv($handle, [
-                    $user->id,
-                    $user->name,
-                    $user->email,
-                    $user->phone_number ?? 'N/A',
-                    ucfirst($user->role ?? $user->account_type ?? 'User'),
-                    $user->gender ?? 'N/A',
-                    $user->age ?? 'N/A',
-                    $user->department ?? 'N/A',
-                    ucfirst($user->account_status ?? 'Active'),
-                    optional($user->created_at)->format('Y-m-d H:i:s'),
-                ]);
-            }
-            fputcsv($handle, []);
-
-            // --- SECTION 2: REPORTS ---
-            fputcsv($handle, ['--- 2. INCIDENT REPORTS ---']);
-            fputcsv($handle, [
-                'Incident ID',
-                'Cloak / Alias',
-                'Nature of Incident',
-                'Location',
-                'Incident Date',
-                'Incident Time',
-                'Priority',
-                'Status',
-                'Filed Date',
-            ]);
-
-            foreach ($reports as $report) {
-                fputcsv($handle, [
-                    $report->incident_id,
-                    $report->cloak_alias ?? 'Anonymous',
-                    $report->nature,
-                    $report->location ?? 'N/A',
-                    optional($report->incident_date)->format('Y-m-d') ?: 'N/A',
-                    $report->incident_time ?? 'N/A',
-                    ucfirst($report->priority ?? 'Normal'),
-                    ucfirst($report->status ?? 'Pending'),
-                    optional($report->created_at)->format('Y-m-d H:i:s'),
-                ]);
-            }
-            fputcsv($handle, []);
-
-            // --- SECTION 3: SUGGESTIONS ---
-            fputcsv($handle, ['--- 3. SUGGESTIONS & FEEDBACK ---']);
-            fputcsv($handle, [
-                'Suggestion ID',
-                'Submitted By',
-                'Category',
-                'Message / Content',
-                'Upvotes Count',
-                'Status',
-                'Date Submitted',
-            ]);
-
-            foreach ($suggestions as $suggestion) {
-                $author = $suggestion->is_anonymous ? 'Anonymous' : (optional($suggestion->user)->name ?? 'Unknown');
-                fputcsv($handle, [
-                    $suggestion->id,
-                    $author,
-                    $suggestion->category ?? 'General',
-                    preg_replace('/\s+/', ' ', $suggestion->message ?? ''),
-                    $suggestion->upvotes_count ?? 0,
-                    ucfirst($suggestion->status ?? 'Open'),
-                    optional($suggestion->created_at)->format('Y-m-d H:i:s'),
-                ]);
-            }
-
-            fclose($handle);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 }
