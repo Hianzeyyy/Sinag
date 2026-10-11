@@ -147,7 +147,7 @@ class SuggestionController extends Controller
 
     public function show(Suggestion $suggestion)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return redirect()->route('home')->with('error', 'Unauthorized access.');
         }
 

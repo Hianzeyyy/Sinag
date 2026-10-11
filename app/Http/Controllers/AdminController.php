@@ -32,7 +32,7 @@ class AdminController extends Controller
     public function index()
     {
         // Security Check
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return redirect()->route('home')->with('error', 'Unauthorized access.');
         }
 
@@ -80,7 +80,7 @@ class AdminController extends Controller
      */
     public function reports()
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
         
         $reports = Report::with('user')
             ->orderByRaw('CASE WHEN seen_at IS NULL THEN 0 ELSE 1 END')
@@ -94,7 +94,7 @@ class AdminController extends Controller
      */
     public function markSeen($id)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -145,7 +145,7 @@ class AdminController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
         $report = Report::findOrFail($id);
         
@@ -162,7 +162,7 @@ class AdminController extends Controller
      */
     public function suggestions()
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
         $suggestions = Suggestion::with('user')->latest()->get();
         $pendingSuggestionReports = SuggestionReport::where('status', 'pending')->count();
@@ -204,7 +204,7 @@ class AdminController extends Controller
      */
     public function reviewSuggestion(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
         $request->validate([
             'action' => 'required|in:approve,reject',
@@ -223,7 +223,7 @@ class AdminController extends Controller
      */
     public function users(Request $request)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
         $baseQuery = User::where('id', '!=', Auth::id());
         $usersQuery = (clone $baseQuery)
@@ -322,7 +322,7 @@ class AdminController extends Controller
      */
     public function showUser($id)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
         $user = User::findOrFail($id);
 
@@ -365,7 +365,7 @@ class AdminController extends Controller
      */
     public function messages(Request $request)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
         
         $adminId = Auth::id();
         $selectedStudentId = $request->query('student_id');
@@ -682,7 +682,7 @@ class AdminController extends Controller
      */
     public function urgentCalls()
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
         return view('admin.urgent_calls');
     }
 
@@ -691,7 +691,7 @@ class AdminController extends Controller
      */
     public function urgentCallsFeed()
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -704,7 +704,7 @@ class AdminController extends Controller
      */
     public function joinUrgentCall($callId)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -735,7 +735,7 @@ class AdminController extends Controller
      */
     public function approveUser($id)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
         try {
             $user = User::findOrFail($id);
@@ -763,7 +763,7 @@ class AdminController extends Controller
      */
     public function rejectUser(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
         $user = User::findOrFail($id);
 
@@ -799,7 +799,7 @@ class AdminController extends Controller
      */
     public function deleteReport($id)
     {
-        if (Auth::user()->role !== 'admin') return redirect()->route('home');
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
         $report = \App\Models\Report::findOrFail($id);
         $report->delete();
         return redirect()->back()->with('success', 'Report deleted successfully.');
@@ -810,7 +810,7 @@ class AdminController extends Controller
      */
     public function storeMessage(Request $request)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -850,7 +850,7 @@ class AdminController extends Controller
      */
     public function appointments()
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return redirect()->route('home');
         }
 
@@ -870,7 +870,7 @@ class AdminController extends Controller
      */
     public function completeAppointment($id)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return redirect()->route('home');
         }
 
@@ -882,7 +882,7 @@ class AdminController extends Controller
 
     public function cancelAppointment(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return redirect()->route('home');
         }
 
@@ -904,7 +904,7 @@ class AdminController extends Controller
      */
     public function addAppointmentDetails(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -923,7 +923,7 @@ class AdminController extends Controller
      */
     public function updateOfficeInfo(Request $request)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             abort(403);
         }
 

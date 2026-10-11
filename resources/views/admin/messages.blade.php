@@ -673,6 +673,8 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
@@ -680,7 +682,23 @@
                 message: message
             })
         })
-        .then(response => response.json())
+        .then(async response => {
+            if (!response.ok) {
+                if ([401, 403, 419].includes(response.status)) {
+                    throw new Error('Your session has expired. Please sign in again.');
+                }
+
+                let message = 'Failed to send message. Please try again.';
+                try {
+                    const payload = await response.json();
+                    message = payload.error || payload.message || message;
+                } catch (error) {
+                    // Keep the generic message for non-JSON server responses.
+                }
+                throw new Error(message);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 const thread = document.getElementById('messagingThread');
@@ -707,7 +725,7 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Failed to send message. Please try again.');
+            alert(error.message || 'Failed to send message. Please try again.');
         })
         .finally(() => {
             btn.disabled = false;

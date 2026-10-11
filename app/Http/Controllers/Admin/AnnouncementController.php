@@ -16,7 +16,7 @@ class AnnouncementController extends Controller
 
     private function guardAdmin()
     {
-        if (Auth::user()->role !== 'admin') {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
     }
