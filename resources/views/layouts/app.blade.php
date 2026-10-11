@@ -43,6 +43,7 @@
             .student-navbar {
                 flex-wrap: nowrap;
                 gap: .75rem;
+                padding-inline: 1rem;
             }
 
             .student-navbar > .d-flex:first-child {
@@ -66,6 +67,25 @@
             .student-navbar .brand-descriptor {
                 max-width: 220px;
                 white-space: normal;
+            }
+
+            .student-navbar .student-nav-link {
+                padding-inline: .55rem;
+                font-size: .78rem;
+                white-space: nowrap;
+            }
+
+            .admin-navbar {
+                padding-inline: 1rem;
+            }
+
+            .admin-navbar .brand-descriptor {
+                max-width: 180px;
+            }
+
+            .admin-main > .p-4,
+            .admin-main > .p-4.p-lg-5 {
+                padding: 1rem !important;
             }
         }
 
@@ -391,6 +411,39 @@
             .student-mobile-menu-link { display: flex; align-items: center; gap: .75rem; padding: .8rem .75rem; margin-bottom: .35rem; border-radius: 11px; color: #475569; font-weight: 800; text-decoration: none; }
             .student-mobile-menu-link:hover, .student-mobile-menu-link.active { background: #f3efff; color: #7658df; }
             @media (prefers-reduced-motion: reduce) { .student-mobile-menu, .student-mobile-menu-panel { transition: none; } }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .top-navbar {
+                padding: .65rem 1rem;
+            }
+
+            .top-navbar > .d-flex:first-child,
+            .top-navbar > .d-flex:last-child {
+                min-width: 0;
+            }
+
+            .top-navbar > .d-flex:last-child {
+                gap: .35rem !important;
+            }
+
+            .navbar-brand-custom {
+                min-width: 0;
+            }
+
+            .navbar-brand-custom .brand-descriptor {
+                max-width: 180px;
+                overflow-wrap: anywhere;
+            }
+
+            .main-content > .p-4,
+            .main-content > .p-4.p-lg-5 {
+                padding: 1rem !important;
+            }
+
+            .admin-main .row > [class*="col-"] {
+                min-width: 0;
+            }
         }
 
         .student-nav-link {

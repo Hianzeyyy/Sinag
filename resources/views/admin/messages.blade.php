@@ -32,6 +32,25 @@
             padding: 1rem;
         }
 
+        @media (min-width: 821px) and (max-width: 1199.98px) {
+            .messages-page {
+                padding: 1rem;
+            }
+
+            .messaging-layout {
+                grid-template-columns: minmax(220px, 28vw) minmax(0, 1fr);
+                gap: .75rem;
+            }
+
+            .messaging-header {
+                padding-inline: 1rem;
+            }
+
+            .messaging-thread {
+                padding: 1rem;
+            }
+        }
+
         .messaging-layout {
             grid-template-columns: 1fr;
             height: auto;

@@ -120,6 +120,32 @@
         }
     }
 
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .register-shell {
+            align-items: flex-start !important;
+            padding: 1rem 0 !important;
+        }
+
+        .register-shell > .container {
+            max-width: 720px;
+            padding-inline: .75rem;
+        }
+
+        .register-card > .row > .col-md-4,
+        .register-card > .row > .col-md-8 {
+            width: 100%;
+        }
+
+        .register-card > .row > .col-md-4 {
+            min-height: 190px !important;
+            padding: 1.5rem !important;
+        }
+
+        .register-form-panel {
+            padding: 1.5rem !important;
+        }
+    }
+
     @media (max-width: 767.98px) {
         .register-shell { align-items: flex-start !important; padding: 0.75rem 0 !important; }
         .register-shell > .container { width: 100%; padding-inline: 0.75rem; }

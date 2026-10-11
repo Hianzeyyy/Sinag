@@ -51,6 +51,25 @@ body {
         padding: 1rem;
     }
 
+    @media (min-width: 821px) and (max-width: 1199.98px) {
+        .msg-page {
+            padding: 1rem;
+        }
+
+        .msg-layout {
+            grid-template-columns: minmax(0, 1fr) 260px;
+            gap: .85rem;
+        }
+
+        .msg-chat-card {
+            height: min(680px, calc(100dvh - 7rem));
+        }
+
+        .msg-bubble-wrap {
+            max-width: 82%;
+        }
+    }
+
     .msg-layout {
         grid-template-columns: 1fr;
     }
