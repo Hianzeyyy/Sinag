@@ -524,6 +524,7 @@
             'status'            => $s->status,
             'availability_type' => $type,
             'details'           => $s->details,
+            'updated_at'        => optional($s->updated_at)->toIso8601String(),
         ];
     })->values();
 @endphp
@@ -532,8 +533,12 @@
 const scheduleData = @json($adminPayload);
 const scheduleMap = {};
 
-let adminMonth = new Date().getMonth();
-let adminYear  = new Date().getFullYear();
+const latestSchedule = scheduleData
+    .filter(schedule => schedule.date && schedule.updated_at)
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))[0];
+const latestScheduleDate = latestSchedule ? dateFromKey(latestSchedule.date) : new Date();
+let adminMonth = latestScheduleDate.getMonth();
+let adminYear  = latestScheduleDate.getFullYear();
 const modifiedDays = {};
 
 function dateKey(y, m, d) {
