@@ -432,7 +432,9 @@ class StudentController extends Controller
                 ->withErrors(['appointment' => 'You already have an active appointment. Edit or cancel it before scheduling another.']);
         }
 
-        AppointmentRequest::create([
+        $appointmentId = ((int) \DB::table('appointment_requests')->max('id')) + 1;
+        \DB::table('appointment_requests')->insert([
+            'id' => $appointmentId,
             'user_id' => Auth::id(),
             'full_name' => $validated['full_name'],
             'student_id' => $validated['student_id'],
@@ -443,6 +445,8 @@ class StudentController extends Controller
             'format' => 'Face-to-Face',
             'description' => $validated['description'],
             'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return redirect()->route('student.dashboard')

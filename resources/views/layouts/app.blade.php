@@ -409,7 +409,8 @@
             .student-mobile-menu-panel { width: min(82vw, 300px); height: 100%; padding: 1.2rem 1rem; background: #fff; box-shadow: 12px 0 28px rgba(15,23,42,.18); transform: translateX(-100%); transition: transform .24s ease; }
             .student-mobile-menu.is-open .student-mobile-menu-panel { transform: translateX(0); }
             .student-mobile-menu-link { display: flex; align-items: center; gap: .75rem; padding: .8rem .75rem; margin-bottom: .35rem; border-radius: 11px; color: #475569; font-weight: 800; text-decoration: none; }
-            .student-mobile-menu-link:hover, .student-mobile-menu-link.active { background: #f3efff; color: #7658df; }
+            .student-mobile-menu-link:hover,             .student-mobile-menu-link.active { background: #f3efff; color: #7658df; }
+            .student-mobile-menu-label { display: flex; align-items: center; gap: .75rem; padding: .65rem .75rem .35rem; color: #64748b; font-size: .72rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
             @media (prefers-reduced-motion: reduce) { .student-mobile-menu, .student-mobile-menu-panel { transition: none; } }
         }
 
@@ -975,10 +976,17 @@
                                     <span>Suggestions</span>
                                 </a>
 
-                                <a href="{{ route('student.appointments') }}" class="student-nav-link {{ Request::is('student/gad-schedule*') || Request::is('student/schedule-appointment*') || Request::is('student/appointments*') ? 'active' : '' }}" aria-label="Schedule" title="Schedule">
+                                <div class="dropdown d-inline-block">
+                                    <button type="button" class="student-nav-link dropdown-toggle {{ Request::is('student/gad-schedule*') || Request::is('student/schedule-appointment*') || Request::is('student/appointments*') ? 'active' : '' }}" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Schedule" title="Schedule">
                                         <i class="bi bi-calendar2-week-fill"></i>
                                         <span>Schedule</span>
-                                </a>
+                                    </button>
+                                    <ul class="dropdown-menu student-nav-menu">
+                                        <li><a class="dropdown-item" href="{{ route('student.gad-schedule') }}"><i class="bi bi-calendar-week"></i><span>Office Schedule</span></a></li>
+                                        <li><a class="dropdown-item" href="{{ route('student.schedule-appointment') }}"><i class="bi bi-calendar-plus"></i><span>Schedule Appointment</span></a></li>
+                                        <li><a class="dropdown-item" href="{{ route('student.appointments') }}"><i class="bi bi-calendar-check"></i><span>My Appointments</span></a></li>
+                                    </ul>
+                                </div>
 
                                 <a href="{{ route('student.wellness') }}" class="student-nav-link {{ Request::is('student/wellness*') ? 'active' : '' }}" aria-label="References" title="References">
                                     <i class="bi bi-book-half"></i>
@@ -1044,7 +1052,12 @@
                             <a class="student-mobile-menu-link {{ Request::is('student/dashboard*') ? 'active' : '' }}" href="{{ route('student.dashboard') }}"><i class="bi bi-house-door-fill"></i>Dashboard</a>
                             <a class="student-mobile-menu-link {{ Request::is('student/report*') ? 'active' : '' }}" href="{{ route('student.report') }}"><i class="bi bi-flag-fill"></i>Report</a>
                             <a class="student-mobile-menu-link {{ Request::is('student/boses*') ? 'active' : '' }}" href="{{ route('student.boses') }}"><i class="bi bi-chat-left-quote-fill"></i>Suggestions</a>
-                            <a class="student-mobile-menu-link {{ Request::is('student/appointments*', 'student/gad-schedule*', 'student/schedule-appointment*') ? 'active' : '' }}" href="{{ route('student.appointments') }}"><i class="bi bi-calendar2-week-fill"></i>Schedule</a>
+                            <div class="student-mobile-menu-section">
+                                <div class="student-mobile-menu-label"><i class="bi bi-calendar2-week-fill"></i>Schedule</div>
+                                <a class="student-mobile-menu-link {{ Request::is('student/gad-schedule*') ? 'active' : '' }}" href="{{ route('student.gad-schedule') }}"><i class="bi bi-calendar-week"></i>Office Schedule</a>
+                                <a class="student-mobile-menu-link {{ Request::is('student/schedule-appointment*') ? 'active' : '' }}" href="{{ route('student.schedule-appointment') }}"><i class="bi bi-calendar-plus"></i>Schedule Appointment</a>
+                                <a class="student-mobile-menu-link {{ Request::is('student/appointments*') ? 'active' : '' }}" href="{{ route('student.appointments') }}"><i class="bi bi-calendar-check"></i>My Appointments</a>
+                            </div>
                             <a class="student-mobile-menu-link {{ Request::is('student/wellness*') ? 'active' : '' }}" href="{{ route('student.wellness') }}"><i class="bi bi-book-half"></i>References</a>
                             <a class="student-mobile-menu-link {{ Request::is('student/messaging*') ? 'active' : '' }}" href="{{ route('student.messaging') }}"><i class="bi bi-chat-dots-fill"></i>Messages</a>
                         </nav>

@@ -117,12 +117,27 @@ class AdminController extends Controller
         }
 
         $report = Report::with('user')->findOrFail($id);
-        $pdf = Pdf::loadView('admin.report-pdf', [
-            'report' => $report,
-            'evidenceFiles' => $report->evidence_files,
-        ])->setPaper('a4', 'portrait');
+        try {
+            $pdf = Pdf::loadView('admin.report-pdf', [
+                'report' => $report,
+                'evidenceFiles' => $report->evidence_files,
+            ])->setPaper('a4', 'portrait');
 
-        return $pdf->download('SINAG-Report-' . $report->incident_id . '.pdf');
+            return $pdf->download('SINAG-Report-' . $report->incident_id . '.pdf');
+        } catch (\Throwable $exception) {
+            report($exception);
+            \Log::error('Individual report PDF export failed; displaying report details.', [
+                'report_id' => $report->id,
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->view('admin.report-pdf', [
+                'report' => $report,
+                'evidenceFiles' => $report->evidence_files,
+                'pdfFallback' => true,
+            ]);
+        }
     }
 
     /**
@@ -440,9 +455,13 @@ class AdminController extends Controller
             'status'          => ['required', 'in:active,inactive'],
         ]);
 
-        GadSchedule::create([
+        $scheduleId = ((int) \DB::table('gad_schedules')->max('id')) + 1;
+        \DB::table('gad_schedules')->insert([
+            'id' => $scheduleId,
             ...$validated,
             'created_by' => Auth::id(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return back()->with('success', 'GAD schedule saved successfully.');
@@ -561,7 +580,13 @@ class AdminController extends Controller
             if ($existing) {
                 $existing->update($payload);
             } else {
-                GadSchedule::create($payload + ['created_by' => Auth::id()]);
+                $scheduleId = ((int) \DB::table('gad_schedules')->max('id')) + 1;
+                \DB::table('gad_schedules')->insert($payload + [
+                    'id' => $scheduleId,
+                    'created_by' => Auth::id(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
         }
 

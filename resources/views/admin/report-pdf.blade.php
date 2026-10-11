@@ -18,6 +18,11 @@
     </style>
 </head>
 <body>
+    @if(!empty($pdfFallback))
+        <div style="padding: 10px; margin-bottom: 16px; border: 1px solid #fbbf24; background: #fffbeb; color: #92400e; font-family: Arial, sans-serif; font-size: 12px;">
+            PDF generation is temporarily unavailable in this deployment. This report is shown in printable format; use your browser's Print command to save it as PDF.
+        </div>
+    @endif
     <div class="header">
         <h1>SINAG Confidential Report</h1>
         <div class="muted">Gender and Development Safe Space and Participatory Suggestion System</div>

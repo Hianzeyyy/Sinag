@@ -85,7 +85,9 @@ class ReportController extends Controller
             'description' => $request->description
         ]);
 
-        $report = Report::create([
+        $reportId = ((int) \DB::table('reports')->max('id')) + 1;
+        \DB::table('reports')->insert([
+            'id'            => $reportId,
             'user_id'       => Auth::id(),
             'incident_id'   => 'SN-' . strtoupper(Str::random(6)), // Halimbawa: SN-A1B2C3
             'cloak_alias'   => $cloakAlias,
@@ -97,7 +99,10 @@ class ReportController extends Controller
             'evidence'      => $evidencePaths,
             'priority'      => 'Medium', // Default priority
             'status'        => 'Pending', // Default status
+            'created_at'    => now(),
+            'updated_at'    => now(),
         ]);
+        $report = Report::findOrFail($reportId);
 
         \Log::info('DEBUG: Report saved', [
             'report_id' => $report->id,
