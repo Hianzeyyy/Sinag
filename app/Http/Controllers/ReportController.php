@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -105,6 +106,9 @@ class ReportController extends Controller
 
         $reportId = ((int) \DB::table('reports')->max('id')) + 1;
         $incidentId = 'SN-' . strtoupper(Str::random(6));
+        while (\DB::table('reports')->where('incident_id', $incidentId)->exists()) {
+            $incidentId = 'SN-' . strtoupper(Str::random(6));
+        }
         $reportData = [
             'id'            => $reportId,
             'user_id'       => $user->id,
@@ -121,8 +125,19 @@ class ReportController extends Controller
             'updated_at'    => now(),
         ];
 
+        foreach ([
+            'course' => $request->input('course'),
+            'gender' => $request->input('gender'),
+            'incident_time' => $request->input('incident_time'),
+        ] as $column => $value) {
+            if (Schema::hasColumn('reports', $column)) {
+                $reportData[$column] = $value;
+            }
+        }
+
         try {
-            \DB::table('reports')->insert($reportData);
+            $columns = array_flip(Schema::getColumnListing('reports'));
+            \DB::table('reports')->insert(array_intersect_key($reportData, $columns));
         } catch (\Throwable $exception) {
             $this->logReportFailure($exception, [
                 'user_id' => Auth::id(),
