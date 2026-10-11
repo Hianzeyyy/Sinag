@@ -116,8 +116,7 @@ class RegisterController extends Controller
 
         try {
             return DB::transaction(function () use ($data, $accountType, $cloakAlias, $profilePhotoPath, $selfieImagePath) {
-                return User::create([
-                    'id' => ((int) User::query()->max('id')) + 1,
+                $user = new User([
                     'name' => trim($data['name']),
                     'email' => strtolower(trim($data['email'])),
                     'age' => $data['age'],
@@ -133,6 +132,11 @@ class RegisterController extends Controller
                     'selfie_image_path' => $selfieImagePath,
                     'account_status' => 'pending',
                 ]);
+
+                $user->id = ((int) User::query()->max('id')) + 1;
+                $user->save();
+
+                return $user;
             });
         } catch (\Throwable $exception) {
             foreach ($storedFiles as $storedFile) {
