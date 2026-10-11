@@ -64,9 +64,10 @@ RUN sed -ri "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-avail
     && sed -ri '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 # Ensure Laravel storage directories exist, then set permissions
-RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
+RUN mkdir -p storage/app/public/profile-photos storage/app/public/verification/selfie \
+    storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 # Render provides PORT at runtime, so configure Apache when the container starts.
-CMD ["sh", "-c", "port=${PORT:-10000}; sed -ri \"s/^Listen [0-9]+/Listen ${port}/\" /etc/apache2/ports.conf; sed -ri \"s/:80>/:${port}>/\" /etc/apache2/sites-available/000-default.conf; php artisan migrate --force || echo 'Laravel migrations skipped; Apache will still start.'; php artisan db:seed --force || echo 'Laravel seed skipped; Apache will still start.'; exec apache2-foreground"]
+CMD ["sh", "-c", "port=${PORT:-10000}; sed -ri \"s/^Listen [0-9]+/Listen ${port}/\" /etc/apache2/ports.conf; sed -ri \"s/:80>/:${port}>/\" /etc/apache2/sites-available/000-default.conf; mkdir -p storage/app/public/profile-photos storage/app/public/verification/selfie; chown -R www-data:www-data storage bootstrap/cache; chmod -R 775 storage bootstrap/cache; php artisan storage:link || true; php artisan migrate --force || echo 'Laravel migrations skipped; Apache will still start.'; php artisan db:seed --force || echo 'Laravel seed skipped; Apache will still start.'; exec apache2-foreground"]

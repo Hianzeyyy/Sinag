@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
+use League\Flysystem\FilesystemException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class RegisterController extends Controller
 {
@@ -92,27 +95,51 @@ class RegisterController extends Controller
             $cloakAlias = 'Student' . strtoupper(Str::random(4));
         }
 
-        $selfieImagePath = request()->file('selfie_image')->store('verification/selfie', 'public');
-        $profilePhotoPath = request()->file('profile_photo')->store('profile-photos', 'public');
+        $storedFiles = [];
 
-        return DB::transaction(function () use ($data, $accountType, $cloakAlias, $profilePhotoPath, $selfieImagePath) {
-            return User::create([
-                'name' => trim($data['name']),
-                'email' => strtolower(trim($data['email'])),
-                'age' => $data['age'],
-                'gender' => $data['gender'],
-                'department' => $data['department'],
-                'phone_number' => null,
-                'password' => Hash::make($data['password']),
-                'role' => $accountType,
-                'account_type' => $accountType,
-                'employee_category' => $accountType === 'employee' ? ($data['employee_category'] ?? null) : null,
-                'cloak_alias' => $cloakAlias,
-                'profile_photo_path' => $profilePhotoPath,
-                'selfie_image_path' => $selfieImagePath,
-                'account_status' => 'pending',
+        try {
+            $selfieImagePath = request()->file('selfie_image')->store('verification/selfie', 'public');
+            $storedFiles[] = $selfieImagePath;
+            $profilePhotoPath = request()->file('profile_photo')->store('profile-photos', 'public');
+            $storedFiles[] = $profilePhotoPath;
+        } catch (FilesystemException $exception) {
+            foreach ($storedFiles as $storedFile) {
+                Storage::disk('public')->delete($storedFile);
+            }
+
+            report($exception);
+
+            throw ValidationException::withMessages([
+                'profile_photo' => 'The photos could not be uploaded. Please try smaller JPG, PNG, or WEBP images and submit again.',
             ]);
-        });
+        }
+
+        try {
+            return DB::transaction(function () use ($data, $accountType, $cloakAlias, $profilePhotoPath, $selfieImagePath) {
+                return User::create([
+                    'name' => trim($data['name']),
+                    'email' => strtolower(trim($data['email'])),
+                    'age' => $data['age'],
+                    'gender' => $data['gender'],
+                    'department' => $data['department'],
+                    'phone_number' => null,
+                    'password' => Hash::make($data['password']),
+                    'role' => $accountType,
+                    'account_type' => $accountType,
+                    'employee_category' => $accountType === 'employee' ? ($data['employee_category'] ?? null) : null,
+                    'cloak_alias' => $cloakAlias,
+                    'profile_photo_path' => $profilePhotoPath,
+                    'selfie_image_path' => $selfieImagePath,
+                    'account_status' => 'pending',
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            foreach ($storedFiles as $storedFile) {
+                Storage::disk('public')->delete($storedFile);
+            }
+
+            throw $exception;
+        }
     }
 
     protected function registered(Request $request, $user)
