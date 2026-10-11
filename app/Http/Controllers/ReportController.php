@@ -17,6 +17,26 @@ class ReportController extends Controller
      */
     public function store(Request $request)
     {
+        try {
+            return $this->storeReport($request);
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            throw $exception;
+        } catch (\Throwable $exception) {
+            report($exception);
+            \Log::error('Unhandled report submission failure', [
+                'user_id' => Auth::id(),
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return redirect()->back()->withInput()->withErrors([
+                'report' => 'The report could not be submitted right now. Please try again. If the problem continues, contact the GAD office.',
+            ]);
+        }
+    }
+
+    private function storeReport(Request $request)
+    {
         $allowedIncidentTypes = [
             'Catcalling',
             'Stalking',
