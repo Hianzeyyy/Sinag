@@ -702,10 +702,28 @@ function sendMessage() {
 
     fetch("{{ route('student.messages.store') }}", {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': CSRF
+        },
         body: JSON.stringify({ message })
     })
-    .then(r => r.json())
+    .then(async r => {
+        if (!r.ok) {
+            if ([401, 403, 419].includes(r.status)) {
+                throw new Error('Your session has expired. Please sign in again.');
+            }
+            let message = 'Failed to send message. Please try again.';
+            try {
+                const payload = await r.json();
+                message = payload.error || payload.message || message;
+            } catch (error) {}
+            throw new Error(message);
+        }
+        return r.json();
+    })
     .then(data => {
         if (data.success) {
             const thread = document.getElementById('messagingThread');
@@ -724,7 +742,7 @@ function sendMessage() {
             thread.scrollTop = thread.scrollHeight;
         }
     })
-    .catch(() => alert('Failed to send message. Please try again.'))
+    .catch(error => alert(error.message || 'Failed to send message. Please try again.'))
     .finally(() => { btn.disabled = false; input.disabled = false; input.focus(); });
 }
 
@@ -770,33 +788,58 @@ function saveEdit(id) {
 
     fetch(`/student/messages/${id}/update`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': CSRF
+        },
         body: JSON.stringify({ message: newText })
     })
-    .then(r => r.json())
+    .then(async r => {
+        if (!r.ok) {
+            if ([401, 403, 419].includes(r.status)) {
+                throw new Error('Your session has expired. Please sign in again.');
+            }
+            throw new Error('Failed to update message.');
+        }
+        return r.json();
+    })
     .then(data => {
         if (data.success) {
             const bubble = document.getElementById('bubble-' + id);
             bubble.innerHTML = `<span class="message-text" id="message-text-${id}">${escapeHtml(newText)}</span>`;
         } else alert('Failed to update message');
     })
-    .catch(() => alert('Failed to update message'));
+    .catch(error => alert(error.message || 'Failed to update message'));
 }
 
 function confirmDelete(id) {
     if (!confirm('Delete this message? This cannot be undone.')) return;
     fetch(`/student/messages/${id}`, {
         method: 'DELETE',
-        headers: { 'X-CSRF-TOKEN': CSRF }
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': CSRF
+        }
     })
-    .then(r => r.json())
+    .then(async r => {
+        if (!r.ok) {
+            if ([401, 403, 419].includes(r.status)) {
+                throw new Error('Your session has expired. Please sign in again.');
+            }
+            throw new Error('Failed to delete message.');
+        }
+        return r.json();
+    })
     .then(data => {
         if (data.success) {
             const el = document.querySelector(`[data-message-id="${id}"]`);
             if (el) el.remove();
         } else alert('Failed to delete message');
     })
-    .catch(() => alert('Failed to delete message'));
+    .catch(error => alert(error.message || 'Failed to delete message'));
 }
 </script>
 @endsection
