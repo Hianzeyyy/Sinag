@@ -18,6 +18,8 @@ class ReportController extends Controller
      */
     public function store(Request $request)
     {
+        $failureReference = (string) Str::uuid();
+
         try {
             return $this->storeReport($request);
         } catch (\Illuminate\Validation\ValidationException $exception) {
@@ -26,10 +28,11 @@ class ReportController extends Controller
             $this->logReportFailure($exception, [
                 'user_id' => Auth::id(),
                 'stage' => 'controller',
+                'reference' => $failureReference,
             ]);
 
             return redirect()->route('student.report')->withInput()->withErrors([
-                'report' => 'The report could not be submitted right now. Please try again. If the problem continues, contact the GAD office.',
+                'report' => 'The report could not be submitted right now. Please try again. If the problem continues, contact the GAD office. Reference: ' . $failureReference,
             ]);
         }
     }
