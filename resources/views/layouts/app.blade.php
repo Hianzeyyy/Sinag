@@ -21,7 +21,7 @@
         }
 
         .brand-descriptor { max-width: none; white-space: nowrap; line-height: 1.15; font-size: .82rem; }
-        @media (min-width: 992px) {
+        @media (min-width: 1200px) {
             .top-navbar.student-navbar { flex-direction: column; align-items: stretch; gap: .45rem; }
             .student-navbar > .d-flex:first-child { width: 100%; min-width: 0; justify-content: center; }
             .student-navbar > .d-flex:last-child { width: 100%; flex: 0 0 auto; justify-content: center; }
@@ -35,6 +35,38 @@
             .navbar-brand-custom { gap: .65rem !important; max-width: 100%; }
             .navbar-brand-custom .brand-descriptor { display: block !important; max-width: 230px; white-space: normal; font-size: .78rem; }
             .student-top-nav { order: 2; width: 100%; overflow-x: auto; }
+        }
+
+        /* Keep the tablet header compact instead of stacking the full student
+           navigation into a tall, wrapping bar. */
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .student-navbar {
+                flex-wrap: nowrap;
+                gap: .75rem;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                flex: 0 1 auto;
+                min-width: 0;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                flex: 1 1 auto;
+                min-width: 0;
+                justify-content: flex-end;
+            }
+
+            .student-navbar .student-top-nav {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                min-width: 0;
+                scrollbar-width: thin;
+            }
+
+            .student-navbar .brand-descriptor {
+                max-width: 220px;
+                white-space: normal;
+            }
         }
 
         .main-wrapper {
@@ -191,9 +223,15 @@
             flex: 1;
             margin-left: 0;
             width: 100%;
+            min-width: 0;
             transition: all 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
+        }
+
+        .main-content > .p-4,
+        .main-content > .p-4.p-lg-5 {
+            min-width: 0;
         }
 
         .login-main {
@@ -268,6 +306,15 @@
                 will-change: transform;
             }
 
+            .admin-main .card-header {
+                flex-wrap: wrap;
+                gap: .75rem;
+            }
+
+            .admin-main .card-header .input-group {
+                width: min(100%, 250px) !important;
+            }
+
             .top-navbar.admin-navbar.navbar-hidden {
                 transform: translateY(-100%);
                 box-shadow: none;
@@ -320,6 +367,10 @@
             .admin-main h1, .admin-main h2, .admin-main h3 { overflow-wrap: anywhere; line-height: 1.15; }
             .admin-main .container, .admin-main .container-fluid { max-width: 100%; padding-inline: .25rem; }
             .admin-main .card { border-radius: 14px !important; }
+            .admin-main .card-header { flex-wrap: wrap; gap: .75rem; }
+            .admin-main .card-header > * { min-width: 0; }
+            .admin-main .card-header .input-group { width: min(100%, 20rem) !important; }
+            .admin-main .table-responsive { max-width: 100%; }
 
             .student-navbar { flex-direction: row !important; align-items: center !important; flex-wrap: nowrap !important; gap: .35rem !important; padding: .5rem .65rem !important; }
             .student-navbar > .d-flex:first-child { width: auto !important; flex: 1 1 auto; justify-content: flex-start !important; min-width: 0; }

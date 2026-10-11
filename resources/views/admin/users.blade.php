@@ -458,7 +458,9 @@
     }
 
     @media (max-width: 1199.98px) {
-        .table-responsive { overflow-x: visible; }
+        /* Keep long names/emails inside the management panel while the
+           responsive card grid is rendered below the header breakpoint. */
+        .table-responsive { overflow-x: auto; max-width: 100%; }
         #userTable { display: block; }
         #userTable thead { display: none; }
         #userTable tbody {

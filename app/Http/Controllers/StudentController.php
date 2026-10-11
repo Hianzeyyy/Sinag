@@ -207,6 +207,13 @@ class StudentController extends Controller
         
         // Get first admin (or use a specific admin if you prefer)
         $admin = User::where('role', 'admin')->first();
+
+        if ($admin) {
+            Message::where('sender_id', $admin->id)
+                ->where('receiver_id', $userId)
+                ->whereNull('read_at')
+                ->update(['read_at' => now()]);
+        }
         
         // Get all messages between student and admin
         $messages = Message::where(function($query) use ($userId, $admin) {

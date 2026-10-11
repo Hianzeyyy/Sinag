@@ -360,6 +360,15 @@ class AdminController extends Controller
             ->with(['sender', 'receiver'])
             ->latest()
             ->get()
+            // Older versions allowed an admin to address another admin. Do
+            // not expose those internal messages as student conversations.
+            ->filter(function ($message) use ($adminId) {
+                $otherUser = $message->sender_id == $adminId
+                    ? $message->receiver
+                    : $message->sender;
+
+                return $otherUser && strtolower((string) $otherUser->role) !== 'admin';
+            })
             ->groupBy(function($message) use ($adminId) {
                 return $message->sender_id == $adminId ? $message->receiver_id : $message->sender_id;
             })
@@ -372,7 +381,17 @@ class AdminController extends Controller
         $selectedStudent = null;
         
         if ($selectedStudentId) {
-            $selectedStudent = User::find($selectedStudentId);
+            // A conversation may only be opened with a non-admin account.
+            // This also prevents a crafted student_id from reading arbitrary
+            // admin-to-admin messages.
+            $selectedStudent = User::whereKey($selectedStudentId)
+                ->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")
+                ->first();
+
+            if (!$selectedStudent) {
+                abort(404);
+            }
+
             Message::where('sender_id', $selectedStudentId)
                 ->where('receiver_id', $adminId)
                 ->whereNull('read_at')
@@ -693,9 +712,17 @@ class AdminController extends Controller
             'message'    => 'required|string|max:1000',
         ]);
 
+        $student = User::whereKey($request->student_id)
+            ->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")
+            ->first();
+
+        if (!$student) {
+            return response()->json(['error' => 'Invalid message recipient'], 422);
+        }
+
         $message = Message::create([
             'sender_id'   => Auth::id(),
-            'receiver_id' => $request->student_id,
+            'receiver_id' => $student->id,
             'message'     => $request->message,
             'sender_type' => 'admin',
         ]);
