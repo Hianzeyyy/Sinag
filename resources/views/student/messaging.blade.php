@@ -33,6 +33,7 @@ body {
     min-height: calc(100vh - 60px);
     background: var(--surface);
     padding: 1.75rem 1.5rem;
+    overflow-x: hidden;
 }
 
 /* ── TWO-COLUMN LAYOUT ────────────────── */
@@ -62,6 +63,20 @@ body {
     .msg-right {
         order: -1;
     }
+
+    .msg-input-area {
+        flex-wrap: wrap;
+        padding: .75rem;
+    }
+
+    .msg-textarea {
+        min-width: 0;
+        flex-basis: 100%;
+    }
+
+    .msg-send-btn {
+        margin-left: auto;
+    }
 }
 
 /* ── CHAT CARD ────────────────────────── */
@@ -84,6 +99,7 @@ body {
     align-items: center;
     gap: 0.85rem;
     flex-shrink: 0;
+    min-width: 0;
 }
 
 .msg-chat-header-avatar {
@@ -96,6 +112,7 @@ body {
 
 .msg-chat-header-info {
     flex: 1;
+    min-width: 0;
 }
 
 .msg-chat-header-name {
@@ -104,6 +121,7 @@ body {
     font-weight: 700;
     color: #fff;
     line-height: 1.2;
+    overflow-wrap: anywhere;
 }
 
 .msg-chat-header-status {

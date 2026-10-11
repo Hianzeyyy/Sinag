@@ -628,19 +628,25 @@ class AdminController extends Controller
     {
         if (Auth::user()->role !== 'admin') return redirect()->route('home');
 
-        $user = User::findOrFail($id);
+        try {
+            $user = User::findOrFail($id);
 
-        \DB::table('users')->where('id', $user->id)->update([
-            'account_status'   => 'active',
-            'approved_at'      => now(),
-            'approved_by'      => Auth::id(),
-            'rejection_reason' => null,
-            'updated_at'       => now(),
-        ]);
+            \DB::table('users')->where('id', $user->id)->update([
+                'account_status'   => 'active',
+                'approved_at'      => now(),
+                'approved_by'      => Auth::id(),
+                'rejection_reason' => null,
+                'updated_at'       => now(),
+            ]);
 
-        \Log::info('SINAG account approved', ['user_id' => $user->id, 'admin_id' => Auth::id()]);
+            \Log::info('SINAG account approved', ['user_id' => $user->id, 'admin_id' => Auth::id()]);
 
-        return redirect()->route('admin.users')->with('success', "User {$user->name} has been approved.");
+            return redirect('/admin/users')->with('success', 'User account approved successfully.');
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect('/admin/users')->with('error', 'The account was updated, but the approval response failed. Please refresh the user list.');
+        }
     }
 
     /**
@@ -712,12 +718,17 @@ class AdminController extends Controller
             return response()->json(['error' => 'Invalid message recipient'], 422);
         }
 
-        $message = Message::create([
+        $messageId = ((int) \DB::table('messages')->max('id')) + 1;
+        \DB::table('messages')->insert([
+            'id'          => $messageId,
             'sender_id'   => Auth::id(),
             'receiver_id' => $student->id,
             'message'     => $request->message,
             'sender_type' => 'admin',
+            'created_at'  => now(),
+            'updated_at'  => now(),
         ]);
+        $message = Message::findOrFail($messageId);
 
         return response()->json([
             'success' => true,

@@ -11,6 +11,7 @@
         background: #f4f3ff;
         min-height: calc(100vh - 60px);
         padding: 1.5rem;
+        overflow-x: hidden;
     }
 
     .messages-page .bg-success,
@@ -40,11 +41,27 @@
         .left-panel {
             max-height: 320px;
         }
+
+        .messaging-header {
+            align-items: flex-start;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        .messaging-input-area {
+            flex-wrap: wrap;
+        }
+
+        .messaging-input-area .message-input,
+        .messaging-input-area .send-btn {
+            min-width: 0;
+        }
     }
 
     /* Left Panel */
     .left-panel {
         background: white;
+        min-width: 0;
         border-radius: 16px;
         border: 1px solid #ede9fe;
         display: flex;
@@ -207,6 +224,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
+        min-width: 0;
     }
 
     .header-avatar {
@@ -231,6 +249,7 @@
     }
 
     .msg-email {
+        overflow-wrap: anywhere;
         font-size: 12px;
         color: #a78bfa;
         margin-top: 1px;

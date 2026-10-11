@@ -346,12 +346,17 @@ class StudentController extends Controller
             return response()->json(['error' => 'No admin available'], 404);
         }
 
-        $message = Message::create([
+        $messageId = ((int) \DB::table('messages')->max('id')) + 1;
+        \DB::table('messages')->insert([
+            'id' => $messageId,
             'sender_id' => Auth::id(),
             'receiver_id' => $admin->id,
             'message' => $request->message,
             'sender_type' => 'student',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
+        $message = Message::findOrFail($messageId);
 
         return response()->json([
             'success' => true,
