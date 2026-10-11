@@ -67,8 +67,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/gad-schedules', [AdminController::class, 'gadSchedules'])->name('gad-schedules.index');
         Route::post('/gad-schedules/sync', [AdminController::class, 'syncGadSchedule'])->name('gad-schedules.sync');
         Route::post('/office-info', [AdminController::class, 'updateOfficeInfo'])->name('office-info.update');
-        // Export the comprehensive GAD report as a PDF (admin only)
-        Route::get('/gad-report/export/pdf/{period?}', [ExportGADReportController::class, 'export'])->name('gad-report.export');
+        // Export the comprehensive GAD report as PDF or Excel (admin only)
+        Route::get('/gad-report/export/{format}/{period?}', [ExportGADReportController::class, 'export'])->name('gad-report.export');
         Route::post('/gad-schedules', [AdminController::class, 'storeGadSchedule'])->name('gad-schedules.store');
         Route::put('/gad-schedules/{id}', [AdminController::class, 'updateGadSchedule'])->name('gad-schedules.update');
         Route::post('/gad-schedules/{id}/status', [AdminController::class, 'updateGadScheduleStatus'])->name('gad-schedules.status');

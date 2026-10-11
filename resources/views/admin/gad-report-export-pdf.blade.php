@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>SINAG GAD Office Report</title>
+    <style>
+        @page { margin: 28px 32px; }
+        body { font-family: DejaVu Sans, sans-serif; color: #1e1b4b; font-size: 9px; line-height: 1.4; }
+        h1 { margin: 0 0 4px; color: #5b21b6; font-size: 17px; }
+        h2 { margin: 18px 0 7px; padding-bottom: 4px; border-bottom: 1px solid #c4b5fd; color: #4c1d95; font-size: 12px; }
+        .subtitle, .muted { color: #6b7280; }
+        .header { padding-bottom: 10px; border-bottom: 2px solid #8b5cf6; }
+        .meta, .summary, .report-table { width: 100%; border-collapse: collapse; }
+        .meta { margin: 12px 0; }
+        .meta td { padding: 3px 5px 3px 0; }
+        .summary { margin: 10px 0 16px; }
+        .summary td { width: 33.33%; padding: 9px; border: 1px solid #ddd6fe; background: #f5f3ff; text-align: center; }
+        .number { color: #6d28d9; font-size: 18px; font-weight: bold; }
+        .label { margin-top: 2px; color: #4b5563; font-size: 8px; font-weight: bold; text-transform: uppercase; }
+        .report-table { margin-bottom: 14px; }
+        .report-table th { padding: 5px; border: 1px solid #ddd6fe; background: #ede9fe; color: #4c1d95; text-align: left; font-size: 8px; }
+        .report-table td { padding: 4px 5px; border: 1px solid #e5e7eb; vertical-align: top; overflow-wrap: break-word; }
+        .footer { margin-top: 18px; padding-top: 6px; border-top: 1px solid #e5e7eb; color: #9ca3af; text-align: center; font-size: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SINAG - Gender and Development (GAD) Office</h1>
+        <div class="subtitle">Comprehensive Analytics &amp; Operations Summary Report</div>
+    </div>
+
+    <table class="meta">
+        <tr>
+            <td><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</td>
+            <td><strong>Generated On:</strong> {{ $data['generated_at'] }}</td>
+        </tr>
+    </table>
+
+    <table class="summary">
+        <tr>
+            <td><div class="number">{{ $data['total_users'] }}</div><div class="label">New Registered Users</div></td>
+            <td><div class="number">{{ $data['total_reports'] }}</div><div class="label">Incidents Reported</div></td>
+            <td><div class="number">{{ $data['total_suggestions'] }}</div><div class="label">Suggestions Submitted</div></td>
+        </tr>
+    </table>
+
+    <h2>1. Registered Users ({{ $users->count() }})</h2>
+    <table class="report-table">
+        <thead>
+            <tr><th>ID</th><th>Name</th><th>Email</th><th>Account Type</th><th>Department</th><th>Status</th><th>Registered</th></tr>
+        </thead>
+        <tbody>
+            @forelse($users as $user)
+                <tr>
+                    <td>{{ $user->id }}</td>
+                    <td>{{ $user->name }}</td>
+                    <td>{{ $user->email }}</td>
+                    <td>{{ $user->account_type ?? $user->role ?? 'N/A' }}</td>
+                    <td>{{ $user->department ?? 'N/A' }}</td>
+                    <td>{{ ucfirst($user->account_status ?? 'Active') }}</td>
+                    <td>{{ optional($user->created_at)->format('M d, Y') }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="7" class="muted">No users registered during this period.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <h2>2. Incident Reports ({{ $reports->count() }})</h2>
+    <table class="report-table">
+        <thead>
+            <tr><th>Incident ID</th><th>Reporter Alias</th><th>Nature</th><th>Location</th><th>Priority</th><th>Status</th><th>Filed Date</th></tr>
+        </thead>
+        <tbody>
+            @forelse($reports as $report)
+                <tr>
+                    <td>{{ $report->incident_id }}</td>
+                    <td>{{ $report->cloak_alias ?? 'Anonymous' }}</td>
+                    <td>{{ $report->nature }}</td>
+                    <td>{{ $report->location ?? 'N/A' }}</td>
+                    <td>{{ ucfirst($report->priority ?? 'Normal') }}</td>
+                    <td>{{ ucfirst($report->status ?? 'Pending') }}</td>
+                    <td>{{ optional($report->created_at)->format('M d, Y') }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="7" class="muted">No incident reports submitted during this period.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <h2>3. Suggestions &amp; Community Feedback ({{ $suggestions->count() }})</h2>
+    <table class="report-table">
+        <thead>
+            <tr><th>ID</th><th>Submitted By</th><th>Category</th><th>Message</th><th>Upvotes</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+            @forelse($suggestions as $suggestion)
+                <tr>
+                    <td>#{{ $suggestion->id }}</td>
+                    <td>{{ $suggestion->is_anonymous ? 'Anonymous' : (optional($suggestion->user)->name ?? 'User') }}</td>
+                    <td>{{ $suggestion->category ?? 'General' }}</td>
+                    <td>{{ \Illuminate\Support\Str::limit($suggestion->message, 120) }}</td>
+                    <td>{{ $suggestion->upvotes_count ?? 0 }}</td>
+                    <td>{{ optional($suggestion->created_at)->format('M d, Y') }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="6" class="muted">No suggestions submitted during this period.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <div class="footer">SINAG Safe Space &amp; Participatory Suggestion System • Confidential Administrative Report • {{ $data['generated_at'] }}</div>
+</body>
+</html>

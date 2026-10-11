@@ -950,26 +950,10 @@
                                     <span>Dashboard</span>
                                 </a>
 
-                                <div class="dropdown d-inline-block">
-                                    <button type="button" class="student-nav-link dropdown-toggle {{ Request::is('student/report*') || Request::is('student/vault*') ? 'active' : '' }}" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Report" title="Report">
-                                        <i class="bi bi-flag-fill"></i>
-                                        <span>Report</span>
-                                    </button>
-                                    <ul class="dropdown-menu student-nav-menu">
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('student.report') }}">
-                                                <i class="bi bi-megaphone-fill"></i>
-                                                <span>File a Report</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('student.vault') }}">
-                                                <i class="bi bi-safe2-fill"></i>
-                                                <span>Report Status</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
+                                <a href="{{ route('student.report') }}" class="student-nav-link {{ Request::is('student/report*') ? 'active' : '' }}" aria-label="Report" title="Report">
+                                    <i class="bi bi-flag-fill"></i>
+                                    <span>Report</span>
+                                </a>
 
                                 <a href="{{ route('student.boses') }}" class="student-nav-link {{ Request::is('student/boses*') ? 'active' : '' }}" aria-label="Suggestions" title="Suggestions">
                                     <i class="bi bi-chat-left-quote-fill"></i>

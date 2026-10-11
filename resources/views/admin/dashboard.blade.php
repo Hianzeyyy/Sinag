@@ -260,9 +260,23 @@
                         <p class="hero-copy mb-0">Real-time monitoring of campus safety, incident escalation, and response status across the reporting system.</p>
                     </div>
                     <div class="text-lg-end">
-                        <a class="btn hero-action px-4 py-2" href="{{ route('admin.gad-report.export', ['period' => '30days']) }}" title="Download the last 30 days GAD report as PDF">
-                            <i class="bi bi-file-earmark-pdf me-2"></i>Export GAD Report
-                        </a>
+                        <div class="dropdown d-inline-block">
+                            <button class="btn hero-action px-4 py-2 dropdown-toggle" type="button" id="exportGadReportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-file-earmark-arrow-down me-2"></i>Export GAD Report
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2" aria-labelledby="exportGadReportDropdown">
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3" href="{{ route('admin.gad-report.export', ['format' => 'pdf', 'period' => '30days']) }}">
+                                        <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>Download PDF (Last 30 Days)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3" href="{{ route('admin.gad-report.export', ['format' => 'excel', 'period' => '30days']) }}">
+                                        <i class="bi bi-file-earmark-spreadsheet me-2 text-success"></i>Download Excel (.xlsx)
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
