@@ -394,11 +394,39 @@
 
             .student-navbar { flex-direction: row !important; align-items: center !important; flex-wrap: nowrap !important; gap: .35rem !important; padding: .5rem .65rem !important; }
             .student-navbar > .d-flex:first-child { width: auto !important; flex: 1 1 auto; justify-content: flex-start !important; min-width: 0; }
-            .student-navbar > .d-flex:first-child .navbar-brand-custom { gap: .4rem !important; max-width: 100%; }
-            .student-navbar > .d-flex:first-child .navbar-brand-custom > div { flex-shrink: 0; }
+            .student-navbar > .d-flex:first-child .navbar-brand-custom {
+                display: grid !important;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-rows: auto auto;
+                align-items: center;
+                column-gap: .4rem !important;
+                row-gap: 0 !important;
+                max-width: 100%;
+            }
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1 / span 2;
+                flex-shrink: 0;
+            }
             .student-navbar > .d-flex:first-child .navbar-brand-custom img { width: 30px !important; height: 30px !important; }
-            .student-navbar > .d-flex:first-child .navbar-brand-custom > span:not(.brand-descriptor) { font-size: 1.35rem !important; }
-            .student-navbar .brand-descriptor, .student-navbar .student-top-nav, .student-navbar .student-mobile-scroll-hint, .student-navbar > .d-flex:last-child > a[href*="/messaging"] { display: none !important; }
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                align-self: end;
+                font-size: 1.35rem !important;
+            }
+            .student-navbar .brand-descriptor {
+                display: block !important;
+                grid-column: 2;
+                grid-row: 2;
+                align-self: start;
+                max-width: min(48vw, 220px);
+                min-width: 0;
+                white-space: normal;
+                font-size: .55rem !important;
+                line-height: 1.05;
+            }
+            .student-navbar .student-top-nav, .student-navbar .student-mobile-scroll-hint, .student-navbar > .d-flex:last-child > a[href*="/messaging"] { display: none !important; }
             .student-navbar > .d-flex:last-child { width: auto !important; flex: 0 0 auto !important; overflow: visible !important; padding: 0 !important; gap: .25rem !important; }
             .student-mobile-menu-toggle { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 0; border-radius: 11px; background: #A594F9; color: #fff; box-shadow: 0 5px 14px rgba(143,114,245,.24); }
             .student-navbar .profile-menu-btn { min-height: 38px; padding: .2rem; }
@@ -456,10 +484,6 @@
                 flex-wrap: nowrap;
             }
 
-            .student-navbar .brand-descriptor {
-                display: none !important;
-            }
-
             .student-navbar .student-top-nav {
                 display: flex;
                 flex-wrap: nowrap;
@@ -497,6 +521,14 @@
             .student-navbar .student-mobile-scroll-hint,
             .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
                 display: none !important;
+            }
+
+            .student-navbar .brand-descriptor {
+                display: block !important;
+                max-width: 150px;
+                white-space: normal;
+                font-size: .62rem !important;
+                line-height: 1.1;
             }
 
             .student-navbar > .d-flex:last-child {
