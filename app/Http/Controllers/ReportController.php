@@ -7,7 +7,6 @@ use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -59,10 +58,6 @@ class ReportController extends Controller
                 $cloakAlias = 'Student' . strtoupper(Str::random(4));
             }
 
-            $user->forceFill([
-                'cloak_alias' => $cloakAlias,
-                'role' => $user->role ?: 'student',
-            ])->save();
         }
 
         // 2. Handle File Uploads (Optional)
@@ -104,11 +99,9 @@ class ReportController extends Controller
             'updated_at'    => now(),
         ];
 
-        foreach (['course', 'gender', 'incident_time'] as $optionalColumn) {
-            if (Schema::hasColumn('reports', $optionalColumn)) {
-                $reportData[$optionalColumn] = $request->input($optionalColumn);
-            }
-        }
+        $reportData['course'] = $request->input('course');
+        $reportData['gender'] = $request->input('gender');
+        $reportData['incident_time'] = $request->input('incident_time');
 
         try {
             \DB::table('reports')->insert($reportData);
