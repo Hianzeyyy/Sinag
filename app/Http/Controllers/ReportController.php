@@ -136,6 +136,12 @@ class ReportController extends Controller
             $insertData = array_intersect_key($reportData, $columns);
             \DB::table('reports')->insert($insertData);
         } catch (\Throwable $exception) {
+            $this->logReportFailure($exception, [
+                'user_id' => Auth::id(),
+                'columns' => array_keys($insertData ?? []),
+                'stage' => 'insert-primary',
+            ]);
+
             $coreReportData = $reportData;
             unset($coreReportData['course'], $coreReportData['gender'], $coreReportData['incident_time']);
 
@@ -150,7 +156,7 @@ class ReportController extends Controller
                 ]);
 
                 return redirect()->route('student.report')->withInput()->withErrors([
-                    'report' => 'The report could not be saved. ' . $this->safeFailureMessage($fallbackException),
+                    'report' => 'The report could not be saved. Please try again or contact the GAD office.',
                 ]);
             }
         }

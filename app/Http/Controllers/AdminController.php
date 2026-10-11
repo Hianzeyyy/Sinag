@@ -435,7 +435,7 @@ class AdminController extends Controller
 
         $schedules = GadSchedule::with('creator')
             ->orderByDesc('available_from')
-            ->latest()
+            ->orderByDesc('updated_at')
             ->get();
 
         return view('admin.gad_schedules', compact('schedules'));
@@ -447,20 +447,24 @@ class AdminController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        $schedules = GadSchedule::query()
+        $schedules = \DB::table('gad_schedules')
             ->whereIn('status', ['active', 'unavailable', 'inactive'])
             ->orderBy('available_from')
             ->get()
-            ->map(function (GadSchedule $schedule) {
+            ->map(function ($schedule) {
+                $availableFrom = \Carbon\Carbon::parse($schedule->available_from);
+                $availableUntil = $schedule->available_until
+                    ? \Carbon\Carbon::parse($schedule->available_until)
+                    : null;
                 $type = $schedule->status === 'unavailable' || $schedule->details === 'unavailable'
                     ? 'unavailable'
                     : ($schedule->details === 'all_day' ? 'available' : 'hours');
 
                 return [
-                    'date' => optional($schedule->available_from)->format('Y-m-d'),
-                    'start_time' => optional($schedule->available_from)->format('H:i'),
-                    'end_date' => $schedule->available_until?->format('Y-m-d'),
-                    'end_time' => $schedule->available_until?->format('H:i'),
+                    'date' => $availableFrom->format('Y-m-d'),
+                    'start_time' => $availableFrom->format('H:i'),
+                    'end_date' => $availableUntil?->format('Y-m-d'),
+                    'end_time' => $availableUntil?->format('H:i'),
                     'status' => $schedule->status,
                     'availability_type' => $type,
                 ];
@@ -640,15 +644,19 @@ class AdminController extends Controller
                 }
             }
 
-            $savedSchedules = GadSchedule::query()
+            $savedSchedules = \DB::table('gad_schedules')
                 ->whereIn('status', ['active', 'unavailable', 'inactive'])
                 ->orderBy('available_from')
                 ->get()
-                ->map(fn (GadSchedule $schedule) => [
-                    'date' => optional($schedule->available_from)->format('Y-m-d'),
-                    'start_time' => optional($schedule->available_from)->format('H:i'),
-                    'end_date' => $schedule->available_until?->format('Y-m-d'),
-                    'end_time' => $schedule->available_until?->format('H:i'),
+                ->map(fn ($schedule) => [
+                    'date' => \Carbon\Carbon::parse($schedule->available_from)->format('Y-m-d'),
+                    'start_time' => \Carbon\Carbon::parse($schedule->available_from)->format('H:i'),
+                    'end_date' => $schedule->available_until
+                        ? \Carbon\Carbon::parse($schedule->available_until)->format('Y-m-d')
+                        : null,
+                    'end_time' => $schedule->available_until
+                        ? \Carbon\Carbon::parse($schedule->available_until)->format('H:i')
+                        : null,
                     'status' => $schedule->status,
                     'availability_type' => $schedule->details === 'all_day'
                         ? 'available'
