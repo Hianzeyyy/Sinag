@@ -119,10 +119,6 @@ class ReportController extends Controller
             'updated_at'    => now(),
         ];
 
-        $reportData['course'] = $request->input('course');
-        $reportData['gender'] = $request->input('gender');
-        $reportData['incident_time'] = $request->input('incident_time');
-
         try {
             \DB::table('reports')->insert($reportData);
         } catch (\Throwable $exception) {
