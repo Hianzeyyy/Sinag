@@ -137,17 +137,15 @@ Route::middleware(['auth'])->group(function () {
         ->whereNumber('index')
         ->name('reports.evidence.view');
     Route::get('/suggestions/{suggestion}', [SuggestionController::class, 'show'])->name('suggestions.show');
-    Route::middleware('profile.complete')->group(function () {
-        Route::post('/submit-suggestion', [SuggestionController::class, 'store'])->name('suggestions.store');
-        Route::post('/upvote-suggestion/{id}', [SuggestionController::class, 'upvote'])->name('suggestions.upvote');
-        Route::post('/suggestions/{suggestion}/comment', [App\Http\Controllers\SuggestionCommentController::class, 'store'])->name('suggestions.comment');
-        Route::put('/suggestions/{id}', [SuggestionController::class, 'update'])->name('suggestions.update');
-        Route::delete('/suggestions/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');
-        Route::post('/suggestions/{suggestion}/report', [SuggestionReportController::class, 'storePost'])->name('suggestions.report');
-        Route::put('/comments/{id}', [App\Http\Controllers\SuggestionCommentController::class, 'update'])->name('comments.update');
-        Route::delete('/comments/{id}', [App\Http\Controllers\SuggestionCommentController::class, 'destroy'])->name('comments.destroy');
-        Route::post('/comments/{comment}/report', [SuggestionReportController::class, 'storeComment'])->name('comments.report');
-    });
+    Route::post('/submit-suggestion', [SuggestionController::class, 'store'])->name('suggestions.store');
+    Route::post('/upvote-suggestion/{id}', [SuggestionController::class, 'upvote'])->name('suggestions.upvote');
+    Route::post('/suggestions/{suggestion}/comment', [App\Http\Controllers\SuggestionCommentController::class, 'store'])->name('suggestions.comment');
+    Route::put('/suggestions/{id}', [SuggestionController::class, 'update'])->name('suggestions.update');
+    Route::delete('/suggestions/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');
+    Route::post('/suggestions/{suggestion}/report', [SuggestionReportController::class, 'storePost'])->name('suggestions.report');
+    Route::put('/comments/{id}', [App\Http\Controllers\SuggestionCommentController::class, 'update'])->name('comments.update');
+    Route::delete('/comments/{id}', [App\Http\Controllers\SuggestionCommentController::class, 'destroy'])->name('comments.destroy');
+    Route::post('/comments/{comment}/report', [SuggestionReportController::class, 'storeComment'])->name('comments.report');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
     Route::post('/profile/availability', [ProfileController::class, 'updateAvailability'])->name('profile.availability.update');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
