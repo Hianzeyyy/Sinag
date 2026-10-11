@@ -580,6 +580,44 @@
         }
     }
 
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .student-dashboard-page {
+            padding: 0 .35rem .75rem;
+        }
+
+        .student-dashboard-wrap {
+            max-width: 100%;
+        }
+
+        .gad-card-carousel,
+        .vision-mission-grid,
+        .reference-card,
+        .carousel-shell {
+            border-radius: 1rem;
+        }
+
+        .dashboard-carousel .carousel-item,
+        .dashboard-carousel .carousel-item img {
+            height: 230px;
+            min-height: 230px;
+        }
+
+        .vision-mission-grid {
+            gap: .65rem;
+            padding: .8rem;
+        }
+
+        .vision-mission-panel {
+            min-height: 160px;
+            padding: 1rem;
+        }
+
+        .vision-mission-panel p {
+            font-size: .9rem;
+            line-height: 1.55;
+        }
+    }
+
     @media (max-width: 575px) {
         .student-dashboard-page { margin-bottom: -1.5rem; }
 

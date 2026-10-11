@@ -436,6 +436,48 @@
                 overflow-wrap: anywhere;
             }
 
+            .student-navbar {
+                flex-wrap: nowrap !important;
+                align-items: center;
+                gap: .65rem;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                width: auto !important;
+                flex: 0 1 auto;
+                justify-content: flex-start !important;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                width: auto !important;
+                flex: 1 1 auto;
+                justify-content: flex-end !important;
+                flex-wrap: nowrap;
+            }
+
+            .student-navbar .brand-descriptor {
+                display: none !important;
+            }
+
+            .student-navbar .student-top-nav {
+                display: flex;
+                flex-wrap: nowrap;
+                width: auto;
+                max-width: 100%;
+                overflow-x: auto;
+                scrollbar-width: thin;
+            }
+
+            .student-navbar .student-nav-link {
+                flex: 0 0 auto;
+                padding: .4rem .55rem;
+                font-size: .76rem;
+            }
+
+            .student-navbar .profile-mini-name {
+                max-width: 90px;
+            }
+
             .main-content > .p-4,
             .main-content > .p-4.p-lg-5 {
                 padding: 1rem !important;
