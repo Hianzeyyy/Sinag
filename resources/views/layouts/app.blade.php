@@ -486,6 +486,86 @@
             .admin-main .row > [class*="col-"] {
                 min-width: 0;
             }
+
+            .student-navbar > .d-flex:first-child {
+                flex: 1 1 auto;
+            }
+
+            .student-navbar .brand-descriptor,
+            .student-navbar .student-top-nav,
+            .student-navbar .student-mobile-scroll-hint,
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: none !important;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                flex: 0 0 auto;
+            }
+
+            .student-navbar .profile-menu-btn {
+                min-height: 40px;
+            }
+
+            .student-mobile-menu-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 42px;
+                height: 42px;
+                border: 0;
+                border-radius: 11px;
+                background: #A594F9;
+                color: #fff;
+                box-shadow: 0 5px 14px rgba(143,114,245,.24);
+            }
+
+            .student-mobile-menu {
+                position: fixed;
+                inset: 0;
+                z-index: 2500;
+                display: block;
+                background: rgba(15,23,42,.38);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity .2s ease;
+            }
+
+            .student-mobile-menu.is-open {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .student-mobile-menu-panel {
+                width: min(82vw, 320px);
+                height: 100%;
+                padding: 1.2rem 1rem;
+                background: #fff;
+                box-shadow: 12px 0 28px rgba(15,23,42,.18);
+                transform: translateX(-100%);
+                transition: transform .24s ease;
+            }
+
+            .student-mobile-menu.is-open .student-mobile-menu-panel {
+                transform: translateX(0);
+            }
+
+            .student-mobile-menu-link {
+                display: flex;
+                align-items: center;
+                gap: .75rem;
+                padding: .8rem .75rem;
+                margin-bottom: .35rem;
+                border-radius: 11px;
+                color: #475569;
+                font-weight: 800;
+                text-decoration: none;
+            }
+
+            .student-mobile-menu-link:hover,
+            .student-mobile-menu-link.active {
+                background: #f3efff;
+                color: #7658df;
+            }
         }
 
         .student-nav-link {
