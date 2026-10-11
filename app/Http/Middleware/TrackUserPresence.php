@@ -13,8 +13,14 @@ class TrackUserPresence
     {
         $response = $next($request);
 
-        if ($request->user() && Schema::hasColumn('users', 'last_seen_at')) {
-            $request->user()->forceFill(['last_seen_at' => now()])->saveQuietly();
+        if ($request->user()) {
+            try {
+                if (Schema::hasColumn('users', 'last_seen_at')) {
+                    $request->user()->forceFill(['last_seen_at' => now()])->saveQuietly();
+                }
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
         }
 
         return $response;

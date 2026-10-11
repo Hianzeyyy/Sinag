@@ -518,20 +518,21 @@ class AdminController extends Controller
      */
     public function syncGadSchedule(Request $request)
     {
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::user() || Auth::user()->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $request->validate([
-            'updates'                     => ['required', 'array'],
-            'updates.*.date'              => ['required', 'date_format:Y-m-d'],
-            'updates.*.availability_type' => ['nullable', 'in:available,hours,unavailable,remove'],
-            'updates.*.start_time'        => ['nullable', 'date_format:H:i'],
-            'updates.*.end_time'          => ['nullable', 'date_format:H:i'],
-            'updates.*.remove'            => ['nullable', 'boolean'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'updates'                     => ['required', 'array'],
+                'updates.*.date'              => ['required', 'date_format:Y-m-d'],
+                'updates.*.availability_type' => ['nullable', 'in:available,hours,unavailable,remove'],
+                'updates.*.start_time'        => ['nullable', 'date_format:H:i'],
+                'updates.*.end_time'          => ['nullable', 'date_format:H:i'],
+                'updates.*.remove'            => ['nullable', 'boolean'],
+            ]);
 
-        foreach ($request->updates as $update) {
+        foreach ($validated['updates'] as $update) {
             $date      = $update['date'];
             $remove    = (bool) ($update['remove'] ?? false);
             $type      = $update['availability_type'] ?? 'hours';
@@ -599,7 +600,20 @@ class AdminController extends Controller
             }
         }
 
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true]);
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            throw $exception;
+        } catch (\Throwable $exception) {
+            report($exception);
+            \Log::error('GAD schedule sync failed', [
+                'admin_id' => Auth::id(),
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'The schedule could not be saved. Please refresh and try again.',
+            ], 500);
+        }
     }
 
     /**

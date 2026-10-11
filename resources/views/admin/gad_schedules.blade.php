@@ -812,7 +812,23 @@ function saveCalendar() {
     })
     .then(async res => {
         if (res.ok) {
-            window.location.reload();
+            updates.forEach(update => {
+                if (update.remove || update.availability_type === 'remove') {
+                    delete scheduleMap[update.date];
+                } else {
+                    scheduleMap[update.date] = {
+                        type: update.availability_type || 'hours',
+                        start_time: update.start_time || '09:00',
+                        end_time: update.end_time || '17:00',
+                        status: update.availability_type === 'unavailable' ? 'unavailable' : 'active'
+                    };
+                }
+                delete modifiedDays[update.date];
+            });
+            renderAdminCalendar();
+            updateChangeNote();
+            btn.textContent = 'Saved';
+            setTimeout(() => { btn.textContent = 'Save changes'; }, 1200);
             return;
         }
 
