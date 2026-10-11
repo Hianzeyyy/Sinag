@@ -31,14 +31,17 @@ class ForgotPasswordController extends Controller
         $user = User::where('email', $validated['email'])->first();
         $path = $request->file('id_picture')->store('password-reset-requests', 'local');
         $reference = 'PRR-' . Str::upper(Str::random(10));
-        $resetRequest = PasswordResetRequest::create([
+        $resetRequestId = ((int) \DB::table('password_reset_requests')->max('id')) + 1;
+        \DB::table('password_reset_requests')->insert([
+            'id' => $resetRequestId,
             'user_id' => $user?->id, 'reference_number' => $reference,
             'email' => $validated['email'], 'name' => $validated['name'],
             'student_employee_id' => $validated['student_employee_id'],
             'department' => $validated['department'] ?? null, 'id_picture_path' => $path,
             'reason' => $validated['reason'] ?? null, 'status' => 'pending',
+            'created_at' => now(), 'updated_at' => now(),
         ]);
-        Log::info('Password reset request submitted', ['request_id' => $resetRequest->id, 'reference_number' => $reference, 'ip' => $request->ip()]);
+        Log::info('Password reset request submitted', ['request_id' => $resetRequestId, 'reference_number' => $reference, 'ip' => $request->ip()]);
 
         return redirect()->route('password.status.form', ['reference' => $reference])
             ->with('success', 'Request submitted. Keep your reference number to check its status.');

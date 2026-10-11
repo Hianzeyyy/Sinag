@@ -49,10 +49,14 @@ class AnnouncementController extends Controller
             'body' => 'required|string',
         ]);
 
-        Announcement::create([
+        $announcementId = ((int) \DB::table('announcements')->max('id')) + 1;
+        \DB::table('announcements')->insert([
+            'id' => $announcementId,
             'title' => $request->title,
             'body' => $request->body,
             'user_id' => Auth::id(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return redirect()->route('admin.announcements.index')->with('success', 'Announcement posted!');
