@@ -644,20 +644,24 @@
         </thead>
         <tbody>
             @forelse($reports as $r)
+                @php
+                    $priority = strtolower((string) ($r->priority ?? 'normal'));
+                    $status = strtolower((string) ($r->status ?? 'pending'));
+                @endphp
                 <tr>
                     <td><strong>{{ $r->incident_id }}</strong></td>
                     <td>{{ $r->cloak_alias ?? 'Anonymous' }}</td>
                     <td>{{ $r->nature }}</td>
                     <td>{{ $r->location ?? 'N/A' }}</td>
                     <td>
-                        <span class="badge badge-{{ strtolower($r->priority) == 'high' ? 'high' : (strtolower($r->priority) == 'normal' ? 'normal' : 'low') }}">
-                            {{ ucfirst($r->priority ?? 'Normal') }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge badge-{{ in_array(strtolower($r->status), ['resolved', 'completed', 'approved']) ? 'active' : 'pending' }}">
-                            {{ ucfirst($r->status ?? 'Pending') }}
-                        </span>
+                                <span class="badge badge-{{ $priority == 'high' ? 'high' : ($priority == 'normal' ? 'normal' : 'low') }}">
+                                    {{ ucfirst($r->priority ?? 'Normal') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ in_array($status, ['resolved', 'completed', 'approved']) ? 'active' : 'pending' }}">
+                                    {{ ucfirst($r->status ?? 'Pending') }}
+                                </span>
                     </td>
                     <td>{{ optional($r->created_at)->format('M d, Y') }}</td>
                 </tr>
