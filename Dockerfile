@@ -27,6 +27,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-install pdo_mysql mbstring bcmath exif pcntl gd zip \
     && rm -rf /var/lib/apt/lists/*
 
+# Registration accepts two verification images. Keep PHP's request limits above
+# Laravel's per-file validation limit so uploads are not silently discarded.
+RUN printf '%s\n' \
+    'upload_max_filesize=10M' \
+    'post_max_size=24M' \
+    'max_file_uploads=10' \
+    > /usr/local/etc/php/conf.d/99-sinag-uploads.ini
+
 # Use one Apache MPM only. The PHP Apache base image uses prefork for mod_php;
 # explicitly disable other MPMs so inherited image configuration cannot load
 # multiple MPM modules.

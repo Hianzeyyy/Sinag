@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -91,30 +92,27 @@ class RegisterController extends Controller
             $cloakAlias = 'Student' . strtoupper(Str::random(4));
         }
 
-        $selfieImagePath = request()->file('selfie_image')
-            ? request()->file('selfie_image')->store('verification/selfie', 'public')
-            : null;
+        $selfieImagePath = request()->file('selfie_image')->store('verification/selfie', 'public');
+        $profilePhotoPath = request()->file('profile_photo')->store('profile-photos', 'public');
 
-        $profilePhotoPath = request()->file('profile_photo')
-            ? request()->file('profile_photo')->store('profile-photos', 'public')
-            : null;
-
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'age' => $data['age'],
-            'gender' => $data['gender'],
-            'department' => $data['department'],
-            'phone_number' => null,
-            'password' => Hash::make($data['password']),
-            'role' => $accountType,
-            'account_type' => $accountType,
-            'employee_category' => $accountType === 'employee' ? ($data['employee_category'] ?? null) : null,
-            'cloak_alias' => $cloakAlias,
-            'profile_photo_path' => $profilePhotoPath,
-            'selfie_image_path' => $selfieImagePath,
-            'account_status' => 'pending',
-        ]);
+        return DB::transaction(function () use ($data, $accountType, $cloakAlias, $profilePhotoPath, $selfieImagePath) {
+            return User::create([
+                'name' => trim($data['name']),
+                'email' => strtolower(trim($data['email'])),
+                'age' => $data['age'],
+                'gender' => $data['gender'],
+                'department' => $data['department'],
+                'phone_number' => null,
+                'password' => Hash::make($data['password']),
+                'role' => $accountType,
+                'account_type' => $accountType,
+                'employee_category' => $accountType === 'employee' ? ($data['employee_category'] ?? null) : null,
+                'cloak_alias' => $cloakAlias,
+                'profile_photo_path' => $profilePhotoPath,
+                'selfie_image_path' => $selfieImagePath,
+                'account_status' => 'pending',
+            ]);
+        });
     }
 
     protected function registered(Request $request, $user)
