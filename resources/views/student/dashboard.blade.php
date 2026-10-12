@@ -669,7 +669,7 @@
                 <div class="carousel-inner">
                     <div class="carousel-item active">
                         <a href="{{ route('student.event', ['id' => 1]) }}" class="d-block text-decoration-none">
-                            <img src="{{ asset('images/gadevent1.jpg') }}" alt="Campus event 1">
+                            <img src="{{ asset('images/gadeventnew1.png') }}" alt="Campus event 1">
                         </a>
                         <div class="carousel-caption">
                             <div class="carousel-caption-kicker">Campus Event</div>
@@ -894,12 +894,12 @@
                     <div class="card-body p-4">
                         @php
                             $referencePreviewItems = [
-                                ['slug' => 'hivaids', 'title' => 'HIV/AIDS Awareness', 'summary' => 'HIV/AIDS awareness helps students understand prevention, care, and responsible behavior.', 'image' => 'images/hivaids.jpg'],
-                                ['slug' => 'antisexualharassmentpolicy', 'title' => 'Anti-Sexual Harassment Policy', 'summary' => 'This policy explains how the institution defines and handles sexual harassment.', 'image' => 'images/antisexualharassmentpolicy.jpg'],
-                                ['slug' => 'ra9262', 'title' => 'Republic Act 9262', 'summary' => 'Republic Act 9262 protects women and children from abuse and violence in intimate or family relationships.', 'image' => 'images/ra9262.jpg'],
-                                ['slug' => 'ra8353', 'title' => 'Republic Act 8353', 'summary' => 'Republic Act 8353 strengthens the legal definition of rape and the protection of survivors.', 'image' => 'images/ra8353.jpg'],
-                                ['slug' => 'ra9208', 'title' => 'Republic Act 9208', 'summary' => 'Republic Act 9208 targets trafficking in persons, especially women and children.', 'image' => 'images/ra9208.jpg'],
-                                ['slug' => 'ra9710', 'title' => 'Republic Act 9710', 'summary' => 'Republic Act 9710 affirms the rights and dignity of women and girls.', 'image' => 'images/ra9710.jpg'],
+                                ['slug' => 'hivaids', 'title' => 'HIV/AIDS Awareness', 'summary' => 'HIV/AIDS awareness helps students understand prevention, care, and responsible behavior.', 'image' => asset('images/hivaids.jpg')],
+                                ['slug' => 'antisexualharassmentpolicy', 'title' => 'Anti-Sexual Harassment Policy', 'summary' => 'This policy explains how the institution defines and handles sexual harassment.', 'image' => asset('images/antisexualharassmentpolicy.jpg')],
+                                ['slug' => 'ra9262', 'title' => 'Republic Act 9262', 'summary' => 'Republic Act 9262 protects women and children from abuse and violence in intimate or family relationships.', 'image' => asset('images/ra9262.jpg')],
+                                ['slug' => 'ra8353', 'title' => 'Republic Act 8353', 'summary' => 'Republic Act 8353 strengthens the legal definition of rape and the protection of survivors.', 'image' => asset('images/ra8353.jpg')],
+                                ['slug' => 'ra9208', 'title' => 'Republic Act 9208', 'summary' => 'Republic Act 9208 targets trafficking in persons, especially women and children.', 'image' => asset('images/ra9208.jpg')],
+                                ['slug' => 'ra9710', 'title' => 'Republic Act 9710', 'summary' => 'Republic Act 9710 affirms the rights and dignity of women and girls.', 'image' => asset('images/ra9710.jpg')],
                             ];
                         @endphp
 
@@ -907,7 +907,7 @@
                             @foreach($referencePreviewItems as $reference)
                                 <div class="col-6 col-md-4 col-xl-2">
                                     <div class="reference-card h-100" style="cursor: default;">
-                                        <div class="reference-card-visual" style="background-image:url('{{ asset($reference['image']) }}'); min-height: 200px;"></div>
+                                        <div class="reference-card-visual" style="background-image:url('{{ $reference['image'] }}'); min-height: 200px;"></div>
                                         <div class="reference-card-content text-center">
                                             <div class="reference-card-title">{{ $reference['title'] }}</div>
                                             <div class="reference-card-body">{{ $reference['summary'] }}</div>
