@@ -40,6 +40,27 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function verificationImage(Request $request, \App\Models\User $user)
+    {
+        abort_unless(
+            $request->user()->role === 'admin' || $request->user()->is($user),
+            403
+        );
+
+        $path = $user->id_image_path ?: $user->selfie_image_path;
+        abort_if(blank($path), 404);
+
+        foreach (['local', 'public'] as $diskName) {
+            $disk = Storage::disk($diskName);
+
+            if ($disk->exists($path)) {
+                return response()->file($disk->path($path));
+            }
+        }
+
+        abort(404);
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();

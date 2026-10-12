@@ -33,7 +33,16 @@
             .top-navbar > .d-flex:first-child { width: 100%; min-width: 0; }
             .top-navbar > .d-flex:last-child { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: .45rem !important; }
             .navbar-brand-custom { gap: .65rem !important; max-width: 100%; }
-            .navbar-brand-custom .brand-descriptor { display: block !important; max-width: 230px; white-space: normal; font-size: .78rem; }
+            .student-navbar .navbar-brand-custom { width: 100%; flex-wrap: wrap; justify-content: center; }
+            .student-navbar .brand-descriptor {
+                display: block !important;
+                flex: 0 0 100%;
+                max-width: 100%;
+                white-space: normal;
+                text-align: center;
+                font-size: .72rem;
+                line-height: 1.2;
+            }
             .student-top-nav { order: 2; width: 100%; overflow-x: auto; }
         }
 
@@ -41,20 +50,23 @@
            navigation into a tall, wrapping bar. */
         @media (min-width: 992px) and (max-width: 1199.98px) {
             .student-navbar {
-                flex-wrap: nowrap;
+                flex-wrap: wrap;
                 gap: .75rem;
                 padding-inline: 1rem;
             }
 
             .student-navbar > .d-flex:first-child {
-                flex: 0 1 auto;
+                width: 100%;
+                flex: 0 0 100%;
                 min-width: 0;
+                justify-content: center;
             }
 
             .student-navbar > .d-flex:last-child {
-                flex: 1 1 auto;
+                width: 100%;
+                flex: 0 0 100%;
                 min-width: 0;
-                justify-content: flex-end;
+                justify-content: center;
             }
 
             .student-navbar .student-top-nav {
@@ -65,8 +77,36 @@
             }
 
             .student-navbar .brand-descriptor {
-                max-width: 220px;
+                flex: 0 0 100%;
+                max-width: none;
                 white-space: normal;
+                text-align: center;
+            }
+
+            .admin-navbar {
+                flex-wrap: wrap;
+                gap: .75rem;
+            }
+
+            .admin-navbar > .d-flex:first-child,
+            .admin-navbar > .d-flex:last-child {
+                width: 100%;
+                flex: 0 0 100%;
+                justify-content: center;
+            }
+
+            .admin-navbar .navbar-brand-custom {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .admin-navbar .navbar-brand-custom > .brand-descriptor {
+                flex: 0 0 100%;
+                max-width: 100%;
+                white-space: normal;
+                text-align: center;
+                font-size: .72rem !important;
+                line-height: 1.2;
             }
 
             .student-navbar .student-nav-link {
@@ -372,14 +412,22 @@
         }
 
         @media (max-width: 767.98px) {
-            .admin-navbar { flex-direction: row !important; align-items: center !important; flex-wrap: nowrap !important; gap: .4rem !important; padding: .5rem .65rem !important; }
-            .admin-navbar > .d-flex:first-child { width: auto !important; flex: 1 1 auto; min-width: 0; }
-            .admin-navbar .brand-descriptor { display: none !important; }
-            .admin-navbar .navbar-brand-custom { gap: .4rem !important; max-width: 100%; }
+            .admin-navbar { flex-direction: row !important; align-items: center !important; flex-wrap: wrap !important; gap: .4rem !important; padding: .5rem .65rem !important; }
+            .admin-navbar > .d-flex:first-child { width: 100% !important; flex: 0 0 100%; min-width: 0; justify-content: center !important; }
+            .admin-navbar .navbar-brand-custom { gap: .4rem !important; max-width: 100%; flex-wrap: wrap; justify-content: center; }
             .admin-navbar .navbar-brand-custom > div { flex-shrink: 0; }
             .admin-navbar .navbar-brand-custom img { width: 30px !important; height: 30px !important; }
-            .admin-navbar .navbar-brand-custom > span { font-size: 1.35rem !important; }
-            .admin-navbar > .d-flex:last-child { width: auto !important; flex: 0 0 auto !important; gap: .25rem !important; }
+            .admin-navbar .navbar-brand-custom > span:not(.brand-descriptor) { font-size: 1.35rem !important; }
+            .admin-navbar .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                flex: 0 0 100%;
+                max-width: 100%;
+                white-space: normal;
+                text-align: center;
+                font-size: .62rem !important;
+                line-height: 1.15;
+            }
+            .admin-navbar > .d-flex:last-child { width: 100% !important; flex: 0 0 100% !important; justify-content: center !important; gap: .25rem !important; }
             .admin-navbar > .d-flex:last-child > a[href*="/admin/messages"] { display: none !important; }
             .admin-navbar .profile-menu-btn { min-height: 38px; padding: .2rem; }
             .admin-navbar .profile-mini-name { display: none; }
@@ -396,6 +444,7 @@
             .student-navbar > .d-flex:first-child { width: auto !important; flex: 1 1 auto; justify-content: flex-start !important; min-width: 0; }
             .student-navbar > .d-flex:first-child .navbar-brand-custom {
                 display: grid !important;
+                width: 100%;
                 grid-template-columns: auto minmax(0, 1fr);
                 grid-template-rows: auto auto;
                 align-items: center;
@@ -417,14 +466,15 @@
             }
             .student-navbar .brand-descriptor {
                 display: block !important;
-                grid-column: 2;
+                grid-column: 1 / -1;
                 grid-row: 2;
                 align-self: start;
-                max-width: min(48vw, 220px);
+                max-width: 100%;
                 min-width: 0;
                 white-space: normal;
                 font-size: .55rem !important;
                 line-height: 1.05;
+                text-align: center;
             }
             .student-navbar .student-top-nav, .student-navbar .student-mobile-scroll-hint, .student-navbar > .d-flex:last-child > a[href*="/messaging"] { display: none !important; }
             .student-navbar > .d-flex:last-child { width: auto !important; flex: 0 0 auto !important; overflow: visible !important; padding: 0 !important; gap: .25rem !important; }
@@ -461,26 +511,26 @@
             }
 
             .navbar-brand-custom .brand-descriptor {
-                max-width: 180px;
+                max-width: 100%;
                 overflow-wrap: anywhere;
             }
 
             .student-navbar {
-                flex-wrap: nowrap !important;
+                flex-wrap: wrap !important;
                 align-items: center;
                 gap: .65rem;
             }
 
             .student-navbar > .d-flex:first-child {
-                width: auto !important;
-                flex: 0 1 auto;
-                justify-content: flex-start !important;
+                width: 100% !important;
+                flex: 0 0 100%;
+                justify-content: center !important;
             }
 
             .student-navbar > .d-flex:last-child {
-                width: auto !important;
-                flex: 1 1 auto;
-                justify-content: flex-end !important;
+                width: 100% !important;
+                flex: 0 0 100%;
+                justify-content: center !important;
                 flex-wrap: nowrap;
             }
 
@@ -513,7 +563,7 @@
             }
 
             .student-navbar > .d-flex:first-child {
-                flex: 1 1 auto;
+                flex: 0 0 100%;
             }
 
             .student-navbar .brand-descriptor,
@@ -525,14 +575,17 @@
 
             .student-navbar .brand-descriptor {
                 display: block !important;
-                max-width: 150px;
+                flex: 0 0 100%;
+                max-width: 100%;
                 white-space: normal;
                 font-size: .62rem !important;
                 line-height: 1.1;
+                text-align: center;
             }
 
             .student-navbar > .d-flex:last-child {
-                flex: 0 0 auto;
+                flex: 0 0 100%;
+                justify-content: center !important;
             }
 
             .student-navbar .profile-menu-btn {

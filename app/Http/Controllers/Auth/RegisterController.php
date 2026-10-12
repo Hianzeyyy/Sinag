@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
-use League\Flysystem\FilesystemException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -98,13 +97,19 @@ class RegisterController extends Controller
         $storedFiles = [];
 
         try {
-            $selfieImagePath = request()->file('selfie_image')->store('verification/selfie', 'public');
-            $storedFiles[] = $selfieImagePath;
+            $selfieImagePath = request()->file('selfie_image')->store('verification/selfie', 'local');
+            if (!is_string($selfieImagePath)) {
+                throw new \RuntimeException('The verification image could not be saved.');
+            }
+            $storedFiles[] = ['disk' => 'local', 'path' => $selfieImagePath];
             $profilePhotoPath = request()->file('profile_photo')->store('profile-photos', 'public');
-            $storedFiles[] = $profilePhotoPath;
-        } catch (FilesystemException $exception) {
+            if (!is_string($profilePhotoPath)) {
+                throw new \RuntimeException('The profile photo could not be saved.');
+            }
+            $storedFiles[] = ['disk' => 'public', 'path' => $profilePhotoPath];
+        } catch (\Throwable $exception) {
             foreach ($storedFiles as $storedFile) {
-                Storage::disk('public')->delete($storedFile);
+                Storage::disk($storedFile['disk'])->delete($storedFile['path']);
             }
 
             report($exception);
@@ -143,7 +148,7 @@ class RegisterController extends Controller
             });
         } catch (\Throwable $exception) {
             foreach ($storedFiles as $storedFile) {
-                Storage::disk('public')->delete($storedFile);
+                Storage::disk($storedFile['disk'])->delete($storedFile['path']);
             }
 
             throw $exception;

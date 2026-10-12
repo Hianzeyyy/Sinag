@@ -61,3 +61,26 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 # Sinag
 # system
 # Sinag
+
+## Render upload persistence
+
+Uploaded profile photos, registration verification images, and password-reset ID
+images are stored under Laravel's `storage/app` directory. Render's container
+filesystem is temporary, so attach a persistent disk to the web service with the
+mount path:
+
+```text
+/var/www/html/storage/app
+```
+
+Keep the default `PRIVATE_STORAGE_PATH` and `PUBLIC_STORAGE_PATH` values, or set
+them to `/var/www/html/storage/app/private` and
+`/var/www/html/storage/app/public` respectively. The container startup creates
+the required directories and the public storage link. The verification ID image
+endpoint is restricted to the image owner and administrators.
+
+Before attaching the disk, back up any uploads still present on the running
+instance; mounting over `storage/app` hides files in the container. Copy
+surviving uploads into the matching `private` or `public` subdirectory on the
+persistent disk. Files that disappeared from an earlier temporary instance
+cannot be recovered by attaching a disk.

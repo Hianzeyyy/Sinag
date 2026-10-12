@@ -299,7 +299,7 @@
                             <div class="profile-detail align-items-start">
                                 <div class="label">ID Verification</div>
                                 <button type="button" class="btn p-0 border-0 bg-transparent" data-bs-toggle="modal" data-bs-target="#verificationImageModal" aria-label="View ID verification image">
-                                    <img src="{{ asset('storage/' . $verificationImage) }}" alt="Student ID photo" class="img-thumbnail profile-verification-image">
+                                    <img src="{{ route('profile.verification-image', $user) }}" alt="Student ID photo" class="img-thumbnail profile-verification-image">
                                 </button>
                             </div>
                         @else
@@ -331,7 +331,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center p-3">
-                    <img src="{{ asset('storage/' . $verificationImage) }}" alt="Student ID photo" class="img-fluid rounded-3 border" style="max-height: 75vh; object-fit: contain;">
+                    <img src="{{ route('profile.verification-image', $user) }}" alt="Student ID photo" class="img-fluid rounded-3 border" style="max-height: 75vh; object-fit: contain;">
                 </div>
             </div>
         </div>

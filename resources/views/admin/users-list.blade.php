@@ -151,9 +151,13 @@
                             <td class="ps-4 small text-muted">{{ optional($user->created_at)->format('M d, Y') }}</td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width:40px;height:40px;background:{{ $user->role === 'admin' ? '#A594F9' : '#f3e8ff' }};color:{{ $user->role === 'admin' ? '#fff' : '#A594F9' }};font-weight:bold;">
-                                        {{ strtoupper(substr($user->name, 0, 1)) }}
-                                    </div>
+                                    @if($user->profile_photo_path)
+                                        <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="{{ $user->name }} profile photo" class="rounded-circle me-3 shadow-sm" style="width:40px;height:40px;object-fit:cover;">
+                                    @else
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width:40px;height:40px;background:{{ $user->role === 'admin' ? '#A594F9' : '#f3e8ff' }};color:{{ $user->role === 'admin' ? '#fff' : '#A594F9' }};font-weight:bold;">
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        </div>
+                                    @endif
                                     <div><span class="d-block fw-bold text-dark">{{ $user->name }}</span><span class="d-block small text-muted">{{ $fullDepartment }}</span></div>
                                 </div>
                             </td>
@@ -166,7 +170,7 @@
                             </td>
                             <td class="text-end pe-4">
                                 <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm view-user-btn" style="background:#A594F9;border:none;" data-bs-toggle="modal" data-bs-target="#viewUserModal"
-                                    data-user-name="{{ $user->name }}" data-user-email="{{ $user->email }}" data-user-id="UID-{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}" data-user-type="{{ $displayType }}" data-user-department="{{ $fullDepartment }}" data-user-status="{{ ucfirst($accountStatus) }}" data-user-phone="{{ $user->phone_number ?: 'Not provided' }}" data-user-gender="{{ $user->gender ?: 'Not provided' }}" data-user-age="{{ $user->age ?: 'Not provided' }}" data-user-joined="{{ optional($user->created_at)->format('F d, Y h:i A') }}" data-user-photo="{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : '' }}" data-user-id-picture="{{ ($user->id_image_path ?: $user->selfie_image_path) ? asset('storage/' . ($user->id_image_path ?: $user->selfie_image_path)) : '' }}" data-personal-data-url="{{ route('admin.users.personal-data', $user->id) }}" data-approve-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.approve', $user->id) : '' }}" data-reject-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.reject', $user->id) : '' }}">
+                                    data-user-name="{{ $user->name }}" data-user-email="{{ $user->email }}" data-user-id="UID-{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}" data-user-type="{{ $displayType }}" data-user-department="{{ $fullDepartment }}" data-user-status="{{ ucfirst($accountStatus) }}" data-user-phone="{{ $user->phone_number ?: 'Not provided' }}" data-user-gender="{{ $user->gender ?: 'Not provided' }}" data-user-age="{{ $user->age ?: 'Not provided' }}" data-user-joined="{{ optional($user->created_at)->format('F d, Y h:i A') }}" data-user-photo="{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : '' }}" data-user-id-picture="{{ ($user->id_image_path ?: $user->selfie_image_path) ? route('profile.verification-image', $user) : '' }}" data-personal-data-url="{{ route('admin.users.personal-data', $user->id) }}" data-approve-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.approve', $user->id) : '' }}" data-reject-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.reject', $user->id) : '' }}">
                                     <i class="bi bi-eye me-1"></i>View
                                 </button>
                             </td>

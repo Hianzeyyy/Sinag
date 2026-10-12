@@ -41,6 +41,7 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::middleware(['auth'])->get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::middleware(['auth'])->get('/personal-data', [ProfileController::class, 'personalData'])->name('personal-data.show');
 Route::middleware(['auth'])->get('/personal-data/edit', [ProfileController::class, 'editPersonalData'])->name('personal-data.edit');
+Route::middleware(['auth'])->get('/users/{user}/verification-image', [ProfileController::class, 'verificationImage'])->name('profile.verification-image');
 
 // --- AUTHENTICATED USERS ONLY ---
 Route::middleware(['auth'])->group(function () {
