@@ -402,6 +402,107 @@
                 will-change: transform;
             }
 
+            .admin-navbar {
+                flex-wrap: wrap;
+                gap: .4rem;
+            }
+
+            .admin-navbar > .d-flex:first-child {
+                display: grid !important;
+                grid-template-columns: 40px minmax(0, 1fr);
+                align-items: center;
+                column-gap: .45rem;
+                row-gap: .2rem;
+                width: 100%;
+                flex: 0 0 100%;
+                min-width: 0;
+            }
+
+            .admin-navbar > .d-flex:first-child > .sidebar-toggle {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .admin-navbar .navbar-brand-custom {
+                display: grid !important;
+                grid-template-columns: auto minmax(0, 1fr);
+                align-items: center;
+                column-gap: .4rem !important;
+                row-gap: .2rem;
+                grid-column: 2;
+                grid-row: 1;
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                margin: 0 !important;
+            }
+
+            .admin-navbar .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+                flex-shrink: 0;
+            }
+
+            .admin-navbar .navbar-brand-custom img {
+                width: 34px !important;
+                height: 34px !important;
+                flex: 0 0 34px;
+            }
+
+            .admin-navbar .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                font-size: 1.4rem !important;
+            }
+
+            .admin-navbar .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                grid-column: 1 / -1;
+                grid-row: 2;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
+                text-align: center;
+                font-size: clamp(.72rem, 1.2vw, .82rem) !important;
+                line-height: 1.2;
+            }
+
+            .admin-navbar > .d-flex:last-child {
+                width: 100%;
+                flex: 0 0 100%;
+                justify-content: center;
+                gap: .25rem !important;
+            }
+
+            .admin-navbar > .d-flex:last-child > a[href*="/admin/messages"] {
+                display: none !important;
+            }
+
+            .admin-navbar .profile-menu-btn {
+                min-height: 38px;
+                padding: .2rem;
+            }
+
+            .admin-navbar .profile-avatar {
+                width: 34px !important;
+                height: 34px !important;
+                flex: 0 0 34px;
+                border-radius: 50%;
+                object-fit: cover;
+                object-position: center;
+            }
+
+            .admin-navbar img.profile-avatar {
+                display: block;
+            }
+
+            .admin-navbar .profile-mini-name {
+                display: none;
+            }
+
             .admin-main .card-header {
                 flex-wrap: wrap;
                 gap: .75rem;
@@ -448,51 +549,7 @@
         }
 
         @media (max-width: 767.98px) {
-            .admin-navbar { flex-direction: row !important; align-items: center !important; flex-wrap: wrap !important; gap: .4rem !important; padding: .5rem .65rem !important; }
-            .admin-navbar > .d-flex:first-child {
-                display: grid !important;
-                grid-template-columns: 40px minmax(0, 1fr);
-                align-items: center;
-                column-gap: .45rem;
-                row-gap: 0;
-                width: 100% !important;
-                flex: 0 0 100%;
-                min-width: 0;
-            }
-            .admin-navbar > .d-flex:first-child > .sidebar-toggle { grid-column: 1; grid-row: 1; }
-            .admin-navbar .navbar-brand-custom {
-                display: grid !important;
-                grid-template-columns: auto minmax(0, 1fr);
-                align-items: center;
-                column-gap: .4rem !important;
-                row-gap: .2rem;
-                grid-column: 2;
-                grid-row: 1;
-                width: 100%;
-                min-width: 0;
-                max-width: 100%;
-                margin: 0 !important;
-            }
-            .admin-navbar .navbar-brand-custom > div { grid-column: 1; grid-row: 1; flex-shrink: 0; }
-            .admin-navbar .navbar-brand-custom img { width: 30px !important; height: 30px !important; }
-            .admin-navbar .navbar-brand-custom > span:not(.brand-descriptor) { grid-column: 2; grid-row: 1; font-size: 1.35rem !important; }
-            .admin-navbar .navbar-brand-custom > .brand-descriptor {
-                display: block !important;
-                grid-column: 1 / -1;
-                grid-row: 2;
-                width: 100%;
-                max-width: 100%;
-                min-width: 0;
-                white-space: normal !important;
-                overflow-wrap: normal;
-                word-break: normal;
-                text-align: center;
-                font-size: clamp(.72rem, 1.2vw, .82rem) !important;
-                line-height: 1.15;
-            }
-            .admin-navbar > .d-flex:last-child { width: 100% !important; flex: 0 0 100% !important; justify-content: center !important; gap: .25rem !important; }
-            .admin-navbar > .d-flex:last-child > a[href*="/admin/messages"] { display: none !important; }
-            .admin-navbar .profile-menu-btn { min-height: 38px; padding: .2rem; }
+            .admin-navbar { flex-direction: row !important; padding: .5rem .65rem !important; }
             .admin-navbar .profile-avatar {
                 width: 34px !important;
                 height: 34px !important;
