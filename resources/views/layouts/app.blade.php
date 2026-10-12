@@ -117,10 +117,29 @@
 
             .admin-navbar {
                 padding-inline: 1rem;
+                flex-wrap: wrap;
+                gap: .75rem;
+            }
+
+            .admin-navbar > .d-flex:first-child,
+            .admin-navbar > .d-flex:last-child {
+                width: 100%;
+                flex: 0 0 100%;
+                justify-content: center;
+            }
+
+            .admin-navbar .navbar-brand-custom {
+                flex-wrap: wrap;
+                justify-content: center;
             }
 
             .admin-navbar .brand-descriptor {
-                max-width: 180px;
+                flex: 0 0 100%;
+                max-width: 100%;
+                white-space: normal;
+                text-align: center;
+                font-size: .72rem !important;
+                line-height: 1.2;
             }
 
             .admin-main > .p-4,
