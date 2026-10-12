@@ -20,7 +20,7 @@
             overflow-x: hidden;
         }
 
-        .brand-descriptor { max-width: none; white-space: nowrap; line-height: 1.15; font-size: .82rem; }
+        .brand-descriptor { max-width: 100%; white-space: normal; overflow-wrap: normal; word-break: normal; line-height: 1.15; font-size: .82rem; }
         @media (min-width: 1200px) {
             .top-navbar.student-navbar { flex-direction: column; align-items: stretch; gap: .45rem; }
             .student-navbar > .d-flex:first-child { width: 100%; min-width: 0; justify-content: center; }
@@ -41,6 +41,18 @@
                 white-space: normal;
                 text-align: center;
                 font-size: .72rem;
+                line-height: 1.2;
+            }
+            .admin-navbar .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                flex: 0 0 100%;
+                max-width: 100%;
+                min-width: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
+                text-align: center;
+                font-size: clamp(.62rem, 1.2vw, .82rem) !important;
                 line-height: 1.2;
             }
             .student-top-nav { order: 2; width: 100%; overflow-x: auto; }
@@ -103,9 +115,12 @@
             .admin-navbar .navbar-brand-custom > .brand-descriptor {
                 flex: 0 0 100%;
                 max-width: 100%;
-                white-space: normal;
+                min-width: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
                 text-align: center;
-                font-size: .72rem !important;
+                font-size: clamp(.62rem, 1.2vw, .82rem) !important;
                 line-height: 1.2;
             }
 
@@ -441,9 +456,12 @@
                 display: block !important;
                 flex: 0 0 100%;
                 max-width: 100%;
-                white-space: normal;
+                min-width: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
                 text-align: center;
-                font-size: .62rem !important;
+                font-size: clamp(.62rem, 1.2vw, .82rem) !important;
                 line-height: 1.15;
             }
             .admin-navbar > .d-flex:last-child { width: 100% !important; flex: 0 0 100% !important; justify-content: center !important; gap: .25rem !important; }
