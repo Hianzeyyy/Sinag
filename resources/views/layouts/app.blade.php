@@ -854,6 +854,19 @@
             }
         }
 
+        .profile-avatar-fallback[hidden] {
+            display: none !important;
+        }
+
+        .profile-avatar-fallback {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #A594F9;
+            color: #fff;
+            font-weight: 800;
+        }
+
         .student-nav-menu {
             min-width: 220px;
             border-radius: 14px;
@@ -1053,6 +1066,209 @@
                 flex: 0 0 34px;
             }
         }
+
+        @media (max-width: 991.98px) {
+            .student-navbar {
+                display: grid !important;
+                grid-template-columns: 40px minmax(0, 1fr) auto;
+                align-items: start !important;
+                gap: .35rem !important;
+                width: 100%;
+                min-width: 0;
+                padding: .55rem .65rem !important;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                display: contents !important;
+            }
+
+            .student-mobile-menu-toggle {
+                display: inline-flex !important;
+                grid-column: 1;
+                grid-row: 1;
+                align-self: start;
+                align-items: center;
+                justify-content: center;
+                width: 38px;
+                height: 38px;
+                margin-top: .1rem;
+            }
+
+            .student-navbar .navbar-brand-custom {
+                display: grid !important;
+                grid-column: 2;
+                grid-row: 1;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-rows: auto auto;
+                align-items: center;
+                column-gap: .35rem !important;
+                row-gap: .2rem !important;
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                margin: 0 !important;
+            }
+
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+                min-width: 0;
+                flex-shrink: 0;
+            }
+
+            .student-navbar > .d-flex:first-child .navbar-brand-custom img {
+                width: 30px !important;
+                height: 30px !important;
+            }
+
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                min-width: 0;
+                align-self: center;
+                font-size: 1.35rem !important;
+                line-height: 1;
+            }
+
+            .student-navbar .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                grid-column: 1 / -1;
+                grid-row: 2;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                margin: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
+                text-align: center;
+                font-size: clamp(.65rem, 2.1vw, .8rem) !important;
+                line-height: 1.2;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                display: flex !important;
+                grid-column: 3;
+                grid-row: 1;
+                align-items: center;
+                justify-content: flex-end !important;
+                width: auto !important;
+                min-width: 0;
+                max-width: 100%;
+                margin: 0;
+                padding: 0 !important;
+                overflow: visible !important;
+                gap: .2rem !important;
+            }
+
+            .student-navbar .student-top-nav,
+            .student-navbar .student-mobile-scroll-hint,
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: none !important;
+            }
+
+            .student-navbar .user-meta {
+                display: flex;
+                align-items: center;
+                gap: .15rem;
+            }
+
+            .student-navbar .profile-menu-btn {
+                min-height: 38px;
+                padding: .15rem;
+            }
+
+            .student-navbar .profile-avatar {
+                width: 34px !important;
+                height: 34px !important;
+                flex: 0 0 34px;
+                border-radius: 50%;
+                object-fit: cover;
+                object-position: center;
+            }
+
+            .student-navbar .profile-mini-name {
+                display: none;
+            }
+        }
+
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .student-navbar {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                align-items: center !important;
+                justify-content: center;
+                gap: .6rem !important;
+                min-width: 0;
+            }
+
+            .student-navbar > .d-flex:first-child,
+            .student-navbar > .d-flex:last-child {
+                width: 100% !important;
+                min-width: 0;
+                flex: 0 0 100% !important;
+                justify-content: center !important;
+            }
+
+            .student-navbar .navbar-brand-custom {
+                display: grid !important;
+                grid-template-columns: auto auto minmax(0, 1fr);
+                align-items: center;
+                column-gap: .5rem !important;
+                width: min(100%, 900px);
+                min-width: 0;
+                margin: 0 !important;
+            }
+
+            .student-navbar .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .student-navbar .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                white-space: nowrap;
+            }
+
+            .student-navbar .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                grid-column: 3;
+                grid-row: 1;
+                min-width: 0;
+                max-width: 100%;
+                white-space: normal;
+                text-align: left;
+                font-size: .78rem !important;
+                line-height: 1.2;
+            }
+
+            .student-navbar .student-top-nav {
+                display: flex !important;
+                flex-wrap: nowrap;
+                min-width: 0;
+                overflow-x: auto;
+                scrollbar-width: thin;
+            }
+
+            .student-navbar .student-mobile-menu-toggle,
+            .student-navbar .student-mobile-scroll-hint {
+                display: none !important;
+            }
+
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: flex !important;
+            }
+
+            .student-navbar .profile-avatar {
+                width: 34px;
+                height: 34px;
+                flex: 0 0 34px;
+                border-radius: 50%;
+                object-fit: cover;
+                object-position: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1203,7 +1419,8 @@
                             <div class="dropdown user-meta">
                                 <a class="profile-menu-btn" href="{{ route('profile.show') }}" title="View profile">
                                     @if(Auth::user()->profile_photo_path)
-                                        <img src="{{ asset('storage/'.Auth::user()->profile_photo_path) }}" alt="Profile photo" class="profile-avatar">
+                                        <img src="{{ asset('storage/'.Auth::user()->profile_photo_path) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                                        <span class="profile-avatar profile-avatar-fallback" hidden>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                                     @else
                                         <span class="profile-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                                     @endif
@@ -1215,7 +1432,8 @@
                                 <div class="dropdown-menu dropdown-menu-end profile-dropdown p-2">
                                     <div class="profile-dropdown-head">
                                         @if(Auth::user()->profile_photo_path)
-                                            <img src="{{ asset('storage/'.Auth::user()->profile_photo_path) }}" alt="Profile photo" class="profile-avatar">
+                                            <img src="{{ asset('storage/'.Auth::user()->profile_photo_path) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                                            <span class="profile-avatar profile-avatar-fallback" hidden>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                                         @else
                                             <span class="profile-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                                         @endif
