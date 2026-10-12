@@ -1269,6 +1269,129 @@
                 object-position: center;
             }
         }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .student-navbar {
+                display: grid !important;
+                grid-template-columns: 42px minmax(0, 1fr) auto !important;
+                align-items: start !important;
+                gap: .5rem !important;
+                width: 100% !important;
+                min-width: 0;
+                box-sizing: border-box;
+                padding: .65rem 1rem !important;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                display: contents !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .student-mobile-menu-toggle {
+                display: inline-flex !important;
+                grid-column: 1;
+                grid-row: 1;
+                align-items: center;
+                justify-content: center;
+                width: 42px;
+                height: 42px;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom {
+                display: grid !important;
+                grid-column: 2;
+                grid-row: 1;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-rows: auto auto;
+                align-items: center;
+                column-gap: .5rem !important;
+                row-gap: .35rem !important;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                margin: 0 !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+                min-width: 0;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > div img {
+                width: 34px !important;
+                height: 34px !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                min-width: 0;
+                align-self: center;
+                font-size: 1.5rem !important;
+                line-height: 1;
+                white-space: nowrap;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                grid-column: 1 / -1;
+                grid-row: 2;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                margin: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
+                text-align: center;
+                font-size: clamp(.75rem, 1.65vw, .9rem) !important;
+                line-height: 1.25;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                display: flex !important;
+                grid-column: 3;
+                grid-row: 1;
+                align-items: center;
+                justify-content: flex-end !important;
+                width: auto !important;
+                min-width: 0;
+                max-width: 100%;
+                margin: 0;
+                padding: 0 !important;
+                overflow: visible !important;
+                gap: .2rem !important;
+            }
+
+            .student-navbar .student-top-nav,
+            .student-navbar .student-mobile-scroll-hint,
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: none !important;
+            }
+
+            .student-navbar .user-meta {
+                display: flex;
+                align-items: center;
+                gap: .15rem;
+            }
+
+            .student-navbar .profile-menu-btn {
+                min-height: 42px;
+                padding: .2rem;
+            }
+
+            .student-navbar .profile-avatar {
+                width: 38px !important;
+                height: 38px !important;
+                flex: 0 0 38px;
+                object-fit: cover;
+                object-position: center;
+            }
+
+            .student-navbar .profile-mini-name {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
