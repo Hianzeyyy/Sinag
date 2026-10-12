@@ -295,15 +295,32 @@
                 <div class="col-lg-6">
                     <div class="profile-detail-list">
                         @php($verificationImage = $user->id_image_path ?: $user->selfie_image_path)
-                        @if($verificationImage)
+                        @if($verificationImage && $verificationImageAvailable)
                             <div class="profile-detail align-items-start">
                                 <div class="label">ID Verification</div>
                                 <button type="button" class="btn p-0 border-0 bg-transparent" data-bs-toggle="modal" data-bs-target="#verificationImageModal" aria-label="View ID verification image">
                                     <img src="{{ route('profile.verification-image', $user) }}" alt="Student ID photo" class="img-thumbnail profile-verification-image">
                                 </button>
                             </div>
+                        @elseif($verificationImage)
+                            <div class="profile-detail align-items-start">
+                                <div class="label">ID Verification</div>
+                                <div class="value text-muted">The saved ID image is unavailable. Upload it again to restore it.</div>
+                            </div>
                         @else
                             <div class="profile-detail"><div class="label">ID Verification</div><div class="value text-muted">No photo uploaded</div></div>
+                        @endif
+                        @if(auth()->id() === $user->id)
+                            <form method="POST" action="{{ route('profile.verification-image.update') }}" enctype="multipart/form-data" class="profile-detail d-block">
+                                @csrf
+                                <label class="label d-block mb-2" for="verificationImageInput">Upload or replace ID image</label>
+                                <input id="verificationImageInput" type="file" name="verification_image" accept="image/jpeg,image/png" class="form-control form-control-sm" required>
+                                <div class="small text-muted mt-1">JPG or PNG, up to 5 MB. Only you and administrators can view this image.</div>
+                                @error('verification_image')
+                                    <div class="small text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                                <button type="submit" class="profile-action-btn mt-2">Save ID Image</button>
+                            </form>
                         @endif
                     </div>
                 </div>

@@ -6,13 +6,27 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
     public function show(Request $request)
     {
+        $verificationImagePath = $request->user()->id_image_path ?: $request->user()->selfie_image_path;
+        $verificationImageAvailable = false;
+
+        if ($verificationImagePath) {
+            foreach (['local', 'public'] as $diskName) {
+                if (Storage::disk($diskName)->exists($verificationImagePath)) {
+                    $verificationImageAvailable = true;
+                    break;
+                }
+            }
+        }
+
         return view('profile.show', [
             'user' => $request->user(),
+            'verificationImageAvailable' => $verificationImageAvailable,
         ]);
     }
 
@@ -261,6 +275,40 @@ class ProfileController extends Controller
         ]);
 
         return back()->with('status', 'Profile photo updated.');
+    }
+
+    public function updateVerificationImage(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'verification_image' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+        ]);
+
+        $user = $request->user();
+        $oldIdImagePath = $user->id_image_path;
+        $path = $request->file('verification_image')->store('verification/id', 'local');
+
+        if (!is_string($path)) {
+            Log::error('Verification image upload failed', ['user_id' => $user->id]);
+
+            return back()->withErrors([
+                'verification_image' => 'The ID image could not be saved. Please try again.',
+            ]);
+        }
+
+        try {
+            $user->update(['id_image_path' => $path]);
+        } catch (\Throwable $exception) {
+            Storage::disk('local')->delete($path);
+            throw $exception;
+        }
+
+        if ($oldIdImagePath && $oldIdImagePath !== $user->selfie_image_path) {
+            foreach (['local', 'public'] as $diskName) {
+                Storage::disk($diskName)->delete($oldIdImagePath);
+            }
+        }
+
+        return back()->with('status', 'ID verification image updated.');
     }
 
     public function updateAvailability(Request $request): RedirectResponse

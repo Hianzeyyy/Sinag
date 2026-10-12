@@ -339,8 +339,19 @@ class AdminController extends Controller
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
         $user = User::findOrFail($id);
+        $verificationImagePath = $user->id_image_path ?: $user->selfie_image_path;
+        $verificationImageAvailable = false;
 
-        return view('profile.show', compact('user'));
+        if ($verificationImagePath) {
+            foreach (['local', 'public'] as $diskName) {
+                if (Storage::disk($diskName)->exists($verificationImagePath)) {
+                    $verificationImageAvailable = true;
+                    break;
+                }
+            }
+        }
+
+        return view('profile.show', compact('user', 'verificationImageAvailable'));
     }
 
     public function deleteUser($id)

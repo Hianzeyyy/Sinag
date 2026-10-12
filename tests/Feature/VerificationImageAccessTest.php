@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class VerificationImageAccessTest extends TestCase
@@ -21,10 +22,12 @@ class VerificationImageAccessTest extends TestCase
             $table->string('cloak_alias')->nullable();
             $table->string('id_image_path')->nullable();
             $table->string('selfie_image_path')->nullable();
+            $table->string('profile_photo_path')->nullable();
             $table->timestamps();
         });
 
         Storage::fake('local');
+        Storage::fake('public');
         Storage::disk('local')->put('verification/selfie/student.png', 'test image');
 
         $student = User::create([
@@ -60,5 +63,30 @@ class VerificationImageAccessTest extends TestCase
         $this->actingAs($otherStudent)
             ->get(route('profile.verification-image', $student))
             ->assertForbidden();
+
+        $this->actingAs($student)
+            ->post(route('profile.photo.update'), [
+                'profile_photo' => UploadedFile::fake()->image('profile.png'),
+            ])
+            ->assertRedirect();
+
+        $student->refresh();
+        $this->assertNotEmpty($student->profile_photo_path);
+        Storage::disk('public')->assertExists($student->profile_photo_path);
+
+        $this->actingAs($student)
+            ->post(route('profile.verification-image.update'), [
+                'verification_image' => UploadedFile::fake()->image('student-id.png'),
+            ])
+            ->assertRedirect();
+
+        $student->refresh();
+        $this->assertNotEmpty($student->id_image_path);
+        Storage::disk('local')->assertExists($student->id_image_path);
+        Storage::disk('public')->assertMissing($student->id_image_path);
+
+        $this->actingAs($admin)
+            ->get(route('profile.verification-image', $student))
+            ->assertOk();
     }
 }

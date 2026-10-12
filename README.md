@@ -64,10 +64,10 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 ## Render upload persistence
 
-Uploaded profile photos, registration verification images, and password-reset ID
-images are stored under Laravel's `storage/app` directory. Render's container
-filesystem is temporary, so attach a persistent disk to the web service with the
-mount path:
+Profile photos, registration verification images, uploaded replacement ID images,
+and password-reset ID images are stored under Laravel's `storage/app` directory.
+Render's container filesystem is temporary, so attach a persistent disk to the web
+service with the mount path:
 
 ```text
 /var/www/html/storage/app
@@ -76,8 +76,11 @@ mount path:
 Keep the default `PRIVATE_STORAGE_PATH` and `PUBLIC_STORAGE_PATH` values, or set
 them to `/var/www/html/storage/app/private` and
 `/var/www/html/storage/app/public` respectively. The container startup creates
-the required directories and the public storage link. The verification ID image
-endpoint is restricted to the image owner and administrators.
+the required directories and the public storage link. Profile photos use the
+public disk; ID and verification images use the private disk and are served only
+to the image owner and administrators. After attaching the disk, users can
+re-upload a missing profile photo from **Change Profile** and a missing ID image
+from the **ID Verification** section of their profile.
 
 Before attaching the disk, back up any uploads still present on the running
 instance; mounting over `storage/app` hides files in the container. Copy

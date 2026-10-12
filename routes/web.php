@@ -152,6 +152,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/comments/{id}', [App\Http\Controllers\SuggestionCommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/report', [SuggestionReportController::class, 'storeComment'])->name('comments.report');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+    Route::post('/profile/verification-image', [ProfileController::class, 'updateVerificationImage'])->name('profile.verification-image.update');
     Route::post('/profile/availability', [ProfileController::class, 'updateAvailability'])->name('profile.availability.update');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/presence/heartbeat', [ProfileController::class, 'heartbeat'])->name('presence.heartbeat');
