@@ -178,6 +178,106 @@
     .day-schedule-label.label-unavailable {
         color: #e11d48;
     }
+
+    .gad-student {
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .gad-student .cal-grid {
+        width: 100%;
+        min-width: 0;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .gad-student .day-name,
+    .gad-student .cal-day {
+        min-width: 0;
+    }
+
+    .gad-student .cal-day {
+        padding: clamp(2px, 0.5vw, 6px);
+        gap: clamp(1px, 0.3vw, 4px);
+    }
+
+    .gad-student .day-schedule-label,
+    .gad-student .day-schedule-time {
+        max-width: 100%;
+        min-width: 0;
+        text-align: center;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1;
+    }
+
+    .gad-student .day-schedule-time {
+        padding: 2px 4px;
+    }
+
+    @media (max-width: 767.98px) {
+        .gad-student {
+            padding: 0.4rem 0;
+        }
+
+        .gad-student .cal-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.65rem;
+            padding: 0.9rem;
+        }
+
+        .gad-student .cal-header > div:first-child {
+            min-width: 0;
+        }
+
+        .gad-student .cal-header > div:last-child {
+            justify-content: space-between;
+            margin-top: 0 !important;
+        }
+
+        .gad-student .cal-title {
+            font-size: clamp(1.2rem, 5vw, 1.5rem);
+            overflow-wrap: anywhere;
+        }
+
+        .gad-student .cal-sub {
+            font-size: 0.78rem;
+        }
+
+        .gad-student .cal-body {
+            padding: 0.55rem;
+        }
+
+        .gad-student .cal-grid {
+            gap: clamp(2px, 0.7vw, 5px);
+        }
+
+        .gad-student .day-name {
+            padding: 0.3rem 0;
+            font-size: clamp(0.5rem, 2.2vw, 0.68rem);
+            letter-spacing: 0.02em;
+        }
+
+        .gad-student .cal-day {
+            border-radius: 7px;
+            font-size: 0.72rem;
+        }
+
+        .gad-student .day-number {
+            font-size: clamp(0.7rem, 3vw, 0.9rem);
+        }
+
+        .gad-student .day-schedule-label {
+            font-size: clamp(0.4rem, 1.8vw, 0.58rem);
+            letter-spacing: 0;
+        }
+
+        .gad-student .day-schedule-time {
+            padding: 1px 2px;
+            border-radius: 5px;
+            font-size: clamp(0.38rem, 1.65vw, 0.58rem);
+        }
+    }
 </style>
 
 @php
