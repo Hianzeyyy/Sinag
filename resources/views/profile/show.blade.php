@@ -58,6 +58,10 @@
         flex-shrink: 0;
     }
 
+    .profile-avatar-xl-fallback[hidden] {
+        display: none !important;
+    }
+
     .profile-name {
         font-size: clamp(2rem, 4vw, 3.5rem);
         font-weight: 900;
@@ -223,7 +227,8 @@
                 <div class="d-flex flex-column flex-md-row align-items-start gap-3 gap-md-4">
                     <div class="text-center text-md-start">
                         @if($user->profile_photo_path)
-                            <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profile photo" class="profile-avatar-xl">
+                            <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profile photo" class="profile-avatar-xl" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                            <div class="profile-avatar-xl profile-avatar-xl-fallback d-flex align-items-center justify-content-center fw-black" style="font-size:5rem; color:#A594F9;" hidden>{{ strtoupper(substr($user->name, 0, 1)) }}</div>
                         @else
                             <div class="profile-avatar-xl d-flex align-items-center justify-content-center fw-black" style="font-size:5rem; color:#A594F9;">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
                         @endif
