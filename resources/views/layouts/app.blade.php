@@ -1130,7 +1130,7 @@
                 line-height: 1;
             }
 
-            .student-navbar .navbar-brand-custom > .brand-descriptor {
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > .brand-descriptor {
                 display: block !important;
                 grid-column: 1 / -1;
                 grid-row: 2;
