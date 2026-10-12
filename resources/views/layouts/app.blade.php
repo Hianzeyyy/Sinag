@@ -1483,7 +1483,7 @@
         SI<span style="color:#facc15;">NAG</span>
     </span>
     <span class="brand-descriptor small text-muted">
-        Gender and Development Safe Space and Participatory Suggestion System
+        Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University
     </span>
 </a>
 

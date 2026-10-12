@@ -252,7 +252,7 @@
                                 <span style="color: #ede9fe;">SI</span><span style="color: #facc15;">NAG</span>
                             </h1>
                             <p class="text-white small text-uppercase fw-bold mt-3" style="letter-spacing: 3px; font-size: 0.7rem; max-width: 200px;">
-                                Gender and Development Safe Space and Participatory Suggestion System
+                                Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University
                             </p>
                             <div class="mt-5 pt-4 border-top border-secondary w-75 opacity-50">
                                

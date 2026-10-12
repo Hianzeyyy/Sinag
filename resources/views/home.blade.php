@@ -29,7 +29,7 @@
                 </div>
                 
                 <p class="lead text-white-50 mb-5 text-uppercase fw-bold tracking-widest animate-text">
-                    Gender and Development Safe Space and Participatory Suggestion System
+                    Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University
                 </p>
 
                 <div class="d-flex flex-column flex-sm-row justify-content-center gap-4 mt-4">

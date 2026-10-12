@@ -25,7 +25,7 @@
     @endif
     <div class="header">
         <h1>SINAG Confidential Report</h1>
-        <div class="muted">Gender and Development Safe Space and Participatory Suggestion System</div>
+        <div class="muted">Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University</div>
     </div>
 
     <h2>Report Details</h2>

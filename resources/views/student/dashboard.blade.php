@@ -932,7 +932,7 @@
                     <img src="{{ asset('images/gadlogo.png') }}" alt="SINAG GAD logo" style="width:38px;height:38px;object-fit:cover;border-radius:50%;">
                     <div>
                         <div class="student-dashboard-footer-brand">SI<span style="color:#facc15;">NAG</span></div>
-                        <div class="small mt-1">Safety and Integrity Network for Abuse and Gender-bias</div>
+                        <div class="small mt-1">Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University</div>
                     </div>
                 </div>
                 @php

@@ -194,7 +194,7 @@
                                 </h1>
                                 
                                 <p class="text-white-50 small text-uppercase fw-bold mt-3" style="letter-spacing: 3px; font-size: 0.65rem;">
-                                    Gender and Development Safe Space and Participatory Suggestion System
+                                    Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University
                                 </p>
                             </div>
 

@@ -733,7 +733,7 @@
                     <div style="margin-bottom:0.6rem;">
                         <span class="sp-badge">⭐ SINAG Member</span>
                     </div>
-                    <div style="font-size:0.78rem; color:var(--muted);">Safety & Integrity Network</div>
+                    <div style="font-size:0.78rem; color:var(--muted);">Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University</div>
                 </div>
             </div>
 

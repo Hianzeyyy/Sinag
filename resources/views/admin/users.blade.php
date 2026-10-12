@@ -21,7 +21,7 @@
             <h3 class="fw-bold mb-1" style="color: #A594F9;">
     User Management
 </h3>
-            <p class="text-muted small mb-0">Gender and Development Safe Space and Participatory Suggestion System</p>
+            <p class="text-muted small mb-0">Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University</p>
         </div>
         <div class="col-md-6">
             <div class="d-flex gap-2 justify-content-md-end mt-3 mt-md-0">
