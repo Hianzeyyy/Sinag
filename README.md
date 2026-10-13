@@ -87,3 +87,4 @@ instance; mounting over `storage/app` hides files in the container. Copy
 surviving uploads into the matching `private` or `public` subdirectory on the
 persistent disk. Files that disappeared from an earlier temporary instance
 cannot be recovered by attaching a disk.
+# sinag-project
