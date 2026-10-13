@@ -29,7 +29,8 @@
                     <div id="callList"></div>
                 </div>
                 <div>
-                    <iframe id="jitsiFrame" class="jitsi-frame" allow="camera; microphone; fullscreen; display-capture" src="about:blank"></iframe>
+                    <div id="callJoinStatus" class="small text-muted mb-2" role="status" aria-live="polite">Select an active call to connect.</div>
+                    <iframe id="jitsiFrame" title="GAD urgent audio and video call" class="jitsi-frame" allow="camera; microphone; fullscreen; display-capture; autoplay" referrerpolicy="strict-origin-when-cross-origin" src="about:blank"></iframe>
                     <div class="small text-muted mt-2">Join a call from the left panel. Camera and mic permissions should be allowed in the browser.</div>
                 </div>
             </div>
@@ -42,23 +43,31 @@
     const callCountEl = document.getElementById('callCount');
     const jitsiFrame = document.getElementById('jitsiFrame');
     let lastIds = new Set();
+    let initialFeedLoaded = false;
 
     function roomToJitsiUrl(room) {
         const safeRoom = encodeURIComponent(room || 'sinag-urgent-room');
-        return `https://meet.jit.si/${safeRoom}#config.prejoinPageEnabled=false`;
+        return `https://meet.jit.si/${safeRoom}#config.prejoinPageEnabled=true`;
     }
 
     async function joinCall(callId) {
-        const res = await fetch(`{{ url('/admin/urgent-calls') }}/${callId}/join`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            }
-        });
-        const data = await res.json();
-        if (data && data.room) {
+        const status = document.getElementById('callJoinStatus');
+        status.textContent = 'Connecting to the call…';
+        try {
+            const res = await fetch(`{{ url('/admin/urgent-calls') }}/${encodeURIComponent(callId)}/join`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            });
+            if (!res.ok) throw new Error(`Could not join the call (${res.status}).`);
+            const data = await res.json();
+            if (!data.room) throw new Error(data.message || 'This call is no longer active.');
             jitsiFrame.src = roomToJitsiUrl(data.room);
+            status.textContent = 'Connected to the shared room. Allow camera and microphone access in the call.';
+        } catch (error) {
+            status.textContent = error.message;
         }
     }
 
@@ -66,10 +75,16 @@
         callCountEl.textContent = `${calls.length} active`;
 
         const currentIds = new Set(calls.map(c => c.id));
-        if (lastIds.size && calls.some(c => !lastIds.has(c.id))) {
-            alert('New urgent call received.');
+        if (initialFeedLoaded && calls.some(c => !lastIds.has(c.id))) {
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-warning m-3 shadow';
+            notification.setAttribute('role', 'status');
+            notification.textContent = 'New urgent call received.';
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 6000);
         }
         lastIds = currentIds;
+        initialFeedLoaded = true;
 
         if (!calls.length) {
             callListEl.innerHTML = '<div class="text-muted small">No urgent calls right now.</div>';
@@ -96,10 +111,12 @@
     async function loadFeed() {
         try {
             const res = await fetch("{{ route('admin.urgent.calls.feed') }}", { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error(`Could not load urgent calls (${res.status}).`);
             const data = await res.json();
             renderCalls(data.calls || []);
         } catch (e) {
             console.error(e);
+            callCountEl.textContent = 'Calls unavailable';
         }
     }
 

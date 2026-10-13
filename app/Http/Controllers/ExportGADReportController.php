@@ -15,7 +15,7 @@ class ExportGADReportController extends Controller
      * Download the GAD report as a PDF or Excel workbook.
      *
      * @param string $format  pdf or excel
-     * @param string $period  weekly, monthly, yearly, 30days
+     * @param string $period  7days, 30days, lastyear, lastmonth, yearly
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function export(string $format, string $period = '30days')
@@ -89,6 +89,11 @@ class ExportGADReportController extends Controller
                 $start = $now->copy()->startOfMonth();
                 $label = 'This Month (' . $now->format('F Y') . ')';
                 break;
+            case 'lastmonth':
+                $start = $now->copy()->subMonthNoOverflow()->startOfMonth();
+                $now = $now->copy()->subMonthNoOverflow()->endOfMonth();
+                $label = 'Last Month (' . $now->format('F Y') . ')';
+                break;
             case '30days':
                 $start = $now->copy()->subDays(30)->startOfDay();
                 $label = 'Last 30 Days';
@@ -97,6 +102,12 @@ class ExportGADReportController extends Controller
             case 'year':
                 $start = $now->copy()->startOfYear();
                 $label = 'This Year (' . $now->format('Y') . ')';
+                break;
+            case 'lastyear':
+                $previousYear = $now->copy()->subYear();
+                $start = $previousYear->copy()->startOfYear();
+                $now = $previousYear->copy()->endOfYear();
+                $label = 'Last Year (' . $now->format('Y') . ')';
                 break;
             default:
                 $start = $now->copy()->subDays(30)->startOfDay();

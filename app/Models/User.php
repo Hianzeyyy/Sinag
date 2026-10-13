@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -66,9 +67,20 @@ class User extends Authenticatable
         'other_information' => 'array',
     ];
 
+    public function getNameAttribute($value): string
+    {
+        $nameParts = array_filter([
+            trim((string) ($this->attributes['first_name'] ?? '')),
+            trim((string) ($this->attributes['middle_name'] ?? '')),
+            trim((string) ($this->attributes['last_name'] ?? '')),
+        ], fn ($part) => $part !== '');
+
+        return $nameParts ? implode(' ', $nameParts) : (string) ($value ?? '');
+    }
+
     public function hasCompletedPersonalData(): bool
     {
-        $isEmployee = ($this->account_type ?? $this->role) === 'employee';
+        $isEmployee = strtolower((string) ($this->account_type ?? $this->role)) === 'employee';
         $required = [
             $this->name,
             $this->email,

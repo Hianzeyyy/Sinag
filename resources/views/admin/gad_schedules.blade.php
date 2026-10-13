@@ -386,6 +386,15 @@
     }
 </style>
 
+<style>
+    .schedule-modal-card {
+        max-height: calc(100dvh - 2rem);
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+</style>
 <div class="gad-page">
 
     @if(session('success'))

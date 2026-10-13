@@ -52,20 +52,31 @@ class ReportController extends Controller
             'Other GAD-related Concern',
         ];
 
+        $reportColumns = array_flip(Schema::getColumnListing('reports'));
 
-
-        // 1. Validation - Siguraduhing tumutugma sa migration columns
-        $request->validate([
+        // 1. Validation - only enforce fields that exist in the active schema.
+        $validationRules = [
             'nature' => ['required', 'string', Rule::in($allowedIncidentTypes)],
             'other_nature' => 'required_if:nature,Other GAD-related Concern|nullable|string|min:3|max:150',
             'incident_date' => 'required|date|before_or_equal:today',
-            'incident_time' => 'required|date_format:H:i',
             'description' => 'required|string|min:5',
             'location' => 'required|string|max:255',
-            'course' => 'nullable|string|max:120',
-            'gender' => 'required|string|in:Female,Male',
             'evidence.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx|max:10240',
-        ]);
+        ];
+
+        if (isset($reportColumns['incident_time'])) {
+            $validationRules['incident_time'] = 'required|date_format:H:i';
+        }
+
+        if (isset($reportColumns['course'])) {
+            $validationRules['course'] = 'nullable|string|max:120';
+        }
+
+        if (isset($reportColumns['gender'])) {
+            $validationRules['gender'] = 'required|string|in:Female,Male';
+        }
+
+        $request->validate($validationRules);
 
         $finalNature = $request->nature === 'Other GAD-related Concern'
             ? trim((string) $request->other_nature)
@@ -104,15 +115,11 @@ class ReportController extends Controller
             $incidentId = 'SN-' . strtoupper(Str::random(6));
         }
         $reportData = [
-            'id'            => ((int) \DB::table('reports')->max('id')) + 1,
             'user_id'       => $user->id,
             'incident_id'   => $incidentId,
             'cloak_alias'   => $cloakAlias,
             'nature'        => $finalNature,
             'incident_date' => $request->incident_date,
-            'incident_time' => $request->input('incident_time'),
-            'course'        => $request->input('course'),
-            'gender'        => $request->input('gender'),
             'location'      => $request->location,
             'description'   => $request->description,
             'evidence'      => json_encode($evidencePaths, JSON_THROW_ON_ERROR),
@@ -122,9 +129,20 @@ class ReportController extends Controller
             'updated_at'    => now(),
         ];
 
+        if (isset($reportColumns['incident_time'])) {
+            $reportData['incident_time'] = $request->input('incident_time');
+        }
+
+        if (isset($reportColumns['course'])) {
+            $reportData['course'] = $request->input('course');
+        }
+
+        if (isset($reportColumns['gender'])) {
+            $reportData['gender'] = $request->input('gender');
+        }
+
         try {
-            $columns = array_flip(Schema::getColumnListing('reports'));
-            \DB::table('reports')->insert(array_intersect_key($reportData, $columns));
+            \DB::table('reports')->insert(array_intersect_key($reportData, $reportColumns));
         } catch (\Throwable $exception) {
             $this->logReportFailure($exception, [
                 'user_id' => Auth::id(),

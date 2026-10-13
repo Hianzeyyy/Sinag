@@ -30,10 +30,11 @@ body {
 }
 
 .msg-page {
-    min-height: calc(100vh - 60px);
+    min-height: 0;
     background: var(--surface);
     padding: 1.75rem 1.5rem;
-    overflow-x: hidden;
+    padding-bottom: max(1.75rem, env(safe-area-inset-bottom));
+    overflow-x: clip;
 }
 
 /* ── TWO-COLUMN LAYOUT ────────────────── */
@@ -46,37 +47,28 @@ body {
     align-items: start;
 }
 
+@media (min-width: 821px) and (max-width: 1199.98px) {
+    .msg-page {
+        padding: 1rem;
+    }
+
+    .msg-layout {
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: .85rem;
+    }
+
+    .msg-bubble-wrap {
+        max-width: 82%;
+    }
+}
+
 @media (max-width: 820px) {
     .msg-page {
         padding: 1rem;
     }
 
-    @media (min-width: 821px) and (max-width: 1199.98px) {
-        .msg-page {
-            padding: 1rem;
-        }
-
-        .msg-layout {
-            grid-template-columns: minmax(0, 1fr) 260px;
-            gap: .85rem;
-        }
-
-        .msg-chat-card {
-            height: min(680px, calc(100dvh - 7rem));
-        }
-
-        .msg-bubble-wrap {
-            max-width: 82%;
-        }
-    }
-
     .msg-layout {
         grid-template-columns: 1fr;
-    }
-
-    .msg-chat-card {
-        height: min(680px, calc(100dvh - 9rem));
-        min-height: 500px;
     }
 
     .msg-right {
@@ -96,6 +88,9 @@ body {
     .msg-send-btn {
         margin-left: auto;
     }
+
+    .msg-urgent-header-btn { display: inline-flex; }
+    .msg-urgent-card { display: none; }
 }
 
 /* ── CHAT CARD ────────────────────────── */
@@ -104,10 +99,10 @@ body {
     border-radius: var(--radius);
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
-    height: 680px;
+    height: auto;
 }
 
 /* Chat header */
@@ -152,6 +147,26 @@ body {
     margin-top: 0.15rem;
 }
 
+.msg-urgent-header-btn {
+    display: inline-flex;
+    width: 2.65rem;
+    height: 2.65rem;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 50%;
+    background: rgba(255,255,255,0.16);
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.msg-urgent-header-btn:hover,
+.msg-urgent-header-btn:focus-visible {
+    background: #fff;
+    color: #6d55d9;
+}
+
 .msg-online-dot {
     width: 7px;
     height: 7px;
@@ -162,19 +177,13 @@ body {
 
 /* Thread */
 .msg-thread {
-    flex: 1;
-    overflow-y: auto;
+    flex: 0 0 auto;
+    overflow: visible;
     padding: 1.25rem 1.4rem;
     display: flex;
     flex-direction: column;
     gap: 1.1rem;
     background: #FAFAFA;
-}
-
-.msg-thread::-webkit-scrollbar { width: 5px; }
-.msg-thread::-webkit-scrollbar-thumb {
-    background: #D8B4FE;
-    border-radius: 10px;
 }
 
 /* Empty state */
@@ -548,6 +557,9 @@ body {
                         Gender and Development Office
                     </div>
                 </div>
+                <button class="msg-urgent-header-btn" type="button" data-urgent-call aria-label="Start urgent audio or video call" title="Call GAD Office">
+                    <i class="bi bi-telephone-fill"></i>
+                </button>
             </div>
 
             {{-- Messages thread --}}
@@ -607,28 +619,6 @@ body {
         {{-- ── RIGHT COLUMN ────────────────────────── --}}
         <div class="msg-right">
 
-            {{-- Urgent Video Call --}}
-            <div class="msg-urgent-card">
-                <div class="msg-urgent-badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5"/>
-                        <path d="M1 1l22 22"/>
-                    </svg>
-                    Urgent Support
-                </div>
-                <div class="msg-urgent-title">Need Immediate Help?</div>
-                <p class="msg-urgent-desc">
-                    Connect directly with our GAD office staff via live video call for urgent concerns.
-                </p>
-                <button class="msg-urgent-btn" type="button" id="urgentCallBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="23 7 16 12 23 17 23 7"/>
-                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                    </svg>
-                    Start Urgent Video Call
-                </button>
-            </div>
-
             {{-- Office Info --}}
             <div class="msg-info-card">
                 <div class="msg-info-title">Office Info</div>
@@ -685,6 +675,7 @@ body {
 
 <script>
 const CSRF = '{{ csrf_token() }}';
+const currentUserId = {{ Auth::id() }};
 
 function escapeHtml(text) {
     const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' };
@@ -732,15 +723,43 @@ function sendMessage() {
 
             const el = document.createElement('div');
             el.className = 'msg-group user';
+            el.dataset.messageId = data.message.id;
             el.innerHTML = `
                 <div class="msg-bubble-wrap">
                     <div class="msg-bubble">${escapeHtml(message)}</div>
-                    <div class="msg-time">Just now</div>
+                    <div class="msg-time">${escapeHtml(data.message.created_at || 'Just now')}</div>
                 </div>`;
             thread.appendChild(el);
             input.value = '';
-            thread.scrollTop = thread.scrollHeight;
         }
+
+        async function refreshMessages() {
+            const thread = document.getElementById('messagingThread');
+            const ids = [...thread.querySelectorAll('[data-message-id]')].map(el => Number(el.dataset.messageId) || 0);
+            const afterId = Math.max(0, ...ids);
+            try {
+                const response = await fetch(`{{ route('student.messages.feed') }}?after_id=${afterId}`, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!response.ok) throw new Error(`Message refresh failed (${response.status}).`);
+                const data = await response.json();
+                for (const message of data.messages) {
+                    if (message.sender_id === currentUserId || thread.querySelector(`[data-message-id="${message.id}"]`)) continue;
+                    thread.querySelector('.msg-empty')?.remove();
+                    const el = document.createElement('div');
+                    el.className = 'msg-group admin';
+                    el.dataset.messageId = message.id;
+                    el.innerHTML = `<img src="{{ asset('images/gadlogo.png') }}" alt="GAD" class="msg-admin-avatar">
+                        <div class="msg-bubble-wrap"><div class="msg-sender-name">GAD Office</div>
+                        <div class="msg-bubble">${escapeHtml(message.message)}</div>
+                        <div class="msg-time">${escapeHtml(message.created_at || '')}</div></div>`;
+                    thread.appendChild(el);
+                }
+            } catch (error) {
+                console.error('Unable to refresh GAD messages:', error);
+            }
+        }
+        setInterval(refreshMessages, 3000);
     })
     .catch(error => alert(error.message || 'Failed to send message. Please try again.'))
     .finally(() => { btn.disabled = false; input.disabled = false; input.focus(); });
@@ -750,13 +769,10 @@ document.getElementById('messageInput').addEventListener('keydown', function(e) 
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
-document.getElementById('urgentCallBtn').addEventListener('click', function() {
-    window.location.href = "{{ route('student.urgent') }}";
-});
-
-window.addEventListener('load', function() {
-    const t = document.getElementById('messagingThread');
-    t.scrollTop = t.scrollHeight;
+document.querySelectorAll('[data-urgent-call]').forEach(function(button) {
+    button.addEventListener('click', function() {
+        window.location.href = "{{ route('student.urgent') }}";
+    });
 });
 
 function startEdit(id) {

@@ -260,23 +260,9 @@
                         <p class="hero-copy mb-0">Real-time monitoring of campus safety, incident escalation, and response status across the reporting system.</p>
                     </div>
                     <div class="text-lg-end">
-                        <div class="dropdown d-inline-block">
-                            <button class="btn hero-action px-4 py-2 dropdown-toggle" type="button" id="exportGadReportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-file-earmark-arrow-down me-2"></i>Export GAD Report
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2" aria-labelledby="exportGadReportDropdown">
-                                <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3" href="{{ route('admin.gad-report.export', ['format' => 'pdf', 'period' => '30days']) }}">
-                                        <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>Download PDF (Last 30 Days)
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item rounded-3 py-2 px-3" href="{{ route('admin.gad-report.export', ['format' => 'excel', 'period' => '30days']) }}">
-                                        <i class="bi bi-file-earmark-spreadsheet me-2 text-success"></i>Download Excel (.xlsx)
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+                        <button class="btn hero-action px-4 py-2" type="button" data-bs-toggle="modal" data-bs-target="#exportGadFormatModal">
+                            <i class="bi bi-file-earmark-arrow-down me-2"></i>Export GAD Report
+                        </button>
                     </div>
                 </div>
             </div>
@@ -408,19 +394,6 @@
                                 </div>
                             </a>
 
-                            <a href="{{ route('admin.announcements.index') }}" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn admin-tool-announcements">
-                                <div class="d-flex align-items-center">
-                                    <div class="tool-icon me-3" style="background: rgba(255,255,255,0.7);">
-                                        <i class="bi bi-megaphone-fill" style="color: #A594F9;"></i>
-                                    </div>
-                                    <div>
-                                        <span class="d-block fw-bold text-dark small">Announcements</span>
-                                        <small class="text-muted">Post campus updates</small>
-                                    </div>
-                                    <span class="admin-tool-arrow ms-auto"><i class="bi bi-arrow-right-short"></i></span>
-                                </div>
-                            </a>
-
                             <a href="{{ route('admin.gad-schedules.index') }}" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);">
                                 <div class="d-flex align-items-center">
                                     <div class="tool-icon me-3" style="background: rgba(255,255,255,0.8);">
@@ -460,6 +433,88 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="exportGadFormatModal" tabindex="-1" aria-labelledby="exportGadFormatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-0">
+                <div>
+                    <h2 class="modal-title h5 fw-bold mb-1" id="exportGadFormatModalLabel">Choose file format</h2>
+                    <p class="small text-muted mb-0">Select PDF or Excel before choosing the date range.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="exportGadReportForm" method="GET" data-export-url-template="{{ route('admin.gad-report.export', ['format' => '__FORMAT__', 'period' => '__PERIOD__']) }}">
+                <div class="modal-body pt-0" id="exportGadFormatStep">
+                    <label for="exportGadReportFormat" class="form-label fw-semibold">File format</label>
+                    <select id="exportGadReportFormat" class="form-select">
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel (.xlsx)</option>
+                    </select>
+                </div>
+                <div class="modal-body pt-0 d-none" id="exportGadPeriodStep" aria-hidden="true">
+                    <label for="exportGadReportPeriod" class="form-label fw-semibold">Date range</label>
+                    <select id="exportGadReportPeriod" class="form-select" required>
+                        <option value="30days">Last 30 days</option>
+                        <option value="7days">Last 7 days</option>
+                        <option value="lastyear">Last year</option>
+                    </select>
+                </div>
+                <div class="modal-footer border-0" id="exportGadFormatActions">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="continueGadExport" class="btn rounded-pill px-4 text-white" style="background:#8f72f5;">Continue</button>
+                </div>
+                <div class="modal-footer border-0 d-none" id="exportGadPeriodActions" aria-hidden="true">
+                    <button type="button" id="backToGadExportFormat" class="btn btn-light rounded-pill px-4">Back</button>
+                    <button type="submit" class="btn rounded-pill px-4 text-white" style="background:#8f72f5;">Export</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const formatStep = document.getElementById('exportGadFormatStep');
+        const periodStep = document.getElementById('exportGadPeriodStep');
+        const formatActions = document.getElementById('exportGadFormatActions');
+        const periodActions = document.getElementById('exportGadPeriodActions');
+        const title = document.getElementById('exportGadFormatModalLabel');
+        const formatTitle = 'Choose file format';
+        const periodTitle = 'Choose date range';
+
+        function showExportPeriodStep(showPeriod) {
+            formatStep.classList.toggle('d-none', showPeriod);
+            formatStep.setAttribute('aria-hidden', String(showPeriod));
+            formatActions.classList.toggle('d-none', showPeriod);
+            formatActions.setAttribute('aria-hidden', String(showPeriod));
+            periodStep.classList.toggle('d-none', !showPeriod);
+            periodStep.setAttribute('aria-hidden', String(!showPeriod));
+            periodActions.classList.toggle('d-none', !showPeriod);
+            periodActions.setAttribute('aria-hidden', String(!showPeriod));
+            title.textContent = showPeriod ? periodTitle : formatTitle;
+        }
+
+        document.getElementById('continueGadExport').addEventListener('click', function () {
+            showExportPeriodStep(true);
+        });
+        document.getElementById('backToGadExportFormat').addEventListener('click', function () {
+            showExportPeriodStep(false);
+        });
+        document.getElementById('exportGadReportForm').addEventListener('submit', function (event) {
+            const form = event.currentTarget;
+            const format = document.getElementById('exportGadReportFormat').value;
+            const period = document.getElementById('exportGadReportPeriod').value;
+            form.action = form.dataset.exportUrlTemplate
+                .replace('__FORMAT__', encodeURIComponent(format))
+                .replace('__PERIOD__', encodeURIComponent(period));
+        });
+
+        document.getElementById('exportGadFormatModal').addEventListener('hidden.bs.modal', function () {
+            showExportPeriodStep(false);
+        });
+    });
+</script>
 
 {{-- Edit GAD Office Info Modal --}}
 <div class="modal fade" id="editOfficeInfoModal" tabindex="-1" aria-labelledby="editOfficeInfoModalLabel" aria-hidden="true">

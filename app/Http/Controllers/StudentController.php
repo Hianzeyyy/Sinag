@@ -118,13 +118,26 @@ class StudentController extends Controller
 
         $allSuggestions = $query->latest()->get();
 
-        $categories = Suggestion::query()
-            ->select('category')
-            ->distinct()
-            ->orderBy('category')
-            ->pluck('category');
-        
-        return view('student.boses', compact('allSuggestions', 'categories'));
+        $categories = [
+            'Gender-Based Violence Prevention',
+            'Gender Equality and Inclusion',
+            'GAD Programs and Services',
+            'Safe Spaces and Student Welfare',
+            'GAD Policy and Training',
+            'Other GAD Concern',
+        ];
+
+        $existingAliases = User::query()
+            ->whereNotNull('cloak_alias')
+            ->where('cloak_alias', '!=', '')
+            ->where('id', '!=', Auth::id())
+            ->pluck('cloak_alias')
+            ->map(fn ($alias) => trim((string) $alias))
+            ->filter()
+            ->values()
+            ->all();
+
+        return view('student.boses', compact('allSuggestions', 'categories', 'existingAliases'));
     }
 
     /**
@@ -254,7 +267,7 @@ class StudentController extends Controller
         $calls = Cache::get('urgent_calls', []);
 
         $callId = (string) Str::uuid();
-        $room = $request->input('room') ?: ('sinag-urgent-' . now()->format('YmdHis') . '-' . Auth::id());
+        $room = $request->input('room') ?: ('sinag-urgent-' . Str::uuid());
 
         array_unshift($calls, [
             'id' => $callId,
@@ -274,6 +287,26 @@ class StudentController extends Controller
             'call_id' => $callId,
             'room' => $room,
         ]);
+    }
+
+    public function endUrgentCall(string $callId)
+    {
+        $calls = Cache::get('urgent_calls', []);
+        $found = false;
+        foreach ($calls as &$call) {
+            if (($call['id'] ?? null) === $callId && (int) ($call['student_id'] ?? 0) === (int) Auth::id()) {
+                $call['status'] = 'ended';
+                $call['ended_at'] = now()->toDateTimeString();
+                $found = true;
+                break;
+            }
+        }
+        unset($call);
+
+        abort_unless($found, 404, 'Call not found or it is no longer active.');
+        Cache::put('urgent_calls', $calls, now()->addHours(6));
+
+        return response()->json(['status' => 'ended']);
     }
 
     /**
@@ -362,6 +395,39 @@ class StudentController extends Controller
             'success' => true,
             'message' => $message,
         ]);
+    }
+
+    public function messageFeed(Request $request)
+    {
+        $admin = User::where('role', 'admin')->first();
+        abort_unless($admin, 404, 'GAD Office is unavailable.');
+
+        $afterId = $request->integer('after_id', 0);
+        $messages = Message::where(function ($query) use ($admin) {
+                $query->where(function ($query) use ($admin) {
+                    $query->where('sender_id', Auth::id())->where('receiver_id', $admin->id);
+                })->orWhere(function ($query) use ($admin) {
+                    $query->where('sender_id', $admin->id)->where('receiver_id', Auth::id());
+                });
+            })
+            ->where('id', '>', $afterId)
+            ->orderBy('id')
+            ->get()
+            ->values();
+
+        Message::where('sender_id', $admin->id)
+            ->where('receiver_id', Auth::id())
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return response()->json([
+            'messages' => $messages->map(fn (Message $message) => [
+                'id' => $message->id,
+                'message' => $message->message,
+                'sender_id' => $message->sender_id,
+                'created_at' => $message->created_at?->format('M d, g:i A'),
+            ]),
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**

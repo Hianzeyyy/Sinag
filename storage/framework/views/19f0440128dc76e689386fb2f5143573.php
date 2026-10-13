@@ -652,22 +652,26 @@
         </thead>
         <tbody>
             <?php $__empty_1 = true; $__currentLoopData = $reports; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $r): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <?php
+                    $priority = strtolower((string) ($r->priority ?? 'normal'));
+                    $status = strtolower((string) ($r->status ?? 'pending'));
+                ?>
                 <tr>
                     <td><strong><?php echo e($r->incident_id); ?></strong></td>
                     <td><?php echo e($r->cloak_alias ?? 'Anonymous'); ?></td>
                     <td><?php echo e($r->nature); ?></td>
                     <td><?php echo e($r->location ?? 'N/A'); ?></td>
                     <td>
-                        <span class="badge badge-<?php echo e(strtolower($r->priority) == 'high' ? 'high' : (strtolower($r->priority) == 'normal' ? 'normal' : 'low')); ?>">
-                            <?php echo e(ucfirst($r->priority ?? 'Normal')); ?>
+                                <span class="badge badge-<?php echo e($priority == 'high' ? 'high' : ($priority == 'normal' ? 'normal' : 'low')); ?>">
+                                    <?php echo e(ucfirst($r->priority ?? 'Normal')); ?>
 
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge badge-<?php echo e(in_array(strtolower($r->status), ['resolved', 'completed', 'approved']) ? 'active' : 'pending'); ?>">
-                            <?php echo e(ucfirst($r->status ?? 'Pending')); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-<?php echo e(in_array($status, ['resolved', 'completed', 'approved']) ? 'active' : 'pending'); ?>">
+                                    <?php echo e(ucfirst($r->status ?? 'Pending')); ?>
 
-                        </span>
+                                </span>
                     </td>
                     <td><?php echo e(optional($r->created_at)->format('M d, Y')); ?></td>
                 </tr>
@@ -719,4 +723,4 @@
 
 </body>
 </html>
-<?php /**PATH C:\xampp\htdocs\sinag\resources\views/admin/gad-report-pdf.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\xampp\htdocs\sinag\resources\views\admin\gad-report-pdf.blade.php ENDPATH**/ ?>

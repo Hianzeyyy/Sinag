@@ -11,7 +11,7 @@
         background: transparent;
         border-radius: 0;
         padding: 0 1rem 1rem;
-        margin-bottom: -3rem;
+        margin-bottom: 0;
     }
 
     .student-dashboard-wrap {
@@ -346,9 +346,8 @@
     }
 
     .student-dashboard-footer {
-        width: 100vw;
+        width: 100%;
         margin-top: 2rem;
-        margin-left: calc(50% - 50vw);
         padding: 1.35rem clamp(1rem, 5vw, 4rem);
         border-radius: 0;
         background: linear-gradient(120deg, #312e81 0%, #6d55d9 62%, #8f72f5 100%);
@@ -379,8 +378,7 @@
 
     .gad-card-carousel {
         position: relative;
-        width: 100vw;
-        margin-left: calc(50% - 50vw);
+        width: 100%;
         height: auto;
         overflow: hidden;
         border-radius: 1rem;
@@ -403,7 +401,7 @@
     .gad-card-stage {
         position: relative;
         display: block;
-        width: 100vw;
+        width: 100%;
         height: auto;
         margin: 0 auto;
         z-index: 1;
@@ -413,7 +411,7 @@
     .gad-card-slide {
         position: absolute;
         inset: 0;
-        width: 100vw;
+        width: 100%;
         height: auto;
         pointer-events: none;
         transition: transform .55s ease, opacity .55s ease, filter .55s ease;
@@ -436,7 +434,8 @@
     }
 
     .gad-card-slide:hover .gad-card-slide-title,
-    .gad-card-slide:focus-visible .gad-card-slide-title {
+    .gad-card-slide:focus-visible .gad-card-slide-title,
+    .gad-card-slide.is-center .gad-card-slide-title {
         opacity: 1;
         transform: translateY(0);
     }
@@ -526,10 +525,57 @@
     .dashboard-event-card img { width: 100%; height: 145px; object-fit: cover; }
     .dashboard-event-card-body { padding: .9rem; color: #4b5563; }
     .dashboard-event-card-title { color: #5b4b9b; font-weight: 900; }
+    .dashboard-reveal {
+        opacity: 0;
+        transform: translateY(1.1rem);
+        transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .dashboard-reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .dashboard-image-fade {
+        opacity: 0;
+        transform: scale(1.12);
+    }
+    .dashboard-image-fade.is-loaded {
+        animation: dashboard-image-zoom-out 0.85s cubic-bezier(.2,.75,.3,1) both;
+    }
+    @keyframes dashboard-image-zoom-out {
+        from { opacity: .65; transform: scale(1.12); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .dashboard-typing::after {
+        content: '';
+        display: inline-block;
+        height: 1em;
+        margin-left: 0.12em;
+        border-right: 2px solid currentColor;
+        vertical-align: -0.08em;
+        animation: dashboard-caret 0.8s steps(2, start) infinite;
+    }
+    @keyframes dashboard-caret { to { visibility: hidden; } }
+    .dashboard-event-card,
+    .gad-card-slide,
+    .dashboard-carousel .carousel-item img {
+        transition: transform 0.24s ease, opacity 0.4s ease;
+    }
+    .dashboard-event-card:active,
+    .gad-card-slide:active { transform: scale(0.98); }
+    .dashboard-carousel .carousel-item img:active { transform: scale(0.985); }
+
+    @media (prefers-reduced-motion: reduce) {
+        .dashboard-image-fade,
+        .dashboard-image-fade.is-loaded {
+            animation: none;
+            opacity: 1;
+            transform: none;
+        }
+    }
 
     @media (max-width: 700px) {
-        .gad-card-stage { width: 100vw; height: auto; }
-        .gad-card-slide { width: 100vw; height: auto; }
+        .gad-card-stage,
+        .gad-card-slide { width: 100%; height: auto; }
         .gad-card-control.prev { left: .65rem; }
         .gad-card-control.next { right: .65rem; }
     }
@@ -570,7 +616,7 @@
     @media (max-width: 991px) {
         .student-dashboard-page {
             padding: 0.55rem;
-            margin-bottom: -1.5rem;
+            margin-bottom: 0;
         }
 
         .dashboard-carousel .carousel-item,
@@ -619,7 +665,7 @@
     }
 
     @media (max-width: 575px) {
-        .student-dashboard-page { margin-bottom: -1.5rem; }
+        .student-dashboard-page { margin-bottom: 0; }
 
         .vision-mission-grid {
             grid-template-columns: 1fr;
@@ -960,6 +1006,7 @@
         if (!stage || !slides.length) return;
 
         let activeIndex = 0;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         function resizeStage() {
             const image = slides[activeIndex].querySelector('img');
             if (!image || !image.naturalWidth || !image.naturalHeight) return;
@@ -971,7 +1018,9 @@
         }
         function renderGadCards() {
             const carousel = stage.closest('.gad-card-carousel');
-            const activeImage = slides[activeIndex].querySelector('img');
+            const activeSlide = slides[activeIndex];
+            const activeImage = activeSlide.querySelector('img');
+            const activeTitle = activeSlide.querySelector('.gad-card-slide-title');
             carousel.style.setProperty('--gad-background-image', 'url("' + activeImage.src + '")');
             stage.style.transform = 'none';
             slides.forEach(function (slide, index) {
@@ -980,6 +1029,42 @@
             suns.forEach(function (sun, index) {
                 sun.classList.toggle('is-active', index === activeIndex);
             });
+            activeImage.classList.add('dashboard-image-fade');
+            activeImage.classList.remove('is-loaded');
+            void activeImage.offsetWidth;
+            if (activeImage.complete) {
+                activeImage.classList.add('is-loaded');
+            } else {
+                const markActiveImageLoaded = function () {
+                    activeImage.classList.add('is-loaded');
+                };
+                activeImage.addEventListener('load', markActiveImageLoaded, { once: true });
+                activeImage.addEventListener('error', markActiveImageLoaded, { once: true });
+            }
+
+            const fullTitle = activeTitle.dataset.fullTitle || activeTitle.textContent.trim();
+            activeTitle.dataset.fullTitle = fullTitle;
+            activeTitle.setAttribute('aria-label', fullTitle);
+            const typingToken = Number(activeTitle.dataset.typingToken || 0) + 1;
+            activeTitle.dataset.typingToken = String(typingToken);
+            if (reduceMotion) {
+                activeTitle.textContent = fullTitle;
+                activeTitle.classList.remove('dashboard-typing');
+            } else {
+                activeTitle.textContent = '';
+                activeTitle.classList.add('dashboard-typing');
+                let position = 0;
+                const typeNext = function () {
+                    if (activeTitle.dataset.typingToken !== String(typingToken)) return;
+                    activeTitle.textContent = fullTitle.slice(0, ++position);
+                    if (position < fullTitle.length) {
+                        window.setTimeout(typeNext, 28);
+                    } else {
+                        activeTitle.classList.remove('dashboard-typing');
+                    }
+                };
+                typeNext();
+            }
             resizeStage();
         }
         function advanceSlide() {
@@ -1000,6 +1085,65 @@
         window.addEventListener('resize', resizeStage);
         renderGadCards();
         window.setInterval(advanceSlide, 8000);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dashboard = document.querySelector('.student-dashboard-page');
+        if (!dashboard) return;
+
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const revealTargets = dashboard.querySelectorAll('.dashboard-panel, .dashboard-event-card, .vision-mission-panel, .dashboard-news-events, .gad-card-carousel, .reference-card');
+        if (reduceMotion || !('IntersectionObserver' in window)) {
+            revealTargets.forEach(function (element) { element.classList.add('is-visible'); });
+        } else {
+            const observer = new IntersectionObserver(function (entries, currentObserver) {
+                entries.forEach(function (entry) {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('is-visible');
+                    currentObserver.unobserve(entry.target);
+                });
+            }, { threshold: 0.12 });
+            revealTargets.forEach(function (element) {
+                element.classList.add('dashboard-reveal');
+                observer.observe(element);
+            });
+        }
+
+        dashboard.querySelectorAll('img').forEach(function (image) {
+            if (image.classList.contains('dashboard-image-fade')) return;
+            image.classList.add('dashboard-image-fade');
+            const markLoaded = function () { image.classList.add('is-loaded'); };
+            if (image.complete) markLoaded();
+            else {
+                image.addEventListener('load', markLoaded, { once: true });
+                image.addEventListener('error', markLoaded, { once: true });
+            }
+        });
+
+        const titles = dashboard.querySelectorAll('.hero-title, .section-title, .dashboard-news-events h2, .vision-mission-panel h2, .carousel-caption-title, .dashboard-event-card-title');
+        titles.forEach(function (title, index) {
+            const fullText = title.textContent.trim();
+            if (!fullText) return;
+            if (reduceMotion) {
+                title.textContent = fullText;
+                return;
+            }
+
+            title.setAttribute('aria-label', fullText);
+            title.textContent = '';
+            title.classList.add('dashboard-typing');
+            let position = 0;
+            const typeNext = function () {
+                title.textContent = fullText.slice(0, ++position);
+                if (position < fullText.length) {
+                    window.setTimeout(typeNext, 24 + index * 2);
+                } else {
+                    title.classList.remove('dashboard-typing');
+                }
+            };
+            window.setTimeout(typeNext, index * 45);
+        });
     });
 </script>
 @endsection

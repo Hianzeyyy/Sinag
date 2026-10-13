@@ -3,7 +3,7 @@
 @section('content')
 <style>
     nav, .navbar { display: none !important; }
-    body { overflow-x: hidden; overflow-y: auto; }
+    body { overflow-x: clip; overflow-y: auto; }
 
     .register-shell {
         min-height: 100vh;
@@ -16,7 +16,6 @@
     .register-form-panel {
         max-height: none;
         overflow-y: visible;
-        overscroll-behavior: contain;
         scrollbar-width: thin;
         background: linear-gradient(145deg, #8f72f5 0%, #a594f9 58%, #c4b5fd 100%);
         color: #fff;
@@ -90,6 +89,7 @@
         background: linear-gradient(145deg, #f6f3ff 0%, #eee9ff 52%, #fff9df 100%) !important;
         position: relative !important;
         min-height: 100vh;
+        min-height: 100dvh;
         height: auto !important;
         padding: 1.5rem 0 !important;
     }
@@ -159,7 +159,7 @@
 </style>
 
 @if($errors->any())
-    <div class="position-fixed top-0 start-50 translate-middle-x mt-3 alert alert-warning shadow-lg border-0" style="z-index: 2000; max-width: min(92vw, 620px);">
+    <div class="alert alert-warning shadow-lg border-0 mx-auto mt-3" style="max-width: min(92vw, 620px);">
         <strong>Registration could not be completed.</strong>
         <ul class="mb-0 ps-3">
             @foreach($errors->all() as $error)
@@ -226,6 +226,13 @@
                                         <label class="form-label text-white small fw-bold text-uppercase">Institutional Email</label>
                                         <input type="email" class="form-control" name="email" value="{{ old('email') }}" required placeholder="username@psu.edu.ph">
                                         <div id="emailHelp" class="form-text text-white-50">Students use an email beginning with a number; employees use one beginning with a letter.</div>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label text-white small fw-bold text-uppercase">Contact Number</label>
+                                        <input type="tel" class="form-control" name="phone_number" value="{{ old('phone_number') }}" inputmode="numeric" pattern="[0-9]+" maxlength="50" required placeholder="e.g. 09123456789">
+                                        @error('phone_number')
+                                            <div class="text-warning small mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="col-md-12 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Account Type</label>

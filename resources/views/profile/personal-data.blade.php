@@ -26,7 +26,8 @@
     .pd-page {
         max-width: 1240px;
         margin: 0 auto;
-        padding: 1.5rem;
+        padding: clamp(.75rem, 3vw, 1.5rem);
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
     }
 
     .pd-hero {

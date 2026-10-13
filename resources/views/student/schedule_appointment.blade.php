@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mt-5 mb-5">
+<div class="container schedule-appointment-page mt-5 mb-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <!-- Header -->
@@ -144,7 +144,7 @@
                         <div class="d-grid gap-2 mt-5 mb-3">
                             <button 
                                 type="submit" 
-                                class="btn btn-lg fw-semibold"
+                                class="btn fw-semibold schedule-submit-btn"
                                 style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none; transition: all 0.3s ease;">
                                 <i class="bi bi-check-circle"></i> Submit Appointment Request
                             </button>
@@ -152,7 +152,7 @@
 
                         <!-- Back Button -->
                         <div class="d-grid gap-2">
-                            <a href="{{ route('student.dashboard') }}" class="btn btn-outline-secondary btn-lg fw-semibold">
+                            <a href="{{ route('student.dashboard') }}" class="btn btn-outline-secondary fw-semibold">
                                 <i class="bi bi-arrow-left"></i> Back to Dashboard
                             </a>
                         </div>
@@ -173,6 +173,17 @@
 </div>
 
 <style>
+    .schedule-submit-btn,
+    .schedule-appointment-page .btn-outline-secondary {
+        min-height: 2.75rem;
+        padding: 0.7rem 1rem;
+        border-radius: 0.8rem;
+    }
+
+    .schedule-appointment-page {
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
+
     .form-control:focus,
     .form-control.is-invalid:focus {
         border-color: #A594F9;
@@ -187,6 +198,30 @@
     .form-check-input:focus {
         border-color: #A594F9;
         box-shadow: 0 0 0 0.25rem rgba(165, 148, 249, 0.25);
+    }
+
+    @media (max-width: 575.98px) {
+        .schedule-appointment-page {
+            margin-top: 1rem !important;
+            padding-inline: 0.75rem;
+        }
+
+        .schedule-appointment-page > .row > .col-lg-8 > .mb-5 {
+            margin-bottom: 1.5rem !important;
+        }
+
+        .schedule-appointment-page .card-body {
+            padding: 1rem !important;
+        }
+
+        .schedule-appointment-page .form-control-lg {
+            min-height: 2.75rem;
+            font-size: 1rem;
+        }
+
+        .schedule-appointment-page .btn {
+            font-size: 0.95rem;
+        }
     }
 </style>
 @endsection

@@ -9,9 +9,9 @@
 <style>
     .messages-page {
         background: #f4f3ff;
-        min-height: calc(100vh - 60px);
+        min-height: 0;
         padding: 1.5rem;
-        overflow-x: hidden;
+        overflow-x: clip;
     }
 
     .messages-page .bg-success,
@@ -24,31 +24,31 @@
         display: grid;
         grid-template-columns: 320px 1fr;
         gap: 1rem;
-        height: calc(100vh - 140px);
+        height: auto;
+    }
+
+    @media (min-width: 821px) and (max-width: 1199.98px) {
+        .messages-page {
+            padding: 1rem;
+        }
+
+        .messaging-layout {
+            grid-template-columns: minmax(220px, 28vw) minmax(0, 1fr);
+            gap: .75rem;
+        }
+
+        .messaging-header {
+            padding-inline: 1rem;
+        }
+
+        .messaging-thread {
+            padding: 1rem;
+        }
     }
 
     @media (max-width: 820px) {
         .messages-page {
             padding: 1rem;
-        }
-
-        @media (min-width: 821px) and (max-width: 1199.98px) {
-            .messages-page {
-                padding: 1rem;
-            }
-
-            .messaging-layout {
-                grid-template-columns: minmax(220px, 28vw) minmax(0, 1fr);
-                gap: .75rem;
-            }
-
-            .messaging-header {
-                padding-inline: 1rem;
-            }
-
-            .messaging-thread {
-                padding: 1rem;
-            }
         }
 
         .messaging-layout {
@@ -58,7 +58,7 @@
         }
 
         .left-panel {
-            max-height: 320px;
+            max-height: none;
         }
 
         .messaging-header {
@@ -85,7 +85,7 @@
         border: 1px solid #ede9fe;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        overflow: visible;
         box-shadow: 0 2px 8px rgba(124, 111, 224, 0.07);
     }
 
@@ -129,17 +129,8 @@
     }
 
     .conversation-list {
-        flex: 1;
-        overflow-y: auto;
-    }
-
-    .conversation-list::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    .conversation-list::-webkit-scrollbar-thumb {
-        background: #ddd6fe;
-        border-radius: 10px;
+        flex: 0 0 auto;
+        overflow: visible;
     }
 
     .conversation-item {
@@ -178,6 +169,14 @@
         font-size: 13px;
         font-weight: 700;
         flex-shrink: 0;
+    }
+
+    .conv-avatar img,
+    .header-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: inherit;
     }
 
     .conv-info {
@@ -267,6 +266,15 @@
         margin: 0;
     }
 
+    .msg-profile-trigger {
+        border: 0;
+        padding: 0;
+        background: transparent;
+        text-align: left;
+    }
+
+    .msg-profile-trigger:hover { color: #6d55d9; }
+
     .msg-email {
         overflow-wrap: anywhere;
         font-size: 12px;
@@ -286,22 +294,13 @@
 
     /* Thread */
     .messaging-thread {
-        flex: 1;
-        overflow-y: auto;
+        flex: 0 0 auto;
+        overflow: visible;
         padding: 1.5rem;
         display: flex;
         flex-direction: column;
         gap: 1rem;
         background: #faf9ff;
-    }
-
-    .messaging-thread::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    .messaging-thread::-webkit-scrollbar-thumb {
-        background: #ddd6fe;
-        border-radius: 10px;
     }
 
     /* Date divider */
@@ -353,6 +352,13 @@
         font-size: 10px;
         font-weight: 700;
         flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .msg-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .msg-avatar.outgoing-av {
@@ -555,7 +561,13 @@
                             @endphp
                             <a href="{{ route('admin.messages', ['student_id' => $otherUser->id]) }}"
                                class="conversation-item {{ $selectedStudentId == $otherUser->id ? 'active' : '' }}">
-                                <div class="conv-avatar">{{ $initials }}</div>
+                                <div class="conv-avatar">
+                                    @if($otherUser->profile_photo_path)
+                                        <img src="{{ asset('storage/' . $otherUser->profile_photo_path) }}" alt="{{ $otherUser->name }} profile photo">
+                                    @else
+                                        {{ $initials }}
+                                    @endif
+                                </div>
                                 <div class="conv-info">
                                     <div class="conv-name">{{ $otherUser->name }}</div>
                                     <div class="conv-preview">{{ Str::limit($conversation->message, 40) }}</div>
@@ -585,9 +597,17 @@
                     {{-- Header --}}
                     <div class="messaging-header">
                         <div class="msg-header-left">
-                            <div class="header-avatar">{{ $selInitials }}</div>
+                            <div class="header-avatar">
+                                @if($selectedStudent->profile_photo_path)
+                                    <img src="{{ asset('storage/' . $selectedStudent->profile_photo_path) }}" alt="{{ $selectedStudent->name }} profile photo">
+                                @else
+                                    {{ $selInitials }}
+                                @endif
+                            </div>
                             <div>
-                                <div class="msg-name">{{ $selectedStudent->name }}</div>
+                                <button type="button" class="msg-name msg-profile-trigger" data-bs-toggle="modal" data-bs-target="#messageUserProfileModal">
+                                    {{ $selectedStudent->name }}
+                                </button>
                                 <div class="msg-email">{{ $selectedStudent->email }}</div>
                             </div>
                         </div>
@@ -619,9 +639,13 @@
                                     $bubbleInitials = $isAdmin ? 'G' : $selInitials;
                                 @endphp
 
-                                <div class="message-group {{ $isAdmin ? 'user' : 'admin' }}">
+                                <div class="message-group {{ $isAdmin ? 'user' : 'admin' }}" data-message-id="{{ $message->id }}">
                                     <div class="msg-avatar {{ $isAdmin ? 'outgoing-av' : 'incoming-av' }}">
-                                        {{ $bubbleInitials }}
+                                        @if(!$isAdmin && $selectedStudent->profile_photo_path)
+                                            <img src="{{ asset('storage/' . $selectedStudent->profile_photo_path) }}" alt="{{ $selectedStudent->name }} profile photo">
+                                        @else
+                                            {{ $bubbleInitials }}
+                                        @endif
                                     </div>
                                     <div class="msg-content">
                                         <div class="message-bubble">{{ $message->message }}</div>
@@ -657,7 +681,53 @@
     </div>
 </div>
 
+@if($selectedStudent)
+    @php
+        $messageUserAccountType = $selectedStudent->account_type ?? $selectedStudent->role;
+        $messageUserPhone = preg_replace('/[^0-9+]/', '', (string) $selectedStudent->phone_number);
+    @endphp
+    <div class="modal fade" id="messageUserProfileModal" tabindex="-1" aria-labelledby="messageUserProfileModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="messageUserProfileModalTitle">User profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        @if($selectedStudent->profile_photo_path)
+                            <img src="{{ asset('storage/' . $selectedStudent->profile_photo_path) }}" alt="{{ $selectedStudent->name }} profile photo" class="rounded-circle" style="width:4.5rem;height:4.5rem;object-fit:cover;">
+                        @else
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width:4.5rem;height:4.5rem;background:#8f72f5;">{{ $selInitials }}</div>
+                        @endif
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ $selectedStudent->name }}</h6>
+                            <div class="small text-muted">{{ ucfirst($messageUserAccountType) }}{{ $selectedStudent->employee_category ? ' · ' . ucfirst(str_replace('_', ' ', $selectedStudent->employee_category)) : '' }}</div>
+                            <div class="small text-muted">{{ $selectedStudent->cloak_alias ?: 'No alias set' }}</div>
+                        </div>
+                    </div>
+                    <dl class="row mb-0 small">
+                        <dt class="col-5 text-muted">Email</dt><dd class="col-7">{{ $selectedStudent->email ?: 'Not provided' }}</dd>
+                        <dt class="col-5 text-muted">Department / Course</dt><dd class="col-7">{{ $selectedStudent->department ?: 'Not provided' }}</dd>
+                        <dt class="col-5 text-muted">Age / Gender</dt><dd class="col-7">{{ $selectedStudent->age ?: 'N/A' }} / {{ $selectedStudent->gender ?: 'N/A' }}</dd>
+                        <dt class="col-5 text-muted">Contact number</dt>
+                        <dd class="col-7 mb-0">
+                            @if($messageUserPhone)
+                                <a href="tel:{{ $messageUserPhone }}" class="fw-semibold text-decoration-none"><i class="bi bi-telephone-outbound me-1"></i>{{ $selectedStudent->phone_number }}</a>
+                            @else
+                                Not provided
+                            @endif
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 <script>
+    const adminId = {{ Auth::id() }};
+    const selectedStudentId = {{ (int) ($selectedStudentId ?? 0) }};
     function sendMessage() {
         const input = document.getElementById('messageInput');
         const message = input.value.trim();
@@ -708,11 +778,12 @@
 
                 const msgDiv = document.createElement('div');
                 msgDiv.className = 'message-group user';
+                msgDiv.dataset.messageId = data.message.id;
                 msgDiv.innerHTML = `
                     <div class="msg-avatar outgoing-av">G</div>
                     <div class="msg-content" style="align-items:flex-end;">
-                        <div class="message-bubble">${escapeHtml(message)}</div>
-                        <div class="message-time">Just now</div>
+                        <div class="message-bubble">${escapeHtml(data.message.message)}</div>
+                        <div class="message-time">${escapeHtml(data.message.created_at || 'Just now')}</div>
                     </div>
                 `;
                 thread.appendChild(msgDiv);
@@ -720,7 +791,6 @@
                 input.value = '';
                 input.style.height = 'auto';
                 input.focus();
-                thread.scrollTop = thread.scrollHeight;
             }
         })
         .catch(error => {
@@ -739,6 +809,50 @@
         return text.replace(/[&<>"']/g, m => map[m]);
     }
 
+    async function refreshAdminMessages() {
+        const thread = selectedStudentId ? document.getElementById('messagingThread') : null;
+        const afterId = thread ? Math.max(0, ...[...thread.querySelectorAll('[data-message-id]')].map(el => Number(el.dataset.messageId) || 0)) : 0;
+        try {
+            const params = new URLSearchParams({ after_id: afterId });
+            if (selectedStudentId) params.set('student_id', selectedStudentId);
+            const response = await fetch(`{{ route('admin.messages.feed') }}?${params}`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error(`Message refresh failed (${response.status}).`);
+            const data = await response.json();
+            if (thread) {
+                for (const message of data.messages) {
+                    if (message.sender_id === adminId || thread.querySelector(`[data-message-id="${message.id}"]`)) continue;
+                    thread.querySelector('.empty-state')?.remove();
+                    const row = document.createElement('div');
+                    row.className = 'message-group admin';
+                    row.dataset.messageId = message.id;
+                    const avatar = document.createElement('div');
+                    avatar.className = 'msg-avatar incoming-av';
+                    @if($selectedStudent && $selectedStudent->profile_photo_path)
+                        avatar.innerHTML = `<img src="{{ asset('storage/' . $selectedStudent->profile_photo_path) }}" alt="">`;
+                    @else
+                        avatar.textContent = @json($selectedStudent ? $selInitials : '');
+                    @endif
+                    const content = document.createElement('div');
+                    content.className = 'msg-content';
+                    const bubble = document.createElement('div');
+                    bubble.className = 'message-bubble';
+                    bubble.textContent = message.message;
+                    const time = document.createElement('div');
+                    time.className = 'message-time';
+                    time.textContent = message.created_at || '';
+                    content.append(bubble, time);
+                    row.append(avatar, content);
+                    thread.appendChild(row);
+                }
+            }
+        } catch (error) {
+            console.error('Unable to refresh admin messages:', error);
+        }
+    }
+    setInterval(refreshAdminMessages, 3000);
+
     // Enter to send, Shift+Enter for newline
     document.getElementById('messageInput')?.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -751,12 +865,6 @@
     document.getElementById('messageInput')?.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 90) + 'px';
-    });
-
-    // Scroll to latest message on load
-    window.addEventListener('load', function() {
-        const thread = document.getElementById('messagingThread');
-        if (thread) thread.scrollTop = thread.scrollHeight;
     });
 
     // Client-side search filter

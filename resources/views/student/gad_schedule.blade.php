@@ -384,14 +384,16 @@ async function refreshScheduleData() {
             credentials: 'same-origin',
             cache: 'no-store'
         });
-        if (!response.ok) return;
+        if (!response.ok) {
+            throw new Error(`Schedule refresh failed (${response.status}).`);
+        }
 
         const payload = await response.json();
         scheduleData.splice(0, scheduleData.length, ...(payload.schedules || []));
         buildScheduleMap();
         renderCalendar(currentMonth, currentYear);
     } catch (error) {
-        // Keep the last successfully loaded schedule visible.
+        console.error('Unable to refresh the GAD schedule:', error);
     }
 }
 
@@ -487,7 +489,9 @@ function changeMonth(diff) {
 document.addEventListener('DOMContentLoaded', () => {
     buildScheduleMap();
     renderCalendar(currentMonth, currentYear);
-    window.setInterval(refreshScheduleData, 15000);
+    window.setInterval(() => {
+        if (!document.hidden) refreshScheduleData();
+    }, 5000);
 });
 </script>
 @endsection

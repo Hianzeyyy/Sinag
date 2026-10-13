@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid p-0 overflow-hidden" 
-    style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 55%, #8f72f5 100%); height: 100vh; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0;">
+    style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 55%, #8f72f5 100%); min-height: 100dvh; display: flex; align-items: center; justify-content: center; position: relative;">
     
     <div class="bg-glow top-right"></div>
     <div class="bg-glow bottom-left"></div>

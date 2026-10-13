@@ -5,6 +5,21 @@
     body {
         background: linear-gradient(135deg, #f3e8ff 0%, #f8fafc 100%) !important;
     }
+    .report-page {
+        height: auto;
+        min-height: 0;
+        padding-bottom: max(2rem, env(safe-area-inset-bottom));
+        touch-action: pan-y;
+    }
+    .report-page .row,
+    .report-page [class*="col-"],
+    .report-glass,
+    .report-glass .card-body,
+    .report-glass form {
+        min-width: 0;
+        height: auto;
+        overflow: visible;
+    }
     .report-glass {
         background: rgba(255,255,255,0.85);
         box-shadow: 0 8px 40px #a594f922, 0 1.5px 8px #a594f911;
@@ -13,7 +28,7 @@
         border-radius: 24px;
     }
     .report-title {
-        font-size: 2.1rem;
+        font-size: clamp(1.55rem, 4vw, 2.1rem);
         font-weight: 900;
         letter-spacing: 1.2px;
         background: linear-gradient(90deg, #A594F9 60%, #facc15 100%);
@@ -32,6 +47,7 @@
         color: #fff;
         font-weight: 700;
         font-size: 1.05rem;
+        min-height: 3rem;
         box-shadow: 0 2px 12px #a594f933;
         border: none;
         transition: transform 0.12s, box-shadow 0.12s;
@@ -49,8 +65,13 @@
         box-shadow: 0 2px 12px #a594f911;
         border: 1.5px solid #ede9fe;
     }
+    @media (max-width: 575.98px) {
+        .report-page { padding-inline: .75rem; }
+        .report-glass { border-radius: 1rem; }
+        .report-glass .card-body { padding: 1rem !important; }
+    }
 </style>
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 report-page">
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
             {{-- Header Section --}}
@@ -234,17 +255,17 @@
                             <small class="d-block text-muted mt-1">Your real name will be hidden. Only your cloak alias ({{ Auth::user()->cloak_alias }}) will be shown to the GAD office.</small>
                         </div>
 
+                        <div class="mt-4 p-3 rounded-3" style="background:#fff7ed; border:1px solid #fed7aa;">
+                            <p class="mb-1 fw-bold small" style="color:#9a3412;"><i class="bi bi-telephone-fill me-1"></i> Emergency Hotline</p>
+                            <p class="mb-0 small text-muted">For immediate assistance, call GAD Emergency Hotline: <span class="fw-bold text-dark">(075) 123-4567</span></p>
+                        </div>
+
                         {{-- Action Buttons --}}
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <button type="reset" class="btn btn-light px-4 fw-bold text-muted" style="border-radius: 10px;">Clear Form</button>
                             <button type="submit" class="btn px-5 fw-bold shadow-sm report-btn">
                                 <i class="bi bi-send-fill me-2"></i> Submit Report
                             </button>
-                        </div>
-
-                        <div class="mt-4 p-3 rounded-3" style="background:#fff7ed; border:1px solid #fed7aa;">
-                            <p class="mb-1 fw-bold small" style="color:#9a3412;"><i class="bi bi-telephone-fill me-1"></i> Emergency Hotline</p>
-                            <p class="mb-0 small text-muted">For immediate assistance, call GAD Emergency Hotline: <span class="fw-bold text-dark">(075) 123-4567</span></p>
                         </div>
                     </form>
                 </div>

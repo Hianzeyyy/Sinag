@@ -47,6 +47,11 @@ class RegisterController extends Controller
         $this->middleware('guest');
     }
 
+    public function showRegistrationForm()
+    {
+        return view('auth.login', ['showRegisterPanel' => true]);
+    }
+
     /**
      * Get a validator for an incoming registration request.
      *
@@ -55,10 +60,13 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'account_type' => ['required', Rule::in(['student', 'employee'])],
             'employee_category' => ['nullable', Rule::requiredIf(fn () => ($data['account_type'] ?? null) === 'employee'), Rule::in(['teaching', 'non_teaching'])],
+            'phone_number' => ['required', 'string', 'max:50', 'regex:/^[0-9]+$/'],
             'age' => ['required', 'integer', 'min:1', 'max:120'],
             'gender' => ['required', 'in:Male,Female,Prefer not to say'],
             'department' => ['required', 'string', 'max:255'],
@@ -126,12 +134,19 @@ class RegisterController extends Controller
 
                 DB::table('users')->insert([
                     'id' => $id,
-                    'name' => trim($data['name']),
+                    'name' => implode(' ', array_filter([
+                        trim($data['first_name']),
+                        trim($data['middle_name'] ?? ''),
+                        trim($data['last_name']),
+                    ], fn ($part) => $part !== '')),
                     'email' => $email,
+                    'first_name' => trim($data['first_name']),
+                    'middle_name' => trim($data['middle_name'] ?? '') ?: null,
+                    'last_name' => trim($data['last_name']),
                     'age' => $data['age'],
                     'gender' => $data['gender'],
                     'department' => $data['department'],
-                    'phone_number' => null,
+                    'phone_number' => $data['phone_number'],
                     'password' => Hash::make($data['password']),
                     'role' => $accountType,
                     'account_type' => $accountType,

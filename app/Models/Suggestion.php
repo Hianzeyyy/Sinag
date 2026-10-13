@@ -17,9 +17,21 @@ class Suggestion extends Model
         'category',
         // 'subject', // Removed: No longer used
         'message',
+        'image_path',
         'is_anonymous',
         'status',
     ];
+
+    public function getAdminStatusLabelAttribute(): string
+    {
+        if (strtolower((string) $this->status) === 'new'
+            && $this->created_at
+            && $this->created_at->lt(now()->subDay())) {
+            return '';
+        }
+
+        return (string) $this->status;
+    }
 
     /**
      * Relasyon: Ang bawat suggestion ay pagmamay-ari ng isang User (Student).

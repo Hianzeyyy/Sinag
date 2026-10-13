@@ -5,8 +5,9 @@
 
 <style>
     .profile-page {
-        min-height: calc(100vh - 7rem);
-        padding: clamp(1rem, 3vw, 2.5rem);
+        min-height: 0;
+        padding: clamp(.75rem, 3vw, 2.5rem);
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
         background: #f7f8fc;
     }
 
@@ -282,19 +283,6 @@
                         <div class="profile-detail"><div class="label">Account Type</div><div class="value">{{ ucfirst($user->account_type ?? 'student') }}{{ $user->employee_category ? ' - ' . ucfirst(str_replace('_', ' ', $user->employee_category)) : '' }}</div></div>
                         <div class="profile-detail"><div class="label">Phone</div><div class="value">{{ $user->phone_number ?: 'N/A' }}</div></div>
                         <div class="profile-detail"><div class="label">Account Status</div><div class="value">{{ ucfirst($user->account_status ?? 'active') }}</div></div>
-                        @if(auth()->id() === $user->id)
-                            <form method="POST" action="{{ route('profile.availability.update') }}" class="profile-detail align-items-center">
-                                @csrf
-                                <label class="label mb-0" for="availability_status">Availability</label>
-                                <select class="form-select form-select-sm w-auto" id="availability_status" name="availability_status" onchange="this.form.submit()">
-                                    @foreach(['active' => 'Active', 'busy' => 'Busy', 'do_not_disturb' => 'Do not disturb'] as $value => $label)
-                                        <option value="{{ $value }}" {{ ($user->availability_status ?? 'active') === $value ? 'selected' : '' }}>{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </form>
-                        @else
-                            <div class="profile-detail"><div class="label">Availability</div><div class="value">{{ ucfirst(str_replace('_', ' ', $user->availability_status ?? 'active')) }}</div></div>
-                        @endif
                     </div>
                 </div>
                 <div class="col-lg-6">
@@ -346,7 +334,7 @@
 
 @if($verificationImage)
     <div class="modal fade" id="verificationImageModal" tabindex="-1" aria-labelledby="verificationImageModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content border-0 rounded-4 overflow-hidden">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold" id="verificationImageModalLabel">ID Verification</h5>
@@ -361,13 +349,13 @@
 @endif
 
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content rounded-4 overflow-hidden">
             <div class="modal-header" style="background:#f8fbff;">
                 <h5 class="modal-title fw-bold">Edit Information</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('profile.update') }}" method="POST" class="p-4">
+            <form action="{{ route('profile.update') }}" method="POST" class="modal-body p-4">
                 @csrf
                 <div class="profile-edit-grid two-col">
                     <div>

@@ -17,7 +17,18 @@
             linear-gradient(180deg, #faf7ff 0%, #f8fafc 60%, #f8fafc 100%);
         border-radius: 1.5rem;
         position: relative;
-        overflow: hidden;
+        overflow-x: clip;
+        overflow-y: visible;
+        touch-action: pan-y;
+        padding-bottom: max(2rem, env(safe-area-inset-bottom));
+    }
+
+    .boses-page,
+    .boses-shell,
+    .boses-page .row,
+    .boses-page [class*="col-"] {
+        min-width: 0;
+        height: auto;
     }
 
     .boses-page::before,
@@ -111,11 +122,7 @@
         color: #fff;
     }
 
-                        const compact = normalized.replace(/(.)\\1+/gu, '$1').replace(/\\s/g, '');
-                        const blocked = harshWords.some(function (word) {
-                            return new RegExp('(^|\\s)' + word.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&') + '(?=\\s|$)', 'i').test(normalized)
-                                || compact.includes(word.replace(/(.)\\1+/gu, '$1'));
-                        });
+    .hero-chip {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
@@ -251,6 +258,15 @@
         border-radius: 1.35rem;
     }
 
+    .feed-panel {
+        max-width: 960px;
+        margin-inline: auto;
+        padding: 0 !important;
+        border: 0;
+        background: transparent;
+        box-shadow: none !important;
+    }
+
     .section-title {
         font-size: 1.2rem;
         font-weight: 900;
@@ -285,9 +301,42 @@
     }
 
     .suggestion-card {
-        overflow: hidden;
+        overflow: visible;
         transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
     }
+    .suggestion-card:focus-visible {
+        outline: 3px solid rgba(143, 114, 245, 0.45);
+        outline-offset: 2px;
+    }
+    .suggestion-message,
+    .suggestion-top {
+        cursor: pointer;
+    }
+
+    .suggestion-feed-table {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .suggestion-feed-table .suggestion-card {
+        display: block;
+        min-width: 0;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 1rem !important;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .suggestion-feed-table .suggestion-top {
+        border-right: 0;
+        border-bottom: 1px solid #f1f2f4;
+        background: #fff;
+    }
+
+    .suggestion-feed-table .suggestion-card > .p-4 { min-width: 0; }
+    .suggestion-attachment { max-width: min(100%, 28rem); max-height: 22rem; object-fit: contain; }
+    .suggestion-expand { display: block; width: fit-content; }
+    .suggestion-image-link { display: block; width: fit-content; max-width: 100%; }
 
     .suggestion-card:hover {
         transform: translateY(-2px);
@@ -317,6 +366,13 @@
         font-size: 1.02rem;
         line-height: 1.75;
         white-space: pre-wrap;
+    }
+
+    .suggestion-message [data-suggestion-preview] {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4;
     }
 
     .meta-badge {
@@ -417,8 +473,7 @@
     }
 
     .compose-panel {
-        position: sticky;
-        top: 6.5rem;
+        position: static;
     }
 
     .compose-icon {
@@ -463,6 +518,22 @@
         border-radius: 1.4rem;
     }
 
+    .modal-dialog-scrollable > .modal-content > form {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .modal-dialog-scrollable > .modal-content > form > .modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .report-content-button {
         color: var(--accent-deep) !important;
         border-color: rgba(143, 114, 245, 0.55) !important;
@@ -501,15 +572,40 @@
 </style>
 
 @php
+    $user = Auth::user();
     $totalSuggestions = $allSuggestions->count();
-    $totalUpvotes = $allSuggestions->sum('upvotes_count');
-    $totalComments = $allSuggestions->sum(function ($suggestion) {
-        return $suggestion->comments->count();
-    });
 @endphp
 
 <div class="container-fluid boses-page py-3 py-lg-4">
     <div class="boses-shell">
+        @if(session('status'))
+            <div class="alert alert-success border-0 shadow-sm" role="status">{{ session('status') }}</div>
+        @endif
+        @if(session('success'))
+            <div class="alert alert-success border-0 shadow-sm" role="status">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger border-0 shadow-sm" role="alert">{{ session('error') }}</div>
+        @endif
+        @if($errors->any())
+            <div class="alert alert-danger border-0 shadow-sm" role="alert">
+                <div class="fw-bold mb-1">The suggestion could not be posted:</div>
+                <ul class="mb-0 ps-3">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="mb-3 mb-lg-4">
+            <span class="hero-chip text-dark" style="background:rgba(165,148,249,.14);border:0;color:#6b55c4 !important;">
+                <i class="bi bi-chat-square-heart"></i> Community voice
+            </span>
+            <h1 class="h2 fw-bold mt-2 mb-1" style="color:#3d336b;">Suggestions</h1>
+            <p class="text-muted mb-0">Share ideas and discuss ways to strengthen GAD programs and services.</p>
+        </div>
+
         <div class="hero-panel p-4 p-lg-5 mb-4 position-relative">
             <div class="row g-4 align-items-center">
                 <div class="col-lg-12">
@@ -520,10 +616,10 @@
                             <span class="composer-avatar">
                                 <i class="bi bi-person-fill-lock fs-5"></i>
                             </span>
-                            <button class="btn composer-trigger text-start flex-grow-1" data-bs-toggle="modal" data-bs-target="#suggestionModal">
+                            <button type="button" class="btn composer-trigger text-start flex-grow-1" data-bs-toggle="modal" data-bs-target="#suggestionModal">
                                 Write your suggestions...
                             </button>
-                            <button class="btn hero-action d-none d-md-inline-flex" data-bs-toggle="modal" data-bs-target="#suggestionModal">
+                            <button type="button" class="btn hero-action d-none d-md-inline-flex" data-bs-toggle="modal" data-bs-target="#suggestionModal">
                                 <i class="bi bi-send me-2"></i>Post
                             </button>
                         </div>
@@ -538,29 +634,32 @@
                 <div class="feed-panel p-4 p-lg-4">
                     <div class="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3 mb-4">
                         <div>
-           
+                            <h2 class="h5 fw-bold mb-1">Community suggestions</h2>
+                            <p class="text-muted small mb-0">{{ $totalSuggestions }} {{ \Illuminate\Support\Str::plural('post', $totalSuggestions) }} shared</p>
                         </div>
-                        <div class="d-flex flex-column flex-md-row gap-2 w-100 justify-content-end" style="max-width: 42rem;">
-                          
-                            <div class="search-wrap w-100" style="max-width: 26rem;">
+                        <div class="d-flex w-100 justify-content-end" style="max-width: 26rem;">
+                            <div class="search-wrap w-100">
                                 <i class="bi bi-search"></i>
                                 <input
                                     type="search"
                                     id="suggestion-search"
                                     class="form-control search-input"
-                                    placeholder="Search by keyword or category"
+                                    placeholder="Search suggestions"
                                     aria-label="Search suggestions"
                                 >
                             </div>
                         </div>
                     </div>
 
-                    <div id="suggestion-feed" class="d-grid gap-3 gap-lg-4">
+                    <div id="suggestion-feed" class="suggestion-feed-table">
                         @forelse($allSuggestions as $sugg)
                             @php
-                                $suggestionText = strtolower(($sugg->category ?? 'general') . ' ' . $sugg->message . ' ' . optional($sugg->user)->cloak_alias);
+                                $suggestionText = strtolower($sugg->message . ' ' . (optional($sugg->user)->cloak_alias ?? 'anonymous'));
+                                $sentences = preg_split('/(?<=[.!?])\s+/u', trim($sugg->message), 2) ?: [trim($sugg->message)];
+                                $suggestionPreview = $sentences[0];
+                                $hasMoreSuggestionText = count($sentences) > 1 || mb_strlen($sugg->message) > 280;
                             @endphp
-                            <article class="card suggestion-card border-0" data-suggestion-card data-suggestion-text="{{ e($suggestionText) }}">
+                            <article class="card suggestion-card border-0" data-suggestion-card data-suggestion-text="{{ e($suggestionText) }}" tabindex="0" aria-label="Suggestion post. Activate to show comments.">
                                 <div class="suggestion-top p-4 p-lg-4">
                                     <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
                                         <div class="d-flex align-items-center gap-3">
@@ -568,7 +667,7 @@
                                                 <i class="bi bi-person-fill-lock fs-5"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-bold text-dark fs-6">{{ $sugg->user->cloak_alias }}</div>
+                                                <div class="fw-bold text-dark fs-6">{{ optional($sugg->user)->cloak_alias ?: 'Anonymous' }}</div>
                                                 <div class="d-flex flex-wrap gap-2 mt-2">
                                                     <span class="meta-badge time">
                                                         <i class="bi bi-clock-history"></i>
@@ -632,16 +731,28 @@
                                 </div>
 
                                 <div class="p-4 p-lg-4">
-                                    <p class="suggestion-message mb-0">{{ $sugg->message }}</p>
+                                    <p class="suggestion-message mb-0" data-suggestion-post>
+                                        <span data-suggestion-preview>{{ $suggestionPreview }}</span>
+                                        @if($hasMoreSuggestionText)
+                                            <span class="d-none" data-suggestion-full>{{ $sugg->message }}</span>
+                                        @endif
+                                    </p>
+                                    @if($hasMoreSuggestionText)
+                                        <button type="button" class="btn btn-link btn-sm p-0 mt-2 suggestion-expand" data-suggestion-expand aria-expanded="false">See more</button>
+                                    @endif
+                                    @if($sugg->image_path)
+                                        <a href="{{ asset('storage/' . $sugg->image_path) }}" target="_blank" rel="noopener" class="suggestion-image-link mt-3">
+                                            <img src="{{ asset('storage/' . $sugg->image_path) }}" alt="Image attached to suggestion" class="img-fluid rounded-4 suggestion-attachment">
+                                        </a>
+                                    @endif
 
                                     <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mt-4 pt-3" style="border-top:1px solid rgba(124,58,237,0.08);">
-                                        <button type="button" class="btn btn-light action-btn px-3" onclick="document.getElementById('comment-input-{{ $sugg->id }}').focus();">
+                                        <button type="button" class="btn btn-light action-btn px-3" data-comment-toggle aria-expanded="false" aria-controls="suggestion-comments-{{ $sugg->id }}">
                                             <i class="bi bi-chat-dots me-2"></i>{{ $sugg->comments->count() }} comments
                                         </button>
-                                        <span class="text-muted small">Tap the comment field below to reply directly.</span>
                                     </div>
 
-                                    <div class="mt-4 d-grid gap-3">
+                                    <div class="mt-4 d-grid gap-3 d-none" id="suggestion-comments-{{ $sugg->id }}" data-comments-panel aria-hidden="true">
                                         @forelse($sugg->comments as $comment)
                                             <div class="comment-card">
                                                 <div class="d-flex justify-content-between align-items-start gap-3">
@@ -705,7 +816,7 @@
                             </article>
 
                             <div class="modal fade" id="editSuggestionModal{{ $sugg->id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
                                     <div class="modal-content border-0 shadow-lg">
                                         <div class="modal-header border-0 p-4 pb-0">
                                             <div>
@@ -714,7 +825,7 @@
                                             </div>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
-                                        <form action="{{ route('suggestions.update', $sugg->id) }}" method="POST">
+                                        <form action="{{ route('suggestions.update', $sugg->id) }}" method="POST" enctype="multipart/form-data">
                                             @csrf
                                             @method('PUT')
                                             <div class="modal-body p-4">
@@ -734,6 +845,14 @@
                                                         <label class="form-label small fw-bold text-muted">YOUR SUGGESTION</label>
                                                         <textarea name="message" class="form-control rounded-3" rows="5" required>{{ $sugg->message }}</textarea>
                                                     </div>
+                                                    <div class="col-12">
+                                                        <label class="form-label small fw-bold text-muted">OPTIONAL IMAGE</label>
+                                                        <input type="file" name="image" class="form-control rounded-3" accept="image/jpeg,image/png,image/webp">
+                                                        <div class="form-text">JPG, PNG, or WEBP up to 5 MB.</div>
+                                                        @if($sugg->image_path)
+                                                            <img src="{{ asset('storage/' . $sugg->image_path) }}" alt="Current suggestion attachment" class="img-fluid rounded-3 mt-2" style="max-height:180px;">
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="modal-footer border-0 p-4 pt-0">
@@ -749,7 +868,7 @@
 
                             @foreach($sugg->comments as $comment)
                                 <div class="modal fade" id="editCommentModal{{ $comment->id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                                         <div class="modal-content border-0 shadow-lg">
                                             <div class="modal-header border-0 p-4 pb-0">
                                                 <div>
@@ -794,7 +913,7 @@
 </div>
 
 <div class="modal fade" id="suggestionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header border-0 p-4 pb-0">
                 <div>
@@ -803,27 +922,45 @@
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('suggestions.store') }}" method="POST" id="suggestionCreateForm">
+            <form action="{{ route('suggestions.store') }}" method="POST" enctype="multipart/form-data" id="suggestionCreateForm">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label small fw-bold text-muted">CATEGORY</label>
                             <select name="category" class="form-select rounded-3" required>
-                                <option value="" disabled selected>Select a category</option>
-                                <option value="Gender-Based Violence Prevention">Gender-Based Violence Prevention</option>
-                                <option value="Gender Equality and Inclusion">Gender Equality and Inclusion</option>
-                                <option value="GAD Programs and Services">GAD Programs and Services</option>
-                                <option value="Safe Spaces and Student Welfare">Safe Spaces and Student Welfare</option>
-                                <option value="GAD Policy and Training">GAD Policy and Training</option>
-                                <option value="Other GAD Concern">Other GAD Concern</option>
+                                <option value="" disabled {{ old('category') ? '' : 'selected' }}>Select a category</option>
+                                <option value="Gender-Based Violence Prevention" {{ old('category') === 'Gender-Based Violence Prevention' ? 'selected' : '' }}>Gender-Based Violence Prevention</option>
+                                <option value="Gender Equality and Inclusion" {{ old('category') === 'Gender Equality and Inclusion' ? 'selected' : '' }}>Gender Equality and Inclusion</option>
+                                <option value="GAD Programs and Services" {{ old('category') === 'GAD Programs and Services' ? 'selected' : '' }}>GAD Programs and Services</option>
+                                <option value="Safe Spaces and Student Welfare" {{ old('category') === 'Safe Spaces and Student Welfare' ? 'selected' : '' }}>Safe Spaces and Student Welfare</option>
+                                <option value="GAD Policy and Training" {{ old('category') === 'GAD Policy and Training' ? 'selected' : '' }}>GAD Policy and Training</option>
+                                <option value="Other GAD Concern" {{ old('category') === 'Other GAD Concern' ? 'selected' : '' }}>Other GAD Concern</option>
                             </select>
                         </div>
                         <div class="col-md-8">
                             <label class="form-label small fw-bold text-muted">YOUR SUGGESTION</label>
-                            <textarea name="message" class="form-control rounded-3" rows="5" data-moderated-input placeholder="Write your suggestions..." required></textarea>
+                            <textarea name="message" class="form-control rounded-3" rows="5" data-moderated-input placeholder="Write your suggestions..." required>{{ old('message') }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted">IMAGE <span class="fw-normal">(optional)</span></label>
+                            <input type="file" name="image" class="form-control rounded-3" accept="image/jpeg,image/png,image/webp">
+                            <div class="form-text">Attach one JPG, PNG, or WEBP image (maximum 5 MB).</div>
                         </div>
                     </div>
+                    @if($errors->any() || session('error'))
+                        <div class="alert alert-danger border-0 mt-3 mb-0" role="alert">
+                            @if(session('error'))
+                                {{ session('error') }}
+                            @else
+                                <ul class="mb-0 ps-3">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    @endif
                     <div class="alert alert-info border-0 mt-3 mb-0">
                         <i class="bi bi-shield-check me-2"></i>
                         Positive at constructive suggestions only. Ipapakita ang iyong message gamit ang alias na <strong>{{ Auth::user()->cloak_alias }}</strong>.
@@ -842,6 +979,56 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        @if($errors->any() || session('error'))
+            document.querySelector('[data-bs-target="#suggestionModal"]')?.click();
+        @endif
+
+        const aliasInput = document.getElementById('suggestionAlias');
+        const aliasStatus = document.getElementById('aliasAvailabilityStatus');
+        const existingAliases = @json($existingAliases ?? []);
+        const normalizeAlias = function (value) {
+            return (value || '').trim().toLowerCase();
+        };
+
+        if (aliasInput) {
+            const checkAlias = function () {
+                const value = normalizeAlias(aliasInput.value);
+                if (!value) {
+                    aliasStatus?.classList.add('d-none');
+                    if (aliasStatus) aliasStatus.textContent = '';
+                    return true;
+                }
+
+                const taken = existingAliases.some(function (alias) {
+                    return normalizeAlias(alias) === value;
+                });
+
+                if (aliasStatus) {
+                    aliasStatus.classList.remove('d-none');
+                    aliasStatus.textContent = taken ? 'This alias is already taken.' : 'Alias available.';
+                    aliasStatus.classList.toggle('text-danger', taken);
+                    aliasStatus.classList.toggle('text-success', !taken);
+                }
+
+                return !taken;
+            };
+
+            aliasInput.addEventListener('input', checkAlias);
+            aliasInput.closest('form')?.addEventListener('submit', function (event) {
+                const available = checkAlias();
+                if (!available) {
+                    event.preventDefault();
+                    aliasInput.focus();
+                }
+            });
+        }
+
+        document.querySelectorAll('[data-only-number-input]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = input.value.replace(/[^0-9.]/g, '');
+            });
+        });
+
         const harshWords = ['bobo', 'tanga', 'gago', 'puta', 'putangina', 'peste', 'piste', 'ukinam', 'bwisit', 'lintik', 'hayop', 'tarantado', 'leche', 'ulol', 'inutil', 'siraulo', 'yawa', 'amaw', 'buang', 'atay', 'kablaaw', 'pukaw', 'ukininam', 'pisti', 'bogo', 'gahi', 'animal', 'stupid', 'idiot', 'dumb', 'moron', 'hate', 'kill', 'trash', 'useless', 'disgusting', 'shit', 'fuck'];
         const normalize = function (value) {
             return value.toLowerCase().replace(/[@]/g, 'a').replace(/[0]/g, 'o').replace(/[1]/g, 'i').replace(/[$]/g, 's').replace(/[3]/g, 'e').replace(/[4]/g, 'a').replace(/[5]/g, 's').replace(/[6]/g, 'g').replace(/[7]/g, 't').replace(/[8]/g, 'b').replace(/[9]/g, 'g').replace(/[^\p{L}\p{N}]+/gu, ' ');
@@ -896,19 +1083,56 @@
         const cards = document.querySelectorAll('[data-suggestion-card]');
         const upvoteForms = document.querySelectorAll('[data-upvote-form]');
 
-        if (!searchInput || !cards.length) {
-            return;
-        }
-
-        searchInput.addEventListener('input', function () {
-            const query = this.value.trim().toLowerCase();
-
+        const applySuggestionFilters = function () {
+            const query = searchInput?.value.trim().toLowerCase() || '';
             cards.forEach(function (card) {
                 const haystack = (card.getAttribute('data-suggestion-text') || '').toLowerCase();
-                const isVisible = haystack.includes(query);
-
-                card.style.display = isVisible ? '' : 'none';
+                card.style.display = haystack.includes(query) ? '' : 'none';
             });
+        };
+
+        searchInput?.addEventListener('input', applySuggestionFilters);
+
+        document.querySelectorAll('[data-suggestion-expand]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const paragraph = button.closest('[data-suggestion-card]')?.querySelector('.suggestion-message');
+                const preview = paragraph?.querySelector('[data-suggestion-preview]');
+                const full = paragraph?.querySelector('[data-suggestion-full]');
+                if (!preview || !full) return;
+
+                const expanded = button.getAttribute('aria-expanded') === 'true';
+                preview.classList.toggle('d-none', !expanded);
+                full.classList.toggle('d-none', expanded);
+                button.setAttribute('aria-expanded', String(!expanded));
+                button.textContent = expanded ? 'See more' : 'See less';
+            });
+        });
+
+        document.querySelectorAll('[data-suggestion-card]').forEach(function (card) {
+            const commentsPanel = card.querySelector('[data-comments-panel]');
+            const commentToggle = card.querySelector('[data-comment-toggle]');
+            if (!commentsPanel || !commentToggle) return;
+
+            const toggleComments = function () {
+                const expanded = commentToggle.getAttribute('aria-expanded') === 'true';
+                commentsPanel.classList.toggle('d-none', expanded);
+                commentToggle.setAttribute('aria-expanded', String(!expanded));
+                commentsPanel.setAttribute('aria-hidden', String(expanded));
+            };
+
+            card.addEventListener('click', function (event) {
+                if (!(event.target instanceof Element)) return;
+                if (event.target.closest('button, a, input, textarea, select, form, [data-comments-panel]')) return;
+                toggleComments();
+            });
+
+            card.addEventListener('keydown', function (event) {
+                if (event.target !== card || !['Enter', ' '].includes(event.key)) return;
+                event.preventDefault();
+                toggleComments();
+            });
+
+            commentToggle.addEventListener('click', toggleComments);
         });
 
         upvoteForms.forEach(function (form) {
@@ -950,7 +1174,6 @@
                     icon.classList.toggle('bi-hand-thumbs-up', !isActive);
                     icon.classList.toggle('bi-hand-thumbs-up-fill', isActive);
                 } catch (error) {
-                    // Fallback to normal submit if fetch fails for any reason.
                     button.innerHTML = originalHtml;
                     form.submit();
                     return;

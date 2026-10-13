@@ -2,9 +2,10 @@
 
 @section('content')
 <div class="sinag-splash">
-    
-    <div style="position: absolute; top: -10%; right: -5%; width: 500px; height: 500px; background: rgba(165, 148, 249, 0.28); filter: blur(120px); border-radius: 50%;"></div>
-    <div style="position: absolute; bottom: -10%; left: -5%; width: 500px; height: 500px; background: rgba(194, 181, 255, 0.22); filter: blur(120px); border-radius: 50%;"></div>
+    <div class="splash-glow-layer" aria-hidden="true">
+        <div class="splash-glow splash-glow-top"></div>
+        <div class="splash-glow splash-glow-bottom"></div>
+    </div>
 
     <div class="row justify-content-center text-center w-100">
         <div class="col-md-8">
@@ -16,7 +17,7 @@
             </div>
             
             <p class="lead text-white mb-2 text-uppercase fw-bold" style="letter-spacing: 5px; opacity: 0.9; animation: fadeInUp 1.2s ease-out;">
-                Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University
+                Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University Asingan Campus
             </p>
             <p class="text-white mb-5" style="font-size:1.1rem; font-style:italic; opacity:0.85; animation: fadeInUp 1.3s ease-out;">“Every voice matters. Every story is safe.”</p>
 
@@ -28,7 +29,7 @@
                 <p class="text-white mt-3 small text-uppercase" style="letter-spacing: 2px;">Establishing Secure Connection</p>
             </div>
             <!-- About Button (bottom right) -->
-            <button type="button" class="btn btn-link position-fixed" style="bottom: 24px; right: 32px; color: #ede9fe; font-size: 1.2rem; opacity: 0.7; z-index: 10001; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#aboutModal">
+            <button type="button" class="btn btn-link mt-3" style="color: #ede9fe; font-size: 1.2rem; opacity: 0.7; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#aboutModal">
                 <i class="bi bi-info-circle-fill"></i> <span class="d-none d-md-inline">About</span>
             </button>
             <!-- About Modal -->
@@ -63,18 +64,100 @@
 
 <style>
     nav { display: none !important; }
-    body { overflow: hidden !important; padding: 0 !important; }
+    body { overflow-x: clip; overflow-y: visible; padding: 0 !important; }
     .sinag-splash {
       background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 55%, #8f72f5 100%);
-      min-height: 100dvh;
+      min-height: 100vh;
+      min-height: 100svh;
       width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: fixed;
-      inset: 0;
+      position: relative;
       z-index: 9999;
-      overflow: hidden;
+      overflow: visible;
+      box-sizing: border-box;
+      padding: clamp(2rem, 6vh, 5rem) 1rem;
+    }
+
+    .splash-glow-layer {
+      position: absolute;
+      inset: 0;
+      overflow: clip;
+      pointer-events: none;
+    }
+
+    .splash-glow {
+      position: absolute;
+      width: min(32rem, 70vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      filter: blur(120px);
+    }
+
+    .splash-glow-top {
+      top: -10%;
+      right: -5%;
+      background: rgba(165, 148, 249, 0.28);
+    }
+
+    .splash-glow-bottom {
+      bottom: -10%;
+      left: -5%;
+      background: rgba(194, 181, 255, 0.22);
+    }
+
+    .splash-wrapper .sinag-splash {
+      display: flex;
+      flex: 0 0 auto;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      min-height: 100vh;
+      min-height: 100svh;
+      height: auto;
+      overflow: visible;
+      box-sizing: border-box;
+    }
+
+    .splash-wrapper .sinag-splash > .row {
+      position: relative;
+      z-index: 1;
+      flex: 0 0 auto;
+      width: 100%;
+      min-width: 0;
+      margin-inline: 0;
+    }
+
+    .splash-wrapper .sinag-splash .col-md-8 {
+      width: min(100%, 60rem);
+      max-width: 100%;
+      min-width: 0;
+      margin-inline: auto;
+    }
+
+    .splash-wrapper .sinag-splash .lead {
+      max-width: 56rem;
+      margin-inline: auto;
+      font-size: clamp(.78rem, 1.25vw, 1.05rem);
+      line-height: 1.6;
+      letter-spacing: clamp(.08rem, .55vw, .32rem) !important;
+      overflow-wrap: break-word;
+    }
+
+    @media (max-height: 700px) {
+      .splash-wrapper .sinag-splash {
+        align-items: center;
+        min-height: max(100vh, 36rem);
+        min-height: max(100svh, 36rem);
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 1199.98px) {
+      .splash-wrapper .sinag-splash {
+        align-items: flex-start;
+        padding-top: clamp(2rem, 7svh, 5rem);
+      }
     }
 
     @keyframes logoEntrance {
@@ -98,15 +181,14 @@
       background: linear-gradient(120deg, #A594F9, #c4b5fd, #e9d5ff, #facc15, #c4b5fd, #8f72f5);
       background-size: 300% 300%;
       animation: livelyGradient 12s ease-in-out infinite;
-      height: 100vh;
-      width: 100vw;
+      min-height: 100dvh;
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: fixed;
-      top: 0; left: 0;
+      position: relative;
       z-index: 9999;
-      overflow: hidden;
+      overflow: visible;
     }
     .loading-dot {
       animation: blink 1.2s infinite alternate;
@@ -115,6 +197,7 @@
     .loading-dot:nth-child(2) { animation-delay: 0.3s; }
     .loading-dot:nth-child(3) { animation-delay: 0.6s; }
     @media (max-width: 767px) {
+      .sinag-splash { align-items: flex-start; }
       .sinag-splash .lead { font-size: 0.8rem; letter-spacing: 2px !important; }
       .sinag-splash .gap-4 { gap: 1rem !important; }
       .sinag-splash h1 { font-size: 3.5rem; }

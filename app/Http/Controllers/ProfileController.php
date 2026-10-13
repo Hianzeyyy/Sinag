@@ -78,28 +78,27 @@ class ProfileController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $isEmployee = ($user->account_type ?? $user->role) === 'employee';
+        $isEmployee = strtolower((string) ($user->account_type ?? $user->role)) === 'employee';
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'last_name' => ['required', 'string', 'max:255'],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'age' => ['required', 'integer', 'min:1', 'max:120'],
-            'gender' => ['required', 'string', 'max:50'],
+            'gender' => ['required', 'string', 'in:Male,Female,Prefer not to say'],
             'department' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'max:50'],
-            'cloak_alias' => ['nullable', 'string', 'max:255'],
+            'phone_number' => ['required', 'string', 'max:50', 'regex:/^[0-9]+$/'],
+            'cloak_alias' => ['nullable', 'string', 'max:255', Rule::unique('users', 'cloak_alias')->ignore($user->id)],
             'personal_information' => ['required', 'array'],
             'personal_information.date_of_birth' => ['required', 'string', 'max:255'],
             'personal_information.place_of_birth' => ['required', 'string', 'max:255'],
-            'personal_information.sex' => ['required', 'string', 'max:50'],
+            'personal_information.sex' => ['required', 'string', 'in:Male,Female,Prefer not to say'],
             'personal_information.gender_identity' => ['required', 'string', 'max:100'],
             'personal_information.citizenship' => ['required', 'string', 'max:100'],
             'personal_information.blood_type' => ['required', 'string', 'max:20'],
-            'personal_information.height' => ['required', 'string', 'max:50'],
-            'personal_information.weight' => ['required', 'string', 'max:50'],
+            'personal_information.height' => ['required', 'numeric', 'min:0', 'max:500'],
+            'personal_information.weight' => ['required', 'numeric', 'min:0', 'max:500'],
             'personal_information.landline_number' => ['required', 'string', 'max:50'],
             'personal_information.civil_status' => ['required', 'string', 'max:100'],
             'personal_information.current_address' => ['required', 'string', 'max:500'],
@@ -154,9 +153,14 @@ class ProfileController extends Controller
         $familyBackground = $validated['family_background'] ?? [];
         $studentInformation = $validated['student_information'] ?? [];
         $otherInformation = $validated['other_information'] ?? [];
+        $name = implode(' ', array_filter([
+            trim($validated['first_name']),
+            trim($validated['middle_name'] ?? ''),
+            trim($validated['last_name']),
+        ], fn ($part) => $part !== ''));
 
         $user->update([
-            'name' => $validated['name'],
+            'name' => $name,
             'email' => $validated['email'],
             'last_name' => $validated['last_name'] ?? null,
             'first_name' => $validated['first_name'] ?? null,
@@ -228,6 +232,12 @@ class ProfileController extends Controller
             'voluntary_work' => $this->parseEmployeeRecord($request->input('voluntary_work_json')),
             'gad_training' => $this->parseEmployeeRecord($request->input('gad_training_json')),
         ]);
+
+        if ($request->boolean('return_to_suggestions')) {
+            return redirect()->route('student.boses')->with('status', $user->hasCompletedPersonalData()
+                ? 'Personal information complete. You can now use the suggestions page.'
+                : 'Profile information updated.');
+        }
 
         return back()->with('status', $user->hasCompletedPersonalData()
             ? 'Personal information complete. Suggestions, Schedule, and the other features are now available.'

@@ -65,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users', [AdminController::class, 'users'])->name('users');
         Route::get('/messages', [AdminController::class, 'messages'])->name('messages');
         Route::post('/messages/store', [AdminController::class, 'storeMessage'])->name('messages.store');
+        Route::get('/messages/feed', [AdminController::class, 'messageFeed'])->name('messages.feed');
         Route::get('/gad-schedules', [AdminController::class, 'gadSchedules'])->name('gad-schedules.index');
         Route::post('/gad-schedules/sync', [AdminController::class, 'syncGadSchedule'])->name('gad-schedules.sync');
         Route::post('/office-info', [AdminController::class, 'updateOfficeInfo'])->name('office-info.update');
@@ -123,12 +124,14 @@ Route::middleware(['auth'])->group(function () {
         // Messaging & Communication
         Route::get('/messaging', [StudentController::class, 'messaging'])->name('messaging');
         Route::post('/messages/store', [StudentController::class, 'storeMessage'])->name('messages.store');
+        Route::get('/messages/feed', [StudentController::class, 'messageFeed'])->name('messages.feed');
         Route::post('/messages/{id}/update', [StudentController::class, 'updateMessage'])->name('messages.update');
         Route::delete('/messages/{id}', [StudentController::class, 'destroyMessage'])->name('messages.destroy');
         Route::get('/announcement/{id}', [StudentController::class, 'announcement'])->name('announcement');
         // Urgent video/voice call (placeholder Zoom-like page)
         Route::get('/urgent', [StudentController::class, 'urgentCall'])->name('urgent');
         Route::post('/urgent/notify', [StudentController::class, 'urgentNotify'])->name('urgent.notify');
+        Route::post('/urgent/{callId}/end', [StudentController::class, 'endUrgentCall'])->name('urgent.end');
         // Event pages for carousel items
         Route::get('/event/{id}', [StudentController::class, 'event'])->name('event');
     });

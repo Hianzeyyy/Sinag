@@ -30,14 +30,20 @@ class ContentModeration
     public static function containsHarshLanguage(string $text): bool
     {
         $normalized = self::normalize($text);
-        $compactNormalized = preg_replace('/(.)\1+/u', '$1', str_replace(' ', '', $normalized)) ?? $normalized;
 
         foreach (self::HARSH_WORDS as $word) {
             $normalizedWord = self::normalize($word);
             $compactWord = preg_replace('/(.)\1+/u', '$1', str_replace(' ', '', $normalizedWord)) ?? $normalizedWord;
+            $letters = preg_split('//u', $compactWord, -1, PREG_SPLIT_NO_EMPTY);
+            if (!$letters) {
+                continue;
+            }
 
-            if (preg_match('/\b' . preg_quote($normalizedWord, '/') . '\b/u', $normalized) === 1
-                || ($compactWord !== '' && str_contains($compactNormalized, $compactWord))) {
+            $pattern = '/(?<![\pL\pN])'
+                . implode('\s*', array_map(fn (string $letter): string => preg_quote($letter, '/') . '+', $letters))
+                . '(?![\pL\pN])/u';
+
+            if (preg_match($pattern, $normalized) === 1) {
                 return true;
             }
         }

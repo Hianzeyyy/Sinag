@@ -199,7 +199,7 @@
 </style>
 
 @if(session('status'))
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 3000;">
+    <div class="toast-container p-3">
         <div id="personalDataToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header" style="background:#f5f3ff; color:#5b4b9b;">
                 <i class="bi bi-check-circle-fill me-2"></i>
@@ -260,7 +260,8 @@
                 <div class="pd-grid">
                     <div>
                         <label class="pd-label">Full Name</label>
-                        <input type="text" name="name" value="{{ old('name', $user->name ?? '') }}" class="form-control pd-input" required>
+                        <div class="form-control pd-input bg-light">{{ $user->name }}</div>
+                        <small class="text-muted">Automatically updated from your first, middle, and last name.</small>
                     </div>
                     <div>
                         <label class="pd-label">Email</label>
@@ -275,12 +276,12 @@
                         <input type="text" name="first_name" value="{{ old('first_name', $user->first_name ?? '') }}" class="form-control pd-input" required>
                     </div>
                     <div>
-                        <label class="pd-label">Middle Name</label>
-                        <input type="text" name="middle_name" value="{{ old('middle_name', $user->middle_name ?? '') }}" class="form-control pd-input">
+                        <label class="pd-label">Middle Name <span class="text-muted">(optional)</span></label>
+                        <input type="text" name="middle_name" value="{{ old('middle_name', $user->middle_name ?? '') }}" class="form-control pd-input" placeholder="Optional">
                     </div>
                     <div>
                         <label class="pd-label">Phone Number <span class="text-danger">*</span></label>
-                        <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number ?? '') }}" class="form-control pd-input" required>
+                        <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number ?? '') }}" class="form-control pd-input" placeholder="e.g. 09123456789" inputmode="numeric" pattern="[0-9]*" required>
                     </div>
                     <div>
                         <label class="pd-label">Age <span class="text-danger">*</span></label>
@@ -288,12 +289,14 @@
                     </div>
                     <div>
                         <label class="pd-label">Gender <span class="text-danger">*</span></label>
-                        <select name="gender" class="form-select pd-select" required>
-                            <option value="">Select gender</option>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
                             @foreach(['Male', 'Female', 'Prefer not to say'] as $option)
-                                <option value="{{ $option }}" {{ old('gender', $user->gender ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>
+                                <label class="btn btn-light border rounded-pill px-3 py-2 mb-0 {{ old('gender', $user->gender ?? '') === $option ? 'active border-primary text-primary' : '' }}" style="font-weight:700;">
+                                    <input type="radio" name="gender" value="{{ $option }}" {{ old('gender', $user->gender ?? '') === $option ? 'checked' : '' }} required class="form-check-input me-2">
+                                    {{ $option }}
+                                </label>
                             @endforeach
-                        </select>
+                        </div>
                     </div>
                     <div>
                         <label class="pd-label">Department / Course <span class="text-danger">*</span></label>
@@ -301,7 +304,10 @@
                     </div>
                     <div>
                         <label class="pd-label">Cloak Alias</label>
-                        <input type="text" name="cloak_alias" value="{{ old('cloak_alias', $user->cloak_alias ?? '') }}" class="form-control pd-input">
+                        <input type="text" name="cloak_alias" @if($returnToSuggestions ?? false) id="suggestionAlias" @endif value="{{ old('cloak_alias', $user->cloak_alias ?? '') }}" class="form-control pd-input">
+                        @if($returnToSuggestions ?? false)
+                            <div id="aliasAvailabilityStatus" class="small mt-2 d-none"></div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -311,12 +317,22 @@
                 <div class="pd-grid">
                     <div><label class="pd-label">Date of Birth <span class="text-danger">*</span></label><input type="date" name="personal_information[date_of_birth]" value="{{ old('personal_information.date_of_birth', $personal['date_of_birth'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Place of Birth <span class="text-danger">*</span></label><input type="text" name="personal_information[place_of_birth]" value="{{ old('personal_information.place_of_birth', $personal['place_of_birth'] ?? '') }}" class="form-control pd-input" required></div>
-                    <div><label class="pd-label">Sex <span class="text-danger">*</span></label><select name="personal_information[sex]" class="form-select pd-select" required><option value="">Select sex</option>@foreach(['Male','Female','Intersex','Prefer not to say'] as $option)<option value="{{ $option }}" {{ old('personal_information.sex', $personal['sex'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>
+                    <div>
+                        <label class="pd-label">Sex <span class="text-danger">*</span></label>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            @foreach(['Male', 'Female', 'Prefer not to say'] as $option)
+                                <label class="btn btn-light border rounded-pill px-3 py-2 mb-0 {{ old('personal_information.sex', $personal['sex'] ?? '') === $option ? 'active border-primary text-primary' : '' }}" style="font-weight:700;">
+                                    <input type="radio" name="personal_information[sex]" value="{{ $option }}" {{ old('personal_information.sex', $personal['sex'] ?? '') === $option ? 'checked' : '' }} required class="form-check-input me-2">
+                                    {{ $option }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
                     <div><label class="pd-label">Gender Identity <span class="text-danger">*</span></label><input type="text" name="personal_information[gender_identity]" value="{{ old('personal_information.gender_identity', $personal['gender_identity'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Citizenship <span class="text-danger">*</span></label><input type="text" name="personal_information[citizenship]" value="{{ old('personal_information.citizenship', $personal['citizenship'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Blood Type <span class="text-danger">*</span></label><select name="personal_information[blood_type]" class="form-select pd-select" required><option value="">Select blood type</option>@foreach(['A+','A-','B+','B-','AB+','AB-','O+','O-','Unknown'] as $option)<option value="{{ $option }}" {{ old('personal_information.blood_type', $personal['blood_type'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>
-                    <div><label class="pd-label">Height <span class="text-danger">*</span></label><input type="text" name="personal_information[height]" value="{{ old('personal_information.height', $personal['height'] ?? '') }}" class="form-control pd-input" required></div>
-                    <div><label class="pd-label">Weight <span class="text-danger">*</span></label><input type="text" name="personal_information[weight]" value="{{ old('personal_information.weight', $personal['weight'] ?? '') }}" class="form-control pd-input" required></div>
+                    <div><label class="pd-label">Height <span class="text-danger">*</span></label><input type="number" step="0.1" min="0" max="500" name="personal_information[height]" value="{{ old('personal_information.height', $personal['height'] ?? '') }}" class="form-control pd-input" required></div>
+                    <div><label class="pd-label">Weight <span class="text-danger">*</span></label><input type="number" step="0.1" min="0" max="500" name="personal_information[weight]" value="{{ old('personal_information.weight', $personal['weight'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Landline Number <span class="text-danger">*</span></label><input type="text" name="personal_information[landline_number]" value="{{ old('personal_information.landline_number', $personal['landline_number'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Civil Status <span class="text-danger">*</span></label><select name="personal_information[civil_status]" class="form-select pd-select" required><option value="">Select status</option>@foreach(['Single','Married','Separated','Widowed','Prefer not to say'] as $option)<option value="{{ $option }}" {{ old('personal_information.civil_status', $personal['civil_status'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>
                     <div style="grid-column: 1 / -1;"><label class="pd-label">Current Address <span class="text-danger">*</span></label><textarea name="personal_information[current_address]" class="form-control pd-textarea" required>{{ old('personal_information.current_address', $personal['current_address'] ?? '') }}</textarea></div>
@@ -354,6 +370,7 @@
                 </div>
             </div>
 
+            @unless($isEmployee)
             <div class="pd-form-section pd-edit-section" data-section="student">
                 <div class="pd-form-section pd-edit-section-title">Student Information</div>
                 <div class="pd-grid">
@@ -372,6 +389,7 @@
                             <option value="0" {{ old('student_information.gad_training_attended', isset($student['gad_training_attended']) && $student['gad_training_attended'] === false ? '0' : '') === '0' ? 'selected' : '' }}>No</option>
                         </select>
                     </div>
+                    @endunless
                     <div style="grid-column: 1 / -1;"><label class="pd-label">GAD Training Details</label><textarea name="student_information[gad_training_details]" class="form-control pd-textarea">{{ old('student_information.gad_training_details', $student['gad_training_details'] ?? '') }}</textarea></div>
                 </div>
             </div>
@@ -385,7 +403,7 @@
                 </div>
             </div>
 
-            @if(($user->account_type ?? 'student') === 'employee')
+            @if($isEmployee)
                 <div class="pd-form-section pd-edit-section" data-section="employee">
                     <div class="pd-form-section pd-edit-section-title">Employee Records</div>
                     <p class="pd-form-note mb-3">Enter your information in plain text. You may use multiple lines for separate entries.</p>
@@ -400,7 +418,12 @@
             @endif
 
             <div class="pd-edit-actions">
-                <a href="{{ route('personal-data.show') }}" class="btn rounded-pill px-4 fw-bold" style="background:#f5f3ff; color:#5b4b9b; border:1px solid #d8cdfc;"><i class="bi bi-arrow-left me-1"></i>Return to Personal Data</a>
+                @if($returnToSuggestions ?? false)
+                    <input type="hidden" name="return_to_suggestions" value="1">
+                    <a href="{{ route('student.dashboard') }}" class="btn rounded-pill px-4 fw-bold" style="background:#f5f3ff; color:#5b4b9b; border:1px solid #d8cdfc;"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a>
+                @else
+                    <a href="{{ route('personal-data.show') }}" class="btn rounded-pill px-4 fw-bold" style="background:#f5f3ff; color:#5b4b9b; border:1px solid #d8cdfc;"><i class="bi bi-arrow-left me-1"></i>Return to Personal Data</a>
+                @endif
                 <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background: linear-gradient(135deg, #A594F9 0%, #8f72f5 100%); border: 0;">
                     <i class="bi bi-save2 me-1"></i> Save Personal Data
                 </button>

@@ -75,7 +75,7 @@
                 <div class="d-flex gap-2 justify-content-md-end mt-3 mt-md-0">
                     <div class="input-group input-group-sm w-75 shadow-sm">
                         <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="search" id="userSearch" name="q" value="{{ request('q') }}" class="form-control border-start-0" placeholder="Search name, email, phone...">
+                        <input type="search" id="userSearch" name="q" value="{{ request('q') }}" class="form-control border-start-0" placeholder="Search name, alias, email, phone...">
                     </div>
                     <button type="submit" class="btn btn-sm btn-primary px-3"><i class="bi bi-search me-1"></i>Search</button>
                 </div>
@@ -158,7 +158,11 @@
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
                                     @endif
-                                    <div><span class="d-block fw-bold text-dark">{{ $user->name }}</span><span class="d-block small text-muted">{{ $fullDepartment }}</span></div>
+                                    <div>
+                                        <span class="d-block fw-bold text-dark">{{ $user->name }}</span>
+                                        <span class="d-block small text-muted">{{ $fullDepartment }}</span>
+                                        <span class="d-block small text-primary">Alias: {{ $user->cloak_alias ?: 'Not set' }}</span>
+                                    </div>
                                 </div>
                             </td>
                             <td><span class="small text-dark">{{ $user->email }}</span></td>
@@ -170,7 +174,7 @@
                             </td>
                             <td class="text-end pe-4">
                                 <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm view-user-btn" style="background:#A594F9;border:none;" data-bs-toggle="modal" data-bs-target="#viewUserModal"
-                                    data-user-name="{{ $user->name }}" data-user-email="{{ $user->email }}" data-user-id="UID-{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}" data-user-type="{{ $displayType }}" data-user-department="{{ $fullDepartment }}" data-user-status="{{ ucfirst($accountStatus) }}" data-user-phone="{{ $user->phone_number ?: 'Not provided' }}" data-user-gender="{{ $user->gender ?: 'Not provided' }}" data-user-age="{{ $user->age ?: 'Not provided' }}" data-user-joined="{{ optional($user->created_at)->format('F d, Y h:i A') }}" data-user-photo="{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : '' }}" data-user-id-picture="{{ ($user->id_image_path ?: $user->selfie_image_path) ? route('profile.verification-image', $user) : '' }}" data-personal-data-url="{{ route('admin.users.personal-data', $user->id) }}" data-approve-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.approve', $user->id) : '' }}" data-reject-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.reject', $user->id) : '' }}">
+                                    data-user-name="{{ $user->name }}" data-user-alias="{{ $user->cloak_alias ?: 'Not set' }}" data-user-email="{{ $user->email }}" data-user-id="UID-{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}" data-user-type="{{ $displayType }}" data-user-department="{{ $fullDepartment }}" data-user-status="{{ ucfirst($accountStatus) }}" data-user-phone="{{ $user->phone_number ?: 'Not provided' }}" data-user-gender="{{ $user->gender ?: 'Not provided' }}" data-user-age="{{ $user->age ?: 'Not provided' }}" data-user-joined="{{ optional($user->created_at)->format('F d, Y h:i A') }}" data-user-photo="{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : '' }}" data-user-id-picture="{{ ($user->id_image_path ?: $user->selfie_image_path) ? route('profile.verification-image', $user) : '' }}" data-personal-data-url="{{ route('admin.users.personal-data', $user->id) }}" data-approve-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.approve', $user->id) : '' }}" data-reject-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.reject', $user->id) : '' }}">
                                     <i class="bi bi-eye me-1"></i>View
                                 </button>
                             </td>
@@ -192,6 +196,7 @@
             <div class="modal-body p-4 view-modal-body">
                 <div class="d-flex align-items-center gap-3 mb-4 pb-4 border-bottom"><div id="viewUserAvatar" class="rounded-3 d-flex align-items-center justify-content-center fw-bold" style="width:88px;height:88px;background:#f3e8ff;color:#8f72f5;font-size:2rem;">U</div><div><h3 class="h4 mb-1" id="viewUserName">User</h3><p class="mb-1 text-muted" id="viewUserType"></p><p class="mb-0 small text-muted" id="viewUserId"></p></div></div>
                 <div class="row g-3">
+                    <div class="col-sm-6"><div class="bg-light rounded-3 p-3"><div class="small text-muted fw-bold text-uppercase mb-1">Cloak alias</div><div class="fw-semibold small" id="viewUserAlias"></div></div></div>
                     <div class="col-sm-6"><div class="bg-light rounded-3 p-3"><div class="small text-muted fw-bold text-uppercase mb-1">Email</div><div class="fw-semibold small" id="viewUserEmail"></div></div></div>
                     <div class="col-sm-6"><div class="bg-light rounded-3 p-3"><div class="small text-muted fw-bold text-uppercase mb-1">Account status</div><div class="fw-semibold" id="viewUserStatus"></div></div></div>
                     <div class="col-sm-6"><div class="bg-light rounded-3 p-3"><div class="small text-muted fw-bold text-uppercase mb-1">Course / Department</div><div class="fw-semibold small" id="viewUserDepartment"></div></div></div>
@@ -221,14 +226,25 @@
     document.querySelectorAll('.view-user-btn').forEach(function (button) {
         button.addEventListener('click', function () {
             const data = this.dataset;
-            ['Name', 'Type', 'Id', 'Email', 'Status', 'Department', 'Gender', 'Age', 'Joined'].forEach(function (field) {
+            ['Name', 'Alias', 'Type', 'Id', 'Email', 'Status', 'Department', 'Gender', 'Age', 'Joined'].forEach(function (field) {
                 const target = document.getElementById('viewUser' + field);
                 if (target) target.textContent = data['user' + field];
             });
             const phoneTarget = document.getElementById('viewUserPhone');
             if (phoneTarget) {
                 if (data.userPhone && data.userPhone !== 'Not provided' && data.userPhone !== 'N/A') {
-                    phoneTarget.innerHTML = `<a href="tel:${data.userPhone}" class="text-decoration-none text-primary"><i class="bi bi-telephone-outbound me-1"></i>${data.userPhone}</a>`;
+                    const telephoneNumber = data.userPhone.replace(/[^\d+*#,;]/g, '');
+                    if (telephoneNumber) {
+                        const link = document.createElement('a');
+                        link.href = 'tel:' + telephoneNumber;
+                        link.className = 'text-decoration-none text-primary';
+                        link.textContent = data.userPhone;
+                        const icon = document.createElement('i');
+                        icon.className = 'bi bi-telephone-outbound me-1';
+                        phoneTarget.replaceChildren(icon, link);
+                    } else {
+                        phoneTarget.textContent = data.userPhone;
+                    }
                 } else {
                     phoneTarget.textContent = 'Not provided';
                 }

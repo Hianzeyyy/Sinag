@@ -14,14 +14,31 @@
     <?php echo app('Illuminate\Foundation\Vite')(['resources/sass/app.scss', 'resources/js/app.js']); ?>
 
     <style>
-        body { 
-            background-color: #f8fafc; 
-            font-family: 'Nunito', sans-serif; 
-            overflow-x: hidden;
+        html {
+            min-height: 100%;
+            height: auto;
+            overflow-x: clip;
+            overflow-y: auto;
         }
 
-        .brand-descriptor { max-width: none; white-space: nowrap; line-height: 1.15; font-size: .82rem; }
-        @media (min-width: 992px) {
+        body {
+            background-color: #f8fafc; 
+            font-family: 'Nunito', sans-serif; 
+            min-height: 100vh;
+            min-height: 100dvh;
+            height: auto;
+            overflow-x: clip;
+            overflow-y: visible;
+        }
+
+        body.page-scroll-locked {
+            position: fixed;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .brand-descriptor { max-width: 100%; white-space: normal; overflow-wrap: normal; word-break: normal; line-height: 1.15; font-size: .82rem; }
+        @media (min-width: 1200px) {
             .top-navbar.student-navbar { flex-direction: column; align-items: stretch; gap: .45rem; }
             .student-navbar > .d-flex:first-child { width: 100%; min-width: 0; justify-content: center; }
             .student-navbar > .d-flex:last-child { width: 100%; flex: 0 0 auto; justify-content: center; }
@@ -33,32 +50,173 @@
             .top-navbar > .d-flex:first-child { width: 100%; min-width: 0; }
             .top-navbar > .d-flex:last-child { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: .45rem !important; }
             .navbar-brand-custom { gap: .65rem !important; max-width: 100%; }
-            .navbar-brand-custom .brand-descriptor { display: block !important; max-width: 230px; white-space: normal; font-size: .78rem; }
+            .student-navbar .navbar-brand-custom { width: 100%; flex-wrap: wrap; justify-content: center; }
+            .student-navbar .brand-descriptor {
+                display: block !important;
+                flex: 0 0 100%;
+                max-width: 100%;
+                white-space: normal;
+                text-align: center;
+                font-size: .72rem;
+                line-height: 1.2;
+            }
+            .admin-navbar .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                flex: 0 0 100%;
+                max-width: 100%;
+                min-width: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
+                text-align: center;
+                font-size: clamp(.72rem, 1.2vw, .82rem) !important;
+                line-height: 1.2;
+            }
             .student-top-nav { order: 2; width: 100%; overflow-x: auto; }
+        }
+
+        /* Keep the tablet header compact instead of stacking the full student
+           navigation into a tall, wrapping bar. */
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .student-navbar {
+                flex-wrap: wrap;
+                gap: .75rem;
+                padding-inline: 1rem;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                width: 100%;
+                flex: 0 0 100%;
+                min-width: 0;
+                justify-content: center;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                width: 100%;
+                flex: 0 0 100%;
+                min-width: 0;
+                justify-content: center;
+            }
+
+            .student-navbar .student-top-nav {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                min-width: 0;
+                scrollbar-width: thin;
+            }
+
+            .student-navbar .brand-descriptor {
+                flex: 0 0 100%;
+                max-width: none;
+                white-space: normal;
+                text-align: center;
+            }
+
+            .admin-navbar {
+                flex-wrap: wrap;
+                gap: .75rem;
+            }
+
+            .admin-navbar > .d-flex:first-child,
+            .admin-navbar > .d-flex:last-child {
+                width: 100%;
+                flex: 0 0 100%;
+                justify-content: center;
+            }
+
+            .admin-navbar .navbar-brand-custom {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .admin-navbar .navbar-brand-custom > .brand-descriptor {
+                flex: 0 0 100%;
+                max-width: 100%;
+                min-width: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
+                text-align: center;
+                font-size: clamp(.72rem, 1.2vw, .82rem) !important;
+                line-height: 1.2;
+            }
+
+            .student-navbar .student-nav-link {
+                padding-inline: .55rem;
+                font-size: .78rem;
+                white-space: nowrap;
+            }
+
+            .admin-navbar {
+                padding-inline: 1rem;
+                flex-wrap: wrap;
+                gap: .75rem;
+            }
+
+            .admin-navbar > .d-flex:first-child,
+            .admin-navbar > .d-flex:last-child {
+                width: 100%;
+                flex: 0 0 100%;
+                justify-content: center;
+            }
+
+            .admin-navbar .navbar-brand-custom {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .admin-navbar .brand-descriptor {
+                flex: 0 0 100%;
+                max-width: 100%;
+                white-space: normal;
+                text-align: center;
+                font-size: .72rem !important;
+                line-height: 1.2;
+            }
+
+            .admin-main > .p-4,
+            .admin-main > .p-4.p-lg-5 {
+                padding: 1rem !important;
+            }
         }
 
         .main-wrapper {
             display: flex;
             min-height: 100vh;
+            min-height: 100dvh;
+            height: auto;
+            overflow: visible;
         }
 
         .sidebar {
-            width: 280px;
+            width: 0;
+            flex: 0 0 0;
+            min-width: 0;
             background: white;
             border-right: 1px solid #e2e8f0;
-            position: fixed;
-            height: 100vh;
-            padding: 2rem 1.5rem;
-            z-index: 2000;
+            position: static;
+            height: auto;
+            max-height: none;
+            padding: 0;
             display: flex;
             flex-direction: column;
-            left: -280px; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            visibility: hidden;
+            transition: none;
         }
 
         .sidebar.active {
-            left: 0;
-            box-shadow: 10px 0 30px rgba(0,0,0,0.08);
+            width: 280px;
+            flex-basis: 280px;
+            padding: 2rem 1.5rem;
+            overflow: visible;
+            visibility: visible;
+        }
+
+        .sidebar .nav-menu {
+            height: auto !important;
+            min-height: 0;
+            flex: 1 0 auto;
         }
 
         .top-navbar {
@@ -68,9 +226,12 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        .student-navbar {
+            z-index: 30;
         }
 
         .user-meta {
@@ -103,8 +264,10 @@
         .profile-avatar {
             width: 30px;
             height: 30px;
+            flex: 0 0 30px;
             border-radius: 50%;
             object-fit: cover;
+            object-position: center;
             background: #1877f2;
             color: #fff;
             display: inline-flex;
@@ -130,6 +293,7 @@
             border: 1px solid #e2e8f0;
             box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
             padding: 0.75rem;
+            z-index: 31;
         }
 
         .profile-dropdown-head {
@@ -167,11 +331,20 @@
             text-decoration: none;
             border-radius: 12px;
             margin-bottom: 0.5rem;
-            transition: all 0.3s ease;
+            transition: all 0.22s ease;
             font-weight: 600;
             border: none;
             background: none;
             width: 100%;
+            transform: translateX(0);
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom:focus-visible {
+            background: linear-gradient(135deg, rgba(165, 148, 249, 0.12), rgba(250, 204, 21, 0.12));
+            color: #4c1d95;
+            transform: translateX(4px);
+            box-shadow: 0 8px 18px rgba(165, 148, 249, 0.12);
         }
 
         .nav-link-custom i { font-size: 1.2rem; margin-right: 1rem; }
@@ -180,6 +353,25 @@
             background-color: #A594F9 !important; 
             color: white !important;
             box-shadow: 0 4px 12px rgba(165, 148, 249, 0.28);
+            transform: translateX(2px);
+        }
+
+        .student-sidebar .nav-link-custom {
+            transition: background-color .18s ease, color .18s ease, transform .18s ease, box-shadow .18s ease;
+        }
+
+        .student-sidebar .nav-link-custom:hover,
+        .student-sidebar .nav-link-custom:focus-visible {
+            background: #f3efff;
+            color: #7658df;
+            transform: translateX(5px);
+            box-shadow: 0 6px 16px rgba(143, 114, 245, .14);
+        }
+
+        .student-sidebar .nav-link-custom.active:hover,
+        .student-sidebar .nav-link-custom.active:focus-visible {
+            background: #8f72f5 !important;
+            color: #fff !important;
         }
 
         .nav-link-logout:hover {
@@ -191,9 +383,24 @@
             flex: 1;
             margin-left: 0;
             width: 100%;
+            min-width: 0;
+            min-height: 0;
+            height: auto;
+            overflow: visible;
             transition: all 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
+            align-items: stretch;
+        }
+
+        .main-content > .p-4,
+        .main-content > .p-4.p-lg-5 {
+            min-width: 0;
+            flex: 0 0 auto;
+        }
+
+        .main-content > .p-4 {
+            flex: 0 0 auto;
         }
 
         .login-main {
@@ -205,6 +412,7 @@
         .auth-main {
             width: 100%;
             max-width: none;
+            min-height: 0;
             padding: 0 !important;
         }
 
@@ -214,10 +422,65 @@
             max-width: none;
         }
 
-        @media (min-width: 992px) {
-            .sidebar-open .main-content {
-                margin-left: 280px;
-                width: calc(100% - 280px);
+        .splash-wrapper > main {
+            display: flex;
+            flex: 0 0 auto;
+            width: 100%;
+            min-width: 0;
+            max-width: none;
+            min-height: 0;
+            padding: 0 !important;
+            box-sizing: border-box;
+        }
+
+        .splash-wrapper > main > .p-4,
+        .splash-wrapper > main > .p-4.p-lg-5 {
+            display: flex;
+            flex: 0 0 auto;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            min-height: 0;
+            padding: 0 !important;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-wrapper {
+                flex-direction: column;
+            }
+
+            .sidebar.active {
+                width: 100%;
+                flex-basis: auto;
+                position: static;
+                height: auto;
+                max-height: min(70dvh, 40rem);
+                overflow-y: auto;
+                overscroll-behavior-y: contain;
+                -webkit-overflow-scrolling: touch;
+                touch-action: pan-y;
+            }
+
+            .sidebar.active .nav-menu {
+                flex: 0 0 auto;
+            }
+
+            .main-content {
+                width: 100%;
+                flex: 0 0 auto;
+            }
+
+            .main-content > .p-4,
+            .main-content > .p-4.p-lg-5 {
+                padding: 1rem 1rem max(1rem, env(safe-area-inset-bottom)) !important;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .main-content > .p-4,
+            .main-content > .p-4.p-lg-5 {
+                padding: .75rem .75rem max(.75rem, env(safe-area-inset-bottom)) !important;
             }
         }
 
@@ -249,6 +512,14 @@
             flex-wrap: wrap;
         }
 
+        .student-mobile-messaging-link {
+            display: none !important;
+        }
+
+        .student-sidebar-toggle {
+            display: none;
+        }
+
         .student-navbar > .d-flex:last-child {
             min-width: 0;
         }
@@ -257,20 +528,115 @@
             display: none;
         }
 
-        .student-mobile-menu-toggle,
-        .student-mobile-menu {
-            display: none;
-        }
-
         @media (max-width: 991.98px) {
-            .top-navbar.admin-navbar {
-                transition: transform 0.24s ease, box-shadow 0.24s ease;
-                will-change: transform;
+            .admin-navbar {
+                flex-wrap: wrap;
+                gap: .4rem;
             }
 
-            .top-navbar.admin-navbar.navbar-hidden {
-                transform: translateY(-100%);
-                box-shadow: none;
+            .admin-navbar > .d-flex:first-child {
+                display: grid !important;
+                grid-template-columns: 40px minmax(0, 1fr);
+                align-items: center;
+                column-gap: .45rem;
+                row-gap: .2rem;
+                width: 100%;
+                flex: 0 0 100%;
+                min-width: 0;
+            }
+
+            .admin-navbar > .d-flex:first-child > .sidebar-toggle {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .admin-navbar .navbar-brand-custom {
+                display: grid !important;
+                grid-template-columns: auto minmax(0, 1fr);
+                align-items: center;
+                column-gap: .4rem !important;
+                row-gap: .2rem;
+                grid-column: 2;
+                grid-row: 1;
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                margin: 0 !important;
+            }
+
+            .admin-navbar .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+                flex-shrink: 0;
+            }
+
+            .admin-navbar .navbar-brand-custom img {
+                width: 34px !important;
+                height: 34px !important;
+                flex: 0 0 34px;
+            }
+
+            .admin-navbar .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                font-size: 1.4rem !important;
+            }
+
+            .admin-navbar .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                grid-column: 1 / -1;
+                grid-row: 2;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
+                text-align: center;
+                font-size: clamp(.72rem, 1.2vw, .82rem) !important;
+                line-height: 1.2;
+            }
+
+            .admin-navbar > .d-flex:last-child {
+                width: 100%;
+                flex: 0 0 100%;
+                justify-content: center;
+                gap: .25rem !important;
+            }
+
+            .admin-navbar > .d-flex:last-child > a[href*="/admin/messages"] {
+                display: none !important;
+            }
+
+            .admin-navbar .profile-menu-btn {
+                min-height: 38px;
+                padding: .2rem;
+            }
+
+            .admin-navbar .profile-avatar {
+                width: 34px !important;
+                height: 34px !important;
+                flex: 0 0 34px;
+                border-radius: 50%;
+                object-fit: cover;
+                object-position: center;
+            }
+
+            .admin-navbar img.profile-avatar {
+                display: block;
+            }
+
+            .admin-navbar .profile-mini-name {
+                display: none;
+            }
+
+            .admin-main .card-header {
+                flex-wrap: wrap;
+                gap: .75rem;
+            }
+
+            .admin-main .card-header .input-group {
+                width: min(100%, 250px) !important;
             }
 
             .admin-navbar .navbar-brand-custom {
@@ -292,54 +658,178 @@
             }
         }
 
-        @media (max-width: 991.98px) {
-            .student-navbar {
-                transition: transform 0.24s ease, box-shadow 0.24s ease;
-                will-change: transform;
-            }
-
-            .student-navbar.navbar-hidden {
-                transform: translateY(-100%);
-                box-shadow: none;
-            }
-        }
-
         @media (max-width: 767.98px) {
-            .admin-navbar { flex-direction: row !important; align-items: center !important; flex-wrap: nowrap !important; gap: .4rem !important; padding: .5rem .65rem !important; }
-            .admin-navbar > .d-flex:first-child { width: auto !important; flex: 1 1 auto; min-width: 0; }
-            .admin-navbar .brand-descriptor { display: none !important; }
-            .admin-navbar .navbar-brand-custom { gap: .4rem !important; max-width: 100%; }
-            .admin-navbar .navbar-brand-custom > div { flex-shrink: 0; }
-            .admin-navbar .navbar-brand-custom img { width: 30px !important; height: 30px !important; }
-            .admin-navbar .navbar-brand-custom > span { font-size: 1.35rem !important; }
-            .admin-navbar > .d-flex:last-child { width: auto !important; flex: 0 0 auto !important; gap: .25rem !important; }
-            .admin-navbar > .d-flex:last-child > a[href*="/admin/messages"] { display: none !important; }
-            .admin-navbar .profile-menu-btn { min-height: 38px; padding: .2rem; }
+            .admin-navbar { flex-direction: row !important; padding: .5rem .65rem !important; }
+            .admin-navbar > .d-flex:first-child { padding-right: 2.8rem; }
+            .admin-navbar > .d-flex:last-child {
+                position: absolute;
+                top: .5rem;
+                right: .65rem;
+                width: auto;
+                flex: 0 0 auto;
+                justify-content: flex-end;
+            }
+            .admin-navbar .profile-avatar {
+                width: 34px !important;
+                height: 34px !important;
+                flex: 0 0 34px;
+                border-radius: 50%;
+                object-fit: cover;
+                object-position: center;
+            }
+            .admin-navbar img.profile-avatar { display: block; }
             .admin-navbar .profile-mini-name { display: none; }
             .admin-navbar + .p-4.p-lg-5 { padding: .75rem !important; }
             .admin-main h1, .admin-main h2, .admin-main h3 { overflow-wrap: anywhere; line-height: 1.15; }
             .admin-main .container, .admin-main .container-fluid { max-width: 100%; padding-inline: .25rem; }
             .admin-main .card { border-radius: 14px !important; }
+            .admin-main .card-header { flex-wrap: wrap; gap: .75rem; }
+            .admin-main .card-header > * { min-width: 0; }
+            .admin-main .card-header .input-group { width: min(100%, 20rem) !important; }
+            .admin-main .table-responsive { max-width: 100%; }
 
             .student-navbar { flex-direction: row !important; align-items: center !important; flex-wrap: nowrap !important; gap: .35rem !important; padding: .5rem .65rem !important; }
             .student-navbar > .d-flex:first-child { width: auto !important; flex: 1 1 auto; justify-content: flex-start !important; min-width: 0; }
-            .student-navbar > .d-flex:first-child .navbar-brand-custom { gap: .4rem !important; max-width: 100%; }
-            .student-navbar > .d-flex:first-child .navbar-brand-custom > div { flex-shrink: 0; }
+            .student-navbar > .d-flex:first-child .navbar-brand-custom {
+                display: grid !important;
+                width: 100%;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-rows: auto auto;
+                align-items: center;
+                column-gap: .4rem !important;
+                row-gap: 0 !important;
+                max-width: 100%;
+            }
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1 / span 2;
+                flex-shrink: 0;
+            }
             .student-navbar > .d-flex:first-child .navbar-brand-custom img { width: 30px !important; height: 30px !important; }
-            .student-navbar > .d-flex:first-child .navbar-brand-custom > span:not(.brand-descriptor) { font-size: 1.35rem !important; }
-            .student-navbar .brand-descriptor, .student-navbar .student-top-nav, .student-navbar .student-mobile-scroll-hint, .student-navbar > .d-flex:last-child > a[href*="/messaging"] { display: none !important; }
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                align-self: end;
+                font-size: 1.35rem !important;
+            }
+            .student-navbar .brand-descriptor {
+                display: block !important;
+                grid-column: 1 / -1;
+                grid-row: 2;
+                align-self: start;
+                max-width: 100%;
+                min-width: 0;
+                white-space: normal;
+                font-size: .55rem !important;
+                line-height: 1.05;
+                text-align: center;
+            }
+            .student-navbar .student-top-nav, .student-navbar .student-mobile-scroll-hint, .student-navbar > .d-flex:last-child > a[href*="/messaging"] { display: none !important; }
             .student-navbar > .d-flex:last-child { width: auto !important; flex: 0 0 auto !important; overflow: visible !important; padding: 0 !important; gap: .25rem !important; }
-            .student-mobile-menu-toggle { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 0; border-radius: 11px; background: #A594F9; color: #fff; box-shadow: 0 5px 14px rgba(143,114,245,.24); }
             .student-navbar .profile-menu-btn { min-height: 38px; padding: .2rem; }
             .student-navbar .profile-mini-name { display: none; }
             .student-navbar > .d-flex:last-child > .text-end { display: block !important; }
-            .student-mobile-menu { position: fixed; inset: 0; z-index: 2500; background: rgba(15,23,42,.38); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
-            .student-mobile-menu.is-open { display: block; opacity: 1; pointer-events: auto; }
-            .student-mobile-menu-panel { width: min(82vw, 300px); height: 100%; padding: 1.2rem 1rem; background: #fff; box-shadow: 12px 0 28px rgba(15,23,42,.18); transform: translateX(-100%); transition: transform .24s ease; }
-            .student-mobile-menu.is-open .student-mobile-menu-panel { transform: translateX(0); }
-            .student-mobile-menu-link { display: flex; align-items: center; gap: .75rem; padding: .8rem .75rem; margin-bottom: .35rem; border-radius: 11px; color: #475569; font-weight: 800; text-decoration: none; }
-            .student-mobile-menu-link:hover, .student-mobile-menu-link.active { background: #f3efff; color: #7658df; }
-            @media (prefers-reduced-motion: reduce) { .student-mobile-menu, .student-mobile-menu-panel { transition: none; } }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .top-navbar {
+                padding: .65rem 1rem;
+            }
+
+            .top-navbar > .d-flex:first-child,
+            .top-navbar > .d-flex:last-child {
+                min-width: 0;
+            }
+
+            .top-navbar > .d-flex:last-child {
+                gap: .35rem !important;
+            }
+
+            .navbar-brand-custom {
+                min-width: 0;
+            }
+
+            .navbar-brand-custom .brand-descriptor {
+                max-width: 100%;
+                overflow-wrap: anywhere;
+            }
+
+            .student-navbar {
+                flex-wrap: wrap !important;
+                align-items: center;
+                gap: .65rem;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                width: 100% !important;
+                flex: 0 0 100%;
+                justify-content: center !important;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                width: 100% !important;
+                flex: 0 0 100%;
+                justify-content: center !important;
+                flex-wrap: nowrap;
+            }
+
+            .student-navbar .student-top-nav {
+                display: flex;
+                flex-wrap: nowrap;
+                width: auto;
+                max-width: 100%;
+                overflow-x: auto;
+                scrollbar-width: thin;
+            }
+
+            .student-navbar .student-nav-link {
+                flex: 0 0 auto;
+                padding: .4rem .55rem;
+                font-size: .76rem;
+            }
+
+            .student-navbar .profile-mini-name {
+                max-width: 90px;
+            }
+
+            .main-content > .p-4,
+            .main-content > .p-4.p-lg-5 {
+                padding: 1rem !important;
+            }
+
+            .admin-main .row > [class*="col-"] {
+                min-width: 0;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                flex: 0 0 100%;
+            }
+
+            .student-navbar .brand-descriptor,
+            .student-navbar .student-top-nav,
+            .student-navbar .student-mobile-scroll-hint {
+                display: none !important;
+            }
+
+            .student-navbar .brand-descriptor {
+                display: block !important;
+                flex: 0 0 100%;
+                max-width: 100%;
+                white-space: normal;
+                font-size: .62rem !important;
+                line-height: 1.1;
+                text-align: center;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                flex: 0 0 100%;
+                justify-content: center !important;
+            }
+
+            .student-navbar .profile-menu-btn {
+                min-height: 40px;
+            }
+
         }
 
         .student-nav-link {
@@ -411,6 +901,19 @@
                 font-weight: 700;
                 pointer-events: none;
             }
+        }
+
+        .profile-avatar-fallback[hidden] {
+            display: none !important;
+        }
+
+        .profile-avatar-fallback {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #A594F9;
+            color: #fff;
+            font-weight: 800;
         }
 
         .student-nav-menu {
@@ -580,12 +1083,6 @@
                 max-width: calc(100vw - 1rem);
             }
 
-            .mobile-dropdown-portal {
-                display: block !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-            }
-
             .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
                 flex: 0 0 auto;
                 width: auto;
@@ -607,14 +1104,646 @@
             }
 
             .student-navbar .profile-avatar {
-                width: 28px;
-                height: 28px;
+                width: 34px;
+                height: 34px;
+                flex: 0 0 34px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .student-navbar {
+                display: grid !important;
+                grid-template-columns: 40px minmax(0, 1fr) auto;
+                align-items: start !important;
+                gap: .35rem !important;
+                width: 100%;
+                min-width: 0;
+                padding: .55rem .65rem !important;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                display: contents !important;
+            }
+
+            .student-navbar .navbar-brand-custom {
+                display: grid !important;
+                grid-column: 2;
+                grid-row: 1;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-rows: auto auto;
+                align-items: center;
+                column-gap: .35rem !important;
+                row-gap: .2rem !important;
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                margin: 0 !important;
+            }
+
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+                min-width: 0;
+                flex-shrink: 0;
+            }
+
+            .student-navbar > .d-flex:first-child .navbar-brand-custom img {
+                width: 30px !important;
+                height: 30px !important;
+            }
+
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                min-width: 0;
+                align-self: center;
+                font-size: 1.35rem !important;
+                line-height: 1;
+            }
+
+            .student-navbar > .d-flex:first-child .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                grid-column: 1 / -1;
+                grid-row: 2;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                margin: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
+                text-align: center;
+                font-size: clamp(.65rem, 2.1vw, .8rem) !important;
+                line-height: 1.2;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                display: flex !important;
+                grid-column: 3;
+                grid-row: 1;
+                align-items: center;
+                justify-content: flex-end !important;
+                width: auto !important;
+                min-width: 0;
+                max-width: 100%;
+                margin: 0;
+                padding: 0 !important;
+                overflow: visible !important;
+                gap: .2rem !important;
+            }
+
+            .student-navbar .student-top-nav,
+            .student-navbar .student-mobile-scroll-hint,
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: none !important;
+            }
+
+            .student-navbar .user-meta {
+                display: flex;
+                align-items: center;
+                gap: .15rem;
+            }
+
+            .student-navbar .profile-menu-btn {
+                min-height: 38px;
+                padding: .15rem;
+            }
+
+            .student-navbar .profile-avatar {
+                width: 34px !important;
+                height: 34px !important;
+                flex: 0 0 34px;
+                border-radius: 50%;
+                object-fit: cover;
+                object-position: center;
+            }
+
+            .student-navbar .profile-mini-name {
+                display: none;
+            }
+        }
+
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .student-navbar {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                align-items: center !important;
+                justify-content: center;
+                gap: .6rem !important;
+                min-width: 0;
+            }
+
+            .student-navbar > .d-flex:first-child,
+            .student-navbar > .d-flex:last-child {
+                width: 100% !important;
+                min-width: 0;
+                flex: 0 0 100% !important;
+                justify-content: center !important;
+            }
+
+            .student-navbar .navbar-brand-custom {
+                display: grid !important;
+                grid-template-columns: auto auto minmax(0, 1fr);
+                align-items: center;
+                column-gap: .5rem !important;
+                width: min(100%, 900px);
+                min-width: 0;
+                margin: 0 !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                white-space: nowrap;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                grid-column: 3;
+                grid-row: 1;
+                min-width: 0;
+                max-width: 100%;
+                white-space: normal;
+                text-align: left;
+                font-size: .78rem !important;
+                line-height: 1.2;
+            }
+
+            .student-navbar .student-top-nav {
+                display: flex !important;
+                flex-wrap: nowrap;
+                min-width: 0;
+                overflow-x: auto;
+                scrollbar-width: thin;
+            }
+
+            .student-navbar .student-mobile-scroll-hint {
+                display: none !important;
+            }
+
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: flex !important;
+            }
+
+            .student-navbar .profile-avatar {
+                width: 34px;
+                height: 34px;
+                flex: 0 0 34px;
+                border-radius: 50%;
+                object-fit: cover;
+                object-position: center;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .student-navbar {
+                display: grid !important;
+                grid-template-columns: 42px minmax(0, 1fr) auto !important;
+                align-items: start !important;
+                gap: .5rem !important;
+                width: 100% !important;
+                min-width: 0;
+                box-sizing: border-box;
+                padding: .65rem 1rem !important;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                display: contents !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom {
+                display: grid !important;
+                grid-column: 2;
+                grid-row: 1;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-rows: auto auto;
+                align-items: center;
+                column-gap: .5rem !important;
+                row-gap: .35rem !important;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                margin: 0 !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+                min-width: 0;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > div img {
+                width: 34px !important;
+                height: 34px !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                min-width: 0;
+                align-self: center;
+                font-size: 1.5rem !important;
+                line-height: 1;
+                white-space: nowrap;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                grid-column: 1 / -1;
+                grid-row: 2;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                margin: 0;
+                white-space: normal !important;
+                overflow-wrap: normal;
+                word-break: normal;
+                text-align: center;
+                font-size: clamp(.75rem, 1.65vw, .9rem) !important;
+                line-height: 1.25;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                display: flex !important;
+                grid-column: 3;
+                grid-row: 1;
+                align-items: center;
+                justify-content: flex-end !important;
+                width: auto !important;
+                min-width: 0;
+                max-width: 100%;
+                margin: 0;
+                padding: 0 !important;
+                overflow: visible !important;
+                gap: .2rem !important;
+            }
+
+            .student-navbar .student-top-nav,
+            .student-navbar .student-mobile-scroll-hint,
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: none !important;
+            }
+
+            .student-navbar .user-meta {
+                display: flex;
+                align-items: center;
+                gap: .15rem;
+            }
+
+            .student-navbar .profile-menu-btn {
+                min-height: 42px;
+                padding: .2rem;
+            }
+
+            .student-navbar .profile-avatar {
+                width: 38px !important;
+                height: 38px !important;
+                flex: 0 0 38px;
+                object-fit: cover;
+                object-position: center;
+            }
+
+            .student-navbar .profile-mini-name {
+                display: none;
+            }
+        }
+
+        @media (max-width: 1199.98px) {
+            .student-navbar {
+                position: relative;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                position: static !important;
+                overflow: visible !important;
+            }
+
+            .student-navbar > .d-flex:last-child > .text-end {
+                position: absolute !important;
+                top: 50%;
+                right: .65rem;
+                z-index: 2;
+                margin: 0 !important;
+                transform: translateY(-50%);
+            }
+
+            .main-content {
+                min-height: 0;
+            }
+
+            .sidebar-toggle {
+                display: inline-flex !important;
+            }
+
+            .sidebar.active {
+                position: fixed;
+                inset: 0 auto 0 0;
+                z-index: 1101;
+                width: min(88vw, 280px);
+                flex: 0 0 min(88vw, 280px);
+                height: 100vh;
+                height: 100dvh;
+                max-height: 100dvh;
+                padding: max(1.25rem, env(safe-area-inset-top)) 1rem max(1.25rem, env(safe-area-inset-bottom));
+                overflow-y: auto;
+                overscroll-behavior-y: contain;
+                -webkit-overflow-scrolling: touch;
+                box-shadow: 12px 0 32px rgba(15, 23, 42, .16);
+            }
+
+            .sidebar.active > .d-flex:first-child > .btn {
+                display: inline-flex !important;
+            }
+
+            .sidebar.active .nav-menu {
+                height: auto !important;
+                min-height: 0;
+                flex: 0 0 auto;
+            }
+
+            .sidebar-backdrop.is-visible {
+                position: fixed;
+                inset: 0;
+                z-index: 1100;
+                display: block !important;
+                width: 100%;
+                height: 100vh;
+                height: 100dvh;
+                border: 0;
+                background: rgba(15, 23, 42, .48);
+            }
+
+            .student-navbar {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                align-items: center !important;
+                justify-content: space-between;
+                gap: .45rem .75rem !important;
+                width: 100%;
+                min-width: 0;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                display: flex !important;
+                flex: 1 1 auto !important;
+                width: auto !important;
+                min-width: 0;
+                justify-content: flex-start !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom {
+                display: grid !important;
+                grid-template-columns: auto auto;
+                grid-template-rows: auto auto;
+                align-items: center;
+                gap: .25rem .5rem !important;
+                width: auto;
+                max-width: 100%;
+                min-width: 0;
+                margin: 0 !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+                min-width: 0;
+            }
+
+            .student-navbar .navbar-brand-custom img {
+                width: 34px !important;
+                height: 34px !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+                min-width: 0;
+                font-size: 1.5rem !important;
+                white-space: nowrap;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                grid-column: 1 / -1;
+                grid-row: 2;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                text-align: left;
+                white-space: normal !important;
+                font-size: clamp(.62rem, 1vw, .78rem) !important;
+                line-height: 1.2;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                display: flex !important;
+                flex: 1 0 100% !important;
+                order: 2;
+                align-items: center;
+                justify-content: flex-end !important;
+                flex-wrap: wrap;
+                width: 100% !important;
+                min-width: 0;
+                gap: .35rem !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            .student-navbar .student-top-nav {
+                display: flex !important;
+                flex: 0 0 100%;
+                order: 3;
+                width: 100%;
+                min-width: 0;
+                margin: 0 !important;
+                overflow-x: auto;
+                overflow-y: hidden;
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+                scrollbar-width: thin;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .student-navbar .student-nav-link {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: flex !important;
+            }
+
+            .student-navbar .student-mobile-scroll-hint {
+                display: none !important;
+            }
+
+            .student-navbar > .d-flex:last-child > .text-end {
+                order: 1;
+                margin-left: auto;
+            }
+
+            .student-navbar .profile-menu-btn {
+                min-height: 38px;
+                padding: .2rem;
+            }
+
+            .student-navbar .profile-mini-name {
+                display: none;
+            }
+        }
+
+        @media (max-width: 1199.98px) {
+            .student-navbar .brand-descriptor {
+                display: block !important;
+            }
+
+            .student-navbar .student-top-nav,
+            .student-navbar .student-mobile-scroll-hint,
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: none !important;
+            }
+
+            .student-sidebar {
+                display: none !important;
+            }
+
+            .student-sidebar.active {
+                display: flex !important;
+                position: fixed;
+                inset: 0 auto 0 0;
+                z-index: 1101;
+                width: min(88vw, 280px);
+                flex: 0 0 min(88vw, 280px);
+                height: 100vh;
+                height: 100dvh;
+                max-height: 100dvh;
+                padding: max(1.25rem, env(safe-area-inset-top)) 1rem max(1.25rem, env(safe-area-inset-bottom));
+                overflow-x: hidden;
+                overflow-y: auto;
+                overscroll-behavior-y: contain;
+                -webkit-overflow-scrolling: touch;
+                touch-action: pan-y;
+                background: #fff;
+                visibility: visible;
+                box-shadow: 12px 0 32px rgba(15, 23, 42, .16);
+            }
+
+            .student-sidebar.active .nav-menu {
+                height: auto !important;
+                min-height: 0;
+                flex: 0 0 auto;
+            }
+
+            .student-sidebar-backdrop.is-visible {
+                position: fixed;
+                inset: 0;
+                z-index: 1100;
+                display: block !important;
+                width: 100%;
+                height: 100vh;
+                height: 100dvh;
+                border: 0;
+                background: rgba(15, 23, 42, .48);
+            }
+
+            .student-sidebar-toggle {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 42px;
+                width: 42px;
+                height: 42px;
+                border: 0;
+                border-radius: 11px;
+                background: #A594F9;
+                color: #fff;
+                box-shadow: 0 5px 14px rgba(143, 114, 245, .24);
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .student-navbar {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                align-items: center !important;
+                gap: .45rem !important;
+                padding: .55rem .65rem !important;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                display: flex !important;
+                flex: 0 0 100% !important;
+                width: 100% !important;
+                min-width: 0;
+                padding-right: 5.5rem;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom {
+                display: grid !important;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-rows: auto auto;
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                margin: 0 !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > div {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > span:not(.brand-descriptor) {
+                grid-column: 2;
+                grid-row: 1;
+            }
+
+            .student-navbar > .d-flex:last-child {
+                display: flex !important;
+                flex: 0 0 100% !important;
+                flex-wrap: wrap;
+                width: 100% !important;
+                min-width: 0;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            .student-navbar .student-top-nav {
+                order: 1;
+            }
+
+            .student-navbar > .d-flex:last-child > .text-end {
+                display: block !important;
+                order: 0;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .student-navbar .student-top-nav {
+                display: flex !important;
+            }
+
+            .student-sidebar,
+            .student-sidebar-backdrop,
+            .student-sidebar-toggle {
+                display: none !important;
+            }
+
+            .student-navbar .student-mobile-messaging-link {
+                display: none !important;
             }
         }
     </style>
 </head>
 <body>
-    <div id="app" class="main-wrapper">
+    <div id="app" class="main-wrapper <?php echo e(request()->routeIs('splash') ? 'splash-wrapper' : ''); ?>">
         
         <?php if(auth()->guard()->check()): ?>
             <?php if(Auth::user()->role === 'admin'): ?>
@@ -636,6 +1765,9 @@
                     <a href="<?php echo e(route('admin.dashboard')); ?>" class="nav-link-custom <?php echo e(Request::is('admin/dashboard*') ? 'active' : ''); ?>">
                         <i class="bi bi-bar-chart-fill"></i> Dashboard
                     </a>
+                    <a href="<?php echo e(route('admin.appointments')); ?>" class="nav-link-custom <?php echo e(Request::is('admin/appointments*') ? 'active' : ''); ?>">
+                        <i class="bi bi-calendar-check-fill"></i> Appointments <?php if(($adminNotifications['appointments'] ?? 0) > 0): ?><span class="nav-notification ms-auto"><?php echo e($adminNotifications['appointments']); ?></span><?php endif; ?>
+                    </a>
                     <a href="<?php echo e(route('admin.reports')); ?>" class="nav-link-custom <?php echo e(Request::is('admin/reports*') ? 'active' : ''); ?>">
                         <i class="bi bi-inbox-fill"></i> Manage Reports <?php if(($adminNotifications['reports'] ?? 0) > 0): ?><span class="nav-notification ms-auto"><?php echo e($adminNotifications['reports']); ?></span><?php endif; ?>
                     </a>
@@ -649,16 +1781,13 @@
                         <i class="bi bi-chat-square-dots-fill"></i> Participatory Suggestions <?php if(($adminNotifications['suggestions'] ?? 0) > 0): ?><span class="nav-notification ms-auto"><?php echo e($adminNotifications['suggestions']); ?></span><?php endif; ?>
                     </a>
                     <a href="<?php echo e(route('admin.messages')); ?>" class="nav-link-custom <?php echo e(Request::is('admin/messages*') ? 'active' : ''); ?>">
-                        <i class="bi bi-chat-left-dots-fill"></i> Messages <?php if(($adminNotifications['messages'] ?? 0) > 0): ?><span class="nav-notification ms-auto"><?php echo e($adminNotifications['messages']); ?></span><?php endif; ?>
+                        <i class="bi bi-chat-left-dots-fill"></i> Messages <span class="nav-notification ms-auto" data-admin-message-badge <?php if(($adminNotifications['messages'] ?? 0) < 1): ?> hidden <?php endif; ?>><?php echo e($adminNotifications['messages'] ?? 0); ?></span>
                     </a>
                      <a href="<?php echo e(route('admin.urgent.calls')); ?>" class="nav-link-custom <?php echo e(Request::is('admin/urgent-calls*') ? 'active' : ''); ?>">
                         <i class="bi bi-camera-video-fill"></i> Urgent Calls
                     </a>
                     <a href="<?php echo e(route('admin.gad-schedules.index')); ?>" class="nav-link-custom <?php echo e(Request::is('admin/gad-schedules*') ? 'active' : ''); ?>">
                         <i class="bi bi-calendar2-week-fill"></i> Office Schedule
-                    </a>
-                    <a href="<?php echo e(route('admin.appointments')); ?>" class="nav-link-custom <?php echo e(Request::is('admin/appointments*') ? 'active' : ''); ?>">
-                        <i class="bi bi-calendar-check-fill"></i> Appointments <?php if(($adminNotifications['appointments'] ?? 0) > 0): ?><span class="nav-notification ms-auto"><?php echo e($adminNotifications['appointments']); ?></span><?php endif; ?>
                     </a>
                    
 
@@ -668,6 +1797,53 @@
                     </div>
                 </div>
             </aside>
+            <button type="button" class="sidebar-backdrop d-none" id="adminSidebarBackdrop" aria-label="Close navigation menu"></button>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <?php if(auth()->guard()->check()): ?>
+            <?php if(Auth::user()->role !== 'admin'): ?>
+                <aside class="sidebar student-sidebar" id="studentSidebar" aria-label="Student navigation">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <a class="navbar-brand-custom mb-0" href="<?php echo e(route('student.dashboard')); ?>" style="display:inline-flex; align-items:center; gap:.7rem; background:#f3efff; border-radius:1rem; padding:.3rem .75rem; text-decoration:none;">
+                            <img src="<?php echo e(asset('images/gadlogo.png')); ?>" alt="GAD Logo" style="width:38px; height:38px; border-radius:50%; object-fit:cover;">
+                            <span style="font-size:1.3rem; font-weight:900; letter-spacing:1px; line-height:1; color:#8f72f5;">SI<span style="color:#facc15;">NAG</span></span>
+                        </a>
+                        <button type="button" class="btn border-0" onclick="toggleSidebar('studentSidebar', 'studentSidebarBackdrop')" aria-label="Close navigation menu">
+                            <i class="bi bi-x-lg" style="color:#8f72f5;"></i>
+                        </button>
+                    </div>
+
+                    <nav class="nav-menu mt-4 d-flex flex-column" aria-label="Student menu">
+                        <p class="text-uppercase small fw-bold text-muted mb-3" style="font-size:.7rem; letter-spacing:1px;">Main Menu</p>
+                        <a href="<?php echo e(route('student.dashboard')); ?>" class="nav-link-custom <?php echo e(Request::is('student/dashboard*') ? 'active' : ''); ?>">
+                            <i class="bi bi-house-door-fill"></i> Dashboard
+                        </a>
+                        <a href="<?php echo e(route('student.report')); ?>" class="nav-link-custom <?php echo e(Request::is('student/report*') ? 'active' : ''); ?>">
+                            <i class="bi bi-flag-fill"></i> File a Report
+                        </a>
+                        <a href="<?php echo e(route('student.vault')); ?>" class="nav-link-custom <?php echo e(Request::is('student/vault*') ? 'active' : ''); ?>">
+                            <i class="bi bi-clipboard-check-fill"></i> Report Status
+                        </a>
+                        <a href="<?php echo e(route('student.boses')); ?>" class="nav-link-custom <?php echo e(Request::is('student/boses*') ? 'active' : ''); ?>">
+                            <i class="bi bi-chat-left-quote-fill"></i> Suggestions
+                        </a>
+                        <a href="<?php echo e(route('student.appointments')); ?>" class="nav-link-custom <?php echo e(Request::is('student/appointments*') || Request::is('student/schedule-appointment*') ? 'active' : ''); ?>">
+                            <i class="bi bi-calendar2-week-fill"></i> Schedule
+                        </a>
+                        <a href="<?php echo e(route('student.wellness')); ?>" class="nav-link-custom <?php echo e(Request::is('student/wellness*') || Request::is('student/reference/*') ? 'active' : ''); ?>">
+                            <i class="bi bi-book-half"></i> References
+                        </a>
+                        <a href="<?php echo e(route('student.messaging')); ?>" class="nav-link-custom <?php echo e(Request::is('student/messaging*') ? 'active' : ''); ?>">
+                            <i class="bi bi-chat-dots-fill"></i> Messages
+                        </a>
+                        <a href="<?php echo e(route('student.urgent')); ?>" class="nav-link-custom <?php echo e(Request::is('student/urgent*') ? 'active' : ''); ?>">
+                            <i class="bi bi-camera-video-fill"></i> Urgent Call
+                        </a>
+                        <hr class="text-muted opacity-25">
+                    </nav>
+                </aside>
+                <button type="button" class="sidebar-backdrop student-sidebar-backdrop d-none" id="studentSidebarBackdrop" aria-label="Close navigation menu"></button>
             <?php endif; ?>
         <?php endif; ?>
 
@@ -682,7 +1858,9 @@
                            
                         <?php endif; ?>
                         <?php if(Auth::user()->role !== 'admin'): ?>
-                            <button type="button" class="student-mobile-menu-toggle" id="studentMobileMenuToggle" aria-label="Open navigation menu" aria-controls="studentMobileMenu" aria-expanded="false"><i class="bi bi-list fs-5"></i></button>
+                            <button type="button" class="student-sidebar-toggle" onclick="toggleSidebar('studentSidebar', 'studentSidebarBackdrop')" aria-label="Open navigation menu" aria-controls="studentSidebar" aria-expanded="false">
+                                <i class="bi bi-list fs-5"></i>
+                            </button>
                         <?php endif; ?>
                         <!-- Option 1: Modern & Spaced with Soft Shadows -->
 <a class="navbar-brand-custom mb-0" style="display:inline-flex; align-items:center; gap:1.2rem; text-decoration:none;">
@@ -701,9 +1879,11 @@
     <span style="font-size:1.9rem; font-weight:900; color:#8f72f5; letter-spacing:0.5px;">
         SI<span style="color:#facc15;">NAG</span>
     </span>
-    <span class="brand-descriptor small text-muted">
-        Gender and Development Safe Space and Participatory Suggestion System
-    </span>
+    <?php if(Auth::user()->role === 'admin'): ?>
+        <span class="brand-descriptor small text-muted">
+            Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University Asingan Campus
+        </span>
+    <?php endif; ?>
 </a>
 
                        
@@ -714,7 +1894,7 @@
                             <a href="<?php echo e(route('admin.messages')); ?>" class="btn btn-sm" style="background: linear-gradient(135deg, #A594F9 0%, #8f72f5 100%); color: white; border: none; border-radius: 0.85rem; padding: 0.6rem 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 4px 12px rgba(165, 148, 249, 0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(165, 148, 249, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(165, 148, 249, 0.2);'">
                                 <i class="bi bi-chat-dots-fill"></i>
                                 <span>Messages</span>
-                                <?php if(($adminNotifications['messages'] ?? 0) > 0): ?><span class="nav-notification"><?php echo e($adminNotifications['messages']); ?></span><?php endif; ?>
+                                <span class="nav-notification" data-admin-message-badge <?php if(($adminNotifications['messages'] ?? 0) < 1): ?> hidden <?php endif; ?>><?php echo e($adminNotifications['messages'] ?? 0); ?></span>
                             </a>
                         <?php else: ?>
                             <nav class="student-top-nav me-3" aria-label="Student main navigation">
@@ -729,18 +1909,8 @@
                                         <span>Report</span>
                                     </button>
                                     <ul class="dropdown-menu student-nav-menu">
-                                        <li>
-                                            <a class="dropdown-item" href="<?php echo e(route('student.report')); ?>">
-                                                <i class="bi bi-megaphone-fill"></i>
-                                                <span>File a Report</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="<?php echo e(route('student.vault')); ?>">
-                                                <i class="bi bi-safe2-fill"></i>
-                                                <span>Report Status</span>
-                                            </a>
-                                        </li>
+                                        <li><a class="dropdown-item" href="<?php echo e(route('student.report')); ?>"><i class="bi bi-flag"></i><span>File a Report</span></a></li>
+                                        <li><a class="dropdown-item" href="<?php echo e(route('student.vault')); ?>"><i class="bi bi-clipboard-check"></i><span>Report Status</span></a></li>
                                     </ul>
                                 </div>
 
@@ -749,14 +1919,18 @@
                                     <span>Suggestions</span>
                                 </a>
 
-                                <a href="<?php echo e(route('student.appointments')); ?>" class="student-nav-link <?php echo e(Request::is('student/gad-schedule*') || Request::is('student/schedule-appointment*') || Request::is('student/appointments*') ? 'active' : ''); ?>" aria-label="Schedule" title="Schedule">
-                                        <i class="bi bi-calendar2-week-fill"></i>
-                                        <span>Schedule</span>
+                                <a href="<?php echo e(route('student.appointments')); ?>" class="student-nav-link <?php echo e(Request::is('student/appointments*') || Request::is('student/schedule-appointment*') ? 'active' : ''); ?>" aria-label="Schedule" title="Schedule">
+                                    <i class="bi bi-calendar2-week-fill"></i>
+                                    <span>Schedule</span>
                                 </a>
 
                                 <a href="<?php echo e(route('student.wellness')); ?>" class="student-nav-link <?php echo e(Request::is('student/wellness*') ? 'active' : ''); ?>" aria-label="References" title="References">
                                     <i class="bi bi-book-half"></i>
                                     <span>References</span>
+                                </a>
+                                <a href="<?php echo e(route('student.messaging')); ?>" class="student-nav-link student-mobile-messaging-link <?php echo e(Request::is('student/messaging*') ? 'active' : ''); ?>" aria-label="Messages" title="Messages">
+                                    <i class="bi bi-chat-dots-fill"></i>
+                                    <span>Messages</span>
                                 </a>
                             </nav>
                             <span class="student-mobile-scroll-hint" aria-hidden="true"><i class="bi bi-chevron-double-right"></i></span>
@@ -770,7 +1944,8 @@
                             <div class="dropdown user-meta">
                                 <a class="profile-menu-btn" href="<?php echo e(route('profile.show')); ?>" title="View profile">
                                     <?php if(Auth::user()->profile_photo_path): ?>
-                                        <img src="<?php echo e(asset('storage/'.Auth::user()->profile_photo_path)); ?>" alt="Profile photo" class="profile-avatar">
+                                        <img src="<?php echo e(asset('storage/'.Auth::user()->profile_photo_path)); ?>" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                                        <span class="profile-avatar profile-avatar-fallback" hidden><?php echo e(strtoupper(substr(Auth::user()->name, 0, 1))); ?></span>
                                     <?php else: ?>
                                         <span class="profile-avatar"><?php echo e(strtoupper(substr(Auth::user()->name, 0, 1))); ?></span>
                                     <?php endif; ?>
@@ -782,7 +1957,8 @@
                                 <div class="dropdown-menu dropdown-menu-end profile-dropdown p-2">
                                     <div class="profile-dropdown-head">
                                         <?php if(Auth::user()->profile_photo_path): ?>
-                                            <img src="<?php echo e(asset('storage/'.Auth::user()->profile_photo_path)); ?>" alt="Profile photo" class="profile-avatar">
+                                            <img src="<?php echo e(asset('storage/'.Auth::user()->profile_photo_path)); ?>" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                                            <span class="profile-avatar profile-avatar-fallback" hidden><?php echo e(strtoupper(substr(Auth::user()->name, 0, 1))); ?></span>
                                         <?php else: ?>
                                             <span class="profile-avatar"><?php echo e(strtoupper(substr(Auth::user()->name, 0, 1))); ?></span>
                                         <?php endif; ?>
@@ -810,23 +1986,7 @@
                 </header>
             <?php endif; ?>
 
-            <?php if(auth()->guard()->check()): ?>
-                <?php if(Auth::user()->role !== 'admin'): ?>
-                    <div class="student-mobile-menu" id="studentMobileMenu" aria-hidden="true">
-                        <nav class="student-mobile-menu-panel" aria-label="Mobile navigation">
-                            <div class="d-flex justify-content-between align-items-center mb-3"><strong class="text-dark">SINAG Menu</strong><button type="button" class="btn-close" id="studentMobileMenuClose" aria-label="Close navigation menu"></button></div>
-                            <a class="student-mobile-menu-link <?php echo e(Request::is('student/dashboard*') ? 'active' : ''); ?>" href="<?php echo e(route('student.dashboard')); ?>"><i class="bi bi-house-door-fill"></i>Dashboard</a>
-                            <a class="student-mobile-menu-link <?php echo e(Request::is('student/report*') ? 'active' : ''); ?>" href="<?php echo e(route('student.report')); ?>"><i class="bi bi-flag-fill"></i>Report</a>
-                            <a class="student-mobile-menu-link <?php echo e(Request::is('student/boses*') ? 'active' : ''); ?>" href="<?php echo e(route('student.boses')); ?>"><i class="bi bi-chat-left-quote-fill"></i>Suggestions</a>
-                            <a class="student-mobile-menu-link <?php echo e(Request::is('student/appointments*', 'student/gad-schedule*', 'student/schedule-appointment*') ? 'active' : ''); ?>" href="<?php echo e(route('student.appointments')); ?>"><i class="bi bi-calendar2-week-fill"></i>Schedule</a>
-                            <a class="student-mobile-menu-link <?php echo e(Request::is('student/wellness*') ? 'active' : ''); ?>" href="<?php echo e(route('student.wellness')); ?>"><i class="bi bi-book-half"></i>References</a>
-                            <a class="student-mobile-menu-link <?php echo e(Request::is('student/messaging*') ? 'active' : ''); ?>" href="<?php echo e(route('student.messaging')); ?>"><i class="bi bi-chat-dots-fill"></i>Messages</a>
-                        </nav>
-                    </div>
-                <?php endif; ?>
-            <?php endif; ?>
-
-            <div class="<?php echo e(Auth::check() ? 'p-4 p-lg-5' : (request()->routeIs('login', 'register', 'password.*') ? 'auth-content' : 'p-4 p-lg-5')); ?>">
+                <div class="<?php echo e(Auth::check() ? 'p-4 p-lg-5' : (request()->routeIs('login', 'register', 'password.*') ? 'auth-content' : 'p-4 p-lg-5')); ?>">
                 <?php echo $__env->yieldContent('content'); ?>
             </div>
         </main>
@@ -836,117 +1996,119 @@
     <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" class="d-none"><?php echo csrf_field(); ?></form>
 
     <script>
-        (function () {
-            const mobileStudentMenus = document.querySelectorAll('.student-navbar .dropdown, .student-navbar .user-meta');
-            if (!mobileStudentMenus.length || window.matchMedia('(min-width: 992px)').matches) return;
+        let lockedPageScrollY = 0;
 
-            const portalState = new WeakMap();
+        function lockPageScroll() {
+            if (document.body.classList.contains('page-scroll-locked')) return;
+            lockedPageScrollY = window.scrollY;
+            document.body.classList.add('page-scroll-locked');
+            document.body.style.top = `-${lockedPageScrollY}px`;
+        }
 
-            mobileStudentMenus.forEach(function (dropdown) {
-                const toggles = dropdown.querySelectorAll('[data-bs-toggle="dropdown"]');
-                if (!toggles.length) return;
+        function unlockPageScroll() {
+            if (!document.body.classList.contains('page-scroll-locked')) return;
+            document.body.classList.remove('page-scroll-locked');
+            document.body.style.top = '';
+            const scrollBehavior = document.documentElement.style.scrollBehavior;
+            document.documentElement.style.scrollBehavior = 'auto';
+            window.scrollTo(0, lockedPageScrollY);
+            document.documentElement.style.scrollBehavior = scrollBehavior;
+        }
 
-                toggles.forEach(function (toggle) {
-                    toggle.addEventListener('shown.bs.dropdown', function () {
-                        const menu = dropdown.querySelector('.dropdown-menu');
-                        if (!menu) return;
-
-                        const toggleRect = toggle.getBoundingClientRect();
-                        const menuWidth = Math.min(menu.offsetWidth || 220, window.innerWidth - 16);
-                        const left = Math.max(8, Math.min(toggleRect.left, window.innerWidth - menuWidth - 8));
-
-                        portalState.set(menu, { parent: menu.parentElement, nextSibling: menu.nextSibling });
-                        document.body.appendChild(menu);
-                        menu.classList.add('mobile-dropdown-portal');
-
-                        menu.style.position = 'fixed';
-                        menu.style.top = `${toggleRect.bottom + 8}px`;
-                        menu.style.left = `${left}px`;
-                        menu.style.right = 'auto';
-                        menu.style.transform = 'none';
-                    });
-
-                    toggle.addEventListener('hidden.bs.dropdown', function () {
-                        const menu = document.querySelector('.mobile-dropdown-portal');
-                        if (menu) {
-                            const state = portalState.get(menu);
-                            if (state && state.parent) {
-                                state.parent.insertBefore(menu, state.nextSibling);
-                            }
-                            menu.classList.remove('mobile-dropdown-portal');
-                            menu.style.position = '';
-                            menu.style.top = '';
-                            menu.style.left = '';
-                            menu.style.right = '';
-                            menu.style.transform = '';
-                        }
-                    });
-                });
-            });
-        })();
-
-        (function () {
-            const studentNavbar = document.querySelector('.student-navbar');
-            const adminNavbar = document.querySelector('.admin-navbar');
-            const mobileNavbar = studentNavbar || adminNavbar;
-            if (!mobileNavbar || window.matchMedia('(min-width: 992px)').matches) return;
-
-            const adminSidebar = document.getElementById('mainSidebar');
-
-            let lastScrollY = window.scrollY;
-            let ticking = false;
-
-            function updateStudentNavbar() {
-                const currentScrollY = window.scrollY;
-                const scrollingDown = currentScrollY > lastScrollY && currentScrollY > 72;
-
-                mobileNavbar.classList.toggle('navbar-hidden', scrollingDown);
-                if (currentScrollY <= 16) mobileNavbar.classList.remove('navbar-hidden');
-
-                if (adminSidebar && scrollingDown && adminSidebar.classList.contains('active')) {
-                    adminSidebar.classList.remove('active');
-                    document.body.classList.remove('sidebar-open');
-                }
-
-                lastScrollY = currentScrollY;
-                ticking = false;
-            }
-
-            window.addEventListener('scroll', function () {
-                if (!ticking) {
-                    window.requestAnimationFrame(updateStudentNavbar);
-                    ticking = true;
-                }
-            }, { passive: true });
-        })();
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('mainSidebar');
-            const body = document.body;
+        function toggleSidebar(sidebarId = 'mainSidebar', backdropId = 'adminSidebarBackdrop') {
+            const sidebar = document.getElementById(sidebarId);
             if (sidebar) {
                 sidebar.classList.toggle('active');
-                body.classList.toggle('sidebar-open');
+                const isOpen = sidebar.classList.contains('active');
+                const isMobile = window.matchMedia('(max-width: 1199.98px)').matches;
+                const backdrop = document.getElementById(backdropId);
+                if (backdrop && isMobile) {
+                    backdrop.classList.toggle('is-visible', isOpen);
+                    backdrop.classList.toggle('d-none', !isOpen);
+                }
+                document.querySelector(`[aria-controls="${sidebarId}"]`)?.setAttribute('aria-expanded', String(isOpen));
+                if (isMobile && isOpen) lockPageScroll();
+                else unlockPageScroll();
             }
         }
 
-        (function () {
-            const menu = document.getElementById('studentMobileMenu');
-            const open = document.getElementById('studentMobileMenuToggle');
-            const close = document.getElementById('studentMobileMenuClose');
-            if (!menu || !open || !close) return;
-            function setMenu(openState) {
-                menu.classList.toggle('is-open', openState);
-                menu.setAttribute('aria-hidden', String(!openState));
-                open.setAttribute('aria-expanded', String(openState));
-                document.body.classList.toggle('sidebar-open', openState);
-            }
-            open.addEventListener('click', function () { setMenu(true); });
-            close.addEventListener('click', function () { setMenu(false); });
-            menu.addEventListener('click', function (event) { if (event.target === menu) setMenu(false); });
-            document.addEventListener('keydown', function (event) { if (event.key === 'Escape') setMenu(false); });
-        })();
+        document.getElementById('adminSidebarBackdrop')?.addEventListener('click', function () {
+            toggleSidebar();
+        });
+        document.getElementById('studentSidebarBackdrop')?.addEventListener('click', function () {
+            toggleSidebar('studentSidebar', 'studentSidebarBackdrop');
+        });
 
         <?php if(auth()->guard()->check()): ?>
+        <?php if(auth()->user()->role === 'admin'): ?>
+        (function () {
+            const notice = document.createElement('div');
+            notice.setAttribute('role', 'status');
+            notice.setAttribute('aria-live', 'polite');
+            notice.style.cssText = 'position:static;margin:1rem 1rem 0 auto;z-index:1080;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none;max-width:min(90vw,24rem)';
+            document.body.appendChild(notice);
+            let hideNotice;
+            let unreadCount = <?php echo e((int) ($adminNotifications['messages'] ?? 0)); ?>;
+            let currentCallIds = null;
+            function notifyAdmin(message, link) {
+                notice.textContent = '';
+                const text = document.createElement('span');
+                text.textContent = message;
+                notice.appendChild(text);
+                if (link) {
+                    const anchor = document.createElement('a');
+                    anchor.href = link;
+                    anchor.className = 'text-white fw-bold ms-2';
+                    anchor.textContent = 'Open';
+                    notice.appendChild(anchor);
+                }
+                notice.style.display = 'block';
+                clearTimeout(hideNotice);
+                hideNotice = setTimeout(function () { notice.style.display = 'none'; }, 7000);
+            }
+            async function checkMessages() {
+                try {
+                    const response = await fetch('<?php echo e(route('admin.messages.feed')); ?>', { headers: { 'Accept': 'application/json' } });
+                    if (!response.ok) throw new Error('Message notification check failed (' + response.status + ').');
+                    const data = await response.json();
+                    document.querySelectorAll('[data-admin-message-badge]').forEach(function (badge) {
+                        badge.textContent = data.unread_count;
+                        badge.hidden = data.unread_count < 1;
+                    });
+                    if (data.unread_count > unreadCount) {
+                        const href = data.latest_unread_student_id
+                            ? '<?php echo e(route('admin.messages')); ?>?student_id=' + encodeURIComponent(data.latest_unread_student_id)
+                            : '<?php echo e(route('admin.messages')); ?>';
+                        notifyAdmin('New message received.', href);
+                    }
+                    unreadCount = data.unread_count;
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+            async function checkCalls() {
+                try {
+                    const response = await fetch('<?php echo e(route('admin.urgent.calls.feed')); ?>', { headers: { 'Accept': 'application/json' } });
+                    if (!response.ok) throw new Error('Urgent-call notification check failed (' + response.status + ').');
+                    const data = await response.json();
+                    const calls = (data.calls || []).filter(function (call) { return call.status !== 'ended'; });
+                    const ids = new Set(calls.map(function (call) { return call.id; }));
+                    const recent = calls.some(function (call) { return Date.now() - Date.parse(call.created_at) < 5 * 60 * 1000; });
+                    if ((currentCallIds && calls.some(function (call) { return !currentCallIds.has(call.id); })) || (currentCallIds === null && recent)) {
+                        notifyAdmin('A user is requesting an urgent call.', '<?php echo e(route('admin.urgent.calls')); ?>');
+                    }
+                    currentCallIds = ids;
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+            checkMessages();
+            checkCalls();
+            setInterval(checkMessages, 3000);
+            setInterval(checkCalls, 5000);
+        })();
+        <?php endif; ?>
+
         setInterval(function () {
             fetch('<?php echo e(route('presence.heartbeat')); ?>', {
                 method: 'POST',

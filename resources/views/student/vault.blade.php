@@ -11,6 +11,9 @@
         backdrop-filter: blur(8px);
         border: 1.5px solid #ede9fe;
     }
+    .vault-page {
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
     .vault-title {
         font-size: 2.1rem;
         font-weight: 900;
@@ -50,6 +53,14 @@
         background: #d8cdfc;
         color: #5b4b9b;
     }
+    .vault-modal-dialog {
+        max-height: calc(100dvh - 1rem);
+    }
+    .vault-modal-dialog .modal-body {
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+    }
     .nav-pills .nav-link {
         color: #A594F9;
         background: #ede9fe;
@@ -80,7 +91,7 @@
         100% { width: 60%; opacity: 1; }
     }
 </style>
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 vault-page">
     {{-- Page Header --}}
     <div class="text-center mb-5">
         <h2 class="fw-bold vault-title mb-1">Report Status</h2>
@@ -161,7 +172,7 @@
                             </div>
                             <!-- Report Details Modal - Outside Card -->
                             <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="reportModalLabel-{{ $modalId }}" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg vault-modal-dialog">
                                     <div class="modal-content border-0 rounded-4 shadow">
                                         <div class="modal-header border-0 pb-0">
                                             <h5 class="fw-bold mt-2 ps-2">Incident Report Details</h5>
@@ -265,18 +276,26 @@
                                     <td><i class="bi bi-arrow-up-circle-fill text-primary"></i> {{ $sugg->upvotes_count ?? 0 }}</td>
                                     <td>{{ $sugg->created_at->diffForHumans() }}</td>
                                 </tr>
-                                <div class="modal fade" id="mySuggestionModal{{ $sugg->id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header"><h5 class="modal-title">Suggestion Details</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                                            <div class="modal-body"><div class="small text-muted text-uppercase">{{ $sugg->category }}</div><p class="mt-2 mb-0" style="white-space:pre-wrap;">{{ $sugg->message }}</p></div>
-                                        </div>
-                                    </div>
-                                </div>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+                @foreach($mySuggestions as $sugg)
+                    <div class="modal fade" id="mySuggestionModal{{ $sugg->id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable vault-modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Suggestion Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="small text-muted text-uppercase">{{ $sugg->category }}</div>
+                                    <p class="mt-2 mb-0" style="white-space:pre-wrap;">{{ $sugg->message }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             @endif
         </div>
     </div>

@@ -3,16 +3,14 @@
 @section('content')
 
 <div class="fw-wrap">
-
-    {{-- ── Header ── --}}
     <div class="fw-topbar">
         <div class="fw-topbar-left">
             <div class="fw-icon-box">
                 <i class="bi bi-megaphone-fill"></i>
             </div>
             <div>
-                <h1 class="fw-page-title">Freedom Wall</h1>
-                <p class="fw-page-sub">Students post freely here · Admin may remove inappropriate content</p>
+                <h1 class="fw-page-title">Participatory Suggestions</h1>
+                <p class="fw-page-sub">Review, approve, or remove suggestions shared by users.</p>
             </div>
         </div>
         <div class="fw-count-chip">
@@ -20,77 +18,63 @@
             <span class="fw-count-text">{{ $suggestions->count() == 1 ? 'Post' : 'Posts' }}</span>
         </div>
         <a href="{{ route('admin.suggestions.reports') }}" class="btn btn-outline-secondary rounded-pill fw-bold">
-            <i class="bi bi-flag me-1"></i> See All Reports @if(($pendingSuggestionReports ?? 0) > 0)<span class="badge bg-secondary ms-1">{{ $pendingSuggestionReports }}</span>@endif
+            <i class="bi bi-flag me-1"></i> View Reports @if(($pendingSuggestionReports ?? 0) > 0)<span class="badge bg-secondary ms-1">{{ $pendingSuggestionReports }}</span>@endif
         </a>
     </div>
 
-    {{-- ── Grid ── --}}
-    <div class="fw-grid">
-        @forelse($suggestions as $i => $suggestion)
-
-        @php
-            $themes = [
-                'Lighting'      => ['color' => '#f59e0b', 'light' => '#fffbeb', 'icon' => 'bi-lightbulb-fill'],
-                'Security'      => ['color' => '#f8cb12', 'light' => '#fff8d6', 'icon' => 'bi-shield-fill'],
-                'Facilities'    => ['color' => '#3b82f6', 'light' => '#eff6ff', 'icon' => 'bi-building-fill'],
-                'Campus Safety' => ['color' => '#7c3aed', 'light' => '#f5f3ff', 'icon' => 'bi-exclamation-triangle-fill'],
-            ];
-            $t = $themes[$suggestion->category] ?? ['color' => '#A594F9', 'light' => '#f5f3ff', 'icon' => 'bi-chat-fill'];
-        @endphp
-
-        <div class="fw-card" style="--c: {{ $t['color'] }}; --cl: {{ $t['light'] }}; animation-delay: {{ $i * 0.06 }}s">
-
-            {{-- Left accent bar --}}
-            <div class="fw-bar"></div>
-
-            <div class="fw-card-inner">
-
-                {{-- Top row --}}
-                <div class="fw-card-head">
-                    <div class="fw-cat">
-                        <span class="fw-cat-icon"><i class="bi {{ $t['icon'] }}"></i></span>
-                        <span class="fw-cat-label">{{ $suggestion->category }}</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge rounded-pill {{ strtolower($suggestion->status) === 'approved' ? 'sinag-status-approved' : (strtolower($suggestion->status) === 'rejected' ? 'sinag-status-rejected' : 'sinag-status-pending') }}">{{ $suggestion->status }}</span>
-                        <span class="fw-time"><i class="bi bi-clock me-1"></i>{{ $suggestion->created_at->diffForHumans() }}</span>
-                    </div>
-                </div>
-
-                {{-- Message --}}
-                <div class="fw-body">
-                    <p class="fw-msg">{{ $suggestion->message }}</p>
-                </div>
-
-                {{-- Footer --}}
-                <div class="fw-card-foot">
-                    <div class="fw-author">
-                        <div class="fw-ava">
-                            <i class="bi {{ $suggestion->is_anonymous ? 'bi-incognito' : 'bi-person-fill' }}"></i>
-                        </div>
-                        <span class="fw-author-name">
-                            {{ $suggestion->is_anonymous ? 'Anonymous' : $suggestion->user->name }}
-                        </span>
-                    </div>
-
-                    <div class="fw-actions">
-                        <button type="button" class="fw-btn-view border-0" data-bs-toggle="modal" data-bs-target="#suggestionModal{{ $suggestion->id }}">
-                            <i class="bi bi-eye me-1"></i> View
-                        </button>
-                        <form action="{{ route('admin.suggestions.delete', $suggestion->id) }}" method="POST"
-                              onsubmit="return confirm('Delete this post from the freedom wall?');" style="display:inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="fw-btn-del">
-                                <i class="bi bi-trash3"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-            </div>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden fw-table-card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Category</th>
+                        <th>Submitted by</th>
+                        <th>Suggestion</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($suggestions as $suggestion)
+                        @php
+                            $authorName = $suggestion->is_anonymous
+                                ? 'Anonymous'
+                                : (optional($suggestion->user)->cloak_alias ?: optional($suggestion->user)->name ?: 'Unknown user');
+                            $statusLabel = $suggestion->admin_status_label;
+                        @endphp
+                        <tr>
+                            <td class="ps-4 fw-semibold">{{ $suggestion->category ?: 'General' }}</td>
+                            <td>{{ $authorName }}</td>
+                            <td class="text-break" style="min-width:16rem;max-width:32rem;">{{ \Illuminate\Support\Str::limit($suggestion->message, 180) }}</td>
+                            <td>
+                                @if($statusLabel !== '')
+                                    <span class="badge rounded-pill {{ strtolower($statusLabel) === 'approved' ? 'sinag-status-approved' : (strtolower($statusLabel) === 'rejected' ? 'sinag-status-rejected' : 'sinag-status-pending') }}">{{ $statusLabel }}</span>
+                                @endif
+                            </td>
+                            <td class="text-nowrap">{{ optional($suggestion->created_at)->format('M d, Y') }}</td>
+                            <td class="text-end text-nowrap pe-4">
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#suggestionModal{{ $suggestion->id }}">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </button>
+                                <form action="{{ route('admin.suggestions.delete', $suggestion->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this suggestion?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" aria-label="Delete suggestion">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="text-center py-5 text-muted">No suggestions have been submitted yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
+    </div>
 
+    @foreach($suggestions as $suggestion)
         <div class="modal fade" id="suggestionModal{{ $suggestion->id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content border-0 shadow-lg">
@@ -123,16 +107,7 @@
                 </div>
             </div>
         </div>
-
-        @empty
-        <div class="fw-empty">
-            <i class="bi bi-chat-left-dots fw-empty-icon"></i>
-            <p class="fw-empty-title">No posts yet</p>
-            <p class="fw-empty-sub">Students' feedback will appear here once they start posting.</p>
-        </div>
-        @endforelse
-    </div>
-
+    @endforeach
 </div>
 
 <style>
@@ -213,6 +188,9 @@
 .sinag-status-approved { background: #d8cdfc; color: #5b4b9b; }
 .sinag-status-rejected { background: #fff8d6; color: #806000; }
 .sinag-status-pending { background: #f8cb12; color: #4a3500; }
+.fw-grid { display: block; }
+.fw-table-card .table { min-width: 760px; }
+.fw-table-card td { vertical-align: middle; }
 
 /* ── Grid ─────────────────────────────────── */
 .fw-grid {
@@ -423,6 +401,7 @@
     .fw-page-sub { font-size: .68rem; }
     .fw-count-chip { padding: 7px 12px; min-width: 58px; }
     .fw-grid { grid-template-columns: 1fr; gap: 12px; }
+    .fw-table-card .table { min-width: 720px; }
     .fw-card { min-height: 0; border-radius: 14px; }
     .fw-card-head { align-items: flex-start; flex-direction: column; }
     .fw-card-inner { padding: 14px; gap: 10px; }

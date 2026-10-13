@@ -113,7 +113,7 @@
                             $accountType = $user->role === 'employee' ? 'employee' : ($user->account_type ?? 'student');
                             $availability = $user->availability_status ?? 'active';
                         @endphp
-                        <tr class="user-tile" tabindex="0" data-profile-modal="userProfileModal{{ $user->id }}" data-status="{{ $statusFilter }}" data-account-type="{{ $accountType === 'employee' ? ($user->employee_category ?? 'employee') : 'student' }}" data-gender="{{ $user->gender }}" data-age="{{ $user->age }}" data-department="{{ $user->department }}" data-search="{{ strtolower(implode(' ', array_filter([$user->name, $user->email, $user->phone_number, $user->department, $user->employee_category, $user->gender, $user->age, $accountType]))) }}">
+                        <tr class="user-tile" tabindex="0" data-profile-modal="userProfileModal{{ $user->id }}" data-status="{{ $statusFilter }}" data-account-type="{{ $accountType === 'employee' ? ($user->employee_category ?? 'employee') : 'student' }}" data-gender="{{ $user->gender }}" data-age="{{ $user->age }}" data-department="{{ $user->department }}" data-search="{{ strtolower(implode(' ', array_filter([$user->name, $user->first_name, $user->middle_name, $user->last_name, $user->cloak_alias, $user->email, $user->phone_number, $user->department, $user->employee_category, $user->gender, $user->age, $accountType]))) }}">
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm border border-2 border-white"
@@ -184,7 +184,14 @@
                                         <button type="submit" class="btn btn-sm rounded-pill px-3 ms-1" style="background:#facc15;color:#4a3500;border:0;">Reject</button>
                                     </form>
                                 @else
-                                    <span class="text-muted small">Open tile for profile</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#userProfileModal{{ $user->id }}">
+                                        <i class="bi bi-eye me-1"></i>View Profile
+                                    </button>
+                                @endif
+                                @if($user->role !== 'admin' && ($user->account_status ?? 'pending') === 'pending')
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 ms-1" data-bs-toggle="modal" data-bs-target="#userProfileModal{{ $user->id }}">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </button>
                                 @endif
                             </td>
                         </tr>
@@ -205,6 +212,7 @@
                                             <div><h4 class="mb-1">{{ $user->name }}</h4><div class="text-muted">{{ ucfirst($accountType) }}{{ $user->employee_category ? ' - ' . ucfirst(str_replace('_', ' ', $user->employee_category)) : '' }}</div><div class="text-muted small">UID-{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}</div></div>
                                         </div>
                                         <div class="resume-grid">
+                                            <div><span>Alias</span><strong>{{ $user->cloak_alias ?: 'Not set' }}</strong></div>
                                             <div><span>Email</span><strong>{{ $user->email }}</strong></div>
                                             <div><span>Department / Course</span><strong>{{ $user->department ?: 'N/A' }}</strong></div>
                                             <div><span>Age</span><strong>{{ $user->age ?: 'N/A' }}</strong></div>
@@ -216,7 +224,7 @@
                                             <div class="small text-uppercase text-muted fw-bold mb-2">ID Verification</div>
                                             @php($verificationImage = $user->id_image_path ?: $user->selfie_image_path)
                                             @if($verificationImage)
-                                                <img src="{{ asset('storage/' . $verificationImage) }}" alt="ID verification" class="resume-id-image">
+                                                <img src="{{ route('profile.verification-image', $user) }}" alt="ID verification" class="resume-id-image">
                                             @else
                                                 <div class="text-muted small">No ID image uploaded.</div>
                                             @endif

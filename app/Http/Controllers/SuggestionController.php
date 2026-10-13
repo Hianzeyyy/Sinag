@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Suggestion;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use App\Support\ContentModeration;
 
@@ -20,9 +21,7 @@ class SuggestionController extends Controller
             $suggestion->upvotes()->detach($user->id);
             $upvoted = false;
         } else {
-            $pivotId = ((int) \DB::table('suggestion_user_upvotes')->max('id')) + 1;
             \DB::table('suggestion_user_upvotes')->insert([
-                'id' => $pivotId,
                 'suggestion_id' => $suggestion->id,
                 'user_id' => $user->id,
                 'created_at' => now(),
@@ -59,22 +58,26 @@ class SuggestionController extends Controller
         $request->validate([
             'category' => ['required', Rule::in($allowedCategories)],
             'message' => 'required|string|min:10|max:2000',
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
         $message = trim((string) $request->message);
 
         if (ContentModeration::containsHarshLanguage($message)) {
-            return redirect()->back()->with('error', 'Please submit positive and constructive suggestions only. Negative or offensive language is not allowed.');
+            return redirect()->back()->withInput()->with('error', 'Please submit positive and constructive suggestions only. Negative or offensive language is not allowed.');
         }
 
         // 2. Save to Database
-        $suggestionId = ((int) \DB::table('suggestions')->max('id')) + 1;
+        $imagePath = $request->file('image')?->store('suggestions', 'public');
+        if ($request->hasFile('image') && !is_string($imagePath)) {
+            throw new \RuntimeException('The suggestion image could not be saved.');
+        }
         \DB::table('suggestions')->insert([
-            'id' => $suggestionId,
             'user_id' => Auth::id(),
             'category' => $request->category,
             'message' => $message,
-            'is_anonymous' => $request->has('is_anonymous') ? true : false,
+            'image_path' => $imagePath,
+            'is_anonymous' => $request->boolean('is_anonymous', true),
             'status' => 'Pending',
             'created_at' => now(),
             'updated_at' => now(),
@@ -105,6 +108,7 @@ class SuggestionController extends Controller
         $validated = $request->validate([
             'category' => ['required', Rule::in($allowedCategories)],
             'message' => 'required|string|min:10|max:2000',
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
         $message = trim((string) $validated['message']);
@@ -113,10 +117,25 @@ class SuggestionController extends Controller
             return redirect()->back()->with('error', 'Please submit positive and constructive suggestions only. Negative or offensive language is not allowed.');
         }
 
-        $suggestion->update([
+        $attributes = [
             'category' => $validated['category'],
             'message' => $message,
-        ]);
+        ];
+
+        $previousImagePath = $suggestion->image_path;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('suggestions', 'public');
+            if (!is_string($imagePath)) {
+                throw new \RuntimeException('The suggestion image could not be saved.');
+            }
+
+            $attributes['image_path'] = $imagePath;
+        }
+
+        $suggestion->update($attributes);
+        if ($request->hasFile('image') && $previousImagePath) {
+            Storage::disk('public')->delete($previousImagePath);
+        }
 
         return redirect()->back()->with('success', 'Ang iyong suggestion ay na-update na.');
     }
@@ -139,6 +158,9 @@ class SuggestionController extends Controller
         
         // Delete the suggestion
         $suggestion->delete();
+        if ($suggestion->image_path) {
+            Storage::disk('public')->delete($suggestion->image_path);
+        }
         
         return redirect()->back()->with('success', 'Ang iyong suggestion ay na-delete na.');
 

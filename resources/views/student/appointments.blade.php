@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 appointment-page">
     <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-5">
+    <div class="appointment-page-header d-flex justify-content-between align-items-center mb-5">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: #a78bfa;">
     <i class="bi bi-calendar-check"></i> My Appointments
 </h1>
             <p class="text-muted"></p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="appointment-page-actions d-flex gap-2">
             <a href="{{ route('student.gad-schedule') }}" class="btn btn-lg fw-semibold btn-outline-secondary" style="border-radius: 0.75rem;">
                 <i class="bi bi-calendar3 me-1"></i> GAD Office Hours
             </a>
@@ -39,7 +39,7 @@
             </div>
             <h5 class="text-muted">No Appointments Yet</h5>
             <p class="text-muted mb-4">You haven't submitted any appointment requests yet.</p>
-            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none;">
+            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold appointment-action-button" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none;">
                 <i class="bi bi-calendar-plus"></i> Schedule Your First Appointment
             </a>
         </div>
@@ -196,6 +196,10 @@
 </div>
 
 <style>
+    .appointment-page {
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
+
     .appointment-list-card {
         transition: all 0.3s ease;
     }
@@ -211,8 +215,43 @@
 
         .appointment-list-card .col-lg-8,
         .appointment-list-card .col-lg-4 {
-            border-start: none !important;
+            border-left: 0 !important;
+            border-inline-start: 0 !important;
             border-top: 1px solid #e5e7eb !important;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .appointment-page-header {
+            align-items: stretch !important;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem !important;
+        }
+
+        .appointment-page-header h1 {
+            font-size: 1.4rem;
+        }
+
+        .appointment-page-actions {
+            flex-direction: column;
+            gap: .55rem !important;
+        }
+
+        .appointment-page-actions .btn,
+        .appointment-action-button {
+            width: 100%;
+            min-height: 2.75rem;
+            padding: .55rem .85rem;
+            font-size: .92rem;
+        }
+
+        .appointment-list-card {
+            min-height: 0 !important;
+        }
+
+        .appointment-list-card .card-body {
+            padding: 1rem !important;
         }
     }
 </style>

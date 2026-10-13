@@ -1,0 +1,262 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Tests\TestCase;
+
+class SuggestionPersonalDataGateTest extends TestCase
+{
+    public function test_users_can_post_suggestions_without_completing_personal_data(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $user = User::create([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('id="suggestionModal"', false)
+            ->assertDontSee('personalDataRequiredModal');
+
+        $response = $this->from(route('student.boses'))
+            ->post(route('suggestions.store'), [
+                'category' => 'GAD Programs and Services',
+            'message' => 'A suggestion shared from an incomplete profile.',
+            ]);
+
+        $response->assertRedirect(route('student.boses'));
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('suggestions', [
+            'user_id' => $user->id,
+            'message' => 'A suggestion shared from an incomplete profile.',
+            'status' => 'Pending',
+            'is_anonymous' => true,
+        ]);
+    }
+
+    public function test_suggestions_page_displays_its_empty_state_instead_of_a_blank_page(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $user = User::create([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'cloak_alias' => 'StudentTest',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('student.boses'));
+
+        $response->assertOk();
+        $response->assertSee('Community suggestions');
+        $response->assertSee('Search suggestions');
+        $response->assertDontSee('suggestion-category-filter');
+        $response->assertSee('No suggestions yet');
+    }
+
+    public function test_post_validation_errors_are_visible_and_preserve_the_draft(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $user = User::create([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('student.boses'))
+            ->post(route('suggestions.store'), [
+                'category' => 'GAD Programs and Services',
+                'message' => 'Short',
+            ])
+            ->assertRedirect(route('student.boses'))
+            ->assertSessionHasErrors('message');
+
+        $this->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('The suggestion could not be posted')
+            ->assertSee('Short');
+    }
+
+    public function test_suggestions_page_renders_existing_posts(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $user = User::create([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'cloak_alias' => 'StudentTest',
+        ]);
+
+        DB::table('suggestions')->insert([
+            'user_id' => $user->id,
+            'category' => 'Campus Safety',
+            'message' => 'Please add more GAD awareness activities.',
+            'is_anonymous' => true,
+            'status' => 'New',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('student.boses'));
+
+        $response->assertOk();
+        $response->assertSee('Please add more GAD awareness activities.');
+        $response->assertSee('Community suggestions');
+        $response->assertSee('Campus Safety');
+        $response->assertSee('data-comment-toggle', false);
+        $response->assertSee('data-comments-panel', false);
+        $response->assertDontSee('No suggestions yet');
+    }
+
+    public function test_users_with_completed_personal_data_can_post_suggestions(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $user = User::create([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'last_name' => 'Student',
+            'first_name' => 'Test',
+            'phone_number' => '09123456789',
+            'age' => 20,
+            'gender' => 'Female',
+            'department' => 'College of Education',
+            'personal_information' => [
+                'date_of_birth' => '2006-01-01',
+                'place_of_birth' => 'Lingayen',
+                'sex' => 'Female',
+                'gender_identity' => 'Woman',
+                'citizenship' => 'Filipino',
+                'blood_type' => 'O+',
+                'height' => '160',
+                'weight' => '50',
+                'landline_number' => 'N/A',
+                'civil_status' => 'Single',
+                'current_address' => 'Lingayen',
+                'home_address' => 'Lingayen',
+                'religion' => 'N/A',
+            ],
+            'student_information' => [
+                'year_level' => '2nd Year',
+                'school_type' => 'Public',
+                'last_school_attended' => 'PSU',
+                'financing_sources' => ['Family'],
+            ],
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('student.boses'))
+            ->post(route('suggestions.store'), [
+                'category' => 'GAD Programs and Services',
+                'message' => 'Please add more GAD awareness activities.',
+            ]);
+
+        $response->assertRedirect(route('student.boses'));
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('suggestions', [
+            'user_id' => $user->id,
+            'category' => 'GAD Programs and Services',
+            'message' => 'Please add more GAD awareness activities.',
+            'status' => 'Pending',
+        ]);
+    }
+
+    public function test_users_can_post_suggestions_containing_words_that_include_a_moderated_substring(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $user = User::create([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('student.boses'))
+            ->post(route('suggestions.store'), [
+                'category' => 'GAD Programs and Services',
+                'message' => 'Please include more student skills workshops in the annual program.',
+            ]);
+
+        $response->assertRedirect(route('student.boses'));
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('suggestions', [
+            'user_id' => $user->id,
+            'message' => 'Please include more student skills workshops in the annual program.',
+        ]);
+    }
+
+    private function createUsersTable(): void
+    {
+        Schema::create('users', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('role')->default('student');
+            $table->string('account_type')->nullable();
+            $table->string('cloak_alias')->nullable();
+            $table->string('last_name')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->unsignedTinyInteger('age')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('department')->nullable();
+            $table->json('personal_information')->nullable();
+            $table->json('student_information')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    private function createSuggestionTables(): void
+    {
+        Schema::create('suggestions', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('category');
+            $table->text('message');
+            $table->string('image_path')->nullable();
+            $table->boolean('is_anonymous')->default(true);
+            $table->string('status')->default('Pending');
+            $table->timestamps();
+        });
+
+        Schema::create('suggestion_comments', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('suggestion_id');
+            $table->foreignId('user_id');
+            $table->text('comment');
+            $table->timestamps();
+        });
+
+        Schema::create('suggestion_user_upvotes', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('suggestion_id');
+            $table->foreignId('user_id');
+        });
+    }
+}

@@ -248,8 +248,12 @@ class AdminController extends Controller
                         $like = '%' . $term . '%';
                         $search->where(function ($termQuery) use ($like) {
                             $termQuery->whereRaw('LOWER(name) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(first_name) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(middle_name) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(last_name) LIKE ?', [$like])
                                 ->orWhereRaw('LOWER(email) LIKE ?', [$like])
                                 ->orWhereRaw('LOWER(phone_number) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(cloak_alias) LIKE ?', [$like])
                                 ->orWhereRaw('LOWER(department) LIKE ?', [$like])
                                 ->orWhereRaw('LOWER(employee_category) LIKE ?', [$like])
                                 ->orWhereRaw('LOWER(account_type) LIKE ?', [$like])
@@ -600,74 +604,76 @@ class AdminController extends Controller
             ]);
 
             foreach ($validated['updates'] as $update) {
-            $date      = $update['date'];
-            $remove    = (bool) ($update['remove'] ?? false);
-            $type      = $update['availability_type'] ?? 'hours';
-            $startTime = $update['start_time'] ?? null;
-            $endTime   = $update['end_time'] ?? null;
-
-                $existing = \DB::table('gad_schedules')
-                    ->whereDate('available_from', $date)
-                    ->first();
-
-                if ($remove || $type === 'remove') {
-                    if ($existing) {
-                        \DB::table('gad_schedules')->where('id', $existing->id)->delete();
-                    }
+                if (($update['availability_type'] ?? 'hours') !== 'hours') {
                     continue;
                 }
 
-                if ($type === 'unavailable') {
-                $payload = [
-                    'title'           => 'Unavailable / Closed',
-                    'location'        => 'GAD Office',
-                    'available_from'  => $date . ' 00:00:00',
-                    'available_until' => $date . ' 23:59:59',
-                    'details'         => 'unavailable',
-                    'status'          => 'unavailable',
-                ];
-                } elseif ($type === 'available') {
-                $payload = [
-                    'title'           => 'Available (All Day)',
-                    'location'        => 'GAD Office',
-                    'available_from'  => $date . ' 08:00:00',
-                    'available_until' => $date . ' 17:00:00',
-                    'details'         => 'all_day',
-                    'status'          => 'active',
-                ];
-                } else {
-                $startTime = $startTime ?: '09:00';
-                $endTime   = $endTime ?: '17:00';
-
-                if ($startTime > $endTime) {
+                if (($update['start_time'] ?? '09:00') > ($update['end_time'] ?? '17:00')) {
                     return response()->json(['message' => 'Start time must be earlier than end time.'], 422);
                 }
-
-                $payload = [
-                    'title'           => 'Office Hours',
-                    'location'        => 'GAD Office',
-                    'available_from'  => $date . ' ' . $startTime . ':00',
-                    'available_until' => $date . ' ' . $endTime . ':00',
-                    'details'         => 'specific_hours',
-                    'status'          => 'active',
-                ];
             }
 
-                if ($existing) {
-                    \DB::table('gad_schedules')->where('id', $existing->id)->update([
-                    ...$payload,
-                    'updated_at' => now(),
-                ]);
-                } else {
-                    $scheduleId = ((int) \DB::table('gad_schedules')->max('id')) + 1;
-                    \DB::table('gad_schedules')->insert($payload + [
-                    'id' => $scheduleId,
-                    'created_by' => Auth::id(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                    ]);
+            \DB::transaction(function () use ($validated): void {
+                foreach ($validated['updates'] as $update) {
+                    $date = $update['date'];
+                    $remove = (bool) ($update['remove'] ?? false);
+                    $type = $update['availability_type'] ?? 'hours';
+                    $existing = \DB::table('gad_schedules')
+                        ->whereDate('available_from', $date)
+                        ->first();
+
+                    if ($remove || $type === 'remove') {
+                        if ($existing) {
+                            \DB::table('gad_schedules')->where('id', $existing->id)->delete();
+                        }
+                        continue;
+                    }
+
+                    if ($type === 'unavailable') {
+                        $payload = [
+                            'title' => 'Unavailable / Closed',
+                            'location' => 'GAD Office',
+                            'available_from' => $date . ' 00:00:00',
+                            'available_until' => $date . ' 23:59:59',
+                            'details' => 'unavailable',
+                            'status' => 'unavailable',
+                        ];
+                    } elseif ($type === 'available') {
+                        $payload = [
+                            'title' => 'Available (All Day)',
+                            'location' => 'GAD Office',
+                            'available_from' => $date . ' 08:00:00',
+                            'available_until' => $date . ' 17:00:00',
+                            'details' => 'all_day',
+                            'status' => 'active',
+                        ];
+                    } else {
+                        $startTime = $update['start_time'] ?? '09:00';
+                        $endTime = $update['end_time'] ?? '17:00';
+                        $payload = [
+                            'title' => 'Office Hours',
+                            'location' => 'GAD Office',
+                            'available_from' => $date . ' ' . $startTime . ':00',
+                            'available_until' => $date . ' ' . $endTime . ':00',
+                            'details' => 'specific_hours',
+                            'status' => 'active',
+                        ];
+                    }
+
+                    if ($existing) {
+                        \DB::table('gad_schedules')->where('id', $existing->id)->update([
+                            ...$payload,
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        \DB::table('gad_schedules')->insert($payload + [
+                            'created_by' => Auth::id(),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
                 }
-            }
+            });
 
             $savedSchedules = \DB::table('gad_schedules')
                 ->whereIn('status', ['active', 'unavailable', 'inactive'])
@@ -728,8 +734,13 @@ class AdminController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $calls = Cache::get('urgent_calls', []);
-        return response()->json(['calls' => $calls]);
+        $calls = array_values(array_filter(
+            Cache::get('urgent_calls', []),
+            fn ($call) => ($call['status'] ?? null) !== 'ended'
+        ));
+
+        return response()->json(['calls' => $calls])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**
@@ -745,7 +756,7 @@ class AdminController extends Controller
         $room = null;
 
         foreach ($calls as &$call) {
-            if (($call['id'] ?? null) === $callId) {
+            if (($call['id'] ?? null) === $callId && ($call['status'] ?? null) !== 'ended') {
                 $call['status']    = 'joined';
                 $call['joined_at'] = now()->toDateTimeString();
                 $call['joined_by'] = Auth::user()->name;
@@ -755,6 +766,7 @@ class AdminController extends Controller
         }
         unset($call);
 
+        abort_unless($room, 404, 'Call not found or it has ended.');
         Cache::put('urgent_calls', $calls, now()->addHours(6));
 
         return response()->json([
@@ -876,6 +888,57 @@ class AdminController extends Controller
             'success' => true,
             'message' => $message,
         ]);
+    }
+
+    public function messageFeed(Request $request)
+    {
+        $validated = $request->validate([
+            'student_id' => ['nullable', 'integer', 'exists:users,id'],
+            'after_id' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $unreadQuery = Message::where('receiver_id', Auth::id())->whereNull('read_at');
+        if (empty($validated['student_id'])) {
+            $latestUnread = (clone $unreadQuery)->latest('id')->first();
+
+            return response()->json([
+                'messages' => [],
+                'unread_count' => $unreadQuery->count(),
+                'latest_unread_student_id' => $latestUnread?->sender_id,
+            ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+        }
+
+        $student = User::whereKey($validated['student_id'])
+            ->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")
+            ->firstOrFail();
+        $afterId = (int) ($validated['after_id'] ?? 0);
+
+        $messages = Message::where(function ($query) use ($student) {
+                $query->where(function ($query) use ($student) {
+                    $query->where('sender_id', Auth::id())->where('receiver_id', $student->id);
+                })->orWhere(function ($query) use ($student) {
+                    $query->where('sender_id', $student->id)->where('receiver_id', Auth::id());
+                });
+            })
+            ->where('id', '>', $afterId)
+            ->orderBy('id')
+            ->get();
+
+        Message::where('sender_id', $student->id)
+            ->where('receiver_id', Auth::id())
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return response()->json([
+            'messages' => $messages->map(fn (Message $message) => [
+                'id' => $message->id,
+                'message' => $message->message,
+                'sender_id' => $message->sender_id,
+                'created_at' => $message->created_at?->format('g:i A'),
+            ]),
+            'unread_count' => $unreadQuery->count(),
+            'latest_unread_student_id' => (clone $unreadQuery)->latest('id')->value('sender_id'),
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**
