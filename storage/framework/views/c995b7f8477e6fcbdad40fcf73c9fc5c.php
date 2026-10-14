@@ -234,6 +234,14 @@
             z-index: 30;
         }
 
+        @media (min-width: 1200px) {
+            .top-navbar {
+                position: sticky;
+                top: 0;
+                z-index: 1030;
+            }
+        }
+
         .user-meta {
             display: flex;
             align-items: center;
@@ -1992,6 +2000,12 @@
         </main>
 
     </div>
+
+    <?php if(auth()->guard()->check()): ?>
+        <?php if(in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true)): ?>
+            <?php echo $__env->make('components.gad-faq-chatbot', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php endif; ?>
+    <?php endif; ?>
 
     <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" class="d-none"><?php echo csrf_field(); ?></form>
 

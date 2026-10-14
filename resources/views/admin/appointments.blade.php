@@ -55,7 +55,26 @@
                 @php($urgency = strtolower($appointment->urgency_level ?? 'low'))
                 <tr class="appointment-grid-item" data-urgency="{{ $urgency }}">
                     <td class="ps-4"><span class="appointment-priority priority-{{ $urgency }}">{{ ucfirst($urgency) }}</span></td>
-                    <td><strong>{{ $appointment->full_name }}</strong><small class="d-block text-muted">ID: {{ $appointment->student_id }}</small></td>
+                    <td>
+                        @if($appointment->user)
+                            <button
+                                class="btn btn-link p-0 text-start fw-bold text-decoration-none appointment-user-link"
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#appointmentUserModal"
+                                data-user-name="{{ $appointment->user->name }}"
+                                data-user-email="{{ $appointment->user->email }}"
+                                data-user-id="{{ $appointment->student_id }}"
+                                data-user-account="{{ ucfirst($appointment->user->account_type ?? $appointment->user->role) }}"
+                                data-user-department="{{ $appointment->user->department }}"
+                                data-profile-url="{{ route('admin.users.show', $appointment->user->id) }}"
+                                data-message-url="{{ route('admin.messages', ['student_id' => $appointment->user->id]) }}"
+                            >{{ $appointment->full_name }} <i class="bi bi-person-lines-fill small"></i></button>
+                        @else
+                            <strong>{{ $appointment->full_name }}</strong>
+                        @endif
+                        <small class="d-block text-muted">ID: {{ $appointment->student_id }}</small>
+                    </td>
                     <td class="small">{{ optional($appointment->user)->email ?: 'N/A' }}</td>
                     <td class="small">{{ optional($appointment->scheduled_date)->format('M d, Y') }}<span class="d-block text-muted">{{ optional($appointment->scheduled_time)->format('h:i A') }}</span></td>
                     <td class="small">{{ $appointment->created_at->format('M d, Y h:i A') }}</td>
@@ -77,6 +96,7 @@
                                                     <div><span>Student/Employee ID</span><strong>{{ $appointment->student_id }}</strong></div>
                                                     <div><span>Email</span><strong>{{ optional($appointment->user)->email ?: 'N/A' }}</strong></div>
                                                     <div><span>Priority</span><strong>{{ $appointment->urgency_level }}</strong></div>
+                                                    <div><span>Appointment Format</span><strong><i class="bi {{ $appointment->format === 'Online' ? 'bi-camera-video-fill' : 'bi-people-fill' }} me-1"></i>{{ $appointment->format }}</strong></div>
                                                     <div><span>Scheduled</span><strong>{{ optional($appointment->scheduled_date)->format('M d, Y') }} at {{ optional($appointment->scheduled_time)->format('h:i A') }}</strong></div>
                                                     <div><span>Status</span><strong>{{ ucfirst($appointment->status) }}</strong></div>
                                                     <div><span>Submitted</span><strong>{{ $appointment->created_at->format('M d, Y h:i A') }}</strong></div>
@@ -107,6 +127,29 @@
             {{ $appointments->onEachSide(1)->links() }}
         </div>
     @endif
+</div>
+
+<div class="modal fade" id="appointmentUserModal" tabindex="-1" aria-labelledby="appointmentUserModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="appointmentUserModalTitle">Requested by</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <dl class="row small mb-0">
+                    <dt class="col-4 text-muted">Account type</dt><dd class="col-8" id="appointmentUserAccount">-</dd>
+                    <dt class="col-4 text-muted">Student/Employee ID</dt><dd class="col-8" id="appointmentUserId">-</dd>
+                    <dt class="col-4 text-muted">Email</dt><dd class="col-8 text-break" id="appointmentUserEmail">-</dd>
+                    <dt class="col-4 text-muted">Department</dt><dd class="col-8" id="appointmentUserDepartment">-</dd>
+                </dl>
+            </div>
+            <div class="modal-footer border-0">
+                <a class="btn btn-outline-primary" id="appointmentUserProfileLink" href="#"><i class="bi bi-person-vcard me-1"></i>View Profile</a>
+                <a class="btn text-white" id="appointmentUserMessageLink" href="#" style="background:#8f72f5;"><i class="bi bi-chat-dots me-1"></i>Message</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -201,6 +244,8 @@
     .appointment-detail-grid > div { padding: .7rem; border: 1px solid #ede9fe; border-radius: .6rem; background: #faf9ff; }
     .appointment-detail-grid span { display: block; color: #6b7280; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
     .appointment-detail-grid strong { display: block; margin-top: .25rem; overflow-wrap: anywhere; }
+    .appointment-user-link { color: #35216d; }
+    .appointment-user-link:hover, .appointment-user-link:focus-visible { color: #7658df; text-decoration: underline !important; }
 
     @media (max-width: 575.98px) {
         .container-fluid.py-4 { padding: 1rem !important; }
@@ -209,6 +254,18 @@
     }
 </style>
 <script>
+    document.getElementById('appointmentUserModal')?.addEventListener('show.bs.modal', function (event) {
+        const trigger = event.relatedTarget;
+        if (!trigger) return;
+        document.getElementById('appointmentUserModalTitle').textContent = trigger.dataset.userName || 'Requested by';
+        document.getElementById('appointmentUserAccount').textContent = trigger.dataset.userAccount || 'N/A';
+        document.getElementById('appointmentUserId').textContent = trigger.dataset.userId || 'N/A';
+        document.getElementById('appointmentUserEmail').textContent = trigger.dataset.userEmail || 'N/A';
+        document.getElementById('appointmentUserDepartment').textContent = trigger.dataset.userDepartment || 'N/A';
+        document.getElementById('appointmentUserProfileLink').href = trigger.dataset.profileUrl || '#';
+        document.getElementById('appointmentUserMessageLink').href = trigger.dataset.messageUrl || '#';
+    });
+
     document.querySelectorAll('.appointment-filter').forEach(function (button) {
         button.addEventListener('click', function () {
             const selected = button.dataset.urgency;

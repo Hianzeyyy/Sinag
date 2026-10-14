@@ -84,6 +84,14 @@
                                             </div>
                                         </div>
 
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold text-dark small mb-1">Format</label>
+                                            <div class="text-muted">
+                                                <i class="bi <?php echo e($appointment->format === 'Online' ? 'bi-camera-video-fill' : 'bi-people-fill'); ?> me-1"></i><?php echo e($appointment->format); ?>
+
+                                            </div>
+                                        </div>
+
                                         <!-- Submitted -->
                                         <div class="col-md-6">
                                             <label class="form-label fw-semibold text-dark small mb-1">Submitted</label>
@@ -127,6 +135,16 @@
                                                     <i class="bi bi-info-circle"></i> Approved
                                                 </span>
                                                 <p class="small text-muted mt-2">Your appointment has been approved!</p>
+                                            <?php elseif($appointment->status === 'cancelled'): ?>
+                                                <span class="badge rounded-pill bg-secondary" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+                                                    <i class="bi bi-x-circle"></i> Cancelled
+                                                </span>
+                                                <p class="small text-muted mt-2">You cancelled this appointment.</p>
+                                            <?php elseif($appointment->status === 'rejected'): ?>
+                                                <span class="badge rounded-pill" style="background:#ede9fe; color:#7658df; font-size: 0.95rem; padding: 0.5rem 1rem;">
+                                                    <i class="bi bi-x-circle"></i> Rejected
+                                                </span>
+                                                <p class="small text-muted mt-2">The GAD Office rejected this appointment request.</p>
                                             <?php else: ?>
                                                 <span class="badge rounded-pill" style="background:#ede9fe; color:#7658df; font-size: 0.95rem; padding: 0.5rem 1rem;">
                                                     <i class="bi bi-x-circle"></i> Rejected
@@ -165,6 +183,13 @@
                                             <a href="<?php echo e(route('student.schedule-appointment')); ?>" class="btn btn-sm btn-outline-secondary w-100 rounded-3 fw-semibold">
                                                 <i class="bi bi-plus-circle"></i> Schedule Another
                                             </a>
+                                            <form method="POST" action="<?php echo e(route('student.appointments.delete', $appointment->id)); ?>" class="mt-2" onsubmit="return confirm('Permanently delete this appointment record?');">
+                                                <?php echo csrf_field(); ?>
+                                                <?php echo method_field('DELETE'); ?>
+                                                <button type="submit" class="btn btn-sm w-100 rounded-3 fw-semibold appointment-delete-button">
+                                                    <i class="bi bi-trash me-1"></i>Delete Appointment
+                                                </button>
+                                            </form>
                                         </div>
                                     <?php endif; ?>
                                     </div>
@@ -210,6 +235,19 @@
 
     .appointment-list-card:hover {
         box-shadow: 0 0.5rem 2rem rgba(165, 148, 249, 0.15) !important;
+    }
+
+    .appointment-delete-button {
+        border: 1px solid #e879a9;
+        color: #a83268;
+        background: #fff1f6;
+    }
+
+    .appointment-delete-button:hover,
+    .appointment-delete-button:focus-visible {
+        border-color: #d94b87;
+        color: #fff;
+        background: #d94b87;
     }
 
     @media (max-width: 991.98px) {

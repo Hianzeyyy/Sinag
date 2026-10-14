@@ -522,7 +522,9 @@
     }
 
     .dashboard-event-card:hover { transform: translateY(-4px); box-shadow: 0 16px 28px rgba(76,29,149,0.12); }
-    .dashboard-event-card img { width: 100%; height: 145px; object-fit: cover; }
+    .dashboard-event-card img { display: block; width: 100%; height: 145px; object-fit: cover; transition: transform .45s cubic-bezier(.2,.75,.3,1), filter .3s ease; }
+    .dashboard-event-card:hover img,
+    .dashboard-event-card:focus-visible img { transform: scale(1.07); filter: saturate(1.08); }
     .dashboard-event-card-body { padding: .9rem; color: #4b5563; }
     .dashboard-event-card-title { color: #5b4b9b; font-weight: 900; }
     .dashboard-reveal {
@@ -534,13 +536,8 @@
         opacity: 1;
         transform: translateY(0);
     }
-    .dashboard-image-fade {
-        opacity: 0;
-        transform: scale(1.12);
-    }
-    .dashboard-image-fade.is-loaded {
-        animation: dashboard-image-zoom-out 0.85s cubic-bezier(.2,.75,.3,1) both;
-    }
+    .dashboard-image-fade { opacity: 1; transform: none; }
+    .dashboard-zoom-on-load { animation: dashboard-image-zoom-out .85s cubic-bezier(.2,.75,.3,1); }
     @keyframes dashboard-image-zoom-out {
         from { opacity: .65; transform: scale(1.12); }
         to { opacity: 1; transform: scale(1); }
@@ -563,10 +560,12 @@
     .dashboard-event-card:active,
     .gad-card-slide:active { transform: scale(0.98); }
     .dashboard-carousel .carousel-item img:active { transform: scale(0.985); }
+    .dashboard-carousel .carousel-caption .dashboard-typing { min-height: 1.4em; }
 
     @media (prefers-reduced-motion: reduce) {
         .dashboard-image-fade,
-        .dashboard-image-fade.is-loaded {
+        .dashboard-image-fade.is-loaded,
+        .dashboard-zoom-on-load {
             animation: none;
             opacity: 1;
             transform: none;
@@ -978,7 +977,7 @@
                     <img src="{{ asset('images/gadlogo.png') }}" alt="SINAG GAD logo" style="width:38px;height:38px;object-fit:cover;border-radius:50%;">
                     <div>
                         <div class="student-dashboard-footer-brand">SI<span style="color:#facc15;">NAG</span></div>
-                        <div class="small mt-1">Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University</div>
+                        <div class="small mt-1">Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University Asingan Campus</div>
                     </div>
                 </div>
                 @php
@@ -1007,6 +1006,16 @@
 
         let activeIndex = 0;
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        function animateZoomOut(image) {
+            if (!image || reduceMotion || !image.isConnected) return;
+            image.classList.remove('dashboard-zoom-on-load');
+            void image.offsetWidth;
+            image.classList.add('dashboard-zoom-on-load');
+            image.addEventListener('animationend', function (event) {
+                if (event.target !== image) return;
+                image.classList.remove('dashboard-zoom-on-load');
+            }, { once: true });
+        }
         function resizeStage() {
             const image = slides[activeIndex].querySelector('img');
             if (!image || !image.naturalWidth || !image.naturalHeight) return;
@@ -1029,18 +1038,8 @@
             suns.forEach(function (sun, index) {
                 sun.classList.toggle('is-active', index === activeIndex);
             });
-            activeImage.classList.add('dashboard-image-fade');
-            activeImage.classList.remove('is-loaded');
-            void activeImage.offsetWidth;
-            if (activeImage.complete) {
-                activeImage.classList.add('is-loaded');
-            } else {
-                const markActiveImageLoaded = function () {
-                    activeImage.classList.add('is-loaded');
-                };
-                activeImage.addEventListener('load', markActiveImageLoaded, { once: true });
-                activeImage.addEventListener('error', markActiveImageLoaded, { once: true });
-            }
+            if (activeImage.complete) animateZoomOut(activeImage);
+            else activeImage.addEventListener('load', function () { animateZoomOut(activeImage); }, { once: true });
 
             const fullTitle = activeTitle.dataset.fullTitle || activeTitle.textContent.trim();
             activeTitle.dataset.fullTitle = fullTitle;
@@ -1111,20 +1110,28 @@
         }
 
         dashboard.querySelectorAll('img').forEach(function (image) {
-            if (image.classList.contains('dashboard-image-fade')) return;
+            if (image.closest('.dashboard-carousel, .dashboard-event-card, .gad-card-slide')) return;
             image.classList.add('dashboard-image-fade');
-            const markLoaded = function () { image.classList.add('is-loaded'); };
-            if (image.complete) markLoaded();
-            else {
-                image.addEventListener('load', markLoaded, { once: true });
-                image.addEventListener('error', markLoaded, { once: true });
-            }
         });
+        const zoomImages = function (scope) {
+            scope?.querySelectorAll('img').forEach(function (image) {
+                if (reduceMotion) return;
+                image.classList.remove('dashboard-zoom-on-load');
+                void image.offsetWidth;
+                image.classList.add('dashboard-zoom-on-load');
+                image.addEventListener('animationend', function (event) {
+                    if (event.target !== image) return;
+                    image.classList.remove('dashboard-zoom-on-load');
+                }, { once: true });
+            });
+        };
+        zoomImages(dashboard.querySelector('.dashboard-news-events'));
 
-        const titles = dashboard.querySelectorAll('.hero-title, .section-title, .dashboard-news-events h2, .vision-mission-panel h2, .carousel-caption-title, .dashboard-event-card-title');
+        const titles = dashboard.querySelectorAll('.hero-title, .section-title, .dashboard-news-events h2, .vision-mission-panel h2, .dashboard-event-card-title');
         titles.forEach(function (title, index) {
             const fullText = title.textContent.trim();
             if (!fullText) return;
+            title.dataset.fullText = fullText;
             if (reduceMotion) {
                 title.textContent = fullText;
                 return;
@@ -1144,6 +1151,41 @@
             };
             window.setTimeout(typeNext, index * 45);
         });
+
+        const carousel = dashboard.querySelector('#studentDashboardCarousel');
+        if (carousel) {
+            const typeCaption = function (slide) {
+                if (!slide) return;
+                slide.querySelectorAll('.carousel-caption-kicker, .carousel-caption-title, .carousel-caption-text').forEach(function (element) {
+                    const fullText = element.dataset.fullText || element.textContent.trim();
+                    element.dataset.fullText = fullText;
+                    element.setAttribute('aria-label', fullText);
+                    if (reduceMotion) {
+                        element.textContent = fullText;
+                        return;
+                    }
+                    const token = Number(element.dataset.typingToken || 0) + 1;
+                    element.dataset.typingToken = String(token);
+                    element.textContent = '';
+                    element.classList.add('dashboard-typing');
+                    let position = 0;
+                    const typeNext = function () {
+                        if (element.dataset.typingToken !== String(token)) return;
+                        element.textContent = fullText.slice(0, ++position);
+                        if (position < fullText.length) window.setTimeout(typeNext, 22);
+                        else element.classList.remove('dashboard-typing');
+                    };
+                    window.setTimeout(typeNext, 80);
+                });
+            };
+            const animateActiveSlide = function () {
+                const activeSlide = carousel.querySelector('.carousel-item.active');
+                zoomImages(activeSlide);
+                typeCaption(activeSlide);
+            };
+            carousel.addEventListener('slid.bs.carousel', animateActiveSlide);
+            animateActiveSlide();
+        }
     });
 </script>
 @endsection

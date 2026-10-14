@@ -13,12 +13,15 @@ class Message extends Model
         'sender_id',
         'receiver_id',
         'message',
+        'original_message',
+        'deleted_at',
         'sender_type',
         'read_at',
     ];
 
     protected $casts = [
         'read_at' => 'datetime',
+        'deleted_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

@@ -309,6 +309,22 @@ class StudentController extends Controller
         return response()->json(['status' => 'ended']);
     }
 
+    public function urgentCallStatus(string $callId)
+    {
+        $calls = Cache::get('urgent_calls', []);
+        $call = collect($calls)->first(fn ($entry) =>
+            ($entry['id'] ?? null) === $callId
+            && (int) ($entry['student_id'] ?? 0) === (int) Auth::id()
+        );
+
+        abort_unless($call, 404, 'Call not found.');
+
+        return response()->json([
+            'status' => $call['status'] ?? 'waiting',
+            'joined_by' => $call['joined_by'] ?? null,
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+
     /**
      * Event detail page for carousel items (placeholder content)
      */
@@ -401,8 +417,6 @@ class StudentController extends Controller
     {
         $admin = User::where('role', 'admin')->first();
         abort_unless($admin, 404, 'GAD Office is unavailable.');
-
-        $afterId = $request->integer('after_id', 0);
         $messages = Message::where(function ($query) use ($admin) {
                 $query->where(function ($query) use ($admin) {
                     $query->where('sender_id', Auth::id())->where('receiver_id', $admin->id);
@@ -410,7 +424,6 @@ class StudentController extends Controller
                     $query->where('sender_id', $admin->id)->where('receiver_id', Auth::id());
                 });
             })
-            ->where('id', '>', $afterId)
             ->orderBy('id')
             ->get()
             ->values();
@@ -424,6 +437,8 @@ class StudentController extends Controller
             'messages' => $messages->map(fn (Message $message) => [
                 'id' => $message->id,
                 'message' => $message->message,
+                'original_message' => $message->original_message,
+                'deleted_at' => $message->deleted_at?->toIso8601String(),
                 'sender_id' => $message->sender_id,
                 'created_at' => $message->created_at?->format('M d, g:i A'),
             ]),
@@ -439,12 +454,16 @@ class StudentController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
+        $admin = User::where('role', 'admin')->first();
+        abort_unless($admin, 404, 'GAD Office is unavailable.');
         $message = Message::findOrFail($id);
 
-        if ($message->sender_id !== Auth::id()) {
+        if ((int) $message->sender_id !== (int) Auth::id() || (int) $message->receiver_id !== (int) $admin->id) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
+        abort_if($message->deleted_at, 409, 'Deleted messages cannot be edited.');
+        $message->original_message ??= $message->message;
         $message->message = $request->message;
         $message->save();
 
@@ -456,13 +475,20 @@ class StudentController extends Controller
      */
     public function destroyMessage(Request $request, $id)
     {
+        $admin = User::where('role', 'admin')->first();
+        abort_unless($admin, 404, 'GAD Office is unavailable.');
         $message = Message::findOrFail($id);
 
-        if ($message->sender_id !== Auth::id()) {
+        if ((int) $message->sender_id !== (int) Auth::id() || (int) $message->receiver_id !== (int) $admin->id) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        $message->delete();
+        if (!$message->deleted_at) {
+            $message->deleted_at = now();
+            $message->message = '';
+            $message->original_message = null;
+            $message->save();
+        }
 
         return response()->json(['success' => true]);
     }
@@ -486,6 +512,7 @@ class StudentController extends Controller
             'urgency_level' => 'required|in:Low,Medium,High',
             'scheduled_date' => 'required|date|after_or_equal:today',
             'scheduled_time' => 'required|date_format:H:i',
+            'format' => 'required|in:Face-to-Face,Online',
             'description' => 'required|string|max:2000',
         ]);
 
@@ -508,14 +535,14 @@ class StudentController extends Controller
             'urgency_level' => $validated['urgency_level'],
             'scheduled_date' => $validated['scheduled_date'],
             'scheduled_time' => $validated['scheduled_time'],
-            'format' => 'Face-to-Face',
+            'format' => $validated['format'],
             'description' => $validated['description'],
             'status' => 'pending',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        return redirect()->route('student.dashboard')
+        return redirect()->route('student.schedule-appointment')
             ->with('success', 'Ang iyong appointment request ay naisumite na. Hinihintay ang aprubahan ng GAD office.');
     }
 
@@ -544,6 +571,17 @@ class StudentController extends Controller
         $appointment->update(['status' => 'cancelled']);
 
         return redirect()->route('student.appointments')->with('success', 'Appointment cancelled.');
+    }
+
+    public function deleteAppointment($id)
+    {
+        $appointment = AppointmentRequest::where('user_id', Auth::id())->findOrFail($id);
+
+        abort_unless(in_array($appointment->status, ['cancelled', 'rejected'], true), 403, 'Only cancelled or rejected appointments can be deleted.');
+
+        $appointment->delete();
+
+        return redirect()->route('student.appointments')->with('success', 'Appointment record deleted.');
     }
 
     /**

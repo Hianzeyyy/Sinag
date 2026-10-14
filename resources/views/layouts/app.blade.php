@@ -234,6 +234,14 @@
             z-index: 30;
         }
 
+        @media (min-width: 1200px) {
+            .top-navbar {
+                position: sticky;
+                top: 0;
+                z-index: 1030;
+            }
+        }
+
         .user-meta {
             display: flex;
             align-items: center;
@@ -1992,6 +2000,12 @@
         </main>
 
     </div>
+
+    @auth
+        @if(in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true))
+            @include('components.gad-faq-chatbot')
+        @endif
+    @endauth
 
     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
 

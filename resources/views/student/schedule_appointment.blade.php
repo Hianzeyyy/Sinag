@@ -12,6 +12,13 @@
                <p class="text-muted">Request an appointment with the GAD Office. Please fill out the form below with accurate information.</p>
             </div>
 
+            @if (session('success'))
+                <div class="alert alert-success alert-dismissible fade show rounded-4" role="status">
+                    <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             <!-- Form Card -->
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                 <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); padding: 2rem;">
@@ -56,6 +63,27 @@
                                 @error('scheduled_time')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
                         </div>
+
+                        <fieldset class="mb-4">
+                            <legend class="form-label fw-semibold mb-2" style="color: #A594F9;">
+                                <i class="bi bi-camera-video"></i> Appointment Format
+                            </legend>
+                            <p class="small text-muted mb-3">Choose how you would like to meet with the GAD Office.</p>
+                            <div class="row g-3">
+                                @foreach (['Face-to-Face' => ['bi-people-fill', 'Meet at the GAD Office'], 'Online' => ['bi-camera-video-fill', 'Meet through an online session']] as $format => [$icon, $description])
+                                    <div class="col-md-6">
+                                        <input class="btn-check" type="radio" name="format" id="format_{{ strtolower(str_replace('-', '_', $format)) }}" value="{{ $format }}" autocomplete="off" {{ old('format') === $format ? 'checked' : '' }} required>
+                                        <label class="appointment-format-option" for="format_{{ strtolower(str_replace('-', '_', $format)) }}">
+                                            <i class="bi {{ $icon }} fs-4"></i>
+                                            <span><strong>{{ $format }}</strong><small>{{ $description }}</small></span>
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                            @error('format')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </fieldset>
 
                         <!-- Student/Employee ID -->
                         <div class="mb-4">
@@ -198,6 +226,47 @@
     .form-check-input:focus {
         border-color: #A594F9;
         box-shadow: 0 0 0 0.25rem rgba(165, 148, 249, 0.25);
+    }
+
+    .appointment-format-option {
+        display: flex;
+        min-height: 5.25rem;
+        align-items: center;
+        gap: .9rem;
+        padding: 1rem;
+        border: 1px solid #ddd6fe;
+        border-radius: .9rem;
+        color: #5b4b9b;
+        background: #fff;
+        cursor: pointer;
+        transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .appointment-format-option:hover {
+        transform: translateY(-2px);
+        border-color: #A594F9;
+        box-shadow: 0 8px 18px rgba(165, 148, 249, .18);
+    }
+
+    .appointment-format-option span,
+    .appointment-format-option small {
+        display: block;
+    }
+
+    .appointment-format-option small {
+        margin-top: .15rem;
+        color: #64748b;
+    }
+
+    .btn-check:checked + .appointment-format-option {
+        border-color: #8f72f5;
+        background: #f5f3ff;
+        box-shadow: 0 0 0 2px rgba(143, 114, 245, .2);
+    }
+
+    .btn-check:focus-visible + .appointment-format-option {
+        outline: 3px solid rgba(143, 114, 245, .35);
+        outline-offset: 2px;
     }
 
     @media (max-width: 575.98px) {

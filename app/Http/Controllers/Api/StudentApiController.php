@@ -135,6 +135,7 @@ class StudentApiController extends Controller
             'urgency_level' => 'required|in:Low,Medium,High',
             'scheduled_date' => 'required|date|after_or_equal:today',
             'scheduled_time' => 'required|date_format:H:i',
+            'format' => 'required|in:Face-to-Face,Online',
             'description' => 'required|string|max:2000',
         ]);
 
@@ -155,7 +156,7 @@ class StudentApiController extends Controller
             'urgency_level' => $v['urgency_level'],
             'scheduled_date' => $v['scheduled_date'],
             'scheduled_time' => $v['scheduled_time'],
-            'format' => 'Face-to-Face',
+            'format' => $v['format'],
             'description' => $v['description'],
             'status' => 'pending',
             'created_at' => now(),
@@ -215,7 +216,9 @@ class StudentApiController extends Controller
             'office' => $office,
             'data' => $messages->map(fn ($m) => [
                 'id' => $m->id,
-                'message' => $m->message,
+                'message' => $m->deleted_at ? '' : $m->message,
+                'original_message' => $m->deleted_at ? null : $m->original_message,
+                'deleted_at' => optional($m->deleted_at)->toIso8601String(),
                 'mine' => $m->sender_id === $uid,
                 'read_at' => optional($m->read_at)->toIso8601String(),
                 'created_at' => optional($m->created_at)->toIso8601String(),
@@ -249,8 +252,12 @@ class StudentApiController extends Controller
     {
         $request->validate(['message' => 'required|string|max:1000']);
         $m = Message::findOrFail($id);
-        abort_unless($m->sender_id === $request->user()->id, 403);
-        $m->update(['message' => $request->message]);
+        $admin = $this->adminUser();
+        abort_unless($admin && (int) $m->sender_id === (int) $request->user()->id && (int) $m->receiver_id === (int) $admin->id, 403);
+        abort_if($m->deleted_at, 409, 'Deleted messages cannot be edited.');
+        $m->original_message ??= $m->message;
+        $m->message = $request->message;
+        $m->save();
 
         return response()->json(['ok' => true]);
     }
@@ -258,8 +265,14 @@ class StudentApiController extends Controller
     public function destroyMessage(Request $request, $id): JsonResponse
     {
         $m = Message::findOrFail($id);
-        abort_unless($m->sender_id === $request->user()->id, 403);
-        $m->delete();
+        $admin = $this->adminUser();
+        abort_unless($admin && (int) $m->sender_id === (int) $request->user()->id && (int) $m->receiver_id === (int) $admin->id, 403);
+        if (!$m->deleted_at) {
+            $m->deleted_at = now();
+            $m->message = '';
+            $m->original_message = null;
+            $m->save();
+        }
 
         return response()->json(['ok' => true]);
     }

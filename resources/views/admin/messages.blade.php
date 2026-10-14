@@ -9,7 +9,7 @@
 <style>
     .messages-page {
         background: #f4f3ff;
-        min-height: 0;
+        min-height: calc(100dvh - 5rem);
         padding: 1.5rem;
         overflow-x: clip;
     }
@@ -24,8 +24,22 @@
         display: grid;
         grid-template-columns: 320px 1fr;
         gap: 1rem;
-        height: auto;
+        width: min(100%, 1260px);
+        min-height: 0;
+        margin: 0 auto;
     }
+
+    .messages-page[data-has-conversation="false"] .messaging-layout { grid-template-columns: minmax(0, 1fr); }
+    .messages-page[data-has-conversation="false"] .right-panel { display: none; }
+    .messages-page[data-has-conversation="true"] .messaging-layout { grid-template-columns: minmax(0, 1fr); }
+    .messages-page[data-has-conversation="true"] .left-panel { display: none; }
+    .messages-page[data-has-conversation="true"] .right-panel { width: min(100%, 1040px); height: min(72dvh, 52rem); margin-inline: auto; }
+    .messages-page[data-has-conversation="false"] .left-panel { height: min(72dvh, 52rem); }
+    .message-back-link { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; }
+
+    .messages-page > .container-fluid { width: min(100%, 1320px); margin-inline: auto; padding-inline: clamp(.25rem, 2vw, 1.5rem); }
+    .messages-page[data-has-conversation="false"] { display: flex; align-items: center; }
+    .messages-page[data-has-conversation="true"] { display: flex; align-items: center; }
 
     @media (min-width: 821px) and (max-width: 1199.98px) {
         .messages-page {
@@ -57,6 +71,11 @@
             min-height: 0;
         }
 
+        .messages-page[data-has-conversation="true"] .right-panel { display: flex; height: min(70dvh, 42rem); min-height: min(26rem, 60dvh); }
+        .messages-page[data-has-conversation="false"] .left-panel { display: flex; }
+        .messages-page[data-has-conversation="false"] .left-panel { height: min(70dvh, 42rem); }
+        .messages-page[data-has-conversation="false"] .right-panel { display: none; }
+
         .left-panel {
             max-height: none;
         }
@@ -85,7 +104,8 @@
         border: 1px solid #ede9fe;
         display: flex;
         flex-direction: column;
-        overflow: visible;
+        min-height: 0;
+        overflow: hidden;
         box-shadow: 0 2px 8px rgba(124, 111, 224, 0.07);
     }
 
@@ -109,11 +129,15 @@
     }
 
     .search-bar {
+        display: flex;
+        gap: .5rem;
         padding: 0.75rem 1rem;
         border-bottom: 1px solid #f3f0ff;
     }
 
     .search-input {
+        flex: 1 1 auto;
+        min-width: 0;
         width: 100%;
         background: #f9f7ff;
         border: 1px solid #ede9fe;
@@ -128,9 +152,34 @@
         color: #c4b5fd;
     }
 
-    .conversation-list {
+    .message-search-button {
+        display: inline-flex;
         flex: 0 0 auto;
-        overflow: visible;
+        align-items: center;
+        justify-content: center;
+        gap: .35rem;
+        padding: .45rem .8rem;
+        border: 0;
+        border-radius: 10px;
+        color: #fff;
+        background: #8f72f5;
+        font-size: .82rem;
+        font-weight: 800;
+    }
+
+    .message-user-search-results:empty { display: none; }
+    .message-user-search-results { max-height: 16rem; margin-top: .4rem; overflow-y: auto; border: 1px solid #ede9fe; border-radius: .7rem; background: #fff; }
+    .message-user-search-results a { display: block; padding: .65rem .75rem; border-bottom: 1px solid #f3f0ff; color: #312e51; text-decoration: none; }
+    .message-user-search-results a:last-child { border-bottom: 0; }
+    .message-user-search-results a:hover, .message-user-search-results a:focus-visible { background: #f5f3ff; outline: none; }
+    .message-user-search-results strong, .message-user-search-results small { display: block; }
+    .message-user-search-results small { margin-top: .12rem; color: #78728c; }
+    .message-user-search-empty { padding: .65rem .75rem; color: #78728c; font-size: .82rem; }
+
+    .conversation-list {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
     }
 
     .conversation-item {
@@ -287,15 +336,16 @@
         font-weight: 600;
         padding: 4px 12px;
         border-radius: 20px;
-        background: #f0fdf4;
-        color: #166534;
-        border: 1px solid #bbf7d0;
+        background: #f3efff;
+        color: #5b4b9b;
+        border: 1px solid #d8cdfc;
     }
 
     /* Thread */
     .messaging-thread {
-        flex: 0 0 auto;
-        overflow: visible;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
         padding: 1.5rem;
         display: flex;
         flex-direction: column;
@@ -388,6 +438,20 @@
         line-height: 1.55;
         word-wrap: break-word;
     }
+    .message-bubble.is-deleted { color: #6b5b91; background: #f3efff !important; border: 1px dashed #c4b5fd !important; font-style: italic; }
+    .message-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; }
+    .message-action, .message-edited-link { padding: 0; border: 0; color: #7658df; background: transparent; font-size: .7rem; text-decoration: underline; }
+    .msg-content { position: relative; }
+    .message-edited-link { position: absolute; top: -.8rem; right: .15rem; }
+    .message-group.admin .message-edited-link { right: auto; left: .15rem; }
+    .message-action.delete { margin-left: .35rem; color: #e85d9e; }
+    .message-action:hover, .message-edited-link:hover { color: #5b43b2; }
+    .message-original { display: none; margin-top: .4rem; padding: .5rem .65rem; border-left: 2px solid #a594f9; border-radius: .35rem; color: #5b4b9b; background: #f3efff; font-size: .78rem; white-space: pre-wrap; }
+    .message-original.is-visible { display: block; }
+    .message-edit-input { width: 100%; min-width: 14rem; min-height: 5rem; border: 1px solid #c4b5fd; border-radius: .6rem; padding: .55rem; color: #312e51; background: #fff; font: inherit; resize: vertical; }
+    .message-edit-controls { display: flex; justify-content: flex-end; gap: .4rem; margin-top: .4rem; }
+    .message-edit-controls button { border: 0; border-radius: .45rem; padding: .3rem .65rem; color: #fff; background: #8f72f5; font-size: .75rem; }
+    .message-edit-controls button:first-child { color: #514675; background: #f3efff; }
 
     .message-group.user .message-bubble {
         background: linear-gradient(135deg, #7c6fe0, #a78bfa);
@@ -520,15 +584,8 @@
     }
 </style>
 
-<div class="messages-page">
+<div class="messages-page" data-has-conversation="{{ $selectedStudent ? 'true' : 'false' }}">
     <div class="container-fluid">
-        <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb">
-                
-                
-            </ol>
-        </nav>
-
         <div class="messaging-layout">
 
             {{-- Left: Conversations List --}}
@@ -539,8 +596,10 @@
                 </div>
 
                 <div class="search-bar">
-                    <input class="search-input" type="text" id="searchConversations" placeholder="Search conversations..." />
+                    <input class="search-input" type="search" id="searchPeople" placeholder="Search student / employee name or ID..." aria-label="Search students and employees by name or ID" autocomplete="off" />
+                    <button class="message-search-button" type="button" id="searchPeopleButton" aria-label="Search users"><i class="bi bi-search"></i><span>Search</span></button>
                 </div>
+                <div class="message-user-search-results" id="messageUserSearchResults" role="listbox" aria-live="polite"></div>
 
                 <div class="conversation-list" id="conversationList">
                     @if($conversations->isEmpty())
@@ -570,7 +629,7 @@
                                 </div>
                                 <div class="conv-info">
                                     <div class="conv-name">{{ $otherUser->name }}</div>
-                                    <div class="conv-preview">{{ Str::limit($conversation->message, 40) }}</div>
+                                    <div class="conv-preview">{{ $conversation->deleted_at ? 'Message deleted' : Str::limit($conversation->message, 40) }}</div>
                                 </div>
                                 <div class="conv-meta">
                                     <div class="conv-time">{{ $conversation->created_at->format('M d') }}</div>
@@ -585,8 +644,8 @@
             </div>
 
             {{-- Right: Messages Panel --}}
+            @if($selectedStudent)
             <div class="right-panel">
-                @if($selectedStudent)
                     @php
                         $selInitials = collect(explode(' ', $selectedStudent->name))
                             ->map(fn($w) => strtoupper(substr($w, 0, 1)))
@@ -596,6 +655,7 @@
 
                     {{-- Header --}}
                     <div class="messaging-header">
+                        <a class="message-back-link btn btn-sm btn-outline-secondary" href="{{ route('admin.messages') }}" aria-label="Back to conversations"><i class="bi bi-arrow-left"></i></a>
                         <div class="msg-header-left">
                             <div class="header-avatar">
                                 @if($selectedStudent->profile_photo_path)
@@ -648,8 +708,16 @@
                                         @endif
                                     </div>
                                     <div class="msg-content">
-                                        <div class="message-bubble">{{ $message->message }}</div>
-                                        <div class="message-time">{{ $message->created_at->format('g:i A') }}</div>
+                                        <div class="message-bubble {{ $message->deleted_at ? 'is-deleted' : '' }}" id="messageBubble{{ $message->id }}">{{ $message->deleted_at ? 'This message was deleted.' : $message->message }}</div>
+                                        <div class="message-meta">
+                                            <span class="message-time">{{ $message->created_at->format('g:i A') }}</span>
+                                            @if(!$message->deleted_at && $isAdmin)
+                                                <button class="message-action" type="button" onclick="startAdminEdit({{ $message->id }})">Edit</button>
+                                                <button class="message-action" type="button" onclick="deleteAdminMessage({{ $message->id }})">Delete</button>
+                                            @endif
+                                        </div>
+                                        @if($message->original_message && !$message->deleted_at)<button class="message-edited-link" type="button" onclick="toggleOriginal({{ $message->id }})">Edited</button>@endif
+                                        @if($message->original_message && !$message->deleted_at)<div class="message-original" id="messageOriginal{{ $message->id }}"><strong>Original message:</strong> {{ $message->original_message }}</div>@endif
                                     </div>
                                 </div>
                             @endforeach
@@ -669,13 +737,8 @@
                         </button>
                     </div>
 
-                @else
-                    <div class="no-conversation">
-                        <i class="bi bi-chat-dots"></i>
-                        <p>Select a conversation to start messaging</p>
-                    </div>
-                @endif
             </div>
+            @endif
 
         </div>
     </div>
@@ -728,6 +791,78 @@
 <script>
     const adminId = {{ Auth::id() }};
     const selectedStudentId = {{ (int) ($selectedStudentId ?? 0) }};
+    const adminCsrf = '{{ csrf_token() }}';
+
+    function adminMessageMarkup(message) {
+        const id = Number(message.id);
+        const own = Number(message.sender_id) === Number(adminId);
+        const deleted = Boolean(message.deleted_at);
+        const classes = `message-bubble${deleted ? ' is-deleted' : ''}`;
+        const content = deleted ? 'This message was deleted.' : message.message;
+        const actions = deleted ? '' : `${own ? `<button class="message-action" type="button" onclick="startAdminEdit(${id})">Edit</button><button class="message-action delete" type="button" onclick="deleteAdminMessage(${id})">Delete</button>` : ''}`;
+        const original = message.original_message && !deleted
+            ? `<button class="message-edited-link" type="button" onclick="toggleOriginal(${id})">Edited</button><div class="message-original" id="messageOriginal${id}"><strong>Original message:</strong> ${escapeHtml(message.original_message)}</div>`
+            : '';
+        const state = JSON.stringify([message.message, message.original_message, message.deleted_at]);
+        return `<div class="message-group ${own ? 'user' : 'admin'}" data-message-id="${id}" data-message-state="${escapeHtml(state)}">
+            <div class="msg-avatar ${own ? 'outgoing-av' : 'incoming-av'}">${own ? 'G' : @json($selInitials ?? '')}</div>
+            <div class="msg-content">
+                <div class="${classes}" id="messageBubble${id}">${escapeHtml(content)}</div>
+                <div class="message-meta"><span class="message-time">${escapeHtml(message.created_at || '')}</span>${actions}</div>
+                ${original}
+            </div></div>`;
+    }
+
+    function toggleOriginal(id) {
+        document.getElementById(`messageOriginal${id}`)?.classList.toggle('is-visible');
+    }
+
+    function startAdminEdit(id) {
+        const bubble = document.getElementById(`messageBubble${id}`);
+        if (!bubble || bubble.classList.contains('is-deleted')) return;
+        const current = bubble.textContent;
+        bubble.dataset.editOriginal = current;
+        bubble.innerHTML = `<textarea class="message-edit-input" id="adminEditInput${id}" maxlength="1000">${escapeHtml(current)}</textarea>
+            <div class="message-edit-controls"><button type="button" onclick="cancelAdminEdit(${id})">Cancel</button><button type="button" onclick="saveAdminEdit(${id})">Save</button></div>`;
+        document.getElementById(`adminEditInput${id}`)?.focus();
+    }
+
+    function cancelAdminEdit(id) {
+        const bubble = document.getElementById(`messageBubble${id}`);
+        if (bubble) bubble.textContent = bubble.dataset.editOriginal || '';
+    }
+
+    async function saveAdminEdit(id) {
+        const input = document.getElementById(`adminEditInput${id}`);
+        const message = input?.value.trim();
+        if (!message) return alert('Message cannot be empty.');
+        try {
+            const response = await fetch(`/admin/messages/${id}/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': adminCsrf },
+                body: JSON.stringify({ message })
+            });
+            if (!response.ok) throw new Error('Failed to edit message.');
+            await refreshAdminMessages();
+        } catch (error) {
+            alert(error.message || 'Failed to edit message.');
+        }
+    }
+
+    async function deleteAdminMessage(id) {
+        if (!confirm('Delete this message?')) return;
+        try {
+            const response = await fetch(`/admin/messages/${id}`, {
+                method: 'DELETE',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': adminCsrf }
+            });
+            if (!response.ok) throw new Error('Failed to delete message.');
+            await refreshAdminMessages();
+        } catch (error) {
+            alert(error.message || 'Failed to delete message.');
+        }
+    }
+
     function sendMessage() {
         const input = document.getElementById('messageInput');
         const message = input.value.trim();
@@ -776,17 +911,7 @@
                 const emptyState = thread.querySelector('.empty-state');
                 if (emptyState) emptyState.remove();
 
-                const msgDiv = document.createElement('div');
-                msgDiv.className = 'message-group user';
-                msgDiv.dataset.messageId = data.message.id;
-                msgDiv.innerHTML = `
-                    <div class="msg-avatar outgoing-av">G</div>
-                    <div class="msg-content" style="align-items:flex-end;">
-                        <div class="message-bubble">${escapeHtml(data.message.message)}</div>
-                        <div class="message-time">${escapeHtml(data.message.created_at || 'Just now')}</div>
-                    </div>
-                `;
-                thread.appendChild(msgDiv);
+                thread.insertAdjacentHTML('beforeend', adminMessageMarkup({ ...data.message, sender_id: adminId }));
 
                 input.value = '';
                 input.style.height = 'auto';
@@ -811,9 +936,8 @@
 
     async function refreshAdminMessages() {
         const thread = selectedStudentId ? document.getElementById('messagingThread') : null;
-        const afterId = thread ? Math.max(0, ...[...thread.querySelectorAll('[data-message-id]')].map(el => Number(el.dataset.messageId) || 0)) : 0;
         try {
-            const params = new URLSearchParams({ after_id: afterId });
+            const params = new URLSearchParams({ after_id: 0 });
             if (selectedStudentId) params.set('student_id', selectedStudentId);
             const response = await fetch(`{{ route('admin.messages.feed') }}?${params}`, {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
@@ -822,29 +946,14 @@
             const data = await response.json();
             if (thread) {
                 for (const message of data.messages) {
-                    if (message.sender_id === adminId || thread.querySelector(`[data-message-id="${message.id}"]`)) continue;
-                    thread.querySelector('.empty-state')?.remove();
-                    const row = document.createElement('div');
-                    row.className = 'message-group admin';
-                    row.dataset.messageId = message.id;
-                    const avatar = document.createElement('div');
-                    avatar.className = 'msg-avatar incoming-av';
-                    @if($selectedStudent && $selectedStudent->profile_photo_path)
-                        avatar.innerHTML = `<img src="{{ asset('storage/' . $selectedStudent->profile_photo_path) }}" alt="">`;
-                    @else
-                        avatar.textContent = @json($selectedStudent ? $selInitials : '');
-                    @endif
-                    const content = document.createElement('div');
-                    content.className = 'msg-content';
-                    const bubble = document.createElement('div');
-                    bubble.className = 'message-bubble';
-                    bubble.textContent = message.message;
-                    const time = document.createElement('div');
-                    time.className = 'message-time';
-                    time.textContent = message.created_at || '';
-                    content.append(bubble, time);
-                    row.append(avatar, content);
-                    thread.appendChild(row);
+                    const current = thread.querySelector(`[data-message-id="${message.id}"]`);
+                    const state = JSON.stringify([message.message, message.original_message, message.deleted_at]);
+                    if (current?.dataset.messageState === state) continue;
+                    if (current) current.outerHTML = adminMessageMarkup(message);
+                    else {
+                        thread.querySelector('.empty-state')?.remove();
+                        thread.insertAdjacentHTML('beforeend', adminMessageMarkup(message));
+                    }
                 }
             }
         } catch (error) {
@@ -867,15 +976,65 @@
         this.style.height = Math.min(this.scrollHeight, 90) + 'px';
     });
 
-    // Client-side search filter
-    document.getElementById('searchConversations')?.addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        document.querySelectorAll('.conversation-item').forEach(item => {
-            const name = item.querySelector('.conv-name')?.textContent.toLowerCase() || '';
-            const preview = item.querySelector('.conv-preview')?.textContent.toLowerCase() || '';
-            item.style.display = (name.includes(query) || preview.includes(query)) ? '' : 'none';
+    (function () {
+        const search = document.getElementById('searchPeople');
+        const results = document.getElementById('messageUserSearchResults');
+        if (!search || !results) return;
+
+        let activeController;
+        async function runUserSearch() {
+            activeController?.abort();
+            const query = search.value.trim();
+            results.replaceChildren();
+            if (query.length < 2) {
+                results.innerHTML = '<div class="message-user-search-empty">Enter at least 2 characters to search.</div>';
+                return;
+            }
+            activeController = new AbortController();
+            results.innerHTML = '<div class="message-user-search-empty">Searching students and employees…</div>';
+            try {
+                const url = new URL(@json(route('admin.messages.search-users')), window.location.origin);
+                url.searchParams.set('q', query);
+                const response = await fetch(url, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    signal: activeController.signal
+                });
+                if (!response.ok) throw new Error(`User search failed (${response.status}).`);
+                const payload = await response.json();
+                results.replaceChildren();
+                if (!payload.users.length) {
+                    results.innerHTML = '<div class="message-user-search-empty">No matching student or employee found.</div>';
+                    return;
+                }
+                payload.users.forEach(function (user) {
+                    const link = document.createElement('a');
+                    link.href = user.url;
+                    link.setAttribute('role', 'option');
+                    const name = document.createElement('strong');
+                    name.textContent = user.name;
+                    const details = document.createElement('small');
+                    details.textContent = [
+                        user.role,
+                        user.student_employee_id ? 'ID: ' + user.student_employee_id : 'Account ID: ' + user.id,
+                        user.department
+                    ].filter(Boolean).join(' · ');
+                    link.append(name, details);
+                    results.appendChild(link);
+                });
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                console.error('Unable to search student and employee accounts:', error);
+                results.innerHTML = '<div class="message-user-search-empty">Search is unavailable right now. Please try again.</div>';
+            }
+        }
+        document.getElementById('searchPeopleButton')?.addEventListener('click', runUserSearch);
+        search.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                runUserSearch();
+            }
         });
-    });
+    })();
 </script>
 
 @endsection

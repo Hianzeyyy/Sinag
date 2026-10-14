@@ -64,8 +64,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/suggestions/reports/{suggestionReport}/dismiss', [AdminController::class, 'dismissSuggestionReport'])->name('suggestions.reports.dismiss');
         Route::get('/users', [AdminController::class, 'users'])->name('users');
         Route::get('/messages', [AdminController::class, 'messages'])->name('messages');
+        Route::get('/messages/search-users', [AdminController::class, 'searchMessageUsers'])->name('messages.search-users');
         Route::post('/messages/store', [AdminController::class, 'storeMessage'])->name('messages.store');
         Route::get('/messages/feed', [AdminController::class, 'messageFeed'])->name('messages.feed');
+        Route::post('/messages/{id}/update', [AdminController::class, 'updateMessage'])->name('messages.update');
+        Route::delete('/messages/{id}', [AdminController::class, 'destroyMessage'])->name('messages.destroy');
         Route::get('/gad-schedules', [AdminController::class, 'gadSchedules'])->name('gad-schedules.index');
         Route::post('/gad-schedules/sync', [AdminController::class, 'syncGadSchedule'])->name('gad-schedules.sync');
         Route::post('/office-info', [AdminController::class, 'updateOfficeInfo'])->name('office-info.update');
@@ -77,6 +80,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/urgent-calls', [AdminController::class, 'urgentCalls'])->name('urgent.calls');
         Route::get('/urgent-calls/feed', [AdminController::class, 'urgentCallsFeed'])->name('urgent.calls.feed');
         Route::post('/urgent-calls/{callId}/join', [AdminController::class, 'joinUrgentCall'])->name('urgent.calls.join');
+        Route::post('/urgent-calls/{callId}/end', [AdminController::class, 'endUrgentCall'])->name('urgent.calls.end');
         Route::post('/users/{id}/approve', [AdminController::class, 'approveUser'])->name('users.approve');
         Route::post('/users/{id}/reject', [AdminController::class, 'rejectUser'])->name('users.reject');
         Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('users.delete');
@@ -116,6 +120,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/appointments', [StudentController::class, 'myAppointments'])->name('appointments');
         Route::put('/appointments/{id}', [StudentController::class, 'updateAppointment'])->name('appointments.update');
         Route::post('/appointments/{id}/cancel', [StudentController::class, 'cancelAppointment'])->name('appointments.cancel');
+        Route::delete('/appointments/{id}', [StudentController::class, 'deleteAppointment'])->name('appointments.delete');
         
         // Safety & Wellness
         Route::get('/wellness', [StudentController::class, 'wellness'])->name('wellness'); 
@@ -131,6 +136,7 @@ Route::middleware(['auth'])->group(function () {
         // Urgent video/voice call (placeholder Zoom-like page)
         Route::get('/urgent', [StudentController::class, 'urgentCall'])->name('urgent');
         Route::post('/urgent/notify', [StudentController::class, 'urgentNotify'])->name('urgent.notify');
+        Route::get('/urgent/{callId}/status', [StudentController::class, 'urgentCallStatus'])->name('urgent.status');
         Route::post('/urgent/{callId}/end', [StudentController::class, 'endUrgentCall'])->name('urgent.end');
         // Event pages for carousel items
         Route::get('/event/{id}', [StudentController::class, 'event'])->name('event');

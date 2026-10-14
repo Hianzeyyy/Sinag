@@ -453,6 +453,54 @@ class AdminController extends Controller
         return view('admin.messages', compact('conversations', 'messages', 'selectedStudent', 'selectedStudentId'));
     }
 
+    public function searchMessageUsers(Request $request)
+    {
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'min:2', 'max:100'],
+        ]);
+
+        $term = trim($validated['q']);
+        $like = '%' . addcslashes($term, '\\%_') . '%';
+        $appointmentMatches = AppointmentRequest::query()
+            ->where('student_id', 'like', $like)
+            ->distinct()
+            ->pluck('user_id');
+
+        $users = User::query()
+            ->whereIn('role', ['student', 'employee'])
+            ->where(function ($query) use ($like, $term, $appointmentMatches) {
+                $query->where('name', 'like', $like);
+                if (ctype_digit($term)) {
+                    $query->orWhere('id', (int) $term);
+                }
+                if ($appointmentMatches->isNotEmpty()) {
+                    $query->orWhereIn('id', $appointmentMatches);
+                }
+            })
+            ->orderBy('name')
+            ->limit(12)
+            ->get(['id', 'name', 'role', 'account_type', 'department']);
+
+        $appointmentIds = AppointmentRequest::query()
+            ->whereIn('user_id', $users->pluck('id'))
+            ->select('user_id', 'student_id')
+            ->latest('id')
+            ->get()
+            ->unique('user_id')
+            ->keyBy('user_id');
+
+        return response()->json([
+            'users' => $users->map(fn (User $user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => $user->account_type ?? $user->role,
+                'department' => $user->department,
+                'student_employee_id' => optional($appointmentIds->get($user->id))->student_id,
+                'url' => route('admin.messages', ['student_id' => $user->id]),
+            ])->values(),
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+
     /**
      * GAD office meeting schedule management.
      */
@@ -775,6 +823,31 @@ class AdminController extends Controller
         ]);
     }
 
+    public function endUrgentCall($callId)
+    {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $calls = Cache::get('urgent_calls', []);
+        $found = false;
+        foreach ($calls as &$call) {
+            if (($call['id'] ?? null) === $callId && ($call['status'] ?? null) !== 'ended') {
+                $call['status'] = 'ended';
+                $call['ended_at'] = now()->toDateTimeString();
+                $call['ended_by'] = Auth::user()->name;
+                $found = true;
+                break;
+            }
+        }
+        unset($call);
+
+        abort_unless($found, 404, 'Call not found or it has already ended.');
+        Cache::put('urgent_calls', $calls, now()->addHours(6));
+
+        return response()->json(['status' => 'ended']);
+    }
+
     /**
      * Approve newly registered user account.
      */
@@ -890,6 +963,40 @@ class AdminController extends Controller
         ]);
     }
 
+    public function updateMessage(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'message' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $message = Message::findOrFail($id);
+        abort_unless((int) $message->sender_id === (int) Auth::id(), 403, 'You can only edit messages you sent.');
+        abort_unless(User::whereKey($message->receiver_id)->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")->exists(), 403, 'This is not a student conversation.');
+        abort_if($message->deleted_at, 409, 'Deleted messages cannot be edited.');
+
+        $message->original_message ??= $message->message;
+        $message->message = $validated['message'];
+        $message->save();
+
+        return response()->json(['success' => true, 'message' => $message]);
+    }
+
+    public function destroyMessage($id)
+    {
+        $message = Message::findOrFail($id);
+        abort_unless((int) $message->sender_id === (int) Auth::id(), 403, 'You can only delete messages you sent.');
+        abort_unless(User::whereKey($message->receiver_id)->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")->exists(), 403, 'This is not a student conversation.');
+
+        if (!$message->deleted_at) {
+            $message->deleted_at = now();
+            $message->message = '';
+            $message->original_message = null;
+            $message->save();
+        }
+
+        return response()->json(['success' => true]);
+    }
+
     public function messageFeed(Request $request)
     {
         $validated = $request->validate([
@@ -911,8 +1018,6 @@ class AdminController extends Controller
         $student = User::whereKey($validated['student_id'])
             ->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")
             ->firstOrFail();
-        $afterId = (int) ($validated['after_id'] ?? 0);
-
         $messages = Message::where(function ($query) use ($student) {
                 $query->where(function ($query) use ($student) {
                     $query->where('sender_id', Auth::id())->where('receiver_id', $student->id);
@@ -920,7 +1025,6 @@ class AdminController extends Controller
                     $query->where('sender_id', $student->id)->where('receiver_id', Auth::id());
                 });
             })
-            ->where('id', '>', $afterId)
             ->orderBy('id')
             ->get();
 
@@ -933,6 +1037,8 @@ class AdminController extends Controller
             'messages' => $messages->map(fn (Message $message) => [
                 'id' => $message->id,
                 'message' => $message->message,
+                'original_message' => $message->original_message,
+                'deleted_at' => $message->deleted_at?->toIso8601String(),
                 'sender_id' => $message->sender_id,
                 'created_at' => $message->created_at?->format('g:i A'),
             ]),

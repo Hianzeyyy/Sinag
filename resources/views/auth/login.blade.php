@@ -270,10 +270,38 @@
     }
     .auth-toggle:hover, .auth-toggle:focus-visible { background: #5b43b2; color: #fff; transform: translateY(-2px); }
     .register-fields { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .register-submit {
+        display: inline-flex;
+        width: auto !important;
+        max-width: 100%;
+        min-height: 0;
+        align-items: center;
+        justify-content: center;
+        padding: .65rem 1.35rem !important;
+        font-size: .9rem;
+        line-height: 1.25;
+        white-space: nowrap;
+    }
+    .register-fields > .col-12.register-submit-wrap {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .55rem;
+    }
+    .register-links { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .35rem; text-align: center; }
+    .register-submit {
+        width: min(100%, 15rem) !important;
+        min-height: 3.2rem;
+        padding: .8rem 1.25rem !important;
+        font-size: 1rem;
+    }
     .register-fields > .col-12 { width: auto; max-width: none; flex: none; }
+    .register-fields > .col-6 { width: auto; max-width: none; flex: none; grid-column: span 3; }
     .register-fields > .col-12:not(.register-name-field) { grid-column: span 3; }
     .register-fields > .register-name-field { grid-column: span 2; }
     .register-fields > .col-12.d-none { display: none !important; }
+    .register-fields > .col-12.register-submit-wrap { grid-column: 1 / -1; }
     .auth-overlay-copy p { font-size: .9rem; line-height: 1.5; }
     .register-password { padding-right: 2.75rem; }
     .register-password-toggle {
@@ -318,6 +346,7 @@
     }
 
     @media (max-width: 575.98px) {
+        .register-fields > .col-6,
         .register-fields > .col-12:not(.register-name-field),
         .register-fields > .register-name-field { grid-column: span 6; }
     }
@@ -420,7 +449,7 @@
                                         </span>
                                         <input id="email" type="email" class="login-input form-control form-control-lg border-0 py-3"
                                                name="email" value="{{ old('email', request()->cookie('remembered_email', '')) }}" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" autofocus
-                                               placeholder="admin@psu.edu.ph" style="font-size: 1rem;">
+                                               placeholder="username@psu.edu.ph" style="font-size: 1rem;">
                                     </div>
                                 </div>
 
@@ -485,8 +514,8 @@
                                         <input type="text" class="form-control" name="first_name" value="{{ old('first_name') }}" maxlength="255" required autocomplete="given-name" placeholder="Juan">
                                     </div>
                                     <div class="col-12 col-sm-4 register-name-field">
-                                        <label class="form-label small fw-bold text-uppercase">Middle Name <span class="text-muted">(optional)</span></label>
-                                        <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" maxlength="255" autocomplete="additional-name" placeholder="Optional">
+                                        <label class="form-label small fw-bold text-uppercase">Middle Name</label>
+                                        <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" maxlength="255" autocomplete="additional-name" placeholder="Middle name (if any)">
                                     </div>
                                     <div class="col-12 col-sm-4 register-name-field">
                                         <label class="form-label small fw-bold text-uppercase">Last Name</label>
@@ -495,7 +524,6 @@
                                     <div class="col-12">
                                         <label class="form-label small fw-bold text-uppercase">Institutional Email</label>
                                         <input type="email" class="form-control" name="email" value="{{ old('email') }}" required placeholder="username@psu.edu.ph">
-                                        <div class="form-text">Students use an email beginning with a number; employees use one beginning with a letter.</div>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small fw-bold text-uppercase">Contact Number</label>
@@ -558,11 +586,11 @@
                                             <button type="button" class="register-password-toggle" data-password-target="registerPasswordConfirmation" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye"></i></button>
                                         </div>
                                     </div>
-                                    <div class="col-12 d-grid mt-2">
-                                        <button type="submit" class="btn btn-lg fw-bold text-dark py-3" style="background:#facc15;border-radius:12px;">REGISTER ACCOUNT</button>
-                                        <div class="text-center mt-2 small">
+                                    <div class="col-12 register-submit-wrap mt-2">
+                                        <button type="submit" class="btn fw-bold text-dark register-submit" style="background:#facc15;border-radius:12px;">REGISTER ACCOUNT</button>
+                                        <div class="register-links small">
                                             <a class="login-forgot text-decoration-none fw-bold" href="{{ route('password.code.form') }}">Forgot Password?</a>
-                                            <span class="text-white-50 mx-1">|</span>
+                                            <span class="text-muted" aria-hidden="true">|</span>
                                             <a class="login-forgot text-decoration-none fw-bold" href="{{ route('password.status.form') }}">Check Request Status</a>
                                         </div>
                                     </div>

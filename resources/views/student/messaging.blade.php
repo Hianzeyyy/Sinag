@@ -232,7 +232,10 @@ body {
 }
 
 .msg-bubble-wrap { display: flex; flex-direction: column; max-width: 72%; }
+.msg-bubble-wrap { position: relative; }
 .msg-group.user .msg-bubble-wrap { align-items: flex-end; }
+.msg-edited-control { position: absolute; top: -.8rem; right: .15rem; margin: 0; }
+.msg-group.admin .msg-edited-control { right: auto; left: .15rem; }
 
 .msg-bubble {
     padding: 0.75rem 1.05rem;
@@ -241,6 +244,25 @@ body {
     line-height: 1.55;
     word-break: break-word;
 }
+.msg-bubble.msg-deleted {
+    color: #5b4b9b !important;
+    background: #f3efff !important;
+    border: 1px dashed #c4b5fd;
+    box-shadow: none !important;
+    font-style: italic;
+}
+.msg-original {
+    display: none;
+    margin-top: .35rem;
+    padding: .45rem .6rem;
+    border-left: 2px solid var(--violet-light);
+    border-radius: .35rem;
+    color: #5b4b9b;
+    background: var(--violet-pale);
+    font-size: .76rem;
+    white-space: pre-wrap;
+}
+.msg-original.is-visible { display: block; }
 
 .msg-group.user .msg-bubble {
     background: linear-gradient(135deg, var(--violet) 0%, var(--violet-light) 100%);
@@ -286,8 +308,10 @@ body {
 }
 
 .msg-action-btn.edit { color: var(--violet); }
-.msg-action-btn.delete { color: #b0a1fa }
+.msg-action-btn.delete { color: #e85d9e; }
 .msg-action-btn:hover { opacity: 0.75; }
+.msg-message-meta { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+.msg-action-btn { margin-inline: .08rem; }
 
 /* Input area */
 .msg-input-area {
@@ -585,17 +609,23 @@ body {
                                     <div class="msg-sender-name">GAD Office</div>
                                 @endif
 
-                                <div class="msg-bubble" id="bubble-{{ $message->id }}">
-                                    <span class="message-text" id="message-text-{{ $message->id }}">{{ $message->message }}</span>
+                                <div class="msg-bubble {{ $message->deleted_at ? 'msg-deleted' : '' }}" id="bubble-{{ $message->id }}">
+                                    <span class="message-text" id="message-text-{{ $message->id }}">{{ $message->deleted_at ? 'This message was deleted.' : $message->message }}</span>
                                 </div>
 
-                                <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                @if($message->original_message && !$message->deleted_at)
+                                    <button class="msg-action-btn edit msg-edited-control" type="button" onclick="toggleStudentOriginal({{ $message->id }})">Edited</button>
+                                @endif
+                                <div class="msg-message-meta" style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                                     <div class="msg-time">{{ $message->created_at->format('M d, g:i A') }}</div>
-                                    @if($message->sender_id === Auth::id())
+                                    @if($message->sender_id === Auth::id() && !$message->deleted_at)
                                         <button class="msg-action-btn edit" onclick="startEdit({{ $message->id }})">Edit</button>
                                         <button class="msg-action-btn delete" onclick="confirmDelete({{ $message->id }})">Delete</button>
                                     @endif
                                 </div>
+                                @if($message->original_message && !$message->deleted_at)
+                                    <div class="msg-original" id="original-{{ $message->id }}"><strong>Original message:</strong> {{ $message->original_message }}</div>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -726,44 +756,61 @@ function sendMessage() {
             el.dataset.messageId = data.message.id;
             el.innerHTML = `
                 <div class="msg-bubble-wrap">
-                    <div class="msg-bubble">${escapeHtml(message)}</div>
-                    <div class="msg-time">${escapeHtml(data.message.created_at || 'Just now')}</div>
+                    <div class="msg-bubble" id="bubble-${data.message.id}"><span class="message-text" id="message-text-${data.message.id}">${escapeHtml(message)}</span></div>
+                    <div class="msg-message-meta"><div class="msg-time">${escapeHtml(data.message.created_at || 'Just now')}</div>
+                    <button class="msg-action-btn edit" onclick="startEdit(${data.message.id})">Edit</button>
+                    <button class="msg-action-btn delete" onclick="confirmDelete(${data.message.id})">Delete</button></div>
                 </div>`;
             thread.appendChild(el);
             input.value = '';
         }
 
-        async function refreshMessages() {
-            const thread = document.getElementById('messagingThread');
-            const ids = [...thread.querySelectorAll('[data-message-id]')].map(el => Number(el.dataset.messageId) || 0);
-            const afterId = Math.max(0, ...ids);
-            try {
-                const response = await fetch(`{{ route('student.messages.feed') }}?after_id=${afterId}`, {
-                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                if (!response.ok) throw new Error(`Message refresh failed (${response.status}).`);
-                const data = await response.json();
-                for (const message of data.messages) {
-                    if (message.sender_id === currentUserId || thread.querySelector(`[data-message-id="${message.id}"]`)) continue;
-                    thread.querySelector('.msg-empty')?.remove();
-                    const el = document.createElement('div');
-                    el.className = 'msg-group admin';
-                    el.dataset.messageId = message.id;
-                    el.innerHTML = `<img src="{{ asset('images/gadlogo.png') }}" alt="GAD" class="msg-admin-avatar">
-                        <div class="msg-bubble-wrap"><div class="msg-sender-name">GAD Office</div>
-                        <div class="msg-bubble">${escapeHtml(message.message)}</div>
-                        <div class="msg-time">${escapeHtml(message.created_at || '')}</div></div>`;
-                    thread.appendChild(el);
-                }
-            } catch (error) {
-                console.error('Unable to refresh GAD messages:', error);
-            }
-        }
-        setInterval(refreshMessages, 3000);
     })
     .catch(error => alert(error.message || 'Failed to send message. Please try again.'))
     .finally(() => { btn.disabled = false; input.disabled = false; input.focus(); });
 }
+
+function studentMessageMarkup(message) {
+    const id = Number(message.id);
+    const own = Number(message.sender_id) === Number(currentUserId);
+    const deleted = Boolean(message.deleted_at);
+    const content = deleted ? 'This message was deleted.' : message.message;
+    const actions = deleted ? '' : `${own ? `<button class="msg-action-btn edit" type="button" onclick="startEdit(${id})">Edit</button><button class="msg-action-btn delete" type="button" onclick="confirmDelete(${id})">Delete</button>` : ''}`;
+    const editedControl = message.original_message && !deleted
+        ? `<button class="msg-action-btn edit msg-edited-control" type="button" onclick="toggleStudentOriginal(${id})">Edited</button>`
+        : '';
+    const original = message.original_message && !deleted
+        ? `<div class="msg-original" id="original-${id}"><strong>Original message:</strong> ${escapeHtml(message.original_message)}</div>`
+        : '';
+    const state = JSON.stringify([message.message, message.original_message, message.deleted_at]);
+    return `<div class="msg-group ${own ? 'user' : 'admin'}" data-message-id="${id}" data-message-state="${escapeHtml(state)}">
+        ${own ? '' : '<img src="{{ asset('images/gadlogo.png') }}" alt="GAD" class="msg-admin-avatar">'}
+        <div class="msg-bubble-wrap">${own ? '' : '<div class="msg-sender-name">GAD Office</div>'}<div class="msg-bubble${deleted ? ' msg-deleted' : ''}" id="bubble-${id}"><span class="message-text" id="message-text-${id}">${escapeHtml(content)}</span></div>${editedControl}
+        <div class="msg-message-meta"><div class="msg-time">${escapeHtml(message.created_at || '')}</div>${actions}</div>${original}</div></div>`;
+}
+
+async function refreshMessages() {
+    const thread = document.getElementById('messagingThread');
+    try {
+        const response = await fetch(`{{ route('student.messages.feed') }}?after_id=0`, {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (!response.ok) throw new Error(`Message refresh failed (${response.status}).`);
+        const data = await response.json();
+        for (const message of data.messages) {
+            const existing = thread.querySelector(`[data-message-id="${message.id}"]`);
+            if (existing?.querySelector('textarea')) continue;
+            const state = JSON.stringify([message.message, message.original_message, message.deleted_at]);
+            if (existing?.dataset.messageState === state) continue;
+            thread.querySelector('.msg-empty')?.remove();
+            if (existing) existing.outerHTML = studentMessageMarkup(message);
+            else thread.insertAdjacentHTML('beforeend', studentMessageMarkup(message));
+        }
+    } catch (error) {
+        console.error('Unable to refresh GAD messages:', error);
+    }
+}
+setInterval(refreshMessages, 3000);
 
 document.getElementById('messageInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -796,6 +843,10 @@ function cancelEdit(id) {
     bubble.innerHTML = `<span class="message-text" id="message-text-${id}">${escapeHtml(original)}</span>`;
 }
 
+function toggleStudentOriginal(id) {
+    document.getElementById('original-' + id)?.classList.toggle('is-visible');
+}
+
 function saveEdit(id) {
     const input = document.getElementById('edit-input-' + id);
     if (!input) return;
@@ -817,14 +868,33 @@ function saveEdit(id) {
             if ([401, 403, 419].includes(r.status)) {
                 throw new Error('Your session has expired. Please sign in again.');
             }
-            throw new Error('Failed to update message.');
+            let errorMessage = 'Failed to update message.';
+            try {
+                const payload = await r.json();
+                errorMessage = payload.message || payload.error || errorMessage;
+            } catch (error) {}
+            throw new Error(errorMessage);
         }
         return r.json();
     })
     .then(data => {
         if (data.success) {
             const bubble = document.getElementById('bubble-' + id);
+            bubble.classList.remove('msg-deleted');
             bubble.innerHTML = `<span class="message-text" id="message-text-${id}">${escapeHtml(newText)}</span>`;
+            const row = bubble.closest('.msg-bubble-wrap');
+            let original = document.getElementById('original-' + id);
+            if (!original) {
+                original = document.createElement('div');
+                original.className = 'msg-original';
+                original.id = 'original-' + id;
+                row.appendChild(original);
+            }
+            original.innerHTML = `<strong>Original message:</strong> ${escapeHtml(data.message.original_message)}`;
+            const wrap = bubble.closest('.msg-bubble-wrap');
+            if (!wrap.querySelector('.msg-edited-control')) {
+                wrap.insertAdjacentHTML('beforeend', `<button class="msg-action-btn edit msg-edited-control" type="button" onclick="toggleStudentOriginal(${id})">Edited</button>`);
+            }
         } else alert('Failed to update message');
     })
     .catch(error => alert(error.message || 'Failed to update message'));
@@ -845,14 +915,25 @@ function confirmDelete(id) {
             if ([401, 403, 419].includes(r.status)) {
                 throw new Error('Your session has expired. Please sign in again.');
             }
-            throw new Error('Failed to delete message.');
+            let errorMessage = 'Failed to delete message.';
+            try {
+                const payload = await r.json();
+                errorMessage = payload.message || payload.error || errorMessage;
+            } catch (error) {}
+            throw new Error(errorMessage);
         }
         return r.json();
     })
     .then(data => {
         if (data.success) {
-            const el = document.querySelector(`[data-message-id="${id}"]`);
-            if (el) el.remove();
+            const row = document.querySelector(`[data-message-id="${id}"]`);
+            const bubble = document.getElementById('bubble-' + id);
+            if (bubble) {
+                bubble.classList.add('msg-deleted');
+                bubble.textContent = 'This message was deleted.';
+                row?.querySelector('.msg-message-meta')?.querySelectorAll('.msg-action-btn').forEach(button => button.remove());
+                document.getElementById('original-' + id)?.remove();
+            }
         } else alert('Failed to delete message');
     })
     .catch(error => alert(error.message || 'Failed to delete message'));

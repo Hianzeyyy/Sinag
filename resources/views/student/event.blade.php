@@ -7,16 +7,22 @@
         height: 420px;
         border-radius: 0.8rem;
         object-fit: cover;
-        animation: event-image-zoom-out 0.85s cubic-bezier(.2,.75,.3,1) both;
     }
+
+    .event-content { opacity: 1; }
+    .event-image-zoom { animation: event-image-zoom-out .85s cubic-bezier(.2,.75,.3,1); }
+    .event-content-zoom { animation: event-content-zoom-out .85s cubic-bezier(.2,.75,.3,1); }
 
     @keyframes event-image-zoom-out {
         from { opacity: .65; transform: scale(1.12); }
         to { opacity: 1; transform: scale(1); }
     }
+    @keyframes event-content-zoom-out {
+        from { opacity: .65; transform: scale(.94); }
+        to { opacity: 1; transform: scale(1); }
+    }
 
-    .event-title.dashboard-typing::after,
-    .event-description.dashboard-typing::after {
+    .event-typing-text.dashboard-typing::after {
         content: '';
         display: inline-block;
         height: 1em;
@@ -37,9 +43,9 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .event-media { animation: none; }
-        .event-title.dashboard-typing::after,
-        .event-description.dashboard-typing::after { animation: none; border: 0; }
+        .event-media,
+        .event-content { animation: none; }
+        .event-typing-text.dashboard-typing::after { animation: none; border: 0; }
     }
 </style>
 <div class="container py-5">
@@ -53,17 +59,26 @@
                 @endif
             </div>
             <div class="col-12 col-lg-5">
-                <h2 class="fw-bold event-title">{{ $title }}</h2>
-                <p class="text-muted event-description">{{ $body }}</p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque euismod, nisi vel consectetur interdum, nisl nisi consequat nunc, ut cursus orci lorem ac libero.</p>
+                <div class="event-content">
+                    <h2 class="fw-bold event-title event-typing-text">{{ $title }}</h2>
+                    <p class="text-muted event-description event-typing-text">{{ $body }}</p>
+                    <p class="event-typing-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque euismod, nisi vel consectetur interdum, nisl nisi consequat nunc, ut cursus orci lorem ac libero.</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const textElements = document.querySelectorAll('.event-title, .event-description');
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const textElements = document.querySelectorAll('.event-typing-text');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const media = document.querySelector('.event-media');
+        const content = document.querySelector('.event-content');
+        if (reduceMotion) return;
+
+        [media, content].filter(Boolean).forEach(function (element, index) {
+            element.classList.add(index === 0 ? 'event-image-zoom' : 'event-content-zoom');
+        });
 
         textElements.forEach(function (element, elementIndex) {
             const fullText = element.textContent.trim();

@@ -3,8 +3,8 @@
 @section('content')
 <style>
     .urgent-page {
-        padding: 2rem;
-        min-height: calc(100vh - 60px);
+        padding: clamp(.75rem, 3vw, 2rem);
+        min-height: calc(100dvh - 60px);
         background: linear-gradient(135deg, #f8fafc 0%, #fbf7ff 100%);
     }
 
@@ -16,8 +16,8 @@
     .video-stage {
         background: #000;
         border-radius: 1rem;
-        height: min(72vh, 760px);
-        min-height: 440px;
+        height: min(72dvh, 760px);
+        min-height: min(440px, 55dvh);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -29,10 +29,14 @@
     #jitsiFrame { width: 100%; height: 100%; border: 0; border-radius: 1rem; background: #0f172a; }
 
     @media (max-width: 575.98px) {
-        .urgent-page { padding: 1rem; }
-        .video-stage { height: min(72vh, 640px); min-height: 320px; }
+        .urgent-page { padding: .75rem; }
+        .video-stage { height: min(68dvh, 640px); min-height: 260px; border-radius: .75rem; }
         .call-controls { gap: 0.6rem; flex-wrap: wrap; }
-        .call-btn { flex: 1 1 140px; padding: 0.75rem 1rem; }
+        .call-btn { flex: 1 1 120px; padding: 0.7rem .75rem; }
+    }
+
+    @media (max-height: 500px) {
+        .video-stage { height: 60dvh; min-height: 200px; }
     }
 
     .video-fake {
@@ -104,10 +108,40 @@
 
 <script>
     let activeCallId = null;
+    let callStatusTimer = null;
 
     function roomToJitsiUrl(room) {
         const safeRoom = encodeURIComponent(room || 'sinag-urgent-room');
         return `https://meet.jit.si/${safeRoom}#config.prejoinPageEnabled=true`;
+    }
+
+    function resetCall(message) {
+        window.clearInterval(callStatusTimer);
+        callStatusTimer = null;
+        activeCallId = null;
+        document.getElementById('jitsiFrame').src = 'about:blank';
+        document.getElementById('jitsiContainer').style.display = 'none';
+        document.getElementById('videoFallback').style.display = 'flex';
+        const joinButton = document.getElementById('joinCall');
+        joinButton.disabled = false;
+        joinButton.innerHTML = '<i class="bi bi-camera-video-fill"></i> Join Call';
+        const leaveButton = document.getElementById('leaveCall');
+        leaveButton.disabled = false;
+        document.getElementById('callStatus').textContent = message;
+    }
+
+    async function checkCallStatus() {
+        if (!activeCallId) return;
+        try {
+            const response = await fetch(`{{ url('/student/urgent') }}/${encodeURIComponent(activeCallId)}/status`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!response.ok) throw new Error(`Unable to check call status (${response.status}).`);
+            const data = await response.json();
+            if (data.status === 'ended') resetCall('The GAD Office ended the call. You can start another call if you still need help.');
+        } catch (error) {
+            console.error('Unable to check urgent call status:', error);
+        }
     }
 
     document.getElementById('joinCall').addEventListener('click', async function() {
@@ -132,6 +166,7 @@
             document.getElementById('jitsiContainer').style.display = 'block';
             document.getElementById('callStatus').textContent = 'The GAD Office has been notified. Allow microphone and camera access in the call window.';
             button.textContent = 'Call started';
+            callStatusTimer = window.setInterval(checkCallStatus, 5000);
         } catch (error) {
             document.getElementById('callStatus').textContent = error.message;
             button.disabled = false;
@@ -142,7 +177,7 @@
         if (activeCallId) {
             this.disabled = true;
             try {
-                const response = await fetch(`{{ url('/student/urgent') }}/${activeCallId}/end`, {
+                const response = await fetch(`{{ url('/student/urgent') }}/${encodeURIComponent(activeCallId)}/end`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -156,8 +191,7 @@
                 return;
             }
         }
-        document.getElementById('jitsiFrame').src = 'about:blank';
-        window.location.href = '{{ route('student.messaging') }}';
+        resetCall('You left the call. Join again whenever you need GAD support.');
     });
 </script>
 
