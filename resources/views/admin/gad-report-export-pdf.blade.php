@@ -20,6 +20,10 @@
         .report-table { margin-bottom: 14px; }
         .report-table th { padding: 5px; border: 1px solid #ddd6fe; background: #ede9fe; color: #4c1d95; text-align: left; font-size: 8px; }
         .report-table td { padding: 4px 5px; border: 1px solid #e5e7eb; vertical-align: top; overflow-wrap: break-word; }
+        .profile-name { margin: 10px 0 4px; color: #4c1d95; font-size: 10px; }
+        .profile-table { width: 100%; margin-bottom: 12px; border-collapse: collapse; }
+        .profile-table th, .profile-table td { padding: 4px 5px; border: 1px solid #e5e7eb; vertical-align: top; text-align: left; white-space: pre-line; overflow-wrap: break-word; }
+        .profile-table th { width: 24%; background: #f5f3ff; color: #4c1d95; }
         .footer { margin-top: 18px; padding-top: 6px; border-top: 1px solid #e5e7eb; color: #9ca3af; text-align: center; font-size: 8px; }
     </style>
 </head>
@@ -108,6 +112,36 @@
             @endforelse
         </tbody>
     </table>
+
+    <h2>4. Student Information Sheets ({{ count($studentProfiles) }})</h2>
+    @forelse($studentProfiles as $profile)
+        <h3 class="profile-name">{{ $profile['user']->name }} ({{ $profile['user']->email }})</h3>
+        <table class="profile-table">
+            @foreach($profile['basic'] as $label => $value)
+                <tr><th>{{ $label }}</th><td>{{ $value }}</td></tr>
+            @endforeach
+            @foreach($profile['sections'] as $section => $details)
+                <tr><th>{{ $section }}</th><td>{{ $details }}</td></tr>
+            @endforeach
+        </table>
+    @empty
+        <p class="muted">No student information sheets were submitted during this period.</p>
+    @endforelse
+
+    <h2>5. Faculty and Non-Teaching Information Sheets ({{ count($employeeProfiles) }})</h2>
+    @forelse($employeeProfiles as $profile)
+        <h3 class="profile-name">{{ $profile['user']->name }} ({{ $profile['user']->email }})</h3>
+        <table class="profile-table">
+            @foreach($profile['basic'] as $label => $value)
+                <tr><th>{{ $label }}</th><td>{{ $value }}</td></tr>
+            @endforeach
+            @foreach($profile['sections'] as $section => $details)
+                <tr><th>{{ $section }}</th><td>{{ $details }}</td></tr>
+            @endforeach
+        </table>
+    @empty
+        <p class="muted">No faculty or non-teaching information sheets were submitted during this period.</p>
+    @endforelse
 
     <div class="footer">SINAG Safe Space &amp; Participatory Suggestion System • Confidential Administrative Report • {{ $data['generated_at'] }}</div>
 </body>

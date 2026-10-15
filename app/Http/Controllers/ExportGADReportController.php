@@ -35,6 +35,9 @@ class ExportGADReportController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $students = $users->filter(fn (User $user) => strtolower((string) ($user->account_type ?? $user->role)) === 'student')->values();
+        $employees = $users->filter(fn (User $user) => strtolower((string) ($user->account_type ?? $user->role)) === 'employee')->values();
+
         $reports = Report::whereBetween('created_at', [$startDate, $endDate])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -59,6 +62,8 @@ class ExportGADReportController extends Controller
             $pdf = Pdf::loadView('admin.gad-report-export-pdf', [
                 'data' => $data,
                 'users' => $users,
+                'studentProfiles' => $this->profileDetails($students, false),
+                'employeeProfiles' => $this->profileDetails($employees, true),
                 'reports' => $reports,
                 'suggestions' => $suggestions,
             ])->setPaper('a4', 'portrait');
@@ -66,7 +71,7 @@ class ExportGADReportController extends Controller
             return $pdf->download("GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf');
         }
 
-        return $this->exportExcelWorkbook($data, $users, $reports, $suggestions, $period);
+        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $period);
     }
 
     /**
@@ -122,7 +127,7 @@ class ExportGADReportController extends Controller
         ];
     }
 
-    private function exportExcelWorkbook(array $data, $users, $reports, $suggestions, string $period)
+    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, string $period)
     {
         $sheets = [
             'Summary' => [
@@ -149,6 +154,8 @@ class ExportGADReportController extends Controller
             'Suggestions' => [[
                 'Suggestion ID', 'Submitted By', 'Category', 'Message', 'Upvotes', 'Status', 'Submitted',
             ]],
+            'Student Information' => $this->profileSheetRows($students, false),
+            'Faculty and Non-Teaching' => $this->profileSheetRows($employees, true),
         ];
 
         foreach ($users as $user) {
@@ -254,6 +261,115 @@ class ExportGADReportController extends Controller
             'GAD_Report_' . $period . '_' . Carbon::now()->format('Ymd_His') . '.xlsx',
             ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         )->deleteFileAfterSend(true);
+    }
+
+    private function profileSheetRows($users, bool $isEmployee): array
+    {
+        $sections = $isEmployee
+            ? ['Personal Information', 'Family Background', 'Employee Education', 'Civil Service Eligibility', 'Work Experience', 'Voluntary Work', 'GAD Training', 'Other Information']
+            : ['Personal Information', 'Family Background', 'Student Information'];
+
+        $rows = [[
+            'User ID', 'Full Name', 'Email', 'Phone', 'Age', 'Gender', 'Department / Course', 'Account Type', 'Employee Category',
+            ...$sections,
+        ]];
+
+        foreach ($users as $user) {
+            $profileSections = $this->profileSections($user, $isEmployee);
+            $rows[] = [
+                $user->id,
+                $user->name,
+                $user->email,
+                $user->phone_number ?? '',
+                $user->age ?? '',
+                $user->gender ?? '',
+                $user->department ?? '',
+                $user->account_type ?? $user->role ?? '',
+                $user->employee_category ?? '',
+                ...array_values($profileSections),
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function profileDetails($users, bool $isEmployee): array
+    {
+        return $users->map(fn (User $user) => [
+            'user' => $user,
+            'basic' => [
+                'User ID' => $user->id,
+                'Full Name' => $user->name,
+                'Email' => $user->email,
+                'Phone' => $user->phone_number ?? 'N/A',
+                'Age' => $user->age ?? 'N/A',
+                'Gender' => $user->gender ?? 'N/A',
+                'Department / Course' => $user->department ?? 'N/A',
+                'Account Type' => $user->account_type ?? $user->role ?? 'N/A',
+                'Employee Category' => $user->employee_category ?? 'N/A',
+            ],
+            'sections' => $this->profileSections($user, $isEmployee),
+        ])->all();
+    }
+
+    private function profileSections(User $user, bool $isEmployee): array
+    {
+        $sections = [
+            'Personal Information' => $user->personal_information ?? [],
+            'Family Background' => $user->family_background ?? [],
+        ];
+
+        if ($isEmployee) {
+            $sections += [
+                'Employee Education' => $user->employee_education ?? [],
+                'Civil Service Eligibility' => $user->civil_service_eligibility ?? [],
+                'Work Experience' => $user->work_experience ?? [],
+                'Voluntary Work' => $user->voluntary_work ?? [],
+                'GAD Training' => $user->gad_training ?? [],
+                'Other Information' => $user->other_information ?? [],
+            ];
+        } else {
+            $sections['Student Information'] = $user->student_information ?? [];
+        }
+
+        return array_map(fn (array $values) => $this->formatProfileSection($values), $sections);
+    }
+
+    private function formatProfileSection(array $values): string
+    {
+        $lines = [];
+        foreach ($values as $key => $value) {
+            $formattedValue = $this->formatProfileValue($value);
+            if ($formattedValue !== '') {
+                $label = ucfirst(str_replace('_', ' ', (string) $key));
+                $lines[] = $label . ': ' . $formattedValue;
+            }
+        }
+
+        return $lines ? implode("\n", $lines) : 'N/A';
+    }
+
+    private function formatProfileValue($value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        if (!is_array($value)) {
+            return is_bool($value) ? ($value ? 'Yes' : 'No') : (string) $value;
+        }
+
+        $parts = [];
+        foreach ($value as $key => $item) {
+            $formatted = $this->formatProfileValue($item);
+            if ($formatted === '') {
+                continue;
+            }
+
+            $parts[] = is_string($key) ? ucfirst(str_replace('_', ' ', $key)) . ': ' . $formatted : $formatted;
+        }
+
+        return implode('; ', $parts);
     }
 
     private function makeWorksheetXml(array $rows): string

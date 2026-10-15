@@ -635,7 +635,7 @@
                                         <img src="{{ asset('images/gadlogo.png') }}" alt="GAD Logo">
                                     </div>
                                     <h1 class="auth-brand-title">SINAG</h1>
-                                    <p>Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University Asingan Campus</p>
+                                    <p>Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University</p>
                                     <div class="auth-overlay-account">Don't have an account?</div>
                                     <button class="auth-toggle" type="button" data-auth-toggle="signup">SIGN UP</button>
                                 </div>
@@ -646,7 +646,7 @@
                                     </div>
                                     <h1 class="auth-brand-title">SINAG</h1>
                                     <h2 class="fw-bold">Welcome Back!</h2>
-                                    <p>Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University Asingan Campus</p>
+                                    <p>Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University</p>
                                     <div class="auth-overlay-account">Already have an account?</div>
                                     <button class="auth-toggle" type="button" data-auth-toggle="signin">SIGN IN</button>
                                 </div>

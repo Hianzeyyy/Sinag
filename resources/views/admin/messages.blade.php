@@ -832,6 +832,18 @@
         if (bubble) bubble.textContent = bubble.dataset.editOriginal || '';
     }
 
+    async function requireAdminMessageSuccess(response, fallback) {
+        if (response.ok) return;
+
+        let message = `${fallback} (${response.status}).`;
+        if (response.headers.get('content-type')?.includes('application/json')) {
+            const payload = await response.json();
+            if (payload.message) message = payload.message;
+        }
+
+        throw new Error(message);
+    }
+
     async function saveAdminEdit(id) {
         const input = document.getElementById(`adminEditInput${id}`);
         const message = input?.value.trim();
@@ -842,7 +854,7 @@
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': adminCsrf },
                 body: JSON.stringify({ message })
             });
-            if (!response.ok) throw new Error('Failed to edit message.');
+            await requireAdminMessageSuccess(response, 'Failed to edit message');
             await refreshAdminMessages();
         } catch (error) {
             alert(error.message || 'Failed to edit message.');
@@ -856,7 +868,7 @@
                 method: 'DELETE',
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': adminCsrf }
             });
-            if (!response.ok) throw new Error('Failed to delete message.');
+            await requireAdminMessageSuccess(response, 'Failed to delete message');
             await refreshAdminMessages();
         } catch (error) {
             alert(error.message || 'Failed to delete message.');

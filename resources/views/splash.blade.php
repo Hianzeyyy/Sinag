@@ -17,7 +17,7 @@
             </div>
 
             <p class="lead text-white mb-2 text-uppercase fw-bold" style="letter-spacing: 5px; opacity: 0.9; animation: fadeInUp 1.2s ease-out;">
-                Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University Asingan Campus
+                Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University
             </p>
             <p class="text-white mb-5" style="font-size:1.1rem; font-style:italic; opacity:0.85; animation: fadeInUp 1.3s ease-out;">“Every voice matters. Every story is safe.”</p>
 
