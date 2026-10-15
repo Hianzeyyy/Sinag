@@ -35,8 +35,11 @@ class ExportGADReportController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $students = $users->filter(fn (User $user) => strtolower((string) ($user->account_type ?? $user->role)) === 'student')->values();
-        $employees = $users->filter(fn (User $user) => strtolower((string) ($user->account_type ?? $user->role)) === 'employee')->values();
+        $profileUsers = User::whereRaw("LOWER(COALESCE(account_type, role, '')) IN ('student', 'employee')")
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $students = $profileUsers->filter(fn (User $user) => strtolower((string) ($user->account_type ?? $user->role)) === 'student')->values();
+        $employees = $profileUsers->filter(fn (User $user) => strtolower((string) ($user->account_type ?? $user->role)) === 'employee')->values();
 
         $reports = Report::whereBetween('created_at', [$startDate, $endDate])
             ->orderBy('created_at', 'desc')
@@ -265,32 +268,43 @@ class ExportGADReportController extends Controller
 
     private function profileSheetRows($users, bool $isEmployee): array
     {
-        $sections = $isEmployee
-            ? ['Personal Information', 'Family Background', 'Employee Education', 'Civil Service Eligibility', 'Work Experience', 'Voluntary Work', 'GAD Training', 'Other Information']
-            : ['Personal Information', 'Family Background', 'Student Information'];
-
-        $rows = [[
-            'User ID', 'Full Name', 'Email', 'Phone', 'Age', 'Gender', 'Department / Course', 'Account Type', 'Employee Category',
-            ...$sections,
-        ]];
+        $rows = [['User ID', 'Full Name', 'Email', 'Phone', 'Account Type', 'Department / Course', 'Section', 'Field', 'Value']];
 
         foreach ($users as $user) {
-            $profileSections = $this->profileSections($user, $isEmployee);
-            $rows[] = [
-                $user->id,
-                $user->name,
-                $user->email,
-                $user->phone_number ?? '',
-                $user->age ?? '',
-                $user->gender ?? '',
-                $user->department ?? '',
-                $user->account_type ?? $user->role ?? '',
-                $user->employee_category ?? '',
-                ...array_values($profileSections),
+            $basicInformation = [
+                'Age' => $user->age,
+                'Gender' => $user->gender,
+                'Employee Category' => $user->employee_category,
             ];
+            foreach ($basicInformation as $field => $value) {
+                if ($value !== null && $value !== '') {
+                    $rows[] = $this->profileSheetRow($user, 'Account Information', $field, (string) $value);
+                }
+            }
+
+            foreach ($this->profileSections($user, $isEmployee) as $section => $values) {
+                foreach ($this->flattenProfileFields($values) as $field => $value) {
+                    $rows[] = $this->profileSheetRow($user, $section, $field, $value);
+                }
+            }
         }
 
         return $rows;
+    }
+
+    private function profileSheetRow(User $user, string $section, string $field, string $value): array
+    {
+        return [
+            $user->id,
+            $user->name,
+            $user->email,
+            $user->phone_number ?? '',
+            $user->account_type ?? $user->role ?? '',
+            $user->department ?? '',
+            $section,
+            $field,
+            $value,
+        ];
     }
 
     private function profileDetails($users, bool $isEmployee): array
@@ -302,13 +316,16 @@ class ExportGADReportController extends Controller
                 'Full Name' => $user->name,
                 'Email' => $user->email,
                 'Phone' => $user->phone_number ?? 'N/A',
+                'Account Type' => $user->account_type ?? $user->role ?? 'N/A',
+                'Department / Course' => $user->department ?? 'N/A',
                 'Age' => $user->age ?? 'N/A',
                 'Gender' => $user->gender ?? 'N/A',
-                'Department / Course' => $user->department ?? 'N/A',
-                'Account Type' => $user->account_type ?? $user->role ?? 'N/A',
                 'Employee Category' => $user->employee_category ?? 'N/A',
             ],
-            'sections' => $this->profileSections($user, $isEmployee),
+            'sections' => array_map(
+                fn (array $values) => $this->formatProfileSection($values),
+                $this->profileSections($user, $isEmployee)
+            ),
         ])->all();
     }
 
@@ -332,21 +349,53 @@ class ExportGADReportController extends Controller
             $sections['Student Information'] = $user->student_information ?? [];
         }
 
-        return array_map(fn (array $values) => $this->formatProfileSection($values), $sections);
+        return $sections;
     }
 
     private function formatProfileSection(array $values): string
     {
         $lines = [];
-        foreach ($values as $key => $value) {
-            $formattedValue = $this->formatProfileValue($value);
-            if ($formattedValue !== '') {
-                $label = ucfirst(str_replace('_', ' ', (string) $key));
-                $lines[] = $label . ': ' . $formattedValue;
-            }
+        foreach ($this->flattenProfileFields($values) as $field => $value) {
+            $lines[] = $field . ': ' . $value;
         }
 
         return $lines ? implode("\n", $lines) : 'N/A';
+    }
+
+    private function flattenProfileFields(array $values, string $prefix = ''): array
+    {
+        $fields = [];
+
+        if (array_is_list($values)) {
+            foreach ($values as $index => $value) {
+                $field = trim($prefix . ' ' . ($index + 1));
+                if (is_array($value)) {
+                    $fields += $this->flattenProfileFields($value, $field);
+                } else {
+                    $formatted = $this->formatProfileValue($value);
+                    if ($formatted !== '') {
+                        $fields[$field] = $formatted;
+                    }
+                }
+            }
+
+            return $fields;
+        }
+
+        foreach ($values as $key => $value) {
+            $label = ucfirst(str_replace('_', ' ', (string) $key));
+            $field = $prefix === '' ? $label : $prefix . ' - ' . $label;
+            if (is_array($value)) {
+                $fields += $this->flattenProfileFields($value, $field);
+            } else {
+                $formatted = $this->formatProfileValue($value);
+                if ($formatted !== '') {
+                    $fields[$field] = $formatted;
+                }
+            }
+        }
+
+        return $fields;
     }
 
     private function formatProfileValue($value): string
@@ -355,21 +404,11 @@ class ExportGADReportController extends Controller
             return '';
         }
 
-        if (!is_array($value)) {
-            return is_bool($value) ? ($value ? 'Yes' : 'No') : (string) $value;
+        if (is_bool($value)) {
+            return $value ? 'Yes' : 'No';
         }
 
-        $parts = [];
-        foreach ($value as $key => $item) {
-            $formatted = $this->formatProfileValue($item);
-            if ($formatted === '') {
-                continue;
-            }
-
-            $parts[] = is_string($key) ? ucfirst(str_replace('_', ' ', $key)) . ': ' . $formatted : $formatted;
-        }
-
-        return implode('; ', $parts);
+        return is_scalar($value) ? (string) $value : '';
     }
 
     private function makeWorksheetXml(array $rows): string

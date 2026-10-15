@@ -26,6 +26,7 @@ class GadReportExportTest extends TestCase
             $table->string('age')->nullable();
             $table->string('gender')->nullable();
             $table->string('department')->nullable();
+            $table->string('employee_category')->nullable();
             $table->string('account_status')->nullable();
             $table->json('personal_information')->nullable();
             $table->json('family_background')->nullable();
@@ -68,7 +69,7 @@ class GadReportExportTest extends TestCase
         });
     }
 
-    public function test_excel_export_includes_both_information_sheet_datasets(): void
+    public function test_excel_export_includes_student_and_employee_forms_outside_registration_period(): void
     {
         User::create([
             'name' => 'Student Example',
@@ -79,6 +80,8 @@ class GadReportExportTest extends TestCase
             'personal_information' => ['sex' => 'Female'],
             'family_background' => ['family_type' => 'Nuclear'],
             'student_information' => ['year_level' => 'Second Year'],
+            'created_at' => now()->subDays(60),
+            'updated_at' => now()->subDays(60),
         ]);
 
         User::create([
@@ -90,6 +93,8 @@ class GadReportExportTest extends TestCase
             'personal_information' => ['sex' => 'Male'],
             'employee_education' => [['degree' => 'Bachelor of Arts']],
             'gad_training' => [['title' => 'GAD Orientation']],
+            'created_at' => now()->subDays(90),
+            'updated_at' => now()->subDays(90),
         ]);
 
         $response = app(ExportGADReportController::class)->export('excel', '30days');
@@ -100,16 +105,22 @@ class GadReportExportTest extends TestCase
             $this->assertSame(true, $workbook->open($workbookPath));
             $this->assertStringContainsString('Student Information', $workbook->getFromName('xl/workbook.xml'));
             $this->assertStringContainsString('Faculty and Non-Teaching', $workbook->getFromName('xl/workbook.xml'));
-            $this->assertStringContainsString('Second Year', $workbook->getFromName('xl/worksheets/sheet5.xml'));
-            $this->assertStringContainsString('Bachelor of Arts', $workbook->getFromName('xl/worksheets/sheet6.xml'));
-            $this->assertStringContainsString('GAD Orientation', $workbook->getFromName('xl/worksheets/sheet6.xml'));
+            $studentSheet = $workbook->getFromName('xl/worksheets/sheet5.xml');
+            $employeeSheet = $workbook->getFromName('xl/worksheets/sheet6.xml');
+            $this->assertStringContainsString('Student Example', $studentSheet);
+            $this->assertStringContainsString('Year level', $studentSheet);
+            $this->assertStringContainsString('Second Year', $studentSheet);
+            $this->assertStringContainsString('Employee Example', $employeeSheet);
+            $this->assertStringContainsString('1 - Degree', $employeeSheet);
+            $this->assertStringContainsString('Bachelor of Arts', $employeeSheet);
+            $this->assertStringContainsString('GAD Orientation', $employeeSheet);
         } finally {
             $workbook->close();
             @unlink($workbookPath);
         }
     }
 
-    public function test_pdf_export_renders_with_information_sheet_sections(): void
+    public function test_pdf_export_renders_information_sheet_sections(): void
     {
         User::create([
             'name' => 'Student Example',
@@ -119,6 +130,8 @@ class GadReportExportTest extends TestCase
             'account_type' => 'student',
             'personal_information' => ['sex' => 'Female'],
             'student_information' => ['year_level' => 'Second Year'],
+            'created_at' => now()->subDays(60),
+            'updated_at' => now()->subDays(60),
         ]);
 
         $response = app(ExportGADReportController::class)->export('pdf', '30days');

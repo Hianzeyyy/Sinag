@@ -8,16 +8,30 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('messages', function (Blueprint $table) {
-            $table->text('original_message')->nullable()->after('message');
-            $table->timestamp('deleted_at')->nullable()->after('read_at');
-        });
+        if (! Schema::hasColumn('messages', 'original_message')) {
+            Schema::table('messages', function (Blueprint $table): void {
+                $table->text('original_message')->nullable();
+            });
+        }
+
+        if (! Schema::hasColumn('messages', 'deleted_at')) {
+            Schema::table('messages', function (Blueprint $table): void {
+                $table->timestamp('deleted_at')->nullable();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('messages', function (Blueprint $table) {
-            $table->dropColumn(['original_message', 'deleted_at']);
-        });
+        $columns = array_values(array_filter(
+            ['original_message', 'deleted_at'],
+            fn (string $column): bool => Schema::hasColumn('messages', $column)
+        ));
+
+        if ($columns) {
+            Schema::table('messages', function (Blueprint $table) use ($columns): void {
+                $table->dropColumn($columns);
+            });
+        }
     }
 };

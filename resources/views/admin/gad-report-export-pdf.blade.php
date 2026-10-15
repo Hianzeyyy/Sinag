@@ -125,7 +125,7 @@
             @endforeach
         </table>
     @empty
-        <p class="muted">No student information sheets were submitted during this period.</p>
+        <p class="muted">No student information sheets were submitted.</p>
     @endforelse
 
     <h2>5. Faculty and Non-Teaching Information Sheets ({{ count($employeeProfiles) }})</h2>
@@ -140,7 +140,7 @@
             @endforeach
         </table>
     @empty
-        <p class="muted">No faculty or non-teaching information sheets were submitted during this period.</p>
+        <p class="muted">No faculty or non-teaching information sheets were submitted.</p>
     @endforelse
 
     <div class="footer">SINAG Safe Space &amp; Participatory Suggestion System • Confidential Administrative Report • {{ $data['generated_at'] }}</div>

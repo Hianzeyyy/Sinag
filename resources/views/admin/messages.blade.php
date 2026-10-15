@@ -832,13 +832,14 @@
         if (bubble) bubble.textContent = bubble.dataset.editOriginal || '';
     }
 
-    async function requireAdminMessageSuccess(response, fallback) {
+    async function checkAdminMessageResponse(response, action) {
         if (response.ok) return;
 
-        let message = `${fallback} (${response.status}).`;
+        let message = `${action} failed (${response.status}).`;
         if (response.headers.get('content-type')?.includes('application/json')) {
             const payload = await response.json();
             if (payload.message) message = payload.message;
+            else if (payload.errors) message = Object.values(payload.errors).flat().join('\n');
         }
 
         throw new Error(message);
@@ -854,7 +855,7 @@
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': adminCsrf },
                 body: JSON.stringify({ message })
             });
-            await requireAdminMessageSuccess(response, 'Failed to edit message');
+            await checkAdminMessageResponse(response, 'Editing message');
             await refreshAdminMessages();
         } catch (error) {
             alert(error.message || 'Failed to edit message.');
@@ -868,7 +869,7 @@
                 method: 'DELETE',
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': adminCsrf }
             });
-            await requireAdminMessageSuccess(response, 'Failed to delete message');
+            await checkAdminMessageResponse(response, 'Deleting message');
             await refreshAdminMessages();
         } catch (error) {
             alert(error.message || 'Failed to delete message.');

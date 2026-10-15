@@ -103,6 +103,26 @@ class MessageEditDeleteTest extends TestCase
         $this->assertNotNull($message->fresh()->deleted_at);
     }
 
+    public function test_message_history_migration_repairs_missing_production_columns(): void
+    {
+        Schema::drop('messages');
+        Schema::create('messages', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('receiver_id');
+            $table->text('message');
+            $table->string('sender_type')->default('student');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
+        });
+
+        $migration = require database_path('migrations/2026_10_15_000001_ensure_message_edit_delete_columns.php');
+        $migration->up();
+
+        $this->assertTrue(Schema::hasColumn('messages', 'original_message'));
+        $this->assertTrue(Schema::hasColumn('messages', 'deleted_at'));
+    }
+
     private function users(): array
     {
         $student = User::create([
