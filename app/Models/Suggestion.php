@@ -20,6 +20,7 @@ class Suggestion extends Model
         'image_path',
         'is_anonymous',
         'status',
+        'admin_remarks',
     ];
 
     public function getAdminStatusLabelAttribute(): string

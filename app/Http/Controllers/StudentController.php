@@ -17,7 +17,7 @@ use App\Models\AppointmentRequest;
 class StudentController extends Controller
 {
     /**
-     * Ginagamit ang 'auth' at 'can:student-access' middleware 
+     * Ginagamit ang 'auth' at 'can:student-access' middleware
      * para sa security at role-based access.
      */
     public function __construct()
@@ -54,7 +54,7 @@ class StudentController extends Controller
             'announcements',
             'featuredAnnouncement',
             'motivationQuote'
-        )); 
+        ));
     }
 
     /**
@@ -109,6 +109,11 @@ class StudentController extends Controller
      */
     public function boses(Request $request)
     {
+        if (!$request->user()->hasCompletedPersonalData()) {
+            return redirect()->route('personal-data.edit', ['return_to_suggestions' => 1])
+                ->with('personal_data_required', 'Complete your personal data to access Community Suggestions.');
+        }
+
         $query = Suggestion::with(['user', 'comments.user'])
             ->withCount('upvotes');
 
@@ -217,7 +222,7 @@ class StudentController extends Controller
     public function messaging()
     {
         $userId = Auth::id();
-        
+
         // Get first admin (or use a specific admin if you prefer)
         $admin = User::where('role', 'admin')->first();
 
@@ -227,7 +232,7 @@ class StudentController extends Controller
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
         }
-        
+
         // Get all messages between student and admin
         $messages = Message::where(function($query) use ($userId, $admin) {
             $query->where('sender_id', $userId)
@@ -236,14 +241,14 @@ class StudentController extends Controller
             $query->where('sender_id', $admin?->id)
                   ->where('receiver_id', $userId);
         })->orderBy('created_at', 'asc')->get();
-        
+
         $officeInfo = \Illuminate\Support\Facades\Cache::get('gad_office_info', [
             'phone_number' => $admin?->phone_number ?: '0919-777-7377',
             'office_hours' => 'Mon – Fri, 8:00 AM – 5:00 PM',
             'office_location' => 'Admin Building, Room 105',
             'office_email' => $admin?->email ?: 'gad@psu.edu.ph',
         ]);
-        
+
         return view('student.messaging', compact('messages', 'admin', 'officeInfo'));
     }
 
@@ -390,7 +395,7 @@ class StudentController extends Controller
         ]);
 
         $admin = User::where('role', 'admin')->first();
-        
+
         if (!$admin) {
             return response()->json(['error' => 'No admin available'], 404);
         }
@@ -442,6 +447,35 @@ class StudentController extends Controller
                 'sender_id' => $message->sender_id,
                 'created_at' => $message->created_at?->format('M d, g:i A'),
             ]),
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+
+    public function notificationFeed()
+    {
+        $admin = User::where('role', 'admin')->first();
+        $unreadQuery = Message::query()
+            ->where('receiver_id', Auth::id())
+            ->whereNull('read_at')
+            ->whereNull('deleted_at');
+
+        if ($admin) {
+            $unreadQuery->where('sender_id', $admin->id);
+        } else {
+            $unreadQuery->whereRaw('1 = 0');
+        }
+
+        $latestUnread = (clone $unreadQuery)->latest('id')->first();
+        $latestCall = collect(Cache::get('urgent_calls', []))->first(
+            fn ($call) => (int) ($call['student_id'] ?? 0) === (int) Auth::id()
+        );
+
+        return response()->json([
+            'unread_count' => $unreadQuery->count(),
+            'latest_unread_id' => $latestUnread?->id,
+            'latest_call' => $latestCall ? [
+                'id' => $latestCall['id'] ?? null,
+                'status' => $latestCall['status'] ?? 'waiting',
+            ] : null,
         ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
@@ -516,6 +550,12 @@ class StudentController extends Controller
             'description' => 'required|string|max:2000',
         ]);
 
+        if ($this->isGadOfficeUnavailable($validated['scheduled_date'])) {
+            return back()->withInput()->withErrors([
+                'scheduled_date' => 'The GAD Office is unavailable on this date. Please choose another date.',
+            ]);
+        }
+
         $hasActiveRequest = AppointmentRequest::where('user_id', Auth::id())
             ->whereIn('status', ['pending', 'approved'])
             ->exists();
@@ -557,9 +597,28 @@ class StudentController extends Controller
             'scheduled_time' => 'required|date_format:H:i',
         ]);
 
+        if ($this->isGadOfficeUnavailable($validated['scheduled_date'])) {
+            return back()->withInput()->withErrors([
+                'scheduled_date' => 'The GAD Office is unavailable on this date. Please choose another date.',
+            ]);
+        }
+
         $appointment->update($validated);
 
         return redirect()->route('student.appointments')->with('success', 'Appointment date and time updated.');
+    }
+
+    private function isGadOfficeUnavailable(string $date): bool
+    {
+        return GadSchedule::query()
+            ->where(function ($query) {
+                $query->where('status', 'unavailable')->orWhere('details', 'unavailable');
+            })
+            ->whereDate('available_from', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query->whereNull('available_until')->orWhereDate('available_until', '>=', $date);
+            })
+            ->exists();
     }
 
     public function cancelAppointment($id)

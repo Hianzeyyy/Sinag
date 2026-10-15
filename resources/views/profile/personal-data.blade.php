@@ -291,7 +291,7 @@
             <div class="pd-item"><div class="pd-label">Gender Identity</div><div class="pd-value">{{ $personal['gender_identity'] ?? 'N/A' }}</div></div>
             <div class="pd-item"><div class="pd-label">Citizenship</div><div class="pd-value">{{ $personal['citizenship'] ?? 'N/A' }}</div></div>
             <div class="pd-item"><div class="pd-label">Blood Type</div><div class="pd-value">{{ $personal['blood_type'] ?? 'N/A' }}</div></div>
-            <div class="pd-item"><div class="pd-label">Height</div><div class="pd-value">{{ $personal['height'] ?? 'N/A' }}</div></div>
+            <div class="pd-item"><div class="pd-label">Height(cm)</div><div class="pd-value">{{ $personal['height'] ?? 'N/A' }}</div></div>
             <div class="pd-item"><div class="pd-label">Weight</div><div class="pd-value">{{ $personal['weight'] ?? 'N/A' }}</div></div>
             <div class="pd-item"><div class="pd-label">Landline Number</div><div class="pd-value">{{ $personal['landline_number'] ?? 'N/A' }}</div></div>
             <div class="pd-item"><div class="pd-label">Civil Status</div><div class="pd-value">{{ $personal['civil_status'] ?? 'N/A' }}</div></div>

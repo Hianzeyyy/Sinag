@@ -86,12 +86,13 @@ class LoginController extends Controller
 
         if ($role === 'admin') {
             return redirect()->route('admin.dashboard')
-                             ->with('status', 'Welcome back, Administrator!'); 
+                             ->with('status', 'Welcome back, Administrator!');
         }
 
         if ($role === 'student' || $role === 'security' || $role === 'employee') {
             return redirect()->route('student.dashboard')
-                             ->with('status', 'Logged in successfully as ' . ($user->cloak_alias ?: $user->name)); 
+                             ->with('status', 'Logged in successfully as ' . ($user->cloak_alias ?: $user->name))
+                             ->with('dashboard_logo_sunburst', true);
         }
 
         auth()->logout();

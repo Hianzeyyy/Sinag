@@ -91,16 +91,23 @@
                             <span class="text-muted small">{{ $suggestion->created_at->format('M d, Y h:i A') }}</span>
                         </div>
                         <div class="p-3 rounded-3 border bg-light" style="white-space:pre-wrap;">{{ $suggestion->message }}</div>
+                        @if($suggestion->admin_remarks)
+                            <div class="alert alert-light border mt-3 mb-0"><strong>Previous review comment:</strong> {{ $suggestion->admin_remarks }}</div>
+                        @endif
                     </div>
                     <div class="modal-footer">
                         <form action="{{ route('admin.suggestions.review', $suggestion->id) }}" method="POST">
                             @csrf
                             <input type="hidden" name="action" value="approve">
+                            <label class="visually-hidden" for="approveRemarks{{ $suggestion->id }}">Approval comment</label>
+                            <textarea id="approveRemarks{{ $suggestion->id }}" name="admin_remarks" class="form-control mb-2" rows="2" maxlength="1000" placeholder="Why approve? (optional)"></textarea>
                             <button type="submit" class="btn btn-secondary">Approve Suggestion</button>
                         </form>
                         <form action="{{ route('admin.suggestions.review', $suggestion->id) }}" method="POST">
                             @csrf
                             <input type="hidden" name="action" value="reject">
+                            <label class="visually-hidden" for="rejectRemarks{{ $suggestion->id }}">Rejection comment</label>
+                            <textarea id="rejectRemarks{{ $suggestion->id }}" name="admin_remarks" class="form-control mb-2" rows="2" maxlength="1000" placeholder="Why reject? (optional)"></textarea>
                             <button type="submit" class="btn btn-outline-secondary">Reject Suggestion</button>
                         </form>
                     </div>

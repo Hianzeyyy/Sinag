@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-    $isEmployee = ($user->account_type ?? $user->role) === 'employee';
+    $isEmployee = strtolower((string) ($user->account_type ?? $user->role)) === 'employee';
     $personal = $user->personal_information ?? [];
     $family = $user->family_background ?? [];
     $student = $user->student_information ?? [];

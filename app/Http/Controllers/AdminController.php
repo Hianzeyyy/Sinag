@@ -41,7 +41,7 @@ class AdminController extends Controller
         $pendingReports   = Report::where('status', 'Pending')->count();
         $resolvedReports  = Report::where('status', 'Resolved')->count();
         $totalSuggestions = Suggestion::count();
-        
+
         // 2. Active Emergencies Logic
         $activeEmergencies = Report::where(function($query) {
                                     $query->where('status', 'Emergency')
@@ -49,30 +49,30 @@ class AdminController extends Controller
                                 })
                                 ->where('status', '!=', 'Resolved')
                                 ->count();
-        
+
         // 3. Recent Reports Table
         $recentReports = Report::with('user')
                                 ->orderByRaw("FIELD(status, 'Emergency') DESC")
                                 ->latest()
                                 ->take(5)
                                 ->get();
-        
+
         $officeInfo = \Illuminate\Support\Facades\Cache::get('gad_office_info', [
             'phone_number' => Auth::user()->phone_number ?: '0919-777-7377',
             'office_hours' => 'Mon – Fri, 8:00 AM – 5:00 PM',
             'office_location' => 'Admin Building, Room 105',
             'office_email' => Auth::user()->email ?: 'gad@psu.edu.ph',
         ]);
-        
+
         return view('admin.dashboard', compact(
-            'totalReports', 
-            'pendingReports', 
-            'resolvedReports', 
+            'totalReports',
+            'pendingReports',
+            'resolvedReports',
             'totalSuggestions',
             'activeEmergencies',
             'recentReports',
             'officeInfo'
-        )); 
+        ));
     }
 
     /**
@@ -81,7 +81,7 @@ class AdminController extends Controller
     public function reports()
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
-        
+
         $reports = Report::with('user')
             ->orderByRaw('CASE WHEN seen_at IS NULL THEN 0 ELSE 1 END')
             ->orderByDesc('created_at')
@@ -148,7 +148,7 @@ class AdminController extends Controller
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
         $report = Report::findOrFail($id);
-        
+
         $report->update([
             'status'   => $request->status,
             'priority' => $request->priority ?? $report->priority
@@ -208,11 +208,13 @@ class AdminController extends Controller
 
         $request->validate([
             'action' => 'required|in:approve,reject',
+            'admin_remarks' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $suggestion = Suggestion::findOrFail($id);
 
         $suggestion->status = $request->action === 'approve' ? 'Approved' : 'Rejected';
+        $suggestion->admin_remarks = trim((string) $request->input('admin_remarks')) ?: null;
         $suggestion->save();
 
         return back()->with('success', 'Suggestion status updated successfully.');
@@ -395,10 +397,10 @@ class AdminController extends Controller
     public function messages(Request $request)
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
-        
+
         $adminId = Auth::id();
         $selectedStudentId = $request->query('student_id');
-        
+
         $conversations = Message::where('receiver_id', $adminId)
             ->orWhere('sender_id', $adminId)
             ->with(['sender', 'receiver'])
@@ -420,10 +422,10 @@ class AdminController extends Controller
                 return $messages->first();
             })
             ->sortByDesc('created_at');
-        
+
         $messages = collect();
         $selectedStudent = null;
-        
+
         if ($selectedStudentId) {
             // A conversation may only be opened with a non-admin account.
             // This also prevents a crafted student_id from reading arbitrary
@@ -449,7 +451,7 @@ class AdminController extends Controller
                       ->where('receiver_id', $selectedStudentId);
             })->orderBy('created_at', 'asc')->get();
         }
-        
+
         return view('admin.messages', compact('conversations', 'messages', 'selectedStudent', 'selectedStudentId'));
     }
 

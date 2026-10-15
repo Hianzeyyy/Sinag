@@ -41,6 +41,7 @@ class ProfileController extends Controller
     {
         return view('profile.edit-personal-data', [
             'user' => $request->user(),
+            'returnToSuggestions' => $request->boolean('return_to_suggestions'),
         ]);
     }
 
@@ -234,9 +235,12 @@ class ProfileController extends Controller
         ]);
 
         if ($request->boolean('return_to_suggestions')) {
-            return redirect()->route('student.boses')->with('status', $user->hasCompletedPersonalData()
-                ? 'Personal information complete. You can now use the suggestions page.'
-                : 'Profile information updated.');
+            if ($user->hasCompletedPersonalData()) {
+                return redirect()->route('student.boses')->with('personal_data_completed', true);
+            }
+
+            return redirect()->route('personal-data.edit', ['return_to_suggestions' => 1])
+                ->with('status', 'Profile updated. Complete the remaining required personal data to access suggestions.');
         }
 
         return back()->with('status', $user->hasCompletedPersonalData()

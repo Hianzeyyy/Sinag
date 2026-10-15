@@ -45,6 +45,11 @@ class SuggestionController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->hasCompletedPersonalData()) {
+            return redirect()->route('personal-data.edit', ['return_to_suggestions' => 1])
+                ->with('personal_data_required', 'Complete your personal data to access Community Suggestions.');
+        }
+
         $allowedCategories = [
             'Gender-Based Violence Prevention',
             'Gender Equality and Inclusion',
@@ -152,19 +157,19 @@ class SuggestionController extends Controller
         if ($suggestion->user_id !== $user->id) {
             return redirect()->back()->with('error', 'Hindi mo kayang i-delete ang suggestion na ito.');
         }
-        
+
         // Delete associated comments first
         $suggestion->comments()->delete();
-        
+
         // Delete the suggestion
         $suggestion->delete();
         if ($suggestion->image_path) {
             Storage::disk('public')->delete($suggestion->image_path);
         }
-        
+
         return redirect()->back()->with('success', 'Ang iyong suggestion ay na-delete na.');
 
-        
+
     }
 
     public function show(Suggestion $suggestion)

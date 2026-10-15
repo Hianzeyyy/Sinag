@@ -15,7 +15,7 @@
                 <span style="color: #ede9fe;">SI</span><span style="color: #facc15;">NAG</span>
                 </h1>
             </div>
-            
+
             <p class="lead text-white mb-2 text-uppercase fw-bold" style="letter-spacing: 5px; opacity: 0.9; animation: fadeInUp 1.2s ease-out;">
                 Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University Asingan Campus
             </p>
@@ -55,9 +55,6 @@
               </div>
             </div>
 
-            <div class="mt-5 pt-4" style="animation: fadeInUp 2.2s ease-out;">
-               
-            </div>
         </div>
     </div>
 </div>
@@ -110,6 +107,8 @@
     .splash-wrapper .sinag-splash {
       display: flex;
       flex: 0 0 auto;
+      align-items: center !important;
+      justify-content: center;
       width: 100%;
       min-width: 0;
       max-width: 100%;
@@ -153,13 +152,6 @@
       }
     }
 
-    @media (min-width: 768px) and (max-width: 1199.98px) {
-      .splash-wrapper .sinag-splash {
-        align-items: flex-start;
-        padding-top: clamp(2rem, 7svh, 5rem);
-      }
-    }
-
     @keyframes logoEntrance {
         from { opacity: 0; transform: scale(0.5) translateY(-20px); }
         to { opacity: 1; transform: scale(1) translateY(0); }
@@ -197,7 +189,7 @@
     .loading-dot:nth-child(2) { animation-delay: 0.3s; }
     .loading-dot:nth-child(3) { animation-delay: 0.6s; }
     @media (max-width: 767px) {
-      .sinag-splash { align-items: flex-start; }
+      .splash-wrapper .sinag-splash { align-items: center; }
       .sinag-splash .lead { font-size: 0.8rem; letter-spacing: 2px !important; }
       .sinag-splash .gap-4 { gap: 1rem !important; }
       .sinag-splash h1 { font-size: 3.5rem; }

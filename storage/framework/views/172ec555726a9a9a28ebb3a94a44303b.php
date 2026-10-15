@@ -6,7 +6,7 @@
     .login-page {
         position: relative;
         min-height: 100dvh;
-        align-items: flex-start !important;
+        align-items: center !important;
         width: 100vw;
         margin-left: calc(50% - 50vw);
         box-sizing: border-box;
@@ -100,59 +100,49 @@
     .login-actions > * { min-height: 52px; min-width: 0; }
 
     .login-submit {
-        border-radius: 999px !important;
-        letter-spacing: 0.16em !important;
-        box-shadow: 0 10px 22px rgba(53, 38, 126, 0.2) !important;
-    }
-
-    .login-submit {
-        background: linear-gradient(135deg, #414bd0 0%, #5964e8 100%) !important;
-        color: #fff !important;
-    }
-
-    .login-submit:hover,
-    .login-submit:focus-visible {
-        background: linear-gradient(135deg, #353db8 0%, #4d58d8 100%) !important;
-        color: #fff !important;
-    }
-
-    .login-submit {
         position: relative;
-        isolation: isolate;
-        overflow: hidden;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-        will-change: transform;
+        overflow: visible;
+        min-height: 48px;
+        border: 0 !important;
+        border-radius: .55rem !important;
+        padding: .55rem 1.2rem !important;
+        color: #fff !important;
+        background: linear-gradient(180deg, #3984ff 0%, #0d6efd 52%, #0b5ed7 100%) !important;
+        letter-spacing: .16em !important;
+        box-shadow: inset 0 .0625em 0 rgba(255,255,255,.38), 0 .0625em 0 #0b5ed7,
+            0 .125em 0 #0a55c5, 0 .25em 0 #094db4, 0 .3125em 0 #0847a8,
+            0 .375em 0 #073f98, 0 .425em 0 #063783, 0 .425em .5em rgba(0, 35, 90, .35) !important;
+        transition: transform .25s ease, box-shadow .25s ease;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }
-
-    .login-submit::before {
-        content: '';
+    .login-submit::after {
         position: absolute;
-        inset: 0;
-        z-index: -1;
-        background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.38) 48%, transparent 72%);
-        transform: translateX(-120%);
-        transition: transform 0.45s ease;
+        z-index: 0;
+        content: '';
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: calc(100% + .375em);
+        border-radius: inherit;
+        background: transparent;
+        pointer-events: none;
+        transition: height .25s ease;
     }
-
-    .login-submit:hover::before,
-    .login-submit:focus-visible::before {
-        transform: translateX(120%);
-    }
-
     .login-submit:hover,
-    .login-submit:focus-visible {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.22) !important;
+    .login-submit:focus-visible,
+    .login-submit:active,
+    .login-submit.is-pressed {
+        transform: translateY(.19em);
+        box-shadow: inset 0 .03em 0 rgba(255,255,255,.32), 0 .03em 0 #0b5ed7,
+            0 .0625em 0 #0a55c5, 0 .125em 0 #094db4, 0 .1875em 0 #0847a8,
+            0 .225em 0 #073f98, 0 .225em .375em rgba(0, 35, 90, .34) !important;
     }
-
-    .login-submit:active {
-        transform: translateY(-1px) scale(0.99);
-    }
-
-    .login-submit:focus-visible {
-        outline: 3px solid rgba(255, 255, 255, 0.72);
-        outline-offset: 3px;
-    }
+    .login-submit:hover::after,
+    .login-submit:focus-visible::after,
+    .login-submit:active::after,
+    .login-submit.is-pressed::after { height: calc(100% + .19em); }
+    .login-submit:focus-visible { outline: 3px solid #facc15; outline-offset: 4px; }
 
     .login-alert { background: #f3efff; color: #5b4b9b; border-left: 4px solid #8f72f5; }
 
@@ -293,7 +283,32 @@
         min-height: 3.2rem;
         padding: .8rem 1.25rem !important;
         font-size: 1rem;
+        position: relative;
+        overflow: hidden;
+        border: 0;
+        border-radius: .75rem;
+        color: #fff;
+        color: #4a3500 !important;
+        background: linear-gradient(135deg, #fde047, #facc15 65%, #f59e0b);
+        box-shadow: 0 6px 14px rgba(217, 160, 0, .22);
+        transition: padding .25s ease, transform .2s ease, box-shadow .2s ease, background .2s ease;
     }
+    .register-submit:hover,
+    .register-submit:focus-visible { padding-right: 4.25rem !important; transform: translateY(-2px); background: linear-gradient(135deg, #facc15, #f59e0b); box-shadow: 0 10px 20px rgba(217, 160, 0, .3); }
+    .register-submit:active { transform: translateY(0); box-shadow: 0 3px 8px rgba(107, 85, 196, .2); }
+    .register-submit-label { position: relative; z-index: 1; }
+    .register-submit-icon { position: absolute; inset: 0 0 0 auto; display: flex; width: 3.2rem; align-items: center; justify-content: center; border-left: 1px solid rgba(74,53,0,.25); color: #4a3500; transform: translateX(101%); transition: transform .25s ease; }
+    .register-submit:hover .register-submit-icon,
+    .register-submit:focus-visible .register-submit-icon,
+    .register-submit.loading .register-submit-icon { transform: translateX(0); }
+    .register-submit.loading { padding-right: 4.25rem !important; }
+    .register-submit-arrow,
+    .register-submit-check { position: absolute; font-size: 1.1rem; transition: transform .2s ease, opacity .2s ease; }
+    .register-submit-check { opacity: 0; transform: scale(.4); }
+    .register-submit-loader { width: 1.15rem; height: 1.15rem; border: 2px solid rgba(255,255,255,.45); border-top-color: #fde047; border-radius: 50%; opacity: 0; animation: registerSpin .7s linear infinite; }
+    .register-submit.loading .register-submit-arrow { opacity: 0; transform: scale(.5); }
+    .register-submit.loading .register-submit-loader { opacity: 1; }
+    @keyframes registerSpin { to { transform: rotate(360deg); } }
     .register-fields > .col-12 { width: auto; max-width: none; flex: none; }
     .register-fields > .col-6 { width: auto; max-width: none; flex: none; grid-column: span 3; }
     .register-fields > .col-12:not(.register-name-field) { grid-column: span 3; }
@@ -315,7 +330,7 @@
     }
     .register-password::-ms-reveal { display: none; }
 
-    @media (max-width: 991.98px) {
+    @media (max-width: 1199.98px) {
         .login-page { align-items: flex-start !important; padding-block: 1rem 2rem; }
         .login-form-panel { padding: .75rem !important; }
         .auth-mobile-brand { display: block; padding: .75rem 1rem 0; text-align: center; }
@@ -343,13 +358,20 @@
         .register-fields > .col-12:not(.register-name-field) { grid-column: span 3; }
     }
 
+    @media (min-width: 1200px) {
+        .login-page { padding-block: 1.5rem; }
+        .login-page.signup-active { align-items: flex-start !important; padding-block: 1rem 2rem; }
+    }
+
+    .login-page.auth-card-centered { align-items: center !important; }
+
     @media (max-width: 575.98px) {
         .register-fields > .col-6,
         .register-fields > .col-12:not(.register-name-field),
         .register-fields > .register-name-field { grid-column: span 6; }
     }
 
-    @media (max-width: 991.98px) {
+    @media (max-width: 1199.98px) {
         .auth-overlay { display: none; }
         .sign-in-pane { display: block; }
         .sign-up-pane { display: none; }
@@ -399,12 +421,15 @@
         .login-page::before,
         .login-page::after,
         .auth-pane,
-        .auth-overlay { animation: none; transition: none; }
+        .auth-overlay,
+        .login-submit,
+        .login-submit::after,
+        .register-submit-loader { animation: none; transition: none; }
     }
 </style>
 
 <div class="login-page d-flex align-items-center justify-content-center">
-    
+
     <div class="login-shell">
         <div class="card login-card border-0 rounded-4 overflow-hidden">
                         <div class="login-form-panel">
@@ -448,7 +473,7 @@
                                             <i class="bi bi-envelope-at fs-5"></i>
                                         </span>
                                         <input id="email" type="email" class="login-input form-control form-control-lg border-0 py-3"
-                                               name="email" value="<?php echo e(old('email', request()->cookie('remembered_email', ''))); ?>" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" autofocus
+                                                 name="email" value="<?php echo e(old('email', request()->cookie('remembered_email', ''))); ?>" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')"
                                                placeholder="username@psu.edu.ph" style="font-size: 1rem;">
                                     </div>
                                 </div>
@@ -457,7 +482,7 @@
                                     <div class="mb-2">
                                         <label class="form-label small fw-bold text-uppercase mb-0" style="letter-spacing: 1px;">Password</label>
                                     </div>
-                                    
+
                                     <div class="position-relative">
                                         <div class="login-input-group input-group shadow-sm">
                                             <span class="login-input-icon input-group-text border-0">
@@ -483,8 +508,8 @@
                                 </div>
 
                                 <div class="login-actions d-grid gap-2">
-                                    <button type="submit" class="login-submit btn btn-lg shadow-lg fw-bold text-dark py-3 fs-5 flex-fill" 
-                                            style="background: #414bd0; border: none; border-radius: 12px; transition: 0.3s; letter-spacing: 3px; min-width: 0;">
+                                    <button type="submit" class="login-submit btn btn-lg shadow-lg fw-bold text-dark py-3 fs-5 flex-fill"
+                                            style="min-width: 0;">
                                         LOG IN
                                     </button>
                                 </div>
@@ -587,7 +612,10 @@
                                         </div>
                                     </div>
                                     <div class="col-12 register-submit-wrap mt-2">
-                                        <button type="submit" class="btn fw-bold text-dark register-submit" style="background:#facc15;border-radius:12px;">REGISTER ACCOUNT</button>
+                                        <button type="submit" class="btn fw-bold register-submit">
+                                            <span class="register-submit-label">REGISTER ACCOUNT</span>
+                                            <span class="register-submit-icon" aria-hidden="true"><i class="bi bi-arrow-right register-submit-arrow"></i><span class="register-submit-loader"></span></span>
+                                        </button>
                                         <div class="register-links small">
                                             <a class="login-forgot text-decoration-none fw-bold" href="<?php echo e(route('password.code.form')); ?>">Forgot Password?</a>
                                             <span class="text-muted" aria-hidden="true">|</span>
@@ -634,27 +662,58 @@
     const authStage = document.getElementById('authStage');
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
+    const loginSubmit = document.querySelector('.login-submit');
+    let touchPressTimeout;
+
+    loginSubmit?.addEventListener('pointerdown', function (event) {
+        if (event.pointerType !== 'touch') return;
+        clearTimeout(touchPressTimeout);
+        loginSubmit.classList.add('is-pressed');
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (eventName) {
+        loginSubmit?.addEventListener(eventName, function () {
+            clearTimeout(touchPressTimeout);
+            touchPressTimeout = setTimeout(function () {
+                loginSubmit.classList.remove('is-pressed');
+            }, 220);
+        });
+    });
+
+    const loginPage = document.querySelector('.login-page');
+    const loginShell = document.querySelector('.login-shell');
+    function updateAuthCardAlignment() {
+        const pageStyle = getComputedStyle(loginPage);
+        const verticalPadding = parseFloat(pageStyle.paddingTop) + parseFloat(pageStyle.paddingBottom);
+        const availableHeight = window.innerHeight - verticalPadding;
+        const canCenter = window.matchMedia('(min-width: 768px)').matches
+            && loginShell.getBoundingClientRect().height <= availableHeight;
+        loginPage.classList.toggle('auth-card-centered', canCenter);
+    }
+
     function setAuthPanel(showSignup) {
         authStage.classList.toggle('right-panel-active', showSignup);
         document.querySelector('.login-form-panel').classList.toggle('signup-active', showSignup);
-        document.querySelector('.login-page').classList.toggle('signup-active', showSignup);
+        loginPage.classList.toggle('signup-active', showSignup);
         loginForm.querySelectorAll('input, button, select, textarea').forEach(function (field) {
             field.disabled = showSignup;
         });
         registerForm.querySelectorAll('input, button, select, textarea').forEach(function (field) {
             field.disabled = !showSignup;
         });
+        if (showSignup && document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        requestAnimationFrame(updateAuthCardAlignment);
     }
     document.querySelectorAll('[data-auth-toggle]').forEach(function (button) {
         button.addEventListener('click', function () {
             const showSignup = button.dataset.authToggle === 'signup';
             setAuthPanel(showSignup);
-            if (showSignup) document.getElementById('registerPassword')?.focus({ preventScroll: true });
-            else document.getElementById('email')?.focus({ preventScroll: true });
+            if (!showSignup) document.getElementById('email')?.focus({ preventScroll: true });
         });
     });
 
     setAuthPanel(authStage.classList.contains('right-panel-active'));
+    window.addEventListener('resize', updateAuthCardAlignment);
+    if ('ResizeObserver' in window) new ResizeObserver(updateAuthCardAlignment).observe(loginShell);
 
     const loginPassword = document.querySelector('#password');
     const passwordValue = document.querySelector('#passwordValue');
@@ -693,6 +752,11 @@
     });
 
     registerForm.addEventListener('submit', function () {
+        const submitButton = registerForm.querySelector('.register-submit');
+        if (submitButton) {
+            submitButton.classList.add('loading');
+            submitButton.disabled = true;
+        }
         const email = registerForm.querySelector('[name="email"]').value.trim().toLowerCase();
         const accounts = JSON.parse(localStorage.getItem('sinag.login.accounts') || '[]');
         if (email && email.includes('@')) {
@@ -738,4 +802,5 @@
 
 </script>
 <?php $__env->stopSection(); ?>
+
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\sinag\resources\views/auth/login.blade.php ENDPATH**/ ?>

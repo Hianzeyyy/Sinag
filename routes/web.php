@@ -24,7 +24,7 @@ use App\Http\Controllers\Admin\PasswordResetRequestController;
 
 // 1. Splash Screen
 Route::get('/', function () {
-    return view('splash'); 
+    return view('splash');
 })->name('splash');
 
 // 2. Auth Routes
@@ -55,7 +55,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/password-reset-requests/{passwordResetRequest}/id-picture', [PasswordResetRequestController::class, 'idPicture'])->name('password-resets.id-picture');
         Route::post('/password-reset-requests/{passwordResetRequest}/approve', [PasswordResetRequestController::class, 'approve'])->name('password-resets.approve');
         Route::post('/password-reset-requests/{passwordResetRequest}/reject', [PasswordResetRequestController::class, 'reject'])->name('password-resets.reject');
-        
+
         // GAD Office Tools
         Route::get('/reports-management', [AdminController::class, 'reports'])->name('reports');
         Route::get('/suggestions', [AdminController::class, 'suggestions'])->name('suggestions');
@@ -86,13 +86,13 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('users.delete');
         Route::get('/users/{id}/view', [AdminController::class, 'showUser'])->name('users.show');
         Route::get('/users/{id}/personal-data', [ProfileController::class, 'adminPersonalData'])->name('users.personal-data');
-        
+
         // Appointment Management
         Route::get('/appointments', [AdminController::class, 'appointments'])->name('appointments');
         Route::post('/appointments/{id}/complete', [AdminController::class, 'completeAppointment'])->name('appointments.complete');
         Route::post('/appointments/{id}/cancel', [AdminController::class, 'cancelAppointment'])->name('appointments.cancel');
         Route::post('/appointments/{id}/add-details', [AdminController::class, 'addAppointmentDetails'])->name('appointments.add-details');
-        
+
         // Admin Actions
         Route::post('/reports/{id}/update', [AdminController::class, 'updateStatus'])->name('reports.update');
         Route::post('/reports/{id}/seen', [AdminController::class, 'markSeen'])->name('reports.seen');
@@ -109,10 +109,10 @@ Route::middleware(['auth'])->group(function () {
     // --- STUDENT ROUTES ---
     Route::prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentController::class, 'index'])->name('dashboard');
-        
+
         // Core Modules
-        Route::get('/report', [StudentController::class, 'report'])->name('report'); 
-        Route::get('/vault', [StudentController::class, 'vault'])->name('vault');   
+        Route::get('/report', [StudentController::class, 'report'])->name('report');
+        Route::get('/vault', [StudentController::class, 'vault'])->name('vault');
         Route::get('/boses', [StudentController::class, 'boses'])->name('boses');
         Route::get('/gad-schedule', [StudentController::class, 'gadSchedule'])->name('gad-schedule');
         Route::get('/schedule-appointment', [StudentController::class, 'appointmentForm'])->name('schedule-appointment');
@@ -121,15 +121,16 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/appointments/{id}', [StudentController::class, 'updateAppointment'])->name('appointments.update');
         Route::post('/appointments/{id}/cancel', [StudentController::class, 'cancelAppointment'])->name('appointments.cancel');
         Route::delete('/appointments/{id}', [StudentController::class, 'deleteAppointment'])->name('appointments.delete');
-        
+
         // Safety & Wellness
-        Route::get('/wellness', [StudentController::class, 'wellness'])->name('wellness'); 
+        Route::get('/wellness', [StudentController::class, 'wellness'])->name('wellness');
         Route::get('/reference/{slug}', [StudentController::class, 'reference'])->name('reference');
-        
+
         // Messaging & Communication
         Route::get('/messaging', [StudentController::class, 'messaging'])->name('messaging');
         Route::post('/messages/store', [StudentController::class, 'storeMessage'])->name('messages.store');
         Route::get('/messages/feed', [StudentController::class, 'messageFeed'])->name('messages.feed');
+        Route::get('/notifications/feed', [StudentController::class, 'notificationFeed'])->name('notifications.feed');
         Route::post('/messages/{id}/update', [StudentController::class, 'updateMessage'])->name('messages.update');
         Route::delete('/messages/{id}', [StudentController::class, 'destroyMessage'])->name('messages.destroy');
         Route::get('/announcement/{id}', [StudentController::class, 'announcement'])->name('announcement');

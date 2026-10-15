@@ -22,19 +22,13 @@
         }
 
         body {
-            background-color: #f8fafc; 
-            font-family: 'Nunito', sans-serif; 
+            background-color: #f8fafc;
+            font-family: 'Nunito', sans-serif;
             min-height: 100vh;
             min-height: 100dvh;
             height: auto;
             overflow-x: clip;
             overflow-y: visible;
-        }
-
-        body.page-scroll-locked {
-            position: fixed;
-            width: 100%;
-            overflow: hidden;
         }
 
         .brand-descriptor { max-width: 100%; white-space: normal; overflow-wrap: normal; word-break: normal; line-height: 1.15; font-size: .82rem; }
@@ -234,11 +228,34 @@
             z-index: 30;
         }
 
+        .dashboard-logo-sunburst img {
+            transform-origin: center;
+            animation: dashboardLogoSunburst 1.4s ease-out 1 both;
+        }
+
+        .dashboard-logo-sunburst img:nth-child(2) { animation-delay: .08s; }
+
+        @keyframes dashboardLogoSunburst {
+            0% { filter: drop-shadow(0 0 0 rgba(250, 204, 21, 0)); transform: scale(1); }
+            35% { filter: drop-shadow(0 0 4px #fff7bf) drop-shadow(0 0 13px #facc15); transform: scale(1.08); }
+            100% { filter: drop-shadow(0 0 0 rgba(250, 204, 21, 0)); transform: scale(1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .dashboard-logo-sunburst img { animation: none; }
+        }
+
         @media (min-width: 1200px) {
-            .top-navbar {
+            .top-navbar.scroll-direction-nav {
                 position: sticky;
                 top: 0;
                 z-index: 1030;
+                transform: translateY(0);
+                transition: transform .22s ease, box-shadow .22s ease;
+            }
+
+            .top-navbar.scroll-direction-nav.is-hidden {
+                transform: translateY(calc(-100% - 2px));
             }
         }
 
@@ -358,7 +375,7 @@
         .nav-link-custom i { font-size: 1.2rem; margin-right: 1rem; }
 
         .nav-link-custom.active {
-            background-color: #A594F9 !important; 
+            background-color: #A594F9 !important;
             color: white !important;
             box-shadow: 0 4px 12px rgba(165, 148, 249, 0.28);
             transform: translateX(2px);
@@ -1752,7 +1769,7 @@
 </head>
 <body>
     <div id="app" class="main-wrapper <?php echo e(request()->routeIs('splash') ? 'splash-wrapper' : ''); ?>">
-        
+
         <?php if(auth()->guard()->check()): ?>
             <?php if(Auth::user()->role === 'admin'): ?>
             <aside class="sidebar" id="mainSidebar">
@@ -1797,7 +1814,7 @@
                     <a href="<?php echo e(route('admin.gad-schedules.index')); ?>" class="nav-link-custom <?php echo e(Request::is('admin/gad-schedules*') ? 'active' : ''); ?>">
                         <i class="bi bi-calendar2-week-fill"></i> Office Schedule
                     </a>
-                   
+
 
                     <div class="mt-auto mb-4">
                         <hr class="text-muted opacity-25">
@@ -1863,7 +1880,7 @@
                             <button class="sidebar-toggle" onclick="toggleSidebar()" style="background: #A594F9; color: #fff; border: none; box-shadow: 0 2px 8px rgba(165,148,249,0.15);">
                                 <i class="bi bi-list fs-5" style="color:#fff;"></i>
                             </button>
-                           
+
                         <?php endif; ?>
                         <?php if(Auth::user()->role !== 'admin'): ?>
                             <button type="button" class="student-sidebar-toggle" onclick="toggleSidebar('studentSidebar', 'studentSidebarBackdrop')" aria-label="Open navigation menu" aria-controls="studentSidebar" aria-expanded="false">
@@ -1873,13 +1890,13 @@
                         <!-- Option 1: Modern & Spaced with Soft Shadows -->
 <a class="navbar-brand-custom mb-0" style="display:inline-flex; align-items:center; gap:1.2rem; text-decoration:none;">
     <!-- Container para sa Logos: May Pink Glow/Shadow lang sa logos -->
-    <div style="display:flex; align-items:center; filter: drop-shadow(0px 0px 8px rgba(159, 83, 252, 0.945));">
+    <div class="<?php echo e(request()->routeIs('student.dashboard') && session('dashboard_logo_sunburst') ? 'dashboard-logo-sunburst' : ''); ?>" style="display:flex; align-items:center; filter: drop-shadow(0px 0px 8px rgba(159, 83, 252, 0.945));">
         <!-- PSU Logo -->
-        <img src="<?php echo e(asset('images/psulogo.png')); ?>" alt="PSU Logo" 
+        <img src="<?php echo e(asset('images/psulogo.png')); ?>" alt="PSU Logo"
              style="width:48px; height:48px; object-fit:contain; position:relative; z-index:2;">
-        
+
         <!-- GAD Logo (Eksaktong dikit, zero margin) -->
-        <img src="<?php echo e(asset('images/gadlogo.png')); ?>" alt="GAD Logo" 
+        <img src="<?php echo e(asset('images/gadlogo.png')); ?>" alt="GAD Logo"
              style="width:48px; height:48px; border-radius:50%; object-fit:cover; position:relative; z-index:1; margin-left: 0;">
     </div>
 
@@ -1894,7 +1911,7 @@
     <?php endif; ?>
 </a>
 
-                       
+
                     </div>
 
                     <div class="d-flex align-items-center gap-3">
@@ -2010,25 +2027,6 @@
     <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" class="d-none"><?php echo csrf_field(); ?></form>
 
     <script>
-        let lockedPageScrollY = 0;
-
-        function lockPageScroll() {
-            if (document.body.classList.contains('page-scroll-locked')) return;
-            lockedPageScrollY = window.scrollY;
-            document.body.classList.add('page-scroll-locked');
-            document.body.style.top = `-${lockedPageScrollY}px`;
-        }
-
-        function unlockPageScroll() {
-            if (!document.body.classList.contains('page-scroll-locked')) return;
-            document.body.classList.remove('page-scroll-locked');
-            document.body.style.top = '';
-            const scrollBehavior = document.documentElement.style.scrollBehavior;
-            document.documentElement.style.scrollBehavior = 'auto';
-            window.scrollTo(0, lockedPageScrollY);
-            document.documentElement.style.scrollBehavior = scrollBehavior;
-        }
-
         function toggleSidebar(sidebarId = 'mainSidebar', backdropId = 'adminSidebarBackdrop') {
             const sidebar = document.getElementById(sidebarId);
             if (sidebar) {
@@ -2041,8 +2039,6 @@
                     backdrop.classList.toggle('d-none', !isOpen);
                 }
                 document.querySelector(`[aria-controls="${sidebarId}"]`)?.setAttribute('aria-expanded', String(isOpen));
-                if (isMobile && isOpen) lockPageScroll();
-                else unlockPageScroll();
             }
         }
 
@@ -2052,6 +2048,40 @@
         document.getElementById('studentSidebarBackdrop')?.addEventListener('click', function () {
             toggleSidebar('studentSidebar', 'studentSidebarBackdrop');
         });
+
+        (function () {
+            const navbar = document.querySelector('.top-navbar');
+            const desktop = window.matchMedia('(min-width: 1200px)');
+            let previousScrollY = window.scrollY;
+            let ticking = false;
+
+            function updateNavbarVisibility() {
+                if (!navbar) return;
+                if (!desktop.matches) {
+                    navbar.classList.remove('scroll-direction-nav', 'is-hidden');
+                    previousScrollY = window.scrollY;
+                    return;
+                }
+
+                navbar.classList.add('scroll-direction-nav');
+                const currentScrollY = window.scrollY;
+                if (currentScrollY < 48) navbar.classList.remove('is-hidden');
+                else if (currentScrollY < previousScrollY - 6) navbar.classList.remove('is-hidden');
+                else if (currentScrollY > previousScrollY + 6) navbar.classList.add('is-hidden');
+                previousScrollY = currentScrollY;
+            }
+
+            window.addEventListener('scroll', function () {
+                if (ticking) return;
+                ticking = true;
+                window.requestAnimationFrame(function () {
+                    updateNavbarVisibility();
+                    ticking = false;
+                });
+            }, { passive: true });
+            window.addEventListener('resize', updateNavbarVisibility);
+            updateNavbarVisibility();
+        })();
 
         <?php if(auth()->guard()->check()): ?>
         <?php if(auth()->user()->role === 'admin'): ?>
@@ -2123,6 +2153,65 @@
         })();
         <?php endif; ?>
 
+        <?php if(in_array(strtolower((string) auth()->user()->role), ['student', 'employee', 'security'], true)): ?>
+        (function () {
+            const notice = document.createElement('div');
+            notice.setAttribute('role', 'status');
+            notice.setAttribute('aria-live', 'polite');
+            notice.style.cssText = 'position:fixed;top:max(1rem,env(safe-area-inset-top));right:1rem;z-index:1090;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none;max-width:min(90vw,24rem)';
+            document.body.appendChild(notice);
+
+            let hideNotice;
+            let lastMessageId = Number(localStorage.getItem('sinag.last-notified-message-id') || 0);
+            let lastCallState = null;
+            try {
+                lastCallState = JSON.parse(localStorage.getItem('sinag.urgent-call-state') || 'null');
+            } catch (error) {}
+
+            function notifyUser(message, href) {
+                notice.textContent = '';
+                notice.appendChild(document.createTextNode(message));
+                const link = document.createElement('a');
+                link.href = href;
+                link.className = 'text-white fw-bold ms-2';
+                link.textContent = 'Open';
+                notice.appendChild(link);
+                notice.style.display = 'block';
+                clearTimeout(hideNotice);
+                hideNotice = setTimeout(function () { notice.style.display = 'none'; }, 7000);
+            }
+
+            async function checkUserNotifications() {
+                try {
+                    const response = await fetch('<?php echo e(route('student.notifications.feed')); ?>', { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
+                    if (!response.ok) return;
+                    const data = await response.json();
+                    const messageId = Number(data.latest_unread_id || 0);
+                    if (messageId > lastMessageId) {
+                        notifyUser('New message from the GAD Office.', '<?php echo e(route('student.messaging')); ?>');
+                        lastMessageId = messageId;
+                        localStorage.setItem('sinag.last-notified-message-id', String(lastMessageId));
+                    }
+
+                    const call = data.latest_call;
+                    if (call && call.id && call.status === 'joined'
+                        && lastCallState && lastCallState.id === call.id && lastCallState.status !== 'joined') {
+                        notifyUser('The GAD Office joined your urgent call.', '<?php echo e(route('student.urgent')); ?>');
+                    }
+                    if (call?.id) {
+                        lastCallState = { id: call.id, status: call.status };
+                        localStorage.setItem('sinag.urgent-call-state', JSON.stringify(lastCallState));
+                    }
+                } catch (error) {
+                    console.error('Unable to check user notifications:', error);
+                }
+            }
+
+            checkUserNotifications();
+            setInterval(checkUserNotifications, 3000);
+        })();
+        <?php endif; ?>
+
         setInterval(function () {
             fetch('<?php echo e(route('presence.heartbeat')); ?>', {
                 method: 'POST',
@@ -2139,4 +2228,5 @@
         <?php endif; ?>
     </script>
 </body>
-</html><?php /**PATH C:\xampp\htdocs\sinag\resources\views/layouts/app.blade.php ENDPATH**/ ?>
+</html>
+<?php /**PATH C:\xampp\htdocs\sinag\resources\views/layouts/app.blade.php ENDPATH**/ ?>

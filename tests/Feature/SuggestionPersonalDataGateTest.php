@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 class SuggestionPersonalDataGateTest extends TestCase
 {
-    public function test_users_can_post_suggestions_without_completing_personal_data(): void
+    public function test_users_without_completed_personal_data_cannot_access_or_post_suggestions(): void
     {
         $this->createUsersTable();
         $this->createSuggestionTables();
@@ -22,11 +22,12 @@ class SuggestionPersonalDataGateTest extends TestCase
             'role' => 'student',
         ]);
 
+        $editProfileUrl = route('personal-data.edit', ['return_to_suggestions' => 1]);
+
         $this->actingAs($user)
             ->get(route('student.boses'))
-            ->assertOk()
-            ->assertSee('id="suggestionModal"', false)
-            ->assertDontSee('personalDataRequiredModal');
+            ->assertRedirect($editProfileUrl)
+            ->assertSessionHas('personal_data_required');
 
         $response = $this->from(route('student.boses'))
             ->post(route('suggestions.store'), [
@@ -34,14 +35,8 @@ class SuggestionPersonalDataGateTest extends TestCase
             'message' => 'A suggestion shared from an incomplete profile.',
             ]);
 
-        $response->assertRedirect(route('student.boses'));
-        $response->assertSessionHas('success');
-        $this->assertDatabaseHas('suggestions', [
-            'user_id' => $user->id,
-            'message' => 'A suggestion shared from an incomplete profile.',
-            'status' => 'Pending',
-            'is_anonymous' => true,
-        ]);
+        $response->assertRedirect($editProfileUrl);
+        $this->assertDatabaseMissing('suggestions', ['user_id' => $user->id]);
     }
 
     public function test_suggestions_page_displays_its_empty_state_instead_of_a_blank_page(): void
@@ -49,11 +44,10 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->createUsersTable();
         $this->createSuggestionTables();
 
-        $user = User::create([
+        $user = $this->makeCompletedStudent([
             'name' => 'Test Student',
             'email' => 'student@example.test',
             'password' => 'password',
-            'role' => 'student',
             'cloak_alias' => 'StudentTest',
         ]);
 
@@ -71,11 +65,10 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->createUsersTable();
         $this->createSuggestionTables();
 
-        $user = User::create([
+        $user = $this->makeCompletedStudent([
             'name' => 'Test Student',
             'email' => 'student@example.test',
             'password' => 'password',
-            'role' => 'student',
         ]);
 
         $this->actingAs($user)
@@ -98,11 +91,10 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->createUsersTable();
         $this->createSuggestionTables();
 
-        $user = User::create([
+        $user = $this->makeCompletedStudent([
             'name' => 'Test Student',
             'email' => 'student@example.test',
             'password' => 'password',
-            'role' => 'student',
             'cloak_alias' => 'StudentTest',
         ]);
 
@@ -188,11 +180,10 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->createUsersTable();
         $this->createSuggestionTables();
 
-        $user = User::create([
+        $user = $this->makeCompletedStudent([
             'name' => 'Test Student',
             'email' => 'student@example.test',
             'password' => 'password',
-            'role' => 'student',
         ]);
 
         $response = $this->actingAs($user)
@@ -230,6 +221,43 @@ class SuggestionPersonalDataGateTest extends TestCase
             $table->json('student_information')->nullable();
             $table->timestamps();
         });
+    }
+
+    private function makeCompletedStudent(array $overrides = []): User
+    {
+        return User::create(array_merge([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'last_name' => 'Student',
+            'first_name' => 'Test',
+            'phone_number' => '09123456789',
+            'age' => 20,
+            'gender' => 'Female',
+            'department' => 'College of Education',
+            'personal_information' => [
+                'date_of_birth' => '2006-01-01',
+                'place_of_birth' => 'Lingayen',
+                'sex' => 'Female',
+                'gender_identity' => 'Woman',
+                'citizenship' => 'Filipino',
+                'blood_type' => 'O+',
+                'height' => '160',
+                'weight' => '50',
+                'landline_number' => 'N/A',
+                'civil_status' => 'Single',
+                'current_address' => 'Lingayen',
+                'home_address' => 'Lingayen',
+                'religion' => 'N/A',
+            ],
+            'student_information' => [
+                'year_level' => '2nd Year',
+                'school_type' => 'Public',
+                'last_school_attended' => 'PSU',
+                'financing_sources' => ['Family'],
+            ],
+        ], $overrides));
     }
 
     private function createSuggestionTables(): void

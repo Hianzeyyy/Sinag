@@ -22,7 +22,7 @@
             <!-- Form Card -->
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                 <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); padding: 2rem;">
-                    
+
                 </div>
 
                 <div class="card-body p-4">
@@ -34,10 +34,10 @@
                           <label for="full_name" class="form-label fw-semibold" style="color: #A594F9;">
                            <i class="bi bi-person-fill"></i> Full Name
                         </label>
-                            <input 
-                                type="text" 
-                                class="form-control form-control-lg @error('full_name') is-invalid @enderror" 
-                                id="full_name" 
+                            <input
+                                type="text"
+                                class="form-control form-control-lg @error('full_name') is-invalid @enderror"
+                                id="full_name"
                                 name="full_name"
                                 value="{{ old('full_name', Auth::user()->name) }}"
                                 required>
@@ -55,6 +55,7 @@
                                     </a>
                                 </div>
                                 <input type="date" class="form-control form-control-lg @error('scheduled_date') is-invalid @enderror" id="scheduled_date" name="scheduled_date" value="{{ old('scheduled_date') }}" min="{{ now()->toDateString() }}" required>
+                                <div id="scheduled-date-feedback" class="small text-danger mt-1" role="status" aria-live="polite">@error('scheduled_date'){{ $message }}@enderror</div>
                                 @error('scheduled_date')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-6">
@@ -90,10 +91,10 @@
                           <label for="student_id" class="form-label fw-semibold" style="color: #A594F9;">
                           <i class="bi bi-card-text"></i> Student/Employee ID
                            </label>
-                            <input 
-                                type="text" 
-                                class="form-control form-control-lg @error('student_id') is-invalid @enderror" 
-                                id="student_id" 
+                            <input
+                                type="text"
+                                class="form-control form-control-lg @error('student_id') is-invalid @enderror"
+                                id="student_id"
                                 name="student_id"
                                 value="{{ old('student_id') }}"
                                 placeholder="e.g., 2024-1001"
@@ -110,11 +111,11 @@
                               </label>
                             <div class="d-flex gap-3">
                                 <div class="form-check">
-                                    <input 
-                                        class="form-check-input" 
-                                        type="radio" 
-                                        name="urgency_level" 
-                                        id="urgency_low" 
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="urgency_level"
+                                        id="urgency_low"
                                         value="Low"
                                         {{ old('urgency_level') === 'Low' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="urgency_low">
@@ -122,11 +123,11 @@
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input 
-                                        class="form-check-input" 
-                                        type="radio" 
-                                        name="urgency_level" 
-                                        id="urgency_medium" 
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="urgency_level"
+                                        id="urgency_medium"
                                         value="Medium"
                                         {{ old('urgency_level') === 'Medium' || !old('urgency_level') ? 'checked' : '' }}>
                                     <label class="form-check-label" for="urgency_medium">
@@ -134,11 +135,11 @@
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input 
-                                        class="form-check-input" 
-                                        type="radio" 
-                                        name="urgency_level" 
-                                        id="urgency_high" 
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="urgency_level"
+                                        id="urgency_high"
                                         value="High"
                                         {{ old('urgency_level') === 'High' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="urgency_high">
@@ -156,9 +157,9 @@
                            <label for="description" class="form-label fw-semibold" style="color: #A594F9;">
                             <i class="bi bi-pencil-square"></i> Brief Description of Concern
                             </label>
-                            <textarea 
-                                class="form-control @error('description') is-invalid @enderror" 
-                                id="description" 
+                            <textarea
+                                class="form-control @error('description') is-invalid @enderror"
+                                id="description"
                                 name="description"
                                 rows="5"
                                 placeholder="Please provide a brief overview of what you'd like to discuss..."
@@ -170,8 +171,8 @@
 
                         <!-- Submit Button -->
                         <div class="d-grid gap-2 mt-5 mb-3">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 class="btn fw-semibold schedule-submit-btn"
                                 style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none; transition: all 0.3s ease;">
                                 <i class="bi bi-check-circle"></i> Submit Appointment Request
@@ -293,4 +294,33 @@
         }
     }
 </style>
+<script>
+    (function () {
+        const dateInput = document.getElementById('scheduled_date');
+        const feedback = document.getElementById('scheduled-date-feedback');
+        if (!dateInput || !feedback) return;
+
+        const unavailableDates = new Set();
+        function blockUnavailableDate() {
+            if (!dateInput.value || !unavailableDates.has(dateInput.value)) return;
+            dateInput.value = '';
+            dateInput.classList.add('is-invalid');
+            feedback.textContent = 'The GAD Office is unavailable on that date. Please choose another date.';
+        }
+
+        dateInput.addEventListener('change', blockUnavailableDate);
+        fetch('{{ route('schedule.feed') }}', { headers: { 'Accept': 'application/json' }, cache: 'no-store' })
+            .then(response => response.ok ? response.json() : Promise.reject(new Error('Schedule unavailable')))
+            .then(payload => {
+                (payload.schedules || []).filter(schedule => schedule.availability_type === 'unavailable').forEach(schedule => {
+                    const endDate = schedule.end_date || schedule.date;
+                    for (let day = new Date(schedule.date + 'T00:00:00Z'); day <= new Date(endDate + 'T00:00:00Z'); day.setUTCDate(day.getUTCDate() + 1)) {
+                        unavailableDates.add(day.toISOString().slice(0, 10));
+                    }
+                });
+                blockUnavailableDate();
+            })
+            .catch(() => {});
+    })();
+</script>
 @endsection

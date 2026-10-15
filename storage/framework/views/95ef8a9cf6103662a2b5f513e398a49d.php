@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('content'); ?>
 <div class="container schedule-appointment-page mt-5 mb-5">
     <div class="row justify-content-center">
@@ -23,7 +21,7 @@
             <!-- Form Card -->
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                 <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); padding: 2rem;">
-                    
+
                 </div>
 
                 <div class="card-body p-4">
@@ -35,8 +33,8 @@
                           <label for="full_name" class="form-label fw-semibold" style="color: #A594F9;">
                            <i class="bi bi-person-fill"></i> Full Name
                         </label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 class="form-control form-control-lg <?php $__errorArgs = ['full_name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -44,8 +42,8 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
-                                id="full_name" 
+unset($__errorArgs, $__bag); ?>"
+                                id="full_name"
                                 name="full_name"
                                 value="<?php echo e(old('full_name', Auth::user()->name)); ?>"
                                 required>
@@ -77,6 +75,14 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" id="scheduled_date" name="scheduled_date" value="<?php echo e(old('scheduled_date')); ?>" min="<?php echo e(now()->toDateString()); ?>" required>
+                                <div id="scheduled-date-feedback" class="small text-danger mt-1" role="status" aria-live="polite"><?php $__errorArgs = ['scheduled_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><?php echo e($message); ?><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?></div>
                                 <?php $__errorArgs = ['scheduled_date'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -140,8 +146,8 @@ unset($__errorArgs, $__bag); ?>
                           <label for="student_id" class="form-label fw-semibold" style="color: #A594F9;">
                           <i class="bi bi-card-text"></i> Student/Employee ID
                            </label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 class="form-control form-control-lg <?php $__errorArgs = ['student_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -149,8 +155,8 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
-                                id="student_id" 
+unset($__errorArgs, $__bag); ?>"
+                                id="student_id"
                                 name="student_id"
                                 value="<?php echo e(old('student_id')); ?>"
                                 placeholder="e.g., 2024-1001"
@@ -174,11 +180,11 @@ unset($__errorArgs, $__bag); ?>
                               </label>
                             <div class="d-flex gap-3">
                                 <div class="form-check">
-                                    <input 
-                                        class="form-check-input" 
-                                        type="radio" 
-                                        name="urgency_level" 
-                                        id="urgency_low" 
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="urgency_level"
+                                        id="urgency_low"
                                         value="Low"
                                         <?php echo e(old('urgency_level') === 'Low' ? 'checked' : ''); ?>>
                                     <label class="form-check-label" for="urgency_low">
@@ -186,11 +192,11 @@ unset($__errorArgs, $__bag); ?>
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input 
-                                        class="form-check-input" 
-                                        type="radio" 
-                                        name="urgency_level" 
-                                        id="urgency_medium" 
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="urgency_level"
+                                        id="urgency_medium"
                                         value="Medium"
                                         <?php echo e(old('urgency_level') === 'Medium' || !old('urgency_level') ? 'checked' : ''); ?>>
                                     <label class="form-check-label" for="urgency_medium">
@@ -198,11 +204,11 @@ unset($__errorArgs, $__bag); ?>
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input 
-                                        class="form-check-input" 
-                                        type="radio" 
-                                        name="urgency_level" 
-                                        id="urgency_high" 
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="urgency_level"
+                                        id="urgency_high"
                                         value="High"
                                         <?php echo e(old('urgency_level') === 'High' ? 'checked' : ''); ?>>
                                     <label class="form-check-label" for="urgency_high">
@@ -227,7 +233,7 @@ unset($__errorArgs, $__bag); ?>
                            <label for="description" class="form-label fw-semibold" style="color: #A594F9;">
                             <i class="bi bi-pencil-square"></i> Brief Description of Concern
                             </label>
-                            <textarea 
+                            <textarea
                                 class="form-control <?php $__errorArgs = ['description'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -235,8 +241,8 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
-                                id="description" 
+unset($__errorArgs, $__bag); ?>"
+                                id="description"
                                 name="description"
                                 rows="5"
                                 placeholder="Please provide a brief overview of what you'd like to discuss..."
@@ -255,8 +261,8 @@ unset($__errorArgs, $__bag); ?>
 
                         <!-- Submit Button -->
                         <div class="d-grid gap-2 mt-5 mb-3">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 class="btn fw-semibold schedule-submit-btn"
                                 style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none; transition: all 0.3s ease;">
                                 <i class="bi bi-check-circle"></i> Submit Appointment Request
@@ -378,6 +384,35 @@ unset($__errorArgs, $__bag); ?>
         }
     }
 </style>
+<script>
+    (function () {
+        const dateInput = document.getElementById('scheduled_date');
+        const feedback = document.getElementById('scheduled-date-feedback');
+        if (!dateInput || !feedback) return;
+
+        const unavailableDates = new Set();
+        function blockUnavailableDate() {
+            if (!dateInput.value || !unavailableDates.has(dateInput.value)) return;
+            dateInput.value = '';
+            dateInput.classList.add('is-invalid');
+            feedback.textContent = 'The GAD Office is unavailable on that date. Please choose another date.';
+        }
+
+        dateInput.addEventListener('change', blockUnavailableDate);
+        fetch('<?php echo e(route('schedule.feed')); ?>', { headers: { 'Accept': 'application/json' }, cache: 'no-store' })
+            .then(response => response.ok ? response.json() : Promise.reject(new Error('Schedule unavailable')))
+            .then(payload => {
+                (payload.schedules || []).filter(schedule => schedule.availability_type === 'unavailable').forEach(schedule => {
+                    const endDate = schedule.end_date || schedule.date;
+                    for (let day = new Date(schedule.date + 'T00:00:00Z'); day <= new Date(endDate + 'T00:00:00Z'); day.setUTCDate(day.getUTCDate() + 1)) {
+                        unavailableDates.add(day.toISOString().slice(0, 10));
+                    }
+                });
+                blockUnavailableDate();
+            })
+            .catch(() => {});
+    })();
+</script>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\sinag\resources\views/student/schedule_appointment.blade.php ENDPATH**/ ?>

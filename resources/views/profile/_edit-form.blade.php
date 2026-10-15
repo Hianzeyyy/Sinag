@@ -198,6 +198,12 @@
     }
 </style>
 
+@if(session('personal_data_required'))
+    <div class="alert border-0 shadow-sm rounded-4 mx-auto mb-4" role="status" style="max-width:1100px;background:#f3efff;color:#5b4b9b;">
+        <i class="bi bi-person-vcard-fill me-2"></i>{{ session('personal_data_required') }}
+    </div>
+@endif
+
 @if(session('status'))
     <div class="toast-container p-3">
         <div id="personalDataToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
@@ -331,7 +337,7 @@
                     <div><label class="pd-label">Gender Identity <span class="text-danger">*</span></label><input type="text" name="personal_information[gender_identity]" value="{{ old('personal_information.gender_identity', $personal['gender_identity'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Citizenship <span class="text-danger">*</span></label><input type="text" name="personal_information[citizenship]" value="{{ old('personal_information.citizenship', $personal['citizenship'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Blood Type <span class="text-danger">*</span></label><select name="personal_information[blood_type]" class="form-select pd-select" required><option value="">Select blood type</option>@foreach(['A+','A-','B+','B-','AB+','AB-','O+','O-','Unknown'] as $option)<option value="{{ $option }}" {{ old('personal_information.blood_type', $personal['blood_type'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>
-                    <div><label class="pd-label">Height <span class="text-danger">*</span></label><input type="number" step="0.1" min="0" max="500" name="personal_information[height]" value="{{ old('personal_information.height', $personal['height'] ?? '') }}" class="form-control pd-input" required></div>
+                    <div><label class="pd-label">Height(cm) <span class="text-danger">*</span></label><input type="number" step="0.1" min="0" max="500" name="personal_information[height]" value="{{ old('personal_information.height', $personal['height'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Weight <span class="text-danger">*</span></label><input type="number" step="0.1" min="0" max="500" name="personal_information[weight]" value="{{ old('personal_information.weight', $personal['weight'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Landline Number <span class="text-danger">*</span></label><input type="text" name="personal_information[landline_number]" value="{{ old('personal_information.landline_number', $personal['landline_number'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Civil Status <span class="text-danger">*</span></label><select name="personal_information[civil_status]" class="form-select pd-select" required><option value="">Select status</option>@foreach(['Single','Married','Separated','Widowed','Prefer not to say'] as $option)<option value="{{ $option }}" {{ old('personal_information.civil_status', $personal['civil_status'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>

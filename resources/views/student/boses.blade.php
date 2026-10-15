@@ -328,15 +328,30 @@
     }
 
     .suggestion-feed-table .suggestion-top {
+        padding: 1rem !important;
         border-right: 0;
         border-bottom: 1px solid #f1f2f4;
         background: #fff;
     }
 
-    .suggestion-feed-table .suggestion-card > .p-4 { min-width: 0; }
+    .suggestion-body {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .25rem;
+        padding: .65rem 1rem .9rem;
+    }
     .suggestion-attachment { max-width: min(100%, 28rem); max-height: 22rem; object-fit: contain; }
-    .suggestion-expand { display: block; width: fit-content; }
-    .suggestion-image-link { display: block; width: fit-content; max-width: 100%; }
+    .suggestion-expand { display: inline; width: auto; margin: 0 .15em !important; padding: 0 !important; font-weight: 800; vertical-align: baseline; }
+    .suggestion-image-link { display: block; width: fit-content; max-width: 100%; margin-inline: auto; }
+    .suggestion-attachment { display: block; margin-inline: auto; }
+    .suggestion-actions { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: .5rem; }
+    .suggestion-actions .meta-badge { min-height: 2.6rem; }
+    .suggestion-actions form { display: flex; margin: 0; }
+    .suggestion-actions .upvote-btn,
+    .suggestion-actions .report-content-button { min-height: 2.6rem; }
+    .suggestion-actions .report-content-button { min-width: 2.6rem; border-radius: .8rem; }
 
     .suggestion-card:hover {
         transform: translateY(-2px);
@@ -363,16 +378,12 @@
 
     .suggestion-message {
         color: var(--ink);
-        font-size: 1.02rem;
-        line-height: 1.75;
+        width: 100%;
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1.55;
         white-space: pre-wrap;
-    }
-
-    .suggestion-message [data-suggestion-preview] {
-        display: -webkit-box;
-        overflow: hidden;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 4;
+        overflow-wrap: anywhere;
     }
 
     .meta-badge {
@@ -400,6 +411,40 @@
         font-weight: 800;
         min-height: 2.6rem;
     }
+
+    .upvote-btn {
+        --vote-accent: #8f72f5;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .45rem;
+        min-width: 7.4rem;
+        padding: .5rem .7rem !important;
+        overflow: hidden;
+        border: 1px solid rgba(143, 114, 245, .2);
+        border-radius: .8rem;
+        color: #6550ca;
+        background: linear-gradient(180deg, #fff, #f7f5ff);
+        box-shadow: 0 3px 9px rgba(91, 67, 178, .08);
+        transition: color .22s ease, background .22s ease, transform .22s ease, box-shadow .22s ease;
+    }
+    .upvote-btn:hover,
+    .upvote-btn:focus-visible { color: #4f3bb5; background: #f2efff; box-shadow: 0 6px 14px rgba(91, 67, 178, .16); }
+    .upvote-btn:active,
+    .upvote-btn.upvote-bounce { animation: upvoteBounce .42s ease; }
+    .upvote-icon { display: inline-flex; align-items: center; justify-content: center; font-size: 1.05rem; transition: transform .2s ease; }
+    .upvote-btn:hover .upvote-icon { transform: translateY(-2px) rotate(-8deg); }
+    .upvote-label { white-space: nowrap; }
+    .upvote-label .liked-suffix { display: none; }
+    .upvote-btn.is-active { color: #fff; border-color: transparent; background: linear-gradient(135deg, #8f72f5, #6853d7); }
+    .upvote-btn.is-active .liked-suffix { display: inline; }
+    .upvote-numbers { position: relative; display: inline-flex; width: 1.65rem; height: 1.25rem; overflow: hidden; justify-content: center; font-variant-numeric: tabular-nums; }
+    .upvote-numbers::before { content: ''; position: absolute; left: 0; top: 15%; height: 70%; border-left: 1px solid currentColor; opacity: .25; }
+    .upvote-numbers span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: transform .28s ease, opacity .18s ease; }
+    .upvote-numbers [data-upvote-current] { transform: translateY(100%); opacity: 0; }
+    .upvote-btn.is-active .upvote-numbers [data-upvote-previous] { transform: translateY(-100%); opacity: 0; }
+    .upvote-btn.is-active .upvote-numbers [data-upvote-current] { transform: translateY(0); opacity: 1; }
+    @keyframes upvoteBounce { 25% { transform: scale(.96); } 55% { transform: scale(1.04); } 100% { transform: scale(1); } }
 
     .kebab-btn {
         width: 2.6rem;
@@ -562,8 +607,9 @@
     @media (max-width: 767.98px) {
         .boses-page { padding-inline: .65rem; }
         .hero-panel h1 { font-size: 1.55rem; }
-        .suggestion-card .suggestion-top, .suggestion-card > .p-4 { padding: 1rem !important; }
+        .suggestion-card .suggestion-top, .suggestion-body { padding: .75rem !important; }
         .suggestion-card .d-flex.flex-column.flex-md-row { gap: .7rem !important; }
+        .suggestion-actions { justify-content: flex-end; }
         .comment-form .input-group { flex-wrap: nowrap; }
         .comment-form .input-group .form-control { min-width: 0; }
         .comment-form .input-group .btn { padding-inline: .8rem !important; }
@@ -578,6 +624,9 @@
 
 <div class="container-fluid boses-page py-3 py-lg-4">
     <div class="boses-shell">
+        @if(session('personal_data_completed'))
+            <div class="alert border-0 shadow-sm" role="status" style="background:#f3efff;color:#5b4b9b;"><i class="bi bi-check-circle-fill me-2"></i>Personal data completed. You can now access Community Suggestions.</div>
+        @endif
         @if(session('status'))
             <div class="alert alert-success border-0 shadow-sm" role="status">{{ session('status') }}</div>
         @endif
@@ -609,8 +658,8 @@
         <div class="hero-panel p-4 p-lg-5 mb-4 position-relative">
             <div class="row g-4 align-items-center">
                 <div class="col-lg-12">
-                    
-                    
+
+
                     <div class="composer-shell">
                         <div class="d-flex align-items-center gap-2 gap-md-3">
                             <span class="composer-avatar">
@@ -655,12 +704,14 @@
                         @forelse($allSuggestions as $sugg)
                             @php
                                 $suggestionText = strtolower($sugg->message . ' ' . (optional($sugg->user)->cloak_alias ?? 'anonymous'));
-                                $sentences = preg_split('/(?<=[.!?])\s+/u', trim($sugg->message), 2) ?: [trim($sugg->message)];
-                                $suggestionPreview = $sentences[0];
-                                $hasMoreSuggestionText = count($sentences) > 1 || mb_strlen($sugg->message) > 280;
+                                $suggestionPreviewLimit = 180;
+                                $hasMoreSuggestionText = mb_strlen($sugg->message) > $suggestionPreviewLimit;
+                                $suggestionPreview = $hasMoreSuggestionText
+                                    ? rtrim(mb_substr($sugg->message, 0, $suggestionPreviewLimit)) . '…'
+                                    : $sugg->message;
                             @endphp
                             <article class="card suggestion-card border-0" data-suggestion-card data-suggestion-text="{{ e($suggestionText) }}" tabindex="0" aria-label="Suggestion post. Activate to show comments.">
-                                <div class="suggestion-top p-4 p-lg-4">
+                                <div class="suggestion-top">
                                     <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="alias-mark">
@@ -676,29 +727,24 @@
                                                     <span class="meta-badge category">
                                                         #{{ $sugg->category ?? 'General' }}
                                                     </span>
-                                                    @if($sugg->status !== 'Approved')
-                                                        <span class="meta-badge time">
-                                                            <i class="bi bi-hourglass-split"></i>
-                                                            Pending review
-                                                        </span>
-                                                    @endif
-                                                    @if($sugg->isUpvotedBy(Auth::id()))
-                                                        <span class="meta-badge category">
-                                                            <i class="bi bi-hand-thumbs-up-fill"></i>
-                                                            You upvoted
-                                                        </span>
-                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="d-flex align-items-start gap-2">
+                                        <div class="suggestion-actions">
+                                            @if($sugg->status === 'Rejected')
+                                                <span class="meta-badge time"><i class="bi bi-x-circle"></i> Rejected</span>
+                                            @elseif($sugg->status !== 'Approved')
+                                                <span class="meta-badge time"><i class="bi bi-hourglass-split"></i> Pending review</span>
+                                            @endif
                                             <form action="{{ route('suggestions.upvote', $sugg->id) }}" method="POST" data-upvote-form>
                                                 @csrf
-                                                <button type="submit" class="btn action-btn upvote-btn {{ $sugg->isUpvotedBy(Auth::id()) ? 'is-active' : '' }} px-3" data-upvote-button aria-label="Toggle upvote">
-                                                    <i class="bi bi-hand-thumbs-up{{ $sugg->isUpvotedBy(Auth::id()) ? '-fill' : '' }} me-2" data-upvote-icon></i><span data-upvote-count>{{ $sugg->upvotes_count ?? 0 }}</span>
+                                                <button type="submit" class="btn upvote-btn {{ $sugg->isUpvotedBy(Auth::id()) ? 'is-active' : '' }}" data-upvote-button aria-label="{{ $sugg->isUpvotedBy(Auth::id()) ? 'Remove upvote' : 'Upvote' }}" aria-pressed="{{ $sugg->isUpvotedBy(Auth::id()) ? 'true' : 'false' }}">
+                                                    <span class="upvote-icon"><i class="bi bi-hand-thumbs-up{{ $sugg->isUpvotedBy(Auth::id()) ? '-fill' : '' }}" data-upvote-icon></i></span>
+                                                    <span class="upvote-label">Like<span class="liked-suffix">d</span></span>
+                                                    <span class="upvote-numbers"><span data-upvote-previous>{{ $sugg->upvotes_count ?? 0 }}</span><span data-upvote-current data-upvote-count>{{ $sugg->upvotes_count ?? 0 }}</span></span>
                                                 </button>
                                             </form>
-                                            <form action="{{ route('suggestions.report', $sugg->id) }}" method="POST" class="d-inline report-content-form">
+                                            <form action="{{ route('suggestions.report', $sugg->id) }}" method="POST" class="report-content-form">
                                                 @csrf
                                                 <input type="hidden" name="reason" value="">
                                                 <button type="submit" class="btn btn-outline-secondary btn-sm report-content-button" title="Report post" aria-label="Report post"><i class="bi bi-flag"></i></button>
@@ -730,23 +776,26 @@
                                     </div>
                                 </div>
 
-                                <div class="p-4 p-lg-4">
-                                    <p class="suggestion-message mb-0" data-suggestion-post>
+                                <div class="suggestion-body">
+                                    <p class="suggestion-message" data-suggestion-post>
                                         <span data-suggestion-preview>{{ $suggestionPreview }}</span>
                                         @if($hasMoreSuggestionText)
                                             <span class="d-none" data-suggestion-full>{{ $sugg->message }}</span>
+                                            <button type="button" class="btn btn-link suggestion-expand" data-suggestion-expand aria-expanded="false">See more</button>
                                         @endif
                                     </p>
-                                    @if($hasMoreSuggestionText)
-                                        <button type="button" class="btn btn-link btn-sm p-0 mt-2 suggestion-expand" data-suggestion-expand aria-expanded="false">See more</button>
-                                    @endif
                                     @if($sugg->image_path)
-                                        <a href="{{ asset('storage/' . $sugg->image_path) }}" target="_blank" rel="noopener" class="suggestion-image-link mt-3">
+                                        <a href="{{ asset('storage/' . $sugg->image_path) }}" target="_blank" rel="noopener" class="suggestion-image-link">
                                             <img src="{{ asset('storage/' . $sugg->image_path) }}" alt="Image attached to suggestion" class="img-fluid rounded-4 suggestion-attachment">
                                         </a>
                                     @endif
+                                    @if($sugg->admin_remarks)
+                                        <div class="p-3 rounded-3 w-100" style="background:#f3efff;color:#5b4b9b;">
+                                            <strong>Admin review:</strong> {{ $sugg->admin_remarks }}
+                                        </div>
+                                    @endif
 
-                                    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mt-4 pt-3" style="border-top:1px solid rgba(124,58,237,0.08);">
+                                    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mt-2 pt-2" style="border-top:1px solid rgba(124,58,237,0.08);">
                                         <button type="button" class="btn btn-light action-btn px-3" data-comment-toggle aria-expanded="false" aria-controls="suggestion-comments-{{ $sugg->id }}">
                                             <i class="bi bi-chat-dots me-2"></i>{{ $sugg->comments->count() }} comments
                                         </button>
@@ -1094,7 +1143,7 @@
         searchInput?.addEventListener('input', applySuggestionFilters);
 
         document.querySelectorAll('[data-suggestion-expand]').forEach(function (button) {
-            button.addEventListener('click', function () {
+            const toggleSuggestionText = function () {
                 const paragraph = button.closest('[data-suggestion-card]')?.querySelector('.suggestion-message');
                 const preview = paragraph?.querySelector('[data-suggestion-preview]');
                 const full = paragraph?.querySelector('[data-suggestion-full]');
@@ -1105,6 +1154,12 @@
                 full.classList.toggle('d-none', expanded);
                 button.setAttribute('aria-expanded', String(!expanded));
                 button.textContent = expanded ? 'See more' : 'See less';
+            };
+            button.addEventListener('click', toggleSuggestionText);
+            button.closest('[data-suggestion-card]')?.querySelector('.suggestion-message')?.addEventListener('click', function (event) {
+                if (!button.closest('[data-suggestion-card]')?.querySelector('[data-suggestion-full]')) return;
+                event.stopPropagation();
+                toggleSuggestionText();
             });
         });
 
@@ -1142,9 +1197,10 @@
                 const button = form.querySelector('[data-upvote-button]');
                 const icon = form.querySelector('[data-upvote-icon]');
                 const countEl = form.querySelector('[data-upvote-count]');
+                const previousCountEl = form.querySelector('[data-upvote-previous]');
                 const token = form.querySelector('input[name="_token"]');
 
-                if (!button || !icon || !countEl || !token) {
+                if (!button || !icon || !countEl || !previousCountEl || !token) {
                     form.submit();
                     return;
                 }
@@ -1168,11 +1224,20 @@
 
                     const payload = await response.json();
                     const isActive = Boolean(payload.upvoted);
+                    const wasActive = button.classList.contains('is-active');
+                    const previousCount = Number((wasActive ? countEl : previousCountEl).textContent) || 0;
+                    const nextCount = Number(payload.upvotes_count ?? previousCount);
 
-                    countEl.textContent = String(payload.upvotes_count ?? countEl.textContent);
+                    previousCountEl.textContent = String(isActive ? previousCount : nextCount);
+                    countEl.textContent = String(isActive ? nextCount : previousCount);
                     button.classList.toggle('is-active', isActive);
                     icon.classList.toggle('bi-hand-thumbs-up', !isActive);
                     icon.classList.toggle('bi-hand-thumbs-up-fill', isActive);
+                    button.setAttribute('aria-pressed', String(isActive));
+                    button.setAttribute('aria-label', isActive ? 'Remove upvote' : 'Upvote');
+                    button.classList.remove('upvote-bounce');
+                    void button.offsetWidth;
+                    button.classList.add('upvote-bounce');
                 } catch (error) {
                     button.innerHTML = originalHtml;
                     form.submit();
@@ -1180,6 +1245,7 @@
                 } finally {
                     button.disabled = false;
                 }
+                button.addEventListener('animationend', function () { button.classList.remove('upvote-bounce'); }, { once: true });
             });
         });
     });

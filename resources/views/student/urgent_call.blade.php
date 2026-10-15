@@ -161,6 +161,7 @@
             const data = await response.json();
             if (!data.room) throw new Error('The GAD Office call room could not be created.');
             activeCallId = data.call_id;
+            localStorage.setItem('sinag.urgent-call-state', JSON.stringify({ id: activeCallId, status: 'waiting' }));
             document.getElementById('videoFallback').style.display = 'none';
             document.getElementById('jitsiFrame').src = roomToJitsiUrl(data.room);
             document.getElementById('jitsiContainer').style.display = 'block';

@@ -43,11 +43,35 @@ class AppointmentFormatTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::create('gad_schedules', function (Blueprint $table): void {
+            $table->id();
+            $table->string('title');
+            $table->string('location')->nullable();
+            $table->dateTime('available_from');
+            $table->dateTime('available_until')->nullable();
+            $table->text('details')->nullable();
+            $table->string('status')->default('active');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('announcements', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('title');
             $table->longText('body');
+            $table->timestamps();
+        });
+
+        Schema::create('messages', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('receiver_id');
+            $table->text('message');
+            $table->text('original_message')->nullable();
+            $table->dateTime('deleted_at')->nullable();
+            $table->string('sender_type')->nullable();
+            $table->dateTime('read_at')->nullable();
             $table->timestamps();
         });
     }
@@ -64,12 +88,34 @@ class AppointmentFormatTest extends TestCase
 
     public function test_successful_submission_returns_to_schedule_form_with_confirmation(): void
     {
-        $response = $this->actingAs($this->student())->post(route('student.schedule-appointment.store'), $this->appointmentData([
+        $response = $this->actingAs($this->student())->from(route('student.schedule-appointment'))->post(route('student.schedule-appointment.store'), $this->appointmentData([
             'format' => 'Face-to-Face',
         ]));
 
         $response->assertRedirect(route('student.schedule-appointment'))
             ->assertSessionHas('success');
+    }
+
+    public function test_student_cannot_request_an_appointment_on_an_unavailable_date(): void
+    {
+        $date = now()->addDays(3)->toDateString();
+        DB::table('gad_schedules')->insert([
+            'title' => 'Unavailable / Closed',
+            'available_from' => $date . ' 00:00:00',
+            'available_until' => $date . ' 23:59:59',
+            'details' => 'unavailable',
+            'status' => 'unavailable',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->student())->post(route('student.schedule-appointment.store'), $this->appointmentData([
+            'format' => 'Face-to-Face',
+            'scheduled_date' => $date,
+        ]));
+
+        $response->assertSessionHasErrors('scheduled_date');
+        $this->assertDatabaseCount('appointment_requests', 0);
     }
 
     public function test_appointment_form_offers_format_choices_and_user_faq_assistant(): void
@@ -258,6 +304,37 @@ class AppointmentFormatTest extends TestCase
             ->getJson(route('student.urgent.status', $callId))
             ->assertOk()
             ->assertJsonPath('status', 'ended');
+    }
+
+    public function test_user_notification_feed_includes_unread_messages_and_call_status(): void
+    {
+        $student = $this->student();
+        $admin = User::create([
+            'name' => 'Test Admin',
+            'email' => 'admin@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+        ]);
+        $messageId = DB::table('messages')->insertGetId([
+            'sender_id' => $admin->id,
+            'receiver_id' => $student->id,
+            'message' => 'The GAD Office replied.',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        Cache::put('urgent_calls', [[
+            'id' => 'call-notification-test',
+            'status' => 'waiting',
+            'student_id' => $student->id,
+        ]], now()->addHour());
+
+        $this->actingAs($student)
+            ->getJson(route('student.notifications.feed'))
+            ->assertOk()
+            ->assertJsonPath('unread_count', 1)
+            ->assertJsonPath('latest_unread_id', $messageId)
+            ->assertJsonPath('latest_call.id', 'call-notification-test')
+            ->assertJsonPath('latest_call.status', 'waiting');
     }
 
     private function student(): User
