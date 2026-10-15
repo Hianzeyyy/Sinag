@@ -1904,11 +1904,9 @@
     <span style="font-size:1.9rem; font-weight:900; color:#8f72f5; letter-spacing:0.5px;">
         SI<span style="color:#facc15;">NAG</span>
     </span>
-    @if(Auth::user()->role === 'admin')
-        <span class="brand-descriptor small text-muted">
-            Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University Asingan Campus
-        </span>
-    @endif
+    <span class="brand-descriptor small text-muted">
+        Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University - Asingan Campus
+    </span>
 </a>
 
 
