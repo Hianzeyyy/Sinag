@@ -123,6 +123,32 @@ class MessageEditDeleteTest extends TestCase
         $this->assertTrue(Schema::hasColumn('messages', 'deleted_at'));
     }
 
+    public function test_admin_can_edit_and_delete_messages_before_history_columns_are_migrated(): void
+    {
+        [$student, $admin] = $this->users();
+        $message = $this->message($admin, $student, 'Original message', 'admin');
+
+        Schema::table('messages', function (Blueprint $table): void {
+            $table->dropColumn(['original_message', 'deleted_at']);
+        });
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.messages.update', $message->id), ['message' => 'Edited message'])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('messages', [
+            'id' => $message->id,
+            'message' => 'Edited message',
+        ]);
+
+        $this->deleteJson(route('admin.messages.destroy', $message->id))
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseMissing('messages', ['id' => $message->id]);
+    }
+
     private function users(): array
     {
         $student = User::create([

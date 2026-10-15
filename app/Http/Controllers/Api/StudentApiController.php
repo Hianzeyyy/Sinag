@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class StudentApiController extends Controller
@@ -254,8 +255,12 @@ class StudentApiController extends Controller
         $m = Message::findOrFail($id);
         $admin = $this->adminUser();
         abort_unless($admin && (int) $m->sender_id === (int) $request->user()->id && (int) $m->receiver_id === (int) $admin->id, 403);
-        abort_if($m->deleted_at, 409, 'Deleted messages cannot be edited.');
-        $m->original_message ??= $m->message;
+        if (Schema::hasColumn('messages', 'deleted_at')) {
+            abort_if($m->deleted_at, 409, 'Deleted messages cannot be edited.');
+        }
+        if (Schema::hasColumn('messages', 'original_message')) {
+            $m->original_message ??= $m->message;
+        }
         $m->message = $request->message;
         $m->save();
 
@@ -267,10 +272,17 @@ class StudentApiController extends Controller
         $m = Message::findOrFail($id);
         $admin = $this->adminUser();
         abort_unless($admin && (int) $m->sender_id === (int) $request->user()->id && (int) $m->receiver_id === (int) $admin->id, 403);
+        if (!Schema::hasColumn('messages', 'deleted_at')) {
+            $m->delete();
+
+            return response()->json(['ok' => true]);
+        }
         if (!$m->deleted_at) {
             $m->deleted_at = now();
             $m->message = '';
-            $m->original_message = null;
+            if (Schema::hasColumn('messages', 'original_message')) {
+                $m->original_message = null;
+            }
             $m->save();
         }
 

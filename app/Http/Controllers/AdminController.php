@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Report;
@@ -974,9 +975,13 @@ class AdminController extends Controller
         $message = Message::findOrFail($id);
         abort_unless((int) $message->sender_id === (int) Auth::id(), 403, 'You can only edit messages you sent.');
         abort_unless(User::whereKey($message->receiver_id)->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")->exists(), 403, 'This is not a student conversation.');
-        abort_if($message->deleted_at, 409, 'Deleted messages cannot be edited.');
+        if (Schema::hasColumn('messages', 'deleted_at')) {
+            abort_if($message->deleted_at, 409, 'Deleted messages cannot be edited.');
+        }
 
-        $message->original_message ??= $message->message;
+        if (Schema::hasColumn('messages', 'original_message')) {
+            $message->original_message ??= $message->message;
+        }
         $message->message = $validated['message'];
         $message->save();
 
@@ -989,10 +994,18 @@ class AdminController extends Controller
         abort_unless((int) $message->sender_id === (int) Auth::id(), 403, 'You can only delete messages you sent.');
         abort_unless(User::whereKey($message->receiver_id)->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")->exists(), 403, 'This is not a student conversation.');
 
+        if (!Schema::hasColumn('messages', 'deleted_at')) {
+            $message->delete();
+
+            return response()->json(['success' => true]);
+        }
+
         if (!$message->deleted_at) {
             $message->deleted_at = now();
             $message->message = '';
-            $message->original_message = null;
+            if (Schema::hasColumn('messages', 'original_message')) {
+                $message->original_message = null;
+            }
             $message->save();
         }
 
