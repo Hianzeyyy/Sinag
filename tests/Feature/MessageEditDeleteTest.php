@@ -149,6 +149,41 @@ class MessageEditDeleteTest extends TestCase
         $this->assertDatabaseMissing('messages', ['id' => $message->id]);
     }
 
+    public function test_admin_message_feed_returns_only_students_with_unread_messages(): void
+    {
+        [$student, $admin] = $this->users();
+        $readStudent = User::create([
+            'name' => 'Read Student',
+            'email' => 'read@example.test',
+            'password' => 'password',
+            'role' => 'student',
+        ]);
+
+        $this->message($student, $admin, 'Unread message', 'student');
+        $readMessage = $this->message($readStudent, $admin, 'Already read', 'student');
+        $readMessage->update(['read_at' => now()]);
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.messages.feed'))
+            ->assertOk()
+            ->assertJsonPath('unread_student_ids', [$student->id])
+            ->assertJsonPath('unread_count', 1);
+    }
+
+    public function test_opening_admin_conversation_marks_messages_read_and_clears_unread_dot_data(): void
+    {
+        [$student, $admin] = $this->users();
+        $this->message($student, $admin, 'Unread message', 'student');
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.messages.feed', ['student_id' => $student->id]))
+            ->assertOk()
+            ->assertJsonPath('unread_student_ids', [])
+            ->assertJsonPath('unread_count', 0);
+
+        $this->assertNotNull(Message::first()->fresh()->read_at);
+    }
+
     private function users(): array
     {
         $student = User::create([

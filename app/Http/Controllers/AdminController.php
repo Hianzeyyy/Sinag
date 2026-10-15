@@ -419,8 +419,13 @@ class AdminController extends Controller
             ->groupBy(function($message) use ($adminId) {
                 return $message->sender_id == $adminId ? $message->receiver_id : $message->sender_id;
             })
-            ->map(function($messages) {
-                return $messages->first();
+            ->map(function($messages) use ($adminId) {
+                $latestMessage = $messages->first();
+                $latestMessage->setAttribute('conversation_unread', $messages->contains(
+                    fn (Message $message) => (int) $message->receiver_id === (int) $adminId && $message->read_at === null
+                ));
+
+                return $latestMessage;
             })
             ->sortByDesc('created_at');
 
@@ -1027,6 +1032,7 @@ class AdminController extends Controller
                 'messages' => [],
                 'unread_count' => $unreadQuery->count(),
                 'latest_unread_student_id' => $latestUnread?->sender_id,
+                'unread_student_ids' => (clone $unreadQuery)->distinct()->pluck('sender_id')->values(),
             ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
         }
 
@@ -1059,6 +1065,7 @@ class AdminController extends Controller
             ]),
             'unread_count' => $unreadQuery->count(),
             'latest_unread_student_id' => (clone $unreadQuery)->latest('id')->value('sender_id'),
+            'unread_student_ids' => (clone $unreadQuery)->distinct()->pluck('sender_id')->values(),
         ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 

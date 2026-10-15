@@ -619,6 +619,7 @@
                                     ->join('');
                             @endphp
                             <a href="{{ route('admin.messages', ['student_id' => $otherUser->id]) }}"
+                               data-conversation-student-id="{{ $otherUser->id }}"
                                class="conversation-item {{ $selectedStudentId == $otherUser->id ? 'active' : '' }}">
                                 <div class="conv-avatar">
                                     @if($otherUser->profile_photo_path)
@@ -633,7 +634,7 @@
                                 </div>
                                 <div class="conv-meta">
                                     <div class="conv-time">{{ $conversation->created_at->format('M d') }}</div>
-                                    @if($selectedStudentId != $otherUser->id)
+                                    @if($conversation->conversation_unread && (int) $selectedStudentId !== (int) $otherUser->id)
                                         <div class="unread-dot"></div>
                                     @endif
                                 </div>
@@ -957,6 +958,24 @@
             });
             if (!response.ok) throw new Error(`Message refresh failed (${response.status}).`);
             const data = await response.json();
+            const unreadStudentIds = new Set((data.unread_student_ids || []).map(Number));
+            document.querySelectorAll('[data-conversation-student-id]').forEach(item => {
+                const studentId = Number(item.dataset.conversationStudentId);
+                const meta = item.querySelector('.conv-meta');
+                if (!meta) return;
+
+                let dot = meta.querySelector('.unread-dot');
+                if (unreadStudentIds.has(studentId)) {
+                    if (!dot) {
+                        dot = document.createElement('div');
+                        dot.className = 'unread-dot';
+                        meta.appendChild(dot);
+                    }
+                } else {
+                    dot?.remove();
+                }
+            });
+
             if (thread) {
                 for (const message of data.messages) {
                     const current = thread.querySelector(`[data-message-id="${message.id}"]`);
