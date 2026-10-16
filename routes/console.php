@@ -10,7 +10,16 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Artisan::command('app:repair-migrations-table', function () {
-    if (DB::connection()->getDriverName() !== 'mysql' || !Schema::hasTable('migrations')) {
+    if (DB::connection()->getDriverName() !== 'mysql') {
+        return;
+    }
+
+    if (!Schema::hasTable('migrations')) {
+        if (Schema::hasTable('migrations_repair')) {
+            DB::statement('RENAME TABLE `migrations_repair` TO `migrations`');
+            $this->info('Restored the repaired migrations table.');
+        }
+
         return;
     }
 
@@ -28,6 +37,22 @@ Artisan::command('app:repair-migrations-table', function () {
         throw new RuntimeException('The migrations table id column has an unsupported type.');
     }
 
-    DB::statement('ALTER TABLE `migrations` MODIFY `id` INT UNSIGNED NOT NULL AUTO_INCREMENT');
-    $this->info('Repaired the migrations table auto-increment column.');
+    if (!Schema::hasTable('migrations_repair')) {
+        DB::statement(
+            'CREATE TABLE `migrations_repair` (' .
+            '`id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, ' .
+            '`migration` VARCHAR(255) NOT NULL, ' .
+            '`batch` INT NOT NULL' .
+            ')'
+        );
+    }
+
+    DB::statement(
+        'INSERT IGNORE INTO `migrations_repair` (`id`, `migration`, `batch`) ' .
+        'SELECT `id`, `migration`, `batch` FROM `migrations`'
+    );
+
+    DB::statement('DROP TABLE `migrations`');
+    DB::statement('RENAME TABLE `migrations_repair` TO `migrations`');
+    $this->info('Rebuilt the legacy migrations table with an auto-increment id.');
 })->purpose('Repair a legacy MySQL migrations table before running migrations');
