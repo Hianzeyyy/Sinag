@@ -175,6 +175,33 @@ class SuggestionPersonalDataGateTest extends TestCase
         ]);
     }
 
+    public function test_users_can_post_text_suggestions_when_the_optional_image_column_is_missing(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables(false);
+
+        $user = $this->makeCompletedStudent([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('student.boses'))
+            ->post(route('suggestions.store'), [
+                'category' => 'GAD Programs and Services',
+                'message' => 'Please add more GAD awareness activities.',
+            ])
+            ->assertRedirect(route('student.boses'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('suggestions', [
+            'user_id' => $user->id,
+            'category' => 'GAD Programs and Services',
+            'message' => 'Please add more GAD awareness activities.',
+        ]);
+    }
+
     public function test_users_can_post_suggestions_containing_words_that_include_a_moderated_substring(): void
     {
         $this->createUsersTable();
@@ -260,14 +287,16 @@ class SuggestionPersonalDataGateTest extends TestCase
         ], $overrides));
     }
 
-    private function createSuggestionTables(): void
+    private function createSuggestionTables(bool $withImagePath = true): void
     {
-        Schema::create('suggestions', function (Blueprint $table): void {
+        Schema::create('suggestions', function (Blueprint $table) use ($withImagePath): void {
             $table->id();
             $table->foreignId('user_id');
             $table->string('category');
             $table->text('message');
-            $table->string('image_path')->nullable();
+            if ($withImagePath) {
+                $table->string('image_path')->nullable();
+            }
             $table->boolean('is_anonymous')->default(true);
             $table->string('status')->default('Pending');
             $table->timestamps();

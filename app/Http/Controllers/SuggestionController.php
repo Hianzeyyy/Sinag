@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Suggestion;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use App\Support\ContentModeration;
 
@@ -73,20 +74,31 @@ class SuggestionController extends Controller
         }
 
         // 2. Save to Database
+        $hasImageColumn = Schema::hasColumn('suggestions', 'image_path');
+        if ($request->hasFile('image') && !$hasImageColumn) {
+            return redirect()->back()->withInput()->with('error', 'Image attachments are temporarily unavailable. Please submit your suggestion without an image.');
+        }
+
         $imagePath = $request->file('image')?->store('suggestions', 'public');
         if ($request->hasFile('image') && !is_string($imagePath)) {
             throw new \RuntimeException('The suggestion image could not be saved.');
         }
-        \DB::table('suggestions')->insert([
+
+        $suggestionData = [
             'user_id' => Auth::id(),
             'category' => $request->category,
             'message' => $message,
-            'image_path' => $imagePath,
             'is_anonymous' => $request->boolean('is_anonymous', true),
             'status' => 'Pending',
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ];
+
+        if ($hasImageColumn) {
+            $suggestionData['image_path'] = $imagePath;
+        }
+
+        \DB::table('suggestions')->insert($suggestionData);
 
         // 3. Redirect back with Success Message
         return redirect()->back()->with('success', 'Salamat sa iyong mungkahi! Ito ay ipapasa muna sa GAD admin para sa approval bago ma-post.');
