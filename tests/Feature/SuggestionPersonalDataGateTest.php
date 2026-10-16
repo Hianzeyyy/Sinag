@@ -178,7 +178,7 @@ class SuggestionPersonalDataGateTest extends TestCase
     public function test_users_can_post_text_suggestions_when_the_optional_image_column_is_missing(): void
     {
         $this->createUsersTable();
-        $this->createSuggestionTables(false);
+        $this->createSuggestionTables(false, false);
 
         $user = $this->makeCompletedStudent([
             'name' => 'Test Student',
@@ -196,6 +196,7 @@ class SuggestionPersonalDataGateTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('suggestions', [
+            'id' => 1,
             'user_id' => $user->id,
             'category' => 'GAD Programs and Services',
             'message' => 'Please add more GAD awareness activities.',
@@ -287,10 +288,14 @@ class SuggestionPersonalDataGateTest extends TestCase
         ], $overrides));
     }
 
-    private function createSuggestionTables(bool $withImagePath = true): void
+    private function createSuggestionTables(bool $withImagePath = true, bool $autoIncrementId = true): void
     {
-        Schema::create('suggestions', function (Blueprint $table) use ($withImagePath): void {
-            $table->id();
+        Schema::create('suggestions', function (Blueprint $table) use ($withImagePath, $autoIncrementId): void {
+            if ($autoIncrementId) {
+                $table->id();
+            } else {
+                $table->unsignedBigInteger('id')->primary();
+            }
             $table->foreignId('user_id');
             $table->string('category');
             $table->text('message');
