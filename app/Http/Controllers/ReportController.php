@@ -115,6 +115,7 @@ class ReportController extends Controller
             $incidentId = 'SN-' . strtoupper(Str::random(6));
         }
         $reportData = [
+            'id'            => ((int) \DB::table('reports')->max('id')) + 1,
             'user_id'       => $user->id,
             'incident_id'   => $incidentId,
             'cloak_alias'   => $cloakAlias,

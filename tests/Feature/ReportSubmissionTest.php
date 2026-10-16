@@ -174,6 +174,7 @@ class ReportSubmissionTest extends TestCase
         $response->assertRedirect(route('student.report'));
         $response->assertSessionHas('success');
         $this->assertDatabaseHas('reports', [
+            'id' => 1,
             'user_id' => $user->id,
             'nature' => 'Catcalling',
             'incident_time' => '12:30',
