@@ -23,6 +23,7 @@ class SuggestionController extends Controller
             $upvoted = false;
         } else {
             \DB::table('suggestion_user_upvotes')->insert([
+                'id' => ((int) \DB::table('suggestion_user_upvotes')->max('id')) + 1,
                 'suggestion_id' => $suggestion->id,
                 'user_id' => $user->id,
                 'created_at' => now(),

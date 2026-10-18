@@ -175,6 +175,52 @@ class SuggestionPersonalDataGateTest extends TestCase
         ]);
     }
 
+    public function test_users_can_toggle_suggestion_upvotes(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $user = $this->makeCompletedStudent();
+        DB::table('suggestions')->insert([
+            'id' => 1,
+            'user_id' => $user->id,
+            'category' => 'GAD Programs and Services',
+            'message' => 'Please add more GAD awareness activities.',
+            'is_anonymous' => true,
+            'status' => 'Approved',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('suggestions.upvote', 1))
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'upvoted' => true,
+                'upvotes_count' => 1,
+            ]);
+
+        $this->assertDatabaseHas('suggestion_user_upvotes', [
+            'id' => 1,
+            'suggestion_id' => 1,
+            'user_id' => $user->id,
+        ]);
+
+        $this->postJson(route('suggestions.upvote', 1))
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'upvoted' => false,
+                'upvotes_count' => 0,
+            ]);
+
+        $this->assertDatabaseMissing('suggestion_user_upvotes', [
+            'suggestion_id' => 1,
+            'user_id' => $user->id,
+        ]);
+    }
+
     public function test_users_can_post_text_suggestions_when_the_optional_image_column_is_missing(): void
     {
         $this->createUsersTable();
@@ -316,9 +362,10 @@ class SuggestionPersonalDataGateTest extends TestCase
         });
 
         Schema::create('suggestion_user_upvotes', function (Blueprint $table): void {
-            $table->id();
+            $table->unsignedBigInteger('id')->primary();
             $table->foreignId('suggestion_id');
             $table->foreignId('user_id');
+            $table->timestamps();
         });
     }
 }
