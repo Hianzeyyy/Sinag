@@ -115,7 +115,11 @@ class StudentController extends Controller
         }
 
         $query = Suggestion::with(['user', 'comments.user'])
-            ->withCount('upvotes');
+            ->withCount('upvotes')
+            ->where(function ($query) use ($request) {
+                $query->where('status', 'Approved')
+                    ->orWhere('user_id', $request->user()->id);
+            });
 
         if ($request->filled('category')) {
             $query->where('category', $request->string('category'));

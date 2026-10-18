@@ -50,11 +50,16 @@ class SuggestionApiController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = Suggestion::with(['user', 'comments.user'])->withCount('upvotes');
+        $uid = $request->user()->id;
+        $query = Suggestion::with(['user', 'comments.user'])
+            ->withCount('upvotes')
+            ->where(function ($query) use ($uid) {
+                $query->where('status', 'Approved')
+                    ->orWhere('user_id', $uid);
+            });
         if ($request->filled('category')) {
             $query->where('category', $request->string('category'));
         }
-        $uid = $request->user()->id;
 
         return response()->json([
             'data' => $query->latest()->get()->map(fn ($s) => $this->suggestionPayload($s, $uid))->values(),

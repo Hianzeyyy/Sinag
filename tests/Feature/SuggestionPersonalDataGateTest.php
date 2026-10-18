@@ -119,6 +119,58 @@ class SuggestionPersonalDataGateTest extends TestCase
         $response->assertDontSee('No suggestions yet');
     }
 
+    public function test_students_only_see_approved_suggestions_from_other_users(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $viewer = $this->makeCompletedStudent();
+        $otherUser = $this->makeCompletedStudent([
+            'name' => 'Other Student',
+            'email' => 'other-student@example.test',
+        ]);
+
+        $this->createSuggestion($otherUser, 'Approved', 'Approved suggestion from another student.');
+        $this->createSuggestion($otherUser, 'Pending', 'Suggestion still under review from another student.');
+        $this->createSuggestion($otherUser, 'Rejected', 'Rejected suggestion from another student.');
+        $this->createSuggestion($viewer, 'Pending', 'My suggestion is still under review.');
+        $this->createSuggestion($viewer, 'Rejected', 'My rejected suggestion.');
+
+        $this->actingAs($viewer)
+            ->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('Approved suggestion from another student.')
+            ->assertDontSee('Suggestion still under review from another student.')
+            ->assertDontSee('Rejected suggestion from another student.')
+            ->assertSee('My suggestion is still under review.')
+            ->assertSee('My rejected suggestion.');
+    }
+
+    public function test_suggestions_api_hides_unapproved_posts_from_other_users(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $viewer = $this->makeCompletedStudent();
+        $otherUser = $this->makeCompletedStudent([
+            'name' => 'Other Student',
+            'email' => 'other-student@example.test',
+        ]);
+
+        $this->createSuggestion($otherUser, 'Approved', 'Approved API suggestion from another student.');
+        $this->createSuggestion($otherUser, 'Pending', 'Pending API suggestion from another student.');
+        $this->createSuggestion($otherUser, 'Rejected', 'Rejected API suggestion from another student.');
+        $this->createSuggestion($viewer, 'Pending', 'My pending API suggestion.');
+
+        $this->actingAs($viewer)
+            ->getJson('/api/suggestions')
+            ->assertOk()
+            ->assertJsonFragment(['message' => 'Approved API suggestion from another student.'])
+            ->assertJsonMissing(['message' => 'Pending API suggestion from another student.'])
+            ->assertJsonMissing(['message' => 'Rejected API suggestion from another student.'])
+            ->assertJsonFragment(['message' => 'My pending API suggestion.']);
+    }
+
     public function test_users_with_completed_personal_data_can_post_suggestions(): void
     {
         $this->createUsersTable();
@@ -332,6 +384,19 @@ class SuggestionPersonalDataGateTest extends TestCase
                 'financing_sources' => ['Family'],
             ],
         ], $overrides));
+    }
+
+    private function createSuggestion(User $user, string $status, string $message): int
+    {
+        return DB::table('suggestions')->insertGetId([
+            'user_id' => $user->id,
+            'category' => 'GAD Programs and Services',
+            'message' => $message,
+            'is_anonymous' => true,
+            'status' => $status,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function createSuggestionTables(bool $withImagePath = true, bool $autoIncrementId = true): void
