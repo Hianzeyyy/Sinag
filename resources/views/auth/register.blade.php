@@ -218,9 +218,17 @@
                             <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" id="registerForm">
                                 @csrf
                                 <div class="row">
-                                    <div class="col-md-12 mb-3">
-                                        <label class="form-label text-white small fw-bold text-uppercase">Full Name</label>
-                                        <input type="text" class="form-control" name="name" value="{{ old('name') }}" required placeholder="Juan Dela Cruz">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label text-white small fw-bold text-uppercase">First Name</label>
+                                        <input type="text" class="form-control" name="first_name" value="{{ old('first_name') }}" required autocomplete="given-name">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label text-white small fw-bold text-uppercase">Middle Name <span class="text-muted">(optional)</span></label>
+                                        <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" autocomplete="additional-name">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label text-white small fw-bold text-uppercase">Last Name</label>
+                                        <input type="text" class="form-control" name="last_name" value="{{ old('last_name') }}" required autocomplete="family-name">
                                     </div>
                                     <div class="col-md-12 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Institutional Email</label>

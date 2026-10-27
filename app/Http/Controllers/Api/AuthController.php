@@ -125,7 +125,6 @@ class AuthController extends Controller
 
             DB::transaction(function () use ($data, $accountType, $cloakAlias, $photo, $selfie) {
                 DB::table('users')->insert([
-                    'id' => ((int) DB::table('users')->max('id')) + 1,
                     'name' => trim($data['name']),
                     'email' => strtolower(trim($data['email'])),
                     'age' => $data['age'],

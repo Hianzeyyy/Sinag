@@ -17,6 +17,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'profile.complete' => \App\Http\Middleware\EnsurePersonalDataComplete::class,
+            'account.active' => \App\Http\Middleware\EnsureAccountIsActive::class,
             'admin' => \Illuminate\Auth\Middleware\Authorize::class,
         ]);
         $middleware->append(\App\Http\Middleware\TrackUserPresence::class);

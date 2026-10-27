@@ -31,9 +31,7 @@ class ForgotPasswordController extends Controller
         $user = User::where('email', $validated['email'])->first();
         $path = $request->file('id_picture')->store('password-reset-requests', 'local');
         $reference = 'PRR-' . Str::upper(Str::random(10));
-        $resetRequestId = ((int) \DB::table('password_reset_requests')->max('id')) + 1;
-        \DB::table('password_reset_requests')->insert([
-            'id' => $resetRequestId,
+        $resetRequestId = \DB::table('password_reset_requests')->insertGetId([
             'user_id' => $user?->id, 'reference_number' => $reference,
             'email' => $validated['email'], 'name' => $validated['name'],
             'student_employee_id' => $validated['student_employee_id'],

@@ -24,13 +24,13 @@
                 <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-0">
                     <div>
                         <h4 class="fw-bold mb-0 text-dark">Confidential Abuse Inbox</h4>
-                        <p class="text-muted small mb-0">Managing <span class="badge bg-primary-subtle text-primary">{{ $reports->count() }} Active Cases</span> </p>
+                        <p class="text-muted small mb-0">Managing <span class="badge bg-primary-subtle text-primary">{{ $reports->total() }} Active Cases</span> </p>
                     </div>
                     <div class="d-flex gap-2">
-                        <div class="input-group input-group-sm" style="width: 250px;">
+                        <form method="GET" action="{{ route('admin.reports') }}" class="input-group input-group-sm" style="width: 250px;">
                             <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
-                            <input type="text" id="reportSearch" class="form-control bg-light border-start-0" placeholder="Search Incident ID or Alias...">
-                        </div>
+                            <input type="text" name="q" id="reportSearch" value="{{ request('q') }}" maxlength="100" class="form-control bg-light border-start-0" placeholder="Search Incident ID or Alias...">
+                        </form>
                     </div>
                 </div>
                 
@@ -236,6 +236,8 @@
             </div>
         </div>
     </div>
+
+    <div class="d-flex justify-content-center mt-3">{{ $reports->links() }}</div>
 
     
 </div>

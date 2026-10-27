@@ -619,7 +619,7 @@
 
 @php
     $user = Auth::user();
-    $totalSuggestions = $allSuggestions->count();
+    $totalSuggestions = $allSuggestions->total();
 @endphp
 
 <div class="container-fluid boses-page py-3 py-lg-4">
@@ -687,16 +687,22 @@
                             <p class="text-muted small mb-0">{{ $totalSuggestions }} {{ \Illuminate\Support\Str::plural('post', $totalSuggestions) }} shared</p>
                         </div>
                         <div class="d-flex w-100 justify-content-end" style="max-width: 26rem;">
-                            <div class="search-wrap w-100">
+                            <form method="GET" action="{{ route('student.boses') }}" class="search-wrap w-100">
                                 <i class="bi bi-search"></i>
+                                @if(request()->filled('category'))
+                                    <input type="hidden" name="category" value="{{ request('category') }}">
+                                @endif
                                 <input
                                     type="search"
+                                    name="q"
                                     id="suggestion-search"
                                     class="form-control search-input"
+                                    maxlength="100"
+                                    value="{{ request('q') }}"
                                     placeholder="Search suggestions"
                                     aria-label="Search suggestions"
                                 >
-                            </div>
+                            </form>
                         </div>
                     </div>
 
@@ -954,6 +960,7 @@
                             </div>
                         @endforelse
                     </div>
+                    <div class="d-flex justify-content-center mt-4">{{ $allSuggestions->links() }}</div>
                 </div>
             </div>
 

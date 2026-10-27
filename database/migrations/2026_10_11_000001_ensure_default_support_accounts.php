@@ -22,7 +22,6 @@ return new class extends Migration
             }
 
             DB::table('users')->insert($values + [
-                'id' => ((int) DB::table('users')->max('id')) + 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);

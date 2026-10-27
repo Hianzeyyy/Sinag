@@ -76,7 +76,12 @@ class ReportApiController extends Controller
 
         $paths = [];
         foreach ((array) $request->file('evidence', []) as $file) {
-            $paths[] = $file->store('evidence', 'public');
+            $path = $file->store('evidence', 'local');
+            if (!is_string($path)) {
+                throw new \RuntimeException('Incident evidence could not be stored.');
+            }
+
+            $paths[] = $path;
         }
 
         do {
@@ -84,7 +89,6 @@ class ReportApiController extends Controller
         } while (DB::table('reports')->where('incident_id', $incidentId)->exists());
 
         $row = [
-            'id' => ((int) DB::table('reports')->max('id')) + 1,
             'user_id' => $user->id,
             'incident_id' => $incidentId,
             'cloak_alias' => $alias,
@@ -115,8 +119,8 @@ class ReportApiController extends Controller
         abort_unless($report->user_id === $request->user()->id, 403);
 
         $files = $report->evidence_files;
-        abort_unless(isset($files[$index]) && Storage::disk('public')->exists($files[$index]), 404);
+        abort_unless(isset($files[$index]) && Storage::disk('local')->exists($files[$index]), 404);
 
-        return response()->file(Storage::disk('public')->path($files[$index]));
+        return Storage::disk('local')->response($files[$index]);
     }
 }

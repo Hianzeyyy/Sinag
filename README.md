@@ -88,5 +88,11 @@ surviving uploads into the matching `private` or `public` subdirectory on the
 persistent disk. Files that disappeared from an earlier temporary instance
 cannot be recovered by attaching a disk.
 # sinag-project
+
+## Deployment history and testing
+
+See [Deployment error history and testing](./docs/DEPLOYMENT-ERRORS-AND-TESTING.md)
+for the deployment-era fixes identified in Git history, current automated test
+results, and the Integration, Alpha, Beta, and Pilot Testing sections.
 # sinag-project
 # sinag-project

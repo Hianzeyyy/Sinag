@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\Report;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ReportSubmissionTest extends TestCase
@@ -125,6 +128,9 @@ class ReportSubmissionTest extends TestCase
 
     public function test_report_submission_succeeds_with_current_metadata_columns(): void
     {
+        Storage::fake('local');
+        Storage::fake('public');
+
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
@@ -169,6 +175,7 @@ class ReportSubmissionTest extends TestCase
             'incident_time' => '12:30',
             'description' => 'A test report description.',
             'location' => 'Test location',
+            'evidence' => [UploadedFile::fake()->image('incident.png')],
         ]);
 
         $response->assertRedirect(route('student.report'));
@@ -181,5 +188,14 @@ class ReportSubmissionTest extends TestCase
             'course' => 'BS Information Technology (BSIT)',
             'gender' => 'Female',
         ]);
+
+        $report = Report::where('user_id', $user->id)->firstOrFail();
+        $evidencePath = $report->evidence_files[0];
+
+        Storage::disk('local')->assertExists($evidencePath);
+        Storage::disk('public')->assertMissing($evidencePath);
+        $this->actingAs($user)
+            ->get(route('reports.evidence.view', ['report' => $report->id, 'index' => 0]))
+            ->assertOk();
     }
 }

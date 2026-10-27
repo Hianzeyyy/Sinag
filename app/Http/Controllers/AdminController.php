@@ -79,14 +79,23 @@ class AdminController extends Controller
     /**
      * Confidential Inbox: Listahan ng lahat ng reports.
      */
-    public function reports()
+    public function reports(Request $request)
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
+        $validated = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
+        $query = trim($validated['q'] ?? '');
+        $escapedQuery = '%' . addcslashes($query, '\\%_') . '%';
+
         $reports = Report::with('user')
+            ->when($query !== '', fn ($reports) => $reports->where(function ($search) use ($escapedQuery) {
+                $search->where('incident_id', 'like', $escapedQuery)
+                    ->orWhere('cloak_alias', 'like', $escapedQuery);
+            }))
             ->orderByRaw('CASE WHEN seen_at IS NULL THEN 0 ELSE 1 END')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(15)
+            ->withQueryString();
         return view('admin.reports', compact('reports'));
     }
 
@@ -165,7 +174,7 @@ class AdminController extends Controller
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
-        $suggestions = Suggestion::with('user')->latest()->get();
+        $suggestions = Suggestion::with('user')->latest()->paginate(15);
         $pendingSuggestionReports = SuggestionReport::where('status', 'pending')->count();
         return view('admin.suggestions', compact('suggestions', 'pendingSuggestionReports'));
     }
@@ -380,6 +389,7 @@ class AdminController extends Controller
             Storage::disk('local')->delete($path);
         }
 
+        $this->revokeUserAccess($user);
         $user->delete();
 
         Log::info('User account deleted by admin', [
@@ -578,9 +588,7 @@ class AdminController extends Controller
             'status'          => ['required', 'in:active,inactive,unavailable'],
         ]);
 
-        $scheduleId = ((int) \DB::table('gad_schedules')->max('id')) + 1;
         \DB::table('gad_schedules')->insert([
-            'id' => $scheduleId,
             ...$validated,
             'created_by' => Auth::id(),
             'created_at' => now(),
@@ -902,6 +910,7 @@ class AdminController extends Controller
             'rejection_reason' => $reason,
             'updated_at'       => now(),
         ]);
+        $this->revokeUserAccess($user);
 
         $reasonText = $reason ? "Reason: {$reason}\n\n" : '';
 
@@ -953,9 +962,7 @@ class AdminController extends Controller
             return response()->json(['error' => 'Invalid message recipient'], 422);
         }
 
-        $messageId = ((int) \DB::table('messages')->max('id')) + 1;
-        \DB::table('messages')->insert([
-            'id'          => $messageId,
+        $messageId = \DB::table('messages')->insertGetId([
             'sender_id'   => Auth::id(),
             'receiver_id' => $student->id,
             'message'     => $request->message,
@@ -1087,6 +1094,16 @@ class AdminController extends Controller
         $appointmentsByUrgency = $appointments->getCollection()->groupBy('urgency_level');
 
         return view('admin.appointments', compact('appointments', 'appointmentsByUrgency'));
+    }
+
+    private function revokeUserAccess(User $user): void
+    {
+        $user->tokens()->delete();
+
+        $sessionTable = config('session.table', 'sessions');
+        if (Schema::hasTable($sessionTable) && Schema::hasColumn($sessionTable, 'user_id')) {
+            \DB::table($sessionTable)->where('user_id', $user->id)->delete();
+        }
     }
 
     /**

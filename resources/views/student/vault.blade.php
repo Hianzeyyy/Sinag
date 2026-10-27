@@ -108,12 +108,12 @@
     <ul class="nav nav-pills mb-4 gap-2" id="vaultTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold px-4 rounded-pill" id="reports-tab" data-bs-toggle="pill" data-bs-target="#reports" type="button" role="tab">
-                My Reports ({{ $myReports->count() }})
+                My Reports ({{ $myReports->total() }})
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold px-4 rounded-pill" id="suggestions-tab" data-bs-toggle="pill" data-bs-target="#suggestions" type="button" role="tab">
-                My Suggestions ({{ $mySuggestions->count() }})
+                My Suggestions ({{ $mySuggestions->total() }})
             </button>
         </li>
     </ul>
@@ -229,6 +229,7 @@
                                                                                 <i class="bi bi-download me-1"></i> Open File
                                                                             </a>
                                                                         </div>
+                                                                        <div class="d-flex justify-content-center mt-3">{{ $myReports->links() }}</div>
                                                                     @endif
                                                                 </div>
                                                             @endforeach
@@ -280,6 +281,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="d-flex justify-content-center mt-3">{{ $mySuggestions->links() }}</div>
                 @foreach($mySuggestions as $sugg)
                     <div class="modal fade" id="mySuggestionModal{{ $sugg->id }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable vault-modal-dialog">

@@ -97,8 +97,12 @@ class StudentController extends Controller
         $user_id = Auth::id();
 
         // Kunin ang sariling data ng user
-        $myReports = Report::where('user_id', $user_id)->latest()->get();
-        $mySuggestions = Suggestion::where('user_id', $user_id)->latest()->get();
+        $myReports = Report::where('user_id', $user_id)->latest()
+            ->paginate(15, ['*'], 'reports_page')
+            ->withQueryString();
+        $mySuggestions = Suggestion::where('user_id', $user_id)->latest()
+            ->paginate(15, ['*'], 'suggestions_page')
+            ->withQueryString();
 
         return view('student.vault', compact('myReports', 'mySuggestions'));
     }
@@ -109,6 +113,8 @@ class StudentController extends Controller
      */
     public function boses(Request $request)
     {
+        $validated = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
+
         if (!$request->user()->hasCompletedPersonalData()) {
             return redirect()->route('personal-data.edit', ['return_to_suggestions' => 1])
                 ->with('personal_data_required', 'Complete your personal data to access Community Suggestions.');
@@ -125,7 +131,16 @@ class StudentController extends Controller
             $query->where('category', $request->string('category'));
         }
 
-        $allSuggestions = $query->latest()->get();
+        $searchTerm = trim($validated['q'] ?? '');
+        if ($searchTerm !== '') {
+            $like = '%' . addcslashes($searchTerm, '\\%_') . '%';
+            $query->where(function ($search) use ($like) {
+                $search->where('message', 'like', $like)
+                    ->orWhereHas('user', fn ($user) => $user->where('cloak_alias', 'like', $like));
+            });
+        }
+
+        $allSuggestions = $query->latest()->paginate(15)->withQueryString();
 
         $categories = [
             'Gender-Based Violence Prevention',
@@ -404,9 +419,7 @@ class StudentController extends Controller
             return response()->json(['error' => 'No admin available'], 404);
         }
 
-        $messageId = ((int) \DB::table('messages')->max('id')) + 1;
-        \DB::table('messages')->insert([
-            'id' => $messageId,
+        $messageId = \DB::table('messages')->insertGetId([
             'sender_id' => Auth::id(),
             'receiver_id' => $admin->id,
             'message' => $request->message,
@@ -569,9 +582,7 @@ class StudentController extends Controller
                 ->withErrors(['appointment' => 'You already have an active appointment. Edit or cancel it before scheduling another.']);
         }
 
-        $appointmentId = ((int) \DB::table('appointment_requests')->max('id')) + 1;
         \DB::table('appointment_requests')->insert([
-            'id' => $appointmentId,
             'user_id' => Auth::id(),
             'full_name' => $validated['full_name'],
             'student_id' => $validated['student_id'],
@@ -654,7 +665,8 @@ class StudentController extends Controller
     {
         $appointments = AppointmentRequest::where('user_id', Auth::id())
             ->latest()
-            ->get();
+            ->paginate(15)
+            ->withQueryString();
 
         return view('student.appointments', compact('appointments'));
     }

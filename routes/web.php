@@ -38,13 +38,13 @@ Route::post('/password/reset/{passwordResetRequest}/{token}', [ForgotPasswordCon
 
 // 3. Central Redirect Logic (Ito ang traffic control pagka-login)
 Route::get('/home', [HomeController::class, 'index'])->name('home');
-Route::middleware(['auth'])->get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-Route::middleware(['auth'])->get('/personal-data', [ProfileController::class, 'personalData'])->name('personal-data.show');
-Route::middleware(['auth'])->get('/personal-data/edit', [ProfileController::class, 'editPersonalData'])->name('personal-data.edit');
-Route::middleware(['auth'])->get('/users/{user}/verification-image', [ProfileController::class, 'verificationImage'])->name('profile.verification-image');
+Route::middleware(['auth', 'account.active'])->get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+Route::middleware(['auth', 'account.active'])->get('/personal-data', [ProfileController::class, 'personalData'])->name('personal-data.show');
+Route::middleware(['auth', 'account.active'])->get('/personal-data/edit', [ProfileController::class, 'editPersonalData'])->name('personal-data.edit');
+Route::middleware(['auth', 'account.active'])->get('/users/{user}/verification-image', [ProfileController::class, 'verificationImage'])->name('profile.verification-image');
 
 // --- AUTHENTICATED USERS ONLY ---
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'account.active'])->group(function () {
 
     // --- ADMIN ROUTES ---
     Route::prefix('admin')->name('admin.')->middleware('can:admin-access')->group(function () {
@@ -149,6 +149,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('auth')
         ->name('reports.store');
     Route::get('/reports/{report}/evidence/{index}', [ReportController::class, 'viewEvidence'])
+        ->middleware('auth')
         ->whereNumber('index')
         ->name('reports.evidence.view');
     Route::get('/suggestions/{suggestion}', [SuggestionController::class, 'show'])->name('suggestions.show');

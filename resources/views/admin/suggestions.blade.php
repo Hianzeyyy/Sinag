@@ -14,8 +14,8 @@
             </div>
         </div>
         <div class="fw-count-chip">
-            <span class="fw-count-num">{{ $suggestions->count() }}</span>
-            <span class="fw-count-text">{{ $suggestions->count() == 1 ? 'Post' : 'Posts' }}</span>
+            <span class="fw-count-num">{{ $suggestions->total() }}</span>
+            <span class="fw-count-text">{{ $suggestions->total() == 1 ? 'Post' : 'Posts' }}</span>
         </div>
         <a href="{{ route('admin.suggestions.reports') }}" class="btn btn-outline-secondary rounded-pill fw-bold">
             <i class="bi bi-flag me-1"></i> View Reports @if(($pendingSuggestionReports ?? 0) > 0)<span class="badge bg-secondary ms-1">{{ $pendingSuggestionReports }}</span>@endif
@@ -73,6 +73,8 @@
             </table>
         </div>
     </div>
+
+    <div class="d-flex justify-content-center mt-3">{{ $suggestions->links() }}</div>
 
     @foreach($suggestions as $suggestion)
         <div class="modal fade" id="suggestionModal{{ $suggestion->id }}" tabindex="-1" aria-hidden="true">

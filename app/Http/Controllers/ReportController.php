@@ -103,8 +103,11 @@ class ReportController extends Controller
         $evidencePaths = [];
         if ($request->hasFile('evidence')) {
             foreach ($request->file('evidence') as $file) {
-                // I-save sa public storage para madaling ma-view ng Admin (or 'private' if preferred)
-                $path = $file->store('evidence', 'public');
+                $path = $file->store('evidence', 'local');
+                if (!is_string($path)) {
+                    throw new \RuntimeException('Incident evidence could not be stored.');
+                }
+
                 $evidencePaths[] = $path;
             }
         }
@@ -115,7 +118,6 @@ class ReportController extends Controller
             $incidentId = 'SN-' . strtoupper(Str::random(6));
         }
         $reportData = [
-            'id'            => ((int) \DB::table('reports')->max('id')) + 1,
             'user_id'       => $user->id,
             'incident_id'   => $incidentId,
             'cloak_alias'   => $cloakAlias,
@@ -196,10 +198,10 @@ class ReportController extends Controller
 
         $path = $files[$index];
 
-        if (!Storage::disk('public')->exists($path)) {
+        if (!Storage::disk('local')->exists($path)) {
             abort(404);
         }
 
-        return response()->file(Storage::disk('public')->path($path));
+        return Storage::disk('local')->response($path);
     }
 }
