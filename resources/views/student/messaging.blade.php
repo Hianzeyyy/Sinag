@@ -177,8 +177,10 @@ body {
 
 /* Thread */
 .msg-thread {
-    flex: 0 0 auto;
-    overflow: visible;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: min(60vh, 38rem);
+    overflow-y: auto;
     padding: 1.25rem 1.4rem;
     display: flex;
     flex-direction: column;
@@ -791,6 +793,7 @@ function studentMessageMarkup(message) {
 
 async function refreshMessages() {
     const thread = document.getElementById('messagingThread');
+    const wasNearBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
     try {
         const response = await fetch(`{{ route('student.messages.feed') }}?after_id=0`, {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
@@ -806,9 +809,14 @@ async function refreshMessages() {
             if (existing) existing.outerHTML = studentMessageMarkup(message);
             else thread.insertAdjacentHTML('beforeend', studentMessageMarkup(message));
         }
+        if (wasNearBottom) thread.scrollTop = thread.scrollHeight;
     } catch (error) {
         console.error('Unable to refresh GAD messages:', error);
     }
+}
+const messagingThread = document.getElementById('messagingThread');
+if (messagingThread) {
+    requestAnimationFrame(() => { messagingThread.scrollTop = messagingThread.scrollHeight; });
 }
 setInterval(refreshMessages, 3000);
 

@@ -793,6 +793,11 @@
     const adminId = {{ Auth::id() }};
     const selectedStudentId = {{ (int) ($selectedStudentId ?? 0) }};
     const adminCsrf = '{{ csrf_token() }}';
+    const adminMessageThread = document.getElementById('messagingThread');
+
+    if (adminMessageThread) {
+        requestAnimationFrame(() => { adminMessageThread.scrollTop = adminMessageThread.scrollHeight; });
+    }
 
     function adminMessageMarkup(message) {
         const id = Number(message.id);
@@ -950,6 +955,8 @@
 
     async function refreshAdminMessages() {
         const thread = selectedStudentId ? document.getElementById('messagingThread') : null;
+        const wasNearBottom = thread
+            && thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
         try {
             const params = new URLSearchParams({ after_id: 0 });
             if (selectedStudentId) params.set('student_id', selectedStudentId);
@@ -987,6 +994,7 @@
                         thread.insertAdjacentHTML('beforeend', adminMessageMarkup(message));
                     }
                 }
+                if (wasNearBottom) thread.scrollTop = thread.scrollHeight;
             }
         } catch (error) {
             console.error('Unable to refresh admin messages:', error);

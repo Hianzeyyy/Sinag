@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ForgotPasswordController extends Controller
@@ -28,17 +30,28 @@ class ForgotPasswordController extends Controller
             'reason' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::where('email', $validated['email'])->firstOrFail();
         $path = $request->file('id_picture')->store('password-reset-requests', 'local');
+        if (!is_string($path) || $path === '') {
+            Log::error('Password reset request ID picture could not be stored', [
+                'email' => $validated['email'],
+                'ip' => $request->ip(),
+            ]);
+
+            return back()->withErrors([
+                'id_picture' => 'The ID picture could not be saved. Please try again later.',
+            ])->withInput();
+        }
+
         $reference = 'PRR-' . Str::upper(Str::random(10));
-        $resetRequestId = \DB::table('password_reset_requests')->insertGetId([
-            'user_id' => $user?->id, 'reference_number' => $reference,
+        $resetRequestId = DB::transaction(fn () => DB::table('password_reset_requests')->insertGetId([
+            'user_id' => $user->id, 'reference_number' => $reference,
             'email' => $validated['email'], 'name' => $validated['name'],
             'student_employee_id' => $validated['student_employee_id'],
             'department' => $validated['department'] ?? null, 'id_picture_path' => $path,
             'reason' => $validated['reason'] ?? null, 'status' => 'pending',
             'created_at' => now(), 'updated_at' => now(),
-        ]);
+        ]));
         Log::info('Password reset request submitted', ['request_id' => $resetRequestId, 'reference_number' => $reference, 'ip' => $request->ip()]);
 
         return redirect()->route('password.status.form', ['reference' => $reference])
