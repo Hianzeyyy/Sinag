@@ -44,14 +44,26 @@ class ForgotPasswordController extends Controller
         }
 
         $reference = 'PRR-' . Str::upper(Str::random(10));
-        $resetRequestId = DB::transaction(fn () => DB::table('password_reset_requests')->insertGetId([
-            'user_id' => $user->id, 'reference_number' => $reference,
-            'email' => $validated['email'], 'name' => $validated['name'],
-            'student_employee_id' => $validated['student_employee_id'],
-            'department' => $validated['department'] ?? null, 'id_picture_path' => $path,
-            'reason' => $validated['reason'] ?? null, 'status' => 'pending',
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
+        $resetRequestId = DB::transaction(function () use ($user, $validated, $reference, $path) {
+            $id = ((int) DB::table('password_reset_requests')->max('id')) + 1;
+
+            DB::table('password_reset_requests')->insert([
+                'id' => $id,
+                'user_id' => $user->id,
+                'reference_number' => $reference,
+                'email' => $validated['email'],
+                'name' => $validated['name'],
+                'student_employee_id' => $validated['student_employee_id'],
+                'department' => $validated['department'] ?? null,
+                'id_picture_path' => $path,
+                'reason' => $validated['reason'] ?? null,
+                'status' => 'pending',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return $id;
+        });
         Log::info('Password reset request submitted', ['request_id' => $resetRequestId, 'reference_number' => $reference, 'ip' => $request->ip()]);
 
         return redirect()->route('password.status.form', ['reference' => $reference])

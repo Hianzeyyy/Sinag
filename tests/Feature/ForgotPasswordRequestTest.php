@@ -25,7 +25,7 @@ class ForgotPasswordRequestTest extends TestCase
         });
 
         Schema::create('password_reset_requests', function (Blueprint $table): void {
-            $table->id();
+            $table->unsignedBigInteger('id')->primary();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('reference_number')->unique();
             $table->string('email');
@@ -63,6 +63,7 @@ class ForgotPasswordRequestTest extends TestCase
         $this->assertMatchesRegularExpression('/^PRR-[A-Z0-9]{10}$/', $redirectQuery['reference'] ?? '');
 
         $this->assertDatabaseHas('password_reset_requests', [
+            'id' => 1,
             'email' => 'student@example.test',
             'student_employee_id' => 'STU-100',
             'status' => 'pending',
