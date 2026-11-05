@@ -309,6 +309,9 @@
 
         if (natureSelect) {
             natureSelect.addEventListener('change', toggleOtherNatureField);
+            natureSelect.form?.addEventListener('reset', function () {
+                window.setTimeout(toggleOtherNatureField, 0);
+            });
             toggleOtherNatureField();
         }
     });
