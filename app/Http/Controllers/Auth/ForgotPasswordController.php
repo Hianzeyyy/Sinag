@@ -21,8 +21,13 @@ class ForgotPasswordController extends Controller
 
     public function storeRequest(Request $request)
     {
+        $email = $request->input('email');
+        if (is_string($email)) {
+            $request->merge(['email' => Str::lower(trim($email))]);
+        }
+
         $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255', 'exists:users,email'],
+            'email' => ['required', 'email', 'max:255'],
             'student_employee_id' => ['required', 'string', 'max:100'],
             'name' => ['required', 'string', 'max:255'],
             'department' => ['nullable', 'string', 'max:255'],
@@ -30,7 +35,13 @@ class ForgotPasswordController extends Controller
             'reason' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $user = User::where('email', $validated['email'])->firstOrFail();
+        $user = User::whereRaw('LOWER(email) = ?', [$validated['email']])->first();
+        if (!$user) {
+            return back()->withErrors([
+                'email' => 'No SINAG account was found for this email. Check the address used when registering.',
+            ])->withInput();
+        }
+
         $path = $request->file('id_picture')->store('password-reset-requests', 'local');
         if (!is_string($path) || $path === '') {
             Log::error('Password reset request ID picture could not be stored', [
@@ -51,7 +62,7 @@ class ForgotPasswordController extends Controller
                 'id' => $id,
                 'user_id' => $user->id,
                 'reference_number' => $reference,
-                'email' => $validated['email'],
+                'email' => $user->email,
                 'name' => $validated['name'],
                 'student_employee_id' => $validated['student_employee_id'],
                 'department' => $validated['department'] ?? null,

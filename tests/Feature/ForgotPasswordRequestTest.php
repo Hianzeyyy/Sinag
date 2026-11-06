@@ -29,7 +29,7 @@ class ForgotPasswordRequestTest extends TestCase
         });
 
         Schema::create('password_reset_requests', function (Blueprint $table): void {
-            $table->id();
+            $table->unsignedBigInteger('id')->primary();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('reference_number')->unique();
             $table->string('email');
@@ -81,6 +81,45 @@ class ForgotPasswordRequestTest extends TestCase
 
         $request = \DB::table('password_reset_requests')->first();
         Storage::disk('local')->assertExists($request->id_picture_path);
+    }
+
+    public function test_password_reset_request_matches_email_without_case_sensitivity(): void
+    {
+        User::create([
+            'name' => 'Test Student',
+            'email' => 'Student@Example.Test',
+            'password' => 'password',
+            'role' => 'student',
+        ]);
+
+        $response = $this->post(route('password.code.request'), [
+            'email' => ' student@example.test ',
+            'student_employee_id' => 'STU-100',
+            'name' => 'Test Student',
+            'id_picture' => UploadedFile::fake()->image('student-id.png'),
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('password_reset_requests', [
+            'id' => 1,
+            'email' => 'Student@Example.Test',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_password_reset_request_reports_unregistered_email_without_creating_a_request(): void
+    {
+        $response = $this->from(route('password.code.form'))->post(route('password.code.request'), [
+            'email' => 'missing@example.test',
+            'student_employee_id' => 'STU-100',
+            'name' => 'Test Student',
+            'id_picture' => UploadedFile::fake()->image('student-id.png'),
+        ]);
+
+        $response->assertRedirect(route('password.code.form'))
+            ->assertSessionHasErrors('email');
+        $this->assertDatabaseCount('password_reset_requests', 0);
     }
 
     public function test_admin_approval_allows_the_requester_to_reset_their_password(): void
