@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\PasswordResetRequest;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -21,11 +23,13 @@ class ForgotPasswordRequestTest extends TestCase
             $table->string('email')->unique();
             $table->string('password');
             $table->string('role')->default('student');
+            $table->string('account_status')->nullable();
+            $table->text('rejection_reason')->nullable();
             $table->timestamps();
         });
 
         Schema::create('password_reset_requests', function (Blueprint $table): void {
-            $table->unsignedBigInteger('id')->primary();
+            $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('reference_number')->unique();
             $table->string('email');
@@ -35,6 +39,12 @@ class ForgotPasswordRequestTest extends TestCase
             $table->string('id_picture_path');
             $table->text('reason')->nullable();
             $table->string('status')->default('pending');
+            $table->foreignId('admin_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->text('admin_remarks')->nullable();
+            $table->string('reset_token_hash')->nullable();
+            $table->timestamp('reset_token_expires_at')->nullable();
+            $table->timestamp('approved_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
             $table->timestamps();
         });
 
@@ -71,5 +81,56 @@ class ForgotPasswordRequestTest extends TestCase
 
         $request = \DB::table('password_reset_requests')->first();
         Storage::disk('local')->assertExists($request->id_picture_path);
+    }
+
+    public function test_admin_approval_allows_the_requester_to_reset_their_password(): void
+    {
+        $user = User::create([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'old-password',
+            'role' => 'student',
+        ]);
+        $admin = User::create([
+            'name' => 'Test Admin',
+            'email' => 'admin@example.test',
+            'password' => 'admin-password',
+            'role' => 'admin',
+        ]);
+
+        $this->post(route('password.code.request'), [
+            'email' => $user->email,
+            'student_employee_id' => 'STU-100',
+            'name' => $user->name,
+            'id_picture' => UploadedFile::fake()->image('student-id.png'),
+        ])->assertRedirect();
+
+        $resetRequest = PasswordResetRequest::query()->firstOrFail();
+
+        $this->actingAs($admin)
+            ->post(route('admin.password-resets.approve', $resetRequest))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('password_reset_requests', [
+            'id' => $resetRequest->id,
+            'status' => 'approved',
+            'admin_id' => $admin->id,
+        ]);
+
+        $statusResponse = $this->actingAs($user)->post(route('password.status.check'), [
+            'reference_number' => $resetRequest->reference_number,
+            'email_or_id' => $user->email,
+        ])->assertOk();
+
+        $token = $statusResponse->viewData('token');
+        $this->assertIsString($token);
+
+        $this->post(route('password.reset.submit', [$resetRequest, $token]), [
+            'password' => 'new-strong-password',
+            'password_confirmation' => 'new-strong-password',
+        ])->assertRedirect(route('login'));
+
+        $this->assertTrue(Hash::check('new-strong-password', $user->fresh()->password));
     }
 }

@@ -623,7 +623,7 @@
                                class="conversation-item {{ $selectedStudentId == $otherUser->id ? 'active' : '' }}">
                                 <div class="conv-avatar">
                                     @if($otherUser->profile_photo_path)
-                                        <img src="{{ asset('storage/' . $otherUser->profile_photo_path) }}" alt="{{ $otherUser->name }} profile photo">
+                                        <img src="{{ route('profile.photo', $otherUser) }}" alt="{{ $otherUser->name }} profile photo">
                                     @else
                                         {{ $initials }}
                                     @endif
@@ -660,7 +660,7 @@
                         <div class="msg-header-left">
                             <div class="header-avatar">
                                 @if($selectedStudent->profile_photo_path)
-                                    <img src="{{ asset('storage/' . $selectedStudent->profile_photo_path) }}" alt="{{ $selectedStudent->name }} profile photo">
+                                    <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo">
                                 @else
                                     {{ $selInitials }}
                                 @endif
@@ -703,7 +703,7 @@
                                 <div class="message-group {{ $isAdmin ? 'user' : 'admin' }}" data-message-id="{{ $message->id }}">
                                     <div class="msg-avatar {{ $isAdmin ? 'outgoing-av' : 'incoming-av' }}">
                                         @if(!$isAdmin && $selectedStudent->profile_photo_path)
-                                            <img src="{{ asset('storage/' . $selectedStudent->profile_photo_path) }}" alt="{{ $selectedStudent->name }} profile photo">
+                                            <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo">
                                         @else
                                             {{ $bubbleInitials }}
                                         @endif
@@ -760,7 +760,7 @@
                 <div class="modal-body pt-0">
                     <div class="d-flex align-items-center gap-3 mb-4">
                         @if($selectedStudent->profile_photo_path)
-                            <img src="{{ asset('storage/' . $selectedStudent->profile_photo_path) }}" alt="{{ $selectedStudent->name }} profile photo" class="rounded-circle" style="width:4.5rem;height:4.5rem;object-fit:cover;">
+                            <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo" class="rounded-circle" style="width:4.5rem;height:4.5rem;object-fit:cover;">
                         @else
                             <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width:4.5rem;height:4.5rem;background:#8f72f5;">{{ $selInitials }}</div>
                         @endif

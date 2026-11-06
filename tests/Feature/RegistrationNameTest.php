@@ -37,6 +37,24 @@ class RegistrationNameTest extends TestCase
         Storage::fake('local');
         Storage::fake('public');
 
+        $this->from(route('register'))
+            ->post(route('register'), [
+                'first_name' => 'Wrong',
+                'last_name' => 'Number',
+                'email' => '23wrong@example.test',
+                'account_type' => 'student',
+                'phone_number' => '0912345678',
+                'age' => 20,
+                'gender' => 'Female',
+                'department' => 'BS Information Technology (BSIT)',
+                'profile_photo' => UploadedFile::fake()->image('wrong-number-profile.png'),
+                'selfie_image' => UploadedFile::fake()->image('wrong-number-id.png'),
+                'password' => 'strong-password',
+                'password_confirmation' => 'strong-password',
+            ])
+            ->assertRedirect(route('register'))
+            ->assertSessionHasErrors('phone_number');
+
         $response = $this->post(route('register'), [
             'first_name' => 'Ava',
             'middle_name' => 'Marie',
@@ -60,6 +78,7 @@ class RegistrationNameTest extends TestCase
             'middle_name' => 'Marie',
             'last_name' => 'Santos',
             'email' => '21ava@example.test',
+            'account_status' => 'pending',
         ]);
 
         $user = User::query()->where('email', '21ava@example.test')->firstOrFail();
@@ -97,6 +116,8 @@ class RegistrationNameTest extends TestCase
             ->assertSee('name="first_name"', false)
             ->assertSee('name="middle_name"', false)
             ->assertSee('name="last_name"', false)
+            ->assertSee('pattern="09[0-9]{9}"', false)
+            ->assertSee('maxlength="11"', false)
             ->assertSee('Middle Name <span class="text-muted">(optional)</span>', false);
     }
 }

@@ -205,7 +205,7 @@
                                     <div class="modal-body">
                                         <div class="resume-heading">
                                             @if($user->profile_photo_path)
-                                                <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profile photo" class="resume-avatar">
+                                                <img src="{{ route('profile.photo', $user) }}" alt="Profile photo" class="resume-avatar">
                                             @else
                                                 <div class="resume-avatar resume-initial">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
                                             @endif

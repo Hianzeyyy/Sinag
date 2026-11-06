@@ -42,6 +42,7 @@ Route::middleware(['auth', 'account.active'])->get('/profile', [ProfileControlle
 Route::middleware(['auth', 'account.active'])->get('/personal-data', [ProfileController::class, 'personalData'])->name('personal-data.show');
 Route::middleware(['auth', 'account.active'])->get('/personal-data/edit', [ProfileController::class, 'editPersonalData'])->name('personal-data.edit');
 Route::middleware(['auth', 'account.active'])->get('/users/{user}/verification-image', [ProfileController::class, 'verificationImage'])->name('profile.verification-image');
+Route::get('/users/{user}/profile-photo', [ProfileController::class, 'profilePhoto'])->name('profile.photo');
 
 // --- AUTHENTICATED USERS ONLY ---
 Route::middleware(['auth', 'account.active'])->group(function () {

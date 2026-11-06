@@ -329,8 +329,9 @@
 const scheduleData = @json($schedulePayload);
 const scheduleMap = {};
 
-let currentMonth = new Date().getMonth();
-let currentYear  = new Date().getFullYear();
+const [todayYear, todayMonth] = @json($today).split('-').map(Number);
+let currentMonth = todayMonth - 1;
+let currentYear  = todayYear;
 
 function toDateKey(date) {
     return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;

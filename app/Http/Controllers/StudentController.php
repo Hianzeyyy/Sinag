@@ -76,8 +76,11 @@ class StudentController extends Controller
             ->whereIn('status', ['active', 'unavailable', 'inactive'])
             ->orderBy('available_from')
             ->get();
+        $today = now('Asia/Manila')->toDateString();
 
-        return view('student.gad_schedule', compact('schedules'));
+        return response()
+            ->view('student.gad_schedule', compact('schedules', 'today'))
+            ->header('Cache-Control', 'no-store, private');
     }
 
     /**

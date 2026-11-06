@@ -135,7 +135,9 @@ class SuggestionApiController extends Controller
             $s->upvotes()->detach($uid);
             $upvoted = false;
         } else {
+            $upvoteId = ((int) DB::table('suggestion_user_upvotes')->max('id')) + 1;
             DB::table('suggestion_user_upvotes')->insert([
+                'id' => $upvoteId,
                 'suggestion_id' => $s->id,
                 'user_id' => $uid,
                 'created_at' => now(),

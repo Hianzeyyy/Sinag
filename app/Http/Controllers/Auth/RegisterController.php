@@ -66,7 +66,7 @@ class RegisterController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'account_type' => ['required', Rule::in(['student', 'employee'])],
             'employee_category' => ['nullable', Rule::requiredIf(fn () => ($data['account_type'] ?? null) === 'employee'), Rule::in(['teaching', 'non_teaching'])],
-            'phone_number' => ['required', 'string', 'max:50', 'regex:/^[0-9]+$/'],
+            'phone_number' => ['required', 'string', 'regex:/^09[0-9]{9}$/'],
             'age' => ['required', 'integer', 'min:1', 'max:120'],
             'gender' => ['required', 'in:Male,Female,Prefer not to say'],
             'department' => ['required', 'string', 'max:255'],

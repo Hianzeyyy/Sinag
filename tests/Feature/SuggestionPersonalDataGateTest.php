@@ -431,6 +431,7 @@ class SuggestionPersonalDataGateTest extends TestCase
             $table->foreignId('suggestion_id');
             $table->foreignId('user_id');
             $table->timestamps();
+            $table->unique(['suggestion_id', 'user_id']);
         });
     }
 }

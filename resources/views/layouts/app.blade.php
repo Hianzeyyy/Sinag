@@ -1967,7 +1967,7 @@
                             <div class="dropdown user-meta">
                                 <a class="profile-menu-btn" href="{{ route('profile.show') }}" title="View profile">
                                     @if(Auth::user()->profile_photo_path)
-                                        <img src="{{ asset('storage/'.Auth::user()->profile_photo_path) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                                        <img src="{{ route('profile.photo', Auth::user()) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
                                         <span class="profile-avatar profile-avatar-fallback" hidden>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                                     @else
                                         <span class="profile-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
@@ -1980,7 +1980,7 @@
                                 <div class="dropdown-menu dropdown-menu-end profile-dropdown p-2">
                                     <div class="profile-dropdown-head">
                                         @if(Auth::user()->profile_photo_path)
-                                            <img src="{{ asset('storage/'.Auth::user()->profile_photo_path) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                                            <img src="{{ route('profile.photo', Auth::user()) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
                                             <span class="profile-avatar profile-avatar-fallback" hidden>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                                         @else
                                             <span class="profile-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>

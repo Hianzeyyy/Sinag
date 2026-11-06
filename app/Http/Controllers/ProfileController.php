@@ -76,6 +76,21 @@ class ProfileController extends Controller
         abort(404);
     }
 
+    public function profilePhoto(\App\Models\User $user)
+    {
+        $path = $user->profile_photo_path;
+        abort_if(blank($path), 404);
+
+        $disk = Storage::disk('public');
+        abort_unless($disk->exists($path), 404);
+
+        $response = response()->file($disk->path($path));
+        $response->setPrivate();
+        $response->headers->set('Cache-Control', 'private, no-store');
+
+        return $response;
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
@@ -89,7 +104,7 @@ class ProfileController extends Controller
             'age' => ['required', 'integer', 'min:1', 'max:120'],
             'gender' => ['required', 'string', 'in:Male,Female,Prefer not to say'],
             'department' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'max:50', 'regex:/^[0-9]+$/'],
+            'phone_number' => ['required', 'string', 'regex:/^09[0-9]{9}$/'],
             'cloak_alias' => ['nullable', 'string', 'max:255', Rule::unique('users', 'cloak_alias')->ignore($user->id)],
             'personal_information' => ['required', 'array'],
             'personal_information.date_of_birth' => ['required', 'string', 'max:255'],

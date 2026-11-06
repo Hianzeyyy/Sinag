@@ -74,6 +74,12 @@ class VerificationImageAccessTest extends TestCase
         $this->assertNotEmpty($student->profile_photo_path);
         Storage::disk('public')->assertExists($student->profile_photo_path);
 
+        $photoResponse = $this->actingAs($student)
+            ->get(route('profile.photo', $student))
+            ->assertOk();
+        $this->assertStringContainsString('private', $photoResponse->headers->get('Cache-Control'));
+        $this->assertStringContainsString('no-store', $photoResponse->headers->get('Cache-Control'));
+
         $this->actingAs($student)
             ->post(route('profile.verification-image.update'), [
                 'verification_image' => UploadedFile::fake()->image('student-id.png'),

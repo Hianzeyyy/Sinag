@@ -33,7 +33,7 @@ class AuthController extends Controller
             'availability_status' => $user->availability_status,
             'account_status' => $user->account_status,
             'profile_photo_url' => $user->profile_photo_path
-                ? url('storage/' . ltrim($user->profile_photo_path, '/'))
+                ? route('profile.photo', $user)
                 : null,
             'personal_data_complete' => $user->hasCompletedPersonalData(),
         ];
