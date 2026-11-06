@@ -237,7 +237,8 @@
                                     </div>
                                     <div class="col-md-12 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Contact Number</label>
-                                        <input type="tel" class="form-control" name="phone_number" value="{{ old('phone_number') }}" inputmode="numeric" pattern="[0-9]+" maxlength="50" required placeholder="e.g. 09123456789">
+                                        <input type="tel" class="form-control" name="phone_number" value="{{ old('phone_number') }}" inputmode="numeric" pattern="09[0-9]{9}" minlength="11" maxlength="11" required placeholder="e.g. 09123456789" title="Enter an 11-digit Philippine mobile number starting with 09">
+                                        <div class="form-text">Use 11 digits and start with 09 (example: 09123456789).</div>
                                         @error('phone_number')
                                             <div class="text-warning small mt-1">{{ $message }}</div>
                                         @enderror

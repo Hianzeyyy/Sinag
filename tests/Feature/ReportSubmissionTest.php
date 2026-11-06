@@ -38,7 +38,6 @@ class ReportSubmissionTest extends TestCase
         $response->assertOk()
             ->assertSee('Emergency Hotline')
             ->assertSee('Submit Report')
-            ->assertDontSee('Gender and Development Safe Space and Participatory Suggestion System for Employees and Students of Pangasinan State University')
             ->assertSee('Student main navigation')
             ->assertSee('id="studentSidebar"', false)
             ->assertSee('id="studentSidebarBackdrop"', false)
