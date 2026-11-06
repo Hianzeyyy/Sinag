@@ -148,7 +148,9 @@ class StudentApiController extends Controller
             ], 422);
         }
 
+        $appointmentId = ((int) DB::table('appointment_requests')->max('id')) + 1;
         DB::table('appointment_requests')->insert([
+            'id' => $appointmentId,
             'user_id' => $request->user()->id,
             'full_name' => $v['full_name'],
             'student_id' => $v['student_id'],
@@ -234,7 +236,9 @@ class StudentApiController extends Controller
             return response()->json(['message' => 'No admin available'], 404);
         }
 
-        $id = DB::table('messages')->insertGetId([
+        $id = ((int) DB::table('messages')->max('id')) + 1;
+        DB::table('messages')->insert([
+            'id' => $id,
             'sender_id' => $request->user()->id,
             'receiver_id' => $admin->id,
             'message' => $request->message,

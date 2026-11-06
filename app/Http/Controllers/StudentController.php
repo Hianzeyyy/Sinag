@@ -422,7 +422,9 @@ class StudentController extends Controller
             return response()->json(['error' => 'No admin available'], 404);
         }
 
-        $messageId = \DB::table('messages')->insertGetId([
+        $messageId = ((int) \DB::table('messages')->max('id')) + 1;
+        \DB::table('messages')->insert([
+            'id' => $messageId,
             'sender_id' => Auth::id(),
             'receiver_id' => $admin->id,
             'message' => $request->message,
@@ -585,7 +587,9 @@ class StudentController extends Controller
                 ->withErrors(['appointment' => 'You already have an active appointment. Edit or cancel it before scheduling another.']);
         }
 
+        $appointmentId = ((int) \DB::table('appointment_requests')->max('id')) + 1;
         \DB::table('appointment_requests')->insert([
+            'id' => $appointmentId,
             'user_id' => Auth::id(),
             'full_name' => $validated['full_name'],
             'student_id' => $validated['student_id'],

@@ -69,7 +69,7 @@ class ReportSubmissionTest extends TestCase
         });
 
         Schema::create('reports', function (Blueprint $table): void {
-            $table->id();
+            $table->unsignedBigInteger('id')->primary();
             $table->foreignId('user_id');
             $table->string('incident_id')->unique();
             $table->string('cloak_alias');

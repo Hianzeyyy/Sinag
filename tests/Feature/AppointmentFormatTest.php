@@ -96,6 +96,41 @@ class AppointmentFormatTest extends TestCase
             ->assertSessionHas('success');
     }
 
+    public function test_student_can_submit_appointment_when_database_does_not_auto_generate_ids(): void
+    {
+        Schema::drop('appointment_requests');
+        Schema::create('appointment_requests', function (Blueprint $table): void {
+            $table->unsignedBigInteger('id')->primary();
+            $table->unsignedBigInteger('user_id');
+            $table->string('full_name');
+            $table->string('student_id')->nullable();
+            $table->string('purpose_of_visit');
+            $table->string('urgency_level');
+            $table->date('scheduled_date');
+            $table->time('scheduled_time');
+            $table->longText('description');
+            $table->string('format');
+            $table->string('status')->default('pending');
+            $table->longText('admin_notes')->nullable();
+            $table->longText('cancellation_reason')->nullable();
+            $table->timestamps();
+        });
+
+        $user = $this->student();
+        $this->actingAs($user)
+            ->post(route('student.schedule-appointment.store'), $this->appointmentData([
+                'format' => 'Face-to-Face',
+            ]))
+            ->assertRedirect(route('student.schedule-appointment'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('appointment_requests', [
+            'id' => 1,
+            'user_id' => $user->id,
+            'format' => 'Face-to-Face',
+        ]);
+    }
+
     public function test_student_cannot_request_an_appointment_on_an_unavailable_date(): void
     {
         $date = now()->addDays(3)->toDateString();

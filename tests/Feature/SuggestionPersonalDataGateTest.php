@@ -174,7 +174,7 @@ class SuggestionPersonalDataGateTest extends TestCase
     public function test_users_with_completed_personal_data_can_post_suggestions(): void
     {
         $this->createUsersTable();
-        $this->createSuggestionTables();
+        $this->createSuggestionTables(true, false);
 
         $user = User::create([
             'name' => 'Test Student',
@@ -220,6 +220,7 @@ class SuggestionPersonalDataGateTest extends TestCase
         $response->assertRedirect(route('student.boses'));
         $response->assertSessionHas('success');
         $this->assertDatabaseHas('suggestions', [
+            'id' => 1,
             'user_id' => $user->id,
             'category' => 'GAD Programs and Services',
             'message' => 'Please add more GAD awareness activities.',

@@ -89,6 +89,7 @@ class ReportApiController extends Controller
         } while (DB::table('reports')->where('incident_id', $incidentId)->exists());
 
         $row = [
+            'id' => ((int) DB::table('reports')->max('id')) + 1,
             'user_id' => $user->id,
             'incident_id' => $incidentId,
             'cloak_alias' => $alias,

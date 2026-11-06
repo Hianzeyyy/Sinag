@@ -53,6 +53,35 @@ class MessageEditDeleteTest extends TestCase
         ]);
     }
 
+    public function test_student_can_send_message_when_database_does_not_auto_generate_ids(): void
+    {
+        [$student, $admin] = $this->users();
+        Schema::drop('messages');
+        Schema::create('messages', function (Blueprint $table): void {
+            $table->unsignedBigInteger('id')->primary();
+            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('receiver_id');
+            $table->text('message');
+            $table->text('original_message')->nullable();
+            $table->string('sender_type')->default('student');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamp('deleted_at')->nullable();
+            $table->timestamps();
+        });
+
+        $this->actingAs($student)
+            ->postJson(route('student.messages.store'), ['message' => 'Hello GAD Office'])
+            ->assertOk()
+            ->assertJsonPath('message.id', 1);
+
+        $this->assertDatabaseHas('messages', [
+            'id' => 1,
+            'sender_id' => $student->id,
+            'receiver_id' => $admin->id,
+            'message' => 'Hello GAD Office',
+        ]);
+    }
+
     public function test_user_cannot_edit_another_users_message(): void
     {
         [$student, $admin] = $this->users();

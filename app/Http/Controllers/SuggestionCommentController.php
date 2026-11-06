@@ -23,6 +23,7 @@ class SuggestionCommentController extends Controller
         $suggestion = Suggestion::findOrFail($suggestionId);
 
         \DB::table('suggestion_comments')->insert([
+            'id' => ((int) \DB::table('suggestion_comments')->max('id')) + 1,
             'suggestion_id' => $suggestion->id,
             'user_id' => Auth::id(),
             'comment' => $request->comment,

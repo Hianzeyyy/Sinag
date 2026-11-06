@@ -50,6 +50,7 @@ class AnnouncementController extends Controller
         ]);
 
         \DB::table('announcements')->insert([
+            'id' => ((int) \DB::table('announcements')->max('id')) + 1,
             'title' => $request->title,
             'body' => $request->body,
             'user_id' => Auth::id(),

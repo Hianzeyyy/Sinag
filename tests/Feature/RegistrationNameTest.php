@@ -14,7 +14,7 @@ class RegistrationNameTest extends TestCase
     public function test_registration_stores_first_middle_and_last_name_and_composes_the_display_name(): void
     {
         Schema::create('users', function (Blueprint $table): void {
-            $table->id();
+            $table->unsignedBigInteger('id')->primary();
             $table->string('name');
             $table->string('first_name')->nullable();
             $table->string('middle_name')->nullable();

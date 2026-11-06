@@ -589,6 +589,7 @@ class AdminController extends Controller
         ]);
 
         \DB::table('gad_schedules')->insert([
+            'id' => ((int) \DB::table('gad_schedules')->max('id')) + 1,
             ...$validated,
             'created_by' => Auth::id(),
             'created_at' => now(),
@@ -731,6 +732,7 @@ class AdminController extends Controller
                         ]);
                     } else {
                         \DB::table('gad_schedules')->insert($payload + [
+                            'id' => ((int) \DB::table('gad_schedules')->max('id')) + 1,
                             'created_by' => Auth::id(),
                             'created_at' => now(),
                             'updated_at' => now(),
@@ -962,7 +964,9 @@ class AdminController extends Controller
             return response()->json(['error' => 'Invalid message recipient'], 422);
         }
 
-        $messageId = \DB::table('messages')->insertGetId([
+        $messageId = ((int) \DB::table('messages')->max('id')) + 1;
+        \DB::table('messages')->insert([
+            'id' => $messageId,
             'sender_id'   => Auth::id(),
             'receiver_id' => $student->id,
             'message'     => $request->message,

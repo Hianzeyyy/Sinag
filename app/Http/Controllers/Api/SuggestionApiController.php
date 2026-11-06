@@ -87,6 +87,7 @@ class SuggestionApiController extends Controller
         $this->assertClean($message, 'message', 'Please submit positive and constructive suggestions only. Negative or offensive language is not allowed.');
 
         DB::table('suggestions')->insert([
+            'id' => ((int) DB::table('suggestions')->max('id')) + 1,
             'user_id' => $request->user()->id,
             'category' => $data['category'],
             'message' => $message,
@@ -155,6 +156,7 @@ class SuggestionApiController extends Controller
         $this->assertClean($data['comment'], 'comment', 'Naglalaman ng hindi angkop na salita ang iyong komento.');
         $s = Suggestion::findOrFail($id);
         DB::table('suggestion_comments')->insert([
+            'id' => ((int) DB::table('suggestion_comments')->max('id')) + 1,
             'suggestion_id' => $s->id,
             'user_id' => $request->user()->id,
             'comment' => $data['comment'],
@@ -206,6 +208,7 @@ class SuggestionApiController extends Controller
 
         if (!DB::table('suggestion_reports')->where($key)->exists()) {
             DB::table('suggestion_reports')->insert($key + [
+                'id' => ((int) DB::table('suggestion_reports')->max('id')) + 1,
                 'suggestion_id' => $suggestionId,
                 'reason' => $data['reason'],
                 'created_at' => now(),

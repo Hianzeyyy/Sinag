@@ -87,6 +87,7 @@ class SuggestionController extends Controller
         }
 
         $suggestionData = [
+            'id' => ((int) \DB::table('suggestions')->max('id')) + 1,
             'user_id' => Auth::id(),
             'category' => $request->category,
             'message' => $message,
