@@ -251,7 +251,7 @@ class AdminController extends Controller
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
-        $baseQuery = User::where('id', '!=', Auth::id());
+        $baseQuery = User::query();
         $usersQuery = (clone $baseQuery)
             ->when($request->filled('q'), function ($query) use ($request) {
                 $terms = preg_split('/\s+/', strtolower(trim($request->input('q'))), -1, PREG_SPLIT_NO_EMPTY);
