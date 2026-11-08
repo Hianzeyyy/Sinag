@@ -11,7 +11,11 @@ use App\Support\CompatibleInsert;
 
 class ProvisionAdmin extends Command
 {
-    protected $signature = 'app:provision-admin {email : Email address for the administrator account}';
+    protected $signature = 'app:provision-admin
+        {email : Email address for the administrator account}
+        {--name= : Administrator name}
+        {--password= : Administrator password; prefer ADMIN_PASSWORD for deployments}
+        {--force : Skip confirmation when updating an existing account}';
 
     protected $description = 'Create or securely promote an administrator account';
 
@@ -30,13 +34,14 @@ class ProvisionAdmin extends Command
 
         $user = User::where('email', $email)->first();
 
-        if ($user && !$this->confirm("Promote {$email} to administrator and replace its password?")) {
+        if ($user && !$this->option('force') && !$this->confirm("Promote {$email} to administrator and replace its password?")) {
             $this->info('No changes were made.');
 
             return self::SUCCESS;
         }
 
-        $name = $user?->name ?? trim((string) $this->ask('Administrator name'));
+        $name = $this->option('name')
+            ?? ($user?->name ?? trim((string) $this->ask('Administrator name')));
         $nameValidator = Validator::make(['name' => $name], [
             'name' => ['required', 'string', 'max:255'],
         ]);
@@ -47,8 +52,13 @@ class ProvisionAdmin extends Command
             return self::FAILURE;
         }
 
-        $password = $this->secret('Administrator password (12+ characters, mixed case, number, and symbol)');
-        $passwordConfirmation = $this->secret('Confirm administrator password');
+        $password = $this->option('password') ?? env('ADMIN_PASSWORD');
+        $passwordConfirmation = $password;
+
+        if ($password === null) {
+            $password = $this->secret('Administrator password (12+ characters, mixed case, number, and symbol)');
+            $passwordConfirmation = $this->secret('Confirm administrator password');
+        }
 
         if (!is_string($password) || $password === '' || $password !== $passwordConfirmation) {
             $this->error('The password is empty or the confirmation does not match.');

@@ -65,18 +65,28 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 ## Administrator provisioning
 
-Migrations and seeders do not create default login accounts, and Docker startup
-does not run seeders. After migrating a fresh installation, provision an
-administrator interactively with a strong, unique password:
+Migrations and seeders do not contain a default password. To provision the
+administrator automatically on both localhost and Render, set the following
+values in local `.env` and in Render's Environment Variables:
+
+```text
+ADMIN_EMAIL=admin@psu.edu.ph
+ADMIN_NAME=GAD Administrator
+ADMIN_PASSWORD=<strong unique password>
+```
+
+Docker startup runs migrations and then provisions or reactivates this account
+without requiring a Render shell. The password is read only from the environment
+and is never stored in source code.
+
+For a manual local setup, provision an administrator interactively with:
 
 ```text
 php artisan app:provision-admin admin@psu.edu.ph
 ```
 
-Run this in the local project terminal or the Render service shell. The command
-can also promote an existing user after confirmation. Use a password manager to
-generate the password; do not put credentials in source code or deployment
-commands.
+The command can also promote an existing user after confirmation. Use a password
+manager to generate the password; do not commit credentials.
 
 ## Render PostgreSQL connection
 

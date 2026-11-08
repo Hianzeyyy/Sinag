@@ -77,6 +77,29 @@ class ProvisionAdminCommandTest extends TestCase
         $this->assertFalse(Hash::check('LegacyPassword!2026', $user->password));
     }
 
+    public function test_it_can_provision_an_admin_without_interactive_prompts(): void
+    {
+        $password = 'SecureDeploymentAdmin!2026';
+
+        $this->artisan('app:provision-admin', [
+            'email' => 'admin@example.test',
+            '--name' => 'Deployment Admin',
+            '--password' => $password,
+            '--force' => true,
+        ])
+            ->expectsOutputToContain('Administrator account admin@example.test is ready.')
+            ->assertExitCode(0);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'admin@example.test',
+            'name' => 'Deployment Admin',
+            'role' => 'admin',
+            'account_type' => 'admin',
+            'account_status' => 'active',
+        ]);
+        $this->assertTrue(Hash::check($password, \App\Models\User::where('email', 'admin@example.test')->value('password')));
+    }
+
     public function test_it_revokes_the_legacy_support_accounts(): void
     {
         foreach (['admin@psu.edu.ph', 'student@psu.edu.ph'] as $email) {
