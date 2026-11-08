@@ -48,6 +48,35 @@ class ProvisionAdminCommandTest extends TestCase
         $this->assertTrue(Hash::check($password, \App\Models\User::where('email', 'admin@example.test')->value('password')));
     }
 
+    public function test_it_reactivates_a_rejected_admin_with_a_new_operator_chosen_password(): void
+    {
+        $user = \App\Models\User::create([
+            'name' => 'Legacy Admin',
+            'email' => 'admin@example.test',
+            'password' => Hash::make('LegacyPassword!2026'),
+            'role' => 'student',
+            'account_type' => 'student',
+            'account_status' => 'rejected',
+            'rejection_reason' => 'Legacy account disabled.',
+        ]);
+        $newPassword = 'ReactivatedAdmin!2026';
+
+        $this->artisan('app:provision-admin', ['email' => $user->email])
+            ->expectsConfirmation('Promote admin@example.test to administrator and replace its password?', 'yes')
+            ->expectsQuestion('Administrator password (12+ characters, mixed case, number, and symbol)', $newPassword)
+            ->expectsQuestion('Confirm administrator password', $newPassword)
+            ->expectsOutputToContain('Administrator account admin@example.test is ready.')
+            ->assertExitCode(0);
+
+        $user->refresh();
+        $this->assertSame('admin', $user->role);
+        $this->assertSame('admin', $user->account_type);
+        $this->assertSame('active', $user->account_status);
+        $this->assertNull($user->rejection_reason);
+        $this->assertTrue(Hash::check($newPassword, $user->password));
+        $this->assertFalse(Hash::check('LegacyPassword!2026', $user->password));
+    }
+
     public function test_it_revokes_the_legacy_support_accounts(): void
     {
         foreach (['admin@psu.edu.ph', 'student@psu.edu.ph'] as $email) {
