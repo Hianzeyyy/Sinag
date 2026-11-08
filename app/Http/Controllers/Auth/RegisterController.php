@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\CompatibleInsert;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -129,11 +130,9 @@ class RegisterController extends Controller
 
         try {
             return DB::transaction(function () use ($data, $accountType, $cloakAlias, $profilePhotoPath, $selfieImagePath) {
-                $id = ((int) DB::table('users')->max('id')) + 1;
                 $email = strtolower(trim($data['email']));
 
-                DB::table('users')->insert([
-                    'id' => $id,
+                $id = CompatibleInsert::insert('users', [
                     'name' => implode(' ', array_filter([
                         trim($data['first_name']),
                         trim($data['middle_name'] ?? ''),

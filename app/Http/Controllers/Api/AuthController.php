@@ -124,9 +124,7 @@ class AuthController extends Controller
             $stored[] = ['public', $photo];
 
             DB::transaction(function () use ($data, $accountType, $cloakAlias, $photo, $selfie) {
-                $id = ((int) DB::table('users')->max('id')) + 1;
-                DB::table('users')->insert([
-                    'id' => $id,
+                \App\Support\CompatibleInsert::insert('users', [
                     'name' => trim($data['name']),
                     'email' => strtolower(trim($data['email'])),
                     'age' => $data['age'],

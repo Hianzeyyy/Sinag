@@ -14,7 +14,7 @@
             <p class="mb-0">An administrator will verify your identity before you create a new password.</p>
         </div>
         <div class="card-body p-4 p-lg-5">
-            @if ($errors->any())
+            @if (isset($errors) && $errors->any())
                 <div class="alert alert-danger"><ul class="mb-0">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
             @endif
             <form method="POST" action="{{ route('password.code.request') }}" enctype="multipart/form-data">

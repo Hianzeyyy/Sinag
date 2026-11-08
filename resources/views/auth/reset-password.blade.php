@@ -6,7 +6,7 @@
         <div class="card-body p-4 p-lg-5">
             <h1 class="h3 fw-bold mb-2">Create New Password</h1>
             <p class="text-muted">Your approved reset link is valid for a single use.</p>
-            @if ($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
+            @if (isset($errors) && $errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
             <form method="POST" action="{{ route('password.reset.submit', [$passwordResetRequest, $token]) }}">
                 @csrf
                 <label class="form-label fw-bold" for="password">New password</label>

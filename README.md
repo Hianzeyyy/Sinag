@@ -57,10 +57,42 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
 # Sinag
 # Sinag
 # system
 # Sinag
+
+## Administrator provisioning
+
+Migrations and seeders do not create default login accounts, and Docker startup
+does not run seeders. After migrating a fresh installation, provision an
+administrator interactively with a strong, unique password:
+
+```text
+php artisan app:provision-admin admin@psu.edu.ph
+```
+
+Run this in the local project terminal or the Render service shell. The command
+can also promote an existing user after confirmation. Use a password manager to
+generate the password; do not put credentials in source code or deployment
+commands.
+
+## Render PostgreSQL connection
+
+The Docker image supports both MySQL/TiDB and PostgreSQL. To use a Render
+PostgreSQL database, set `DB_CONNECTION=pgsql` and connect the web service to
+the database using Render's internal database URL or its internal host, port,
+database name, username, and password. Keep the URL or password in Render
+environment secrets; do not commit them. For the supplied database, the
+database name is `siinag` and the internal host is
+`dpg-dbo7iqvf3r2c73ad3l00-a`.
+
+Changing the connection does not copy existing records. Back up the current
+database and migrate its data into PostgreSQL before directing production
+traffic to the new database. After import and before enabling writes, run
+`php artisan app:sync-postgres-sequences` from a shell connected to the new
+database to position generated IDs above imported records.
 
 ## Render upload persistence
 

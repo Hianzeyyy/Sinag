@@ -16,8 +16,7 @@ class SuggestionReportController extends Controller
         $validated = $request->validate(['reason' => ['required', 'string', 'max:500']]);
         $attributes = ['reporter_id' => Auth::id(), 'suggestion_id' => $suggestion->id, 'status' => 'pending'];
         if (!SuggestionReport::where($attributes)->exists()) {
-            \DB::table('suggestion_reports')->insert($attributes + [
-                'id' => ((int) \DB::table('suggestion_reports')->max('id')) + 1,
+            \App\Support\CompatibleInsert::insert('suggestion_reports', $attributes + [
                 'reason' => $validated['reason'],
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -32,8 +31,7 @@ class SuggestionReportController extends Controller
         $validated = $request->validate(['reason' => ['required', 'string', 'max:500']]);
         $attributes = ['reporter_id' => Auth::id(), 'comment_id' => $comment->id, 'status' => 'pending'];
         if (!SuggestionReport::where($attributes)->exists()) {
-            \DB::table('suggestion_reports')->insert($attributes + [
-                'id' => ((int) \DB::table('suggestion_reports')->max('id')) + 1,
+            \App\Support\CompatibleInsert::insert('suggestion_reports', $attributes + [
                 'reason' => $validated['reason'],
                 'suggestion_id' => $comment->suggestion_id,
                 'created_at' => now(),

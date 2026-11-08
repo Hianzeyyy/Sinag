@@ -22,9 +22,7 @@ class SuggestionController extends Controller
             $suggestion->upvotes()->detach($user->id);
             $upvoted = false;
         } else {
-            $upvoteId = ((int) \DB::table('suggestion_user_upvotes')->max('id')) + 1;
-            \DB::table('suggestion_user_upvotes')->insert([
-                'id' => $upvoteId,
+            \App\Support\CompatibleInsert::insert('suggestion_user_upvotes', [
                 'suggestion_id' => $suggestion->id,
                 'user_id' => $user->id,
                 'created_at' => now(),
@@ -87,7 +85,6 @@ class SuggestionController extends Controller
         }
 
         $suggestionData = [
-            'id' => ((int) \DB::table('suggestions')->max('id')) + 1,
             'user_id' => Auth::id(),
             'category' => $request->category,
             'message' => $message,
@@ -101,7 +98,7 @@ class SuggestionController extends Controller
             $suggestionData['image_path'] = $imagePath;
         }
 
-        \DB::table('suggestions')->insert($suggestionData);
+        \App\Support\CompatibleInsert::insert('suggestions', $suggestionData);
 
         // 3. Redirect back with Success Message
         return redirect()->back()->with('success', 'Salamat sa iyong mungkahi! Ito ay ipapasa muna sa GAD admin para sa approval bago ma-post.');

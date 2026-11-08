@@ -89,7 +89,6 @@ class ReportApiController extends Controller
         } while (DB::table('reports')->where('incident_id', $incidentId)->exists());
 
         $row = [
-            'id' => ((int) DB::table('reports')->max('id')) + 1,
             'user_id' => $user->id,
             'incident_id' => $incidentId,
             'cloak_alias' => $alias,
@@ -107,7 +106,7 @@ class ReportApiController extends Controller
             'updated_at' => now(),
         ];
 
-        DB::table('reports')->insert(array_intersect_key($row, array_flip(Schema::getColumnListing('reports'))));
+        \App\Support\CompatibleInsert::insert('reports', array_intersect_key($row, array_flip(Schema::getColumnListing('reports'))));
 
         return response()->json([
             'message' => 'Report submitted. It has been delivered to the GAD Admin inbox for review.',

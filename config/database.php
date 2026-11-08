@@ -3,8 +3,7 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
-$configuredConnection = strtolower(trim((string) env('DB_CONNECTION', 'sqlite')));
-$databaseUrl = env('DB_URL');
+$databaseUrl = env('DB_URL', env('DATABASE_URL'));
 $urlScheme = strtolower((string) parse_url((string) $databaseUrl, PHP_URL_SCHEME));
 $urlDriver = match ($urlScheme) {
     'mysql', 'mysql2' => 'mysql',
@@ -13,6 +12,7 @@ $urlDriver = match ($urlScheme) {
     'sqlsrv' => 'sqlsrv',
     default => null,
 };
+$configuredConnection = strtolower(trim((string) env('DB_CONNECTION', $urlDriver ?? 'sqlite')));
 $supportedConnections = ['sqlite', 'mysql', 'mariadb', 'pgsql', 'sqlsrv'];
 $databaseConnection = in_array($configuredConnection, $supportedConnections, true)
     ? $configuredConnection
@@ -38,6 +38,7 @@ if (extension_loaded('pdo_mysql')) {
     }
 }
 if (env('APP_ENV', 'production') === 'production'
+    && $databaseConnection === 'mysql'
     && $urlDriver === null
     && ($databaseHost === '' || in_array($databaseHost, ['127.0.0.1', 'localhost'], true))
     && (

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
+use App\Support\CompatibleInsert;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -56,10 +57,7 @@ class ForgotPasswordController extends Controller
 
         $reference = 'PRR-' . Str::upper(Str::random(10));
         $resetRequestId = DB::transaction(function () use ($user, $validated, $reference, $path) {
-            $id = ((int) DB::table('password_reset_requests')->max('id')) + 1;
-
-            DB::table('password_reset_requests')->insert([
-                'id' => $id,
+            return CompatibleInsert::insert('password_reset_requests', [
                 'user_id' => $user->id,
                 'reference_number' => $reference,
                 'email' => $user->email,
@@ -73,15 +71,20 @@ class ForgotPasswordController extends Controller
                 'updated_at' => now(),
             ]);
 
-            return $id;
         });
         Log::info('Password reset request submitted', ['request_id' => $resetRequestId, 'reference_number' => $reference, 'ip' => $request->ip()]);
 
         return redirect()->route('password.status.form', ['reference' => $reference])
-            ->with('success', 'Request submitted. Keep your reference number to check its status.');
+            ->with('success', 'Request submitted. Keep your reference number to check its status.')
+            ->with('reference', $reference);
     }
 
-    public function showStatusForm() { return view('auth.password-status'); }
+    public function showStatusForm(Request $request)
+    {
+        $reference = $request->query('reference') ?? session('reference');
+
+        return view('auth.password-status', compact('reference'));
+    }
 
     public function checkStatus(Request $request)
     {

@@ -86,8 +86,7 @@ class SuggestionApiController extends Controller
         $message = trim($data['message']);
         $this->assertClean($message, 'message', 'Please submit positive and constructive suggestions only. Negative or offensive language is not allowed.');
 
-        DB::table('suggestions')->insert([
-            'id' => ((int) DB::table('suggestions')->max('id')) + 1,
+        \App\Support\CompatibleInsert::insert('suggestions', [
             'user_id' => $request->user()->id,
             'category' => $data['category'],
             'message' => $message,
@@ -136,9 +135,7 @@ class SuggestionApiController extends Controller
             $s->upvotes()->detach($uid);
             $upvoted = false;
         } else {
-            $upvoteId = ((int) DB::table('suggestion_user_upvotes')->max('id')) + 1;
-            DB::table('suggestion_user_upvotes')->insert([
-                'id' => $upvoteId,
+            \App\Support\CompatibleInsert::insert('suggestion_user_upvotes', [
                 'suggestion_id' => $s->id,
                 'user_id' => $uid,
                 'created_at' => now(),
@@ -155,8 +152,7 @@ class SuggestionApiController extends Controller
         $data = $request->validate(['comment' => 'required|string|max:1000']);
         $this->assertClean($data['comment'], 'comment', 'Naglalaman ng hindi angkop na salita ang iyong komento.');
         $s = Suggestion::findOrFail($id);
-        DB::table('suggestion_comments')->insert([
-            'id' => ((int) DB::table('suggestion_comments')->max('id')) + 1,
+        \App\Support\CompatibleInsert::insert('suggestion_comments', [
             'suggestion_id' => $s->id,
             'user_id' => $request->user()->id,
             'comment' => $data['comment'],
@@ -207,8 +203,7 @@ class SuggestionApiController extends Controller
         $key = ['reporter_id' => $request->user()->id, 'status' => 'pending'] + $target;
 
         if (!DB::table('suggestion_reports')->where($key)->exists()) {
-            DB::table('suggestion_reports')->insert($key + [
-                'id' => ((int) DB::table('suggestion_reports')->max('id')) + 1,
+            \App\Support\CompatibleInsert::insert('suggestion_reports', $key + [
                 'suggestion_id' => $suggestionId,
                 'reason' => $data['reason'],
                 'created_at' => now(),

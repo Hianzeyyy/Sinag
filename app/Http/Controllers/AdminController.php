@@ -53,7 +53,7 @@ class AdminController extends Controller
 
         // 3. Recent Reports Table
         $recentReports = Report::with('user')
-                                ->orderByRaw("FIELD(status, 'Emergency') DESC")
+                                ->orderByRaw("CASE WHEN status = 'Emergency' THEN 0 ELSE 1 END")
                                 ->latest()
                                 ->take(5)
                                 ->get();
@@ -318,7 +318,7 @@ class AdminController extends Controller
             ->paginate(30)
             ->withQueryString();
         $userCounts = $baseQuery
-            ->selectRaw("SUM(account_status = 'pending') as pending, SUM(account_status IN ('active', 'approved')) as active, SUM(account_status = 'rejected') as rejected, COUNT(*) as total")
+            ->selectRaw("SUM(CASE WHEN account_status = 'pending' THEN 1 ELSE 0 END) as pending, SUM(CASE WHEN account_status IN ('active', 'approved') THEN 1 ELSE 0 END) as active, SUM(CASE WHEN account_status = 'rejected' THEN 1 ELSE 0 END) as rejected, COUNT(*) as total")
             ->first();
         $departmentType = $request->input('account_type');
         $studentDepartments = [
@@ -588,8 +588,7 @@ class AdminController extends Controller
             'status'          => ['required', 'in:active,inactive,unavailable'],
         ]);
 
-        \DB::table('gad_schedules')->insert([
-            'id' => ((int) \DB::table('gad_schedules')->max('id')) + 1,
+        \App\Support\CompatibleInsert::insert('gad_schedules', [
             ...$validated,
             'created_by' => Auth::id(),
             'created_at' => now(),
@@ -731,8 +730,7 @@ class AdminController extends Controller
                             'updated_at' => now(),
                         ]);
                     } else {
-                        \DB::table('gad_schedules')->insert($payload + [
-                            'id' => ((int) \DB::table('gad_schedules')->max('id')) + 1,
+                        \App\Support\CompatibleInsert::insert('gad_schedules', $payload + [
                             'created_by' => Auth::id(),
                             'created_at' => now(),
                             'updated_at' => now(),
@@ -964,9 +962,7 @@ class AdminController extends Controller
             return response()->json(['error' => 'Invalid message recipient'], 422);
         }
 
-        $messageId = ((int) \DB::table('messages')->max('id')) + 1;
-        \DB::table('messages')->insert([
-            'id' => $messageId,
+        $messageId = \App\Support\CompatibleInsert::insert('messages', [
             'sender_id'   => Auth::id(),
             'receiver_id' => $student->id,
             'message'     => $request->message,
@@ -1090,7 +1086,7 @@ class AdminController extends Controller
         }
 
         $appointments = AppointmentRequest::with('user')
-            ->orderByRaw("FIELD(urgency_level, 'High', 'Medium', 'Low')")
+            ->orderByRaw("CASE urgency_level WHEN 'High' THEN 0 WHEN 'Medium' THEN 1 WHEN 'Low' THEN 2 ELSE 3 END")
             ->latest()
             ->paginate(30)
             ->withQueryString();

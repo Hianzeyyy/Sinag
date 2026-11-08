@@ -49,8 +49,7 @@ class AnnouncementController extends Controller
             'body' => 'required|string',
         ]);
 
-        \DB::table('announcements')->insert([
-            'id' => ((int) \DB::table('announcements')->max('id')) + 1,
+        \App\Support\CompatibleInsert::insert('announcements', [
             'title' => $request->title,
             'body' => $request->body,
             'user_id' => Auth::id(),

@@ -6,22 +6,25 @@
         <div class="card-body p-4 p-lg-5">
             <h1 class="h3 fw-bold mb-2">Check Request Status</h1>
             <p class="text-muted">Use the reference number together with your registered email or ID number.</p>
-            @if (session('success'))
+            @php
+                $refNumber = request('reference') ?? session('reference') ?? ($reference ?? null);
+            @endphp
+            @if (session('success') || $refNumber)
                 <div class="alert alert-success">
-                    <div>{{ session('success') }}</div>
-                    @if (request('reference'))
+                    <div>{{ session('success') ?? 'Request submitted. Keep your reference number to check its status.' }}</div>
+                    @if ($refNumber)
                         <div class="mt-2">Your reference number is:</div>
-                        <div class="h4 fw-bold mb-0">{{ request('reference') }}</div>
+                        <div class="h4 fw-bold mb-0">{{ $refNumber }}</div>
                         <div class="small mt-2">Save this number. You will need it together with your registered email or ID to check approval.</div>
                     @endif
                 </div>
             @endif
-            @if ($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
+            @if (isset($errors) && $errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
             @if (!isset($resetRequest))
                 <form method="POST" action="{{ route('password.status.check') }}">
                     @csrf
                     <label class="form-label fw-bold" for="reference_number">Reference number</label>
-                    <input id="reference_number" name="reference_number" class="form-control mb-3" value="{{ old('reference_number', request('reference')) }}" required>
+                    <input id="reference_number" name="reference_number" class="form-control mb-3" value="{{ old('reference_number', $refNumber) }}" required>
                     <label class="form-label fw-bold" for="email_or_id">Registered email or student/employee ID</label>
                     <input id="email_or_id" name="email_or_id" class="form-control" value="{{ old('email_or_id') }}" required>
                     <button class="btn btn-primary w-100 mt-4 fw-bold" type="submit"><i class="bi bi-search me-2"></i>Check Status</button>
