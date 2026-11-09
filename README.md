@@ -69,11 +69,7 @@ Migrations and seeders do not contain a default password. To provision the
 administrator automatically on both localhost and Render, set the following
 values in local `.env` and in Render's Environment Variables:
 
-```text
-ADMIN_EMAIL=admin@psu.edu.ph
-ADMIN_NAME=GAD Administrator
-ADMIN_PASSWORD=<strong unique password>
-```
+
 
 Docker startup runs migrations and then provisions or reactivates this account
 without requiring a Render shell. The password is read only from the environment
