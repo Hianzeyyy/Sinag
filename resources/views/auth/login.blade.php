@@ -80,6 +80,83 @@
     .login-logo-pair .login-gad-logo { border-radius: 50%; clip-path: circle(50%); mix-blend-mode: multiply; }
     .login-brand-name { font-size: clamp(2.5rem, 5vw, 3.5rem); }
     .login-form-panel { min-width: 0; width: 100%; padding: 1.5rem !important; }
+    .password-lockout-modal {
+        --bs-modal-bg: transparent;
+        background: rgba(232, 232, 245, .88);
+    }
+    .password-lockout-modal .modal-dialog {
+        max-width: 25rem;
+        margin-inline: 1rem;
+    }
+    .password-lockout-modal .modal-content {
+        background: #fff;
+        border-radius: 1.25rem !important;
+        box-shadow: 0 1.5rem 4rem rgba(52, 48, 96, .18) !important;
+    }
+    .password-lockout-modal .modal-body {
+        position: relative;
+        padding: 2.8rem 2rem 2.25rem !important;
+    }
+    .password-lockout-modal .lockout-close {
+        position: absolute;
+        top: 1.15rem;
+        right: 1.15rem;
+        width: 2.7rem;
+        height: 2.7rem;
+        border: 1px solid #e3e8fb;
+        border-radius: 50%;
+        color: #242424;
+        background: #fff;
+        font-size: 1.8rem;
+        font-weight: 300;
+        line-height: 1;
+    }
+    .password-lockout-modal .lockout-icon {
+        width: 5.9rem;
+        height: 5.9rem;
+        margin: 0 auto 1.65rem;
+        border-radius: 50%;
+        color: #d9773f;
+        background: #fff1e9;
+        font-size: 2.4rem;
+    }
+    .password-lockout-modal .lockout-copy {
+        max-width: 18rem;
+        margin-inline: auto;
+        color: #262626;
+        font-size: .96rem;
+        line-height: 1.55;
+    }
+    .password-lockout-modal .lockout-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .75rem;
+        margin-top: 1.8rem;
+    }
+    .password-lockout-modal .lockout-action {
+        min-height: 3.2rem;
+        border: 1.5px solid #8da3ff;
+        border-radius: 999px;
+        color: #3f63dd;
+        background: #fff;
+        font-size: .84rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+    .password-lockout-modal .lockout-action:hover,
+    .password-lockout-modal .lockout-action:focus-visible {
+        color: #294dcc;
+        background: #f5f7ff;
+        border-color: #3f63dd;
+    }
+    .password-lockout-modal .lockout-settings {
+        display: inline-block;
+        margin-top: 1.65rem;
+        color: #303030;
+        font-size: .88rem;
+        text-decoration: underline;
+        text-underline-offset: .15rem;
+    }
     .login-input-group {
         border-radius: 12px;
         overflow: hidden;
@@ -664,19 +741,21 @@
          aria-labelledby="passwordLockoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content border-0 rounded-4 shadow-lg">
-                <div class="modal-body text-center p-4">
-                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis"
-                         style="width: 4rem; height: 4rem;">
-                        <i class="bi bi-shield-lock-fill fs-2"></i>
+                <div class="modal-body text-center">
+                    <button type="button" class="lockout-close d-flex align-items-center justify-content-center"
+                            data-bs-dismiss="modal" aria-label="Close notification">&times;</button>
+                    <div class="lockout-icon d-flex align-items-center justify-content-center">
+                        <i class="bi bi-shield-lock-fill"></i>
                     </div>
                     <h2 class="h5 fw-bold mb-2" id="passwordLockoutModalLabel">Password reset required</h2>
-                    <p class="text-secondary mb-4">
+                    <p class="lockout-copy mb-0">
                         Your account is locked after three failed password attempts. Reset your password to continue.
                     </p>
-                    <div class="d-grid gap-2">
-                        <a href="{{ session('password_reset_url') }}" class="btn btn-primary fw-bold">Reset your password</a>
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <div class="lockout-actions">
+                        <a href="{{ session('password_reset_url') }}" class="lockout-action d-flex align-items-center justify-content-center">Reset password</a>
+                        <button type="button" class="lockout-action" data-bs-dismiss="modal">Close</button>
                     </div>
+                    <a href="{{ session('password_reset_url') }}" class="lockout-settings">Password reset instructions</a>
                 </div>
             </div>
         </div>
