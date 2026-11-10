@@ -82,16 +82,20 @@
     .login-form-panel { min-width: 0; width: 100%; padding: 1.5rem !important; }
     .password-lockout-modal {
         --bs-modal-bg: transparent;
-        background: rgba(232, 232, 245, .88);
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(224, 219, 249, .9);
     }
     .password-lockout-modal .modal-dialog {
         max-width: 25rem;
-        margin-inline: 1rem;
+        width: min(100%, 25rem);
+        margin: 0 auto;
     }
     .password-lockout-modal .modal-content {
-        background: #fff;
+        background: #f5f2ff;
         border-radius: 1.25rem !important;
-        box-shadow: 0 1.5rem 4rem rgba(52, 48, 96, .18) !important;
+        box-shadow: 0 1.5rem 4rem rgba(74, 61, 143, .24) !important;
     }
     .password-lockout-modal .modal-body {
         position: relative;
@@ -116,8 +120,8 @@
         height: 5.9rem;
         margin: 0 auto 1.65rem;
         border-radius: 50%;
-        color: #d9773f;
-        background: #fff1e9;
+        color: #7259c9;
+        background: #e8e1ff;
         font-size: 2.4rem;
     }
     .password-lockout-modal .lockout-copy {
@@ -135,19 +139,19 @@
     }
     .password-lockout-modal .lockout-action {
         min-height: 3.2rem;
-        border: 1.5px solid #8da3ff;
+        border: 1.5px solid #9583e6;
         border-radius: 999px;
-        color: #3f63dd;
-        background: #fff;
+        color: #6851c4;
+        background: #faf9ff;
         font-size: .84rem;
         font-weight: 800;
         text-decoration: none;
     }
     .password-lockout-modal .lockout-action:hover,
     .password-lockout-modal .lockout-action:focus-visible {
-        color: #294dcc;
-        background: #f5f7ff;
-        border-color: #3f63dd;
+        color: #5139ad;
+        background: #eeeaff;
+        border-color: #7259c9;
     }
     .password-lockout-modal .lockout-settings {
         display: inline-block;
@@ -911,7 +915,7 @@
         document.body.appendChild(passwordLockoutBackdrop);
         document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
-        passwordLockoutModal.style.display = 'block';
+        passwordLockoutModal.style.display = 'flex';
         passwordLockoutModal.classList.add('show');
         passwordLockoutModal.setAttribute('aria-hidden', 'false');
         passwordLockoutModal.setAttribute('aria-modal', 'true');
