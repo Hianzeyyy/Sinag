@@ -133,8 +133,7 @@
     }
     .password-lockout-modal .lockout-actions {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: .75rem;
+        grid-template-columns: minmax(0, 1fr);
         margin-top: 1.8rem;
     }
     .password-lockout-modal .lockout-action {
@@ -152,14 +151,6 @@
         color: #5139ad;
         background: #eeeaff;
         border-color: #7259c9;
-    }
-    .password-lockout-modal .lockout-settings {
-        display: inline-block;
-        margin-top: 1.65rem;
-        color: #303030;
-        font-size: .88rem;
-        text-decoration: underline;
-        text-underline-offset: .15rem;
     }
     .login-input-group {
         border-radius: 12px;
@@ -757,9 +748,7 @@
                     </p>
                     <div class="lockout-actions">
                         <a href="{{ session('password_reset_url') }}" class="lockout-action d-flex align-items-center justify-content-center">Reset password</a>
-                        <button type="button" class="lockout-action" data-bs-dismiss="modal">Close</button>
                     </div>
-                    <a href="{{ session('password_reset_url') }}" class="lockout-settings">Password reset instructions</a>
                 </div>
             </div>
         </div>
