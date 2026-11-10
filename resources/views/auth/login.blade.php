@@ -905,8 +905,30 @@
     updateDepartmentOptions();
 
     const passwordLockoutModal = document.getElementById('passwordLockoutModal');
-    if (passwordLockoutModal && window.bootstrap) {
-        new bootstrap.Modal(passwordLockoutModal).show();
+    if (passwordLockoutModal) {
+        const passwordLockoutBackdrop = document.createElement('div');
+        passwordLockoutBackdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(passwordLockoutBackdrop);
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        passwordLockoutModal.style.display = 'block';
+        passwordLockoutModal.classList.add('show');
+        passwordLockoutModal.setAttribute('aria-hidden', 'false');
+        passwordLockoutModal.setAttribute('aria-modal', 'true');
+
+        const closePasswordLockoutModal = function () {
+            passwordLockoutModal.classList.remove('show');
+            passwordLockoutModal.style.display = 'none';
+            passwordLockoutModal.setAttribute('aria-hidden', 'true');
+            passwordLockoutModal.removeAttribute('aria-modal');
+            passwordLockoutBackdrop.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+        };
+
+        passwordLockoutModal.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function (button) {
+            button.addEventListener('click', closePasswordLockoutModal);
+        });
     }
 
 </script>
