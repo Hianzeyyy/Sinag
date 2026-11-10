@@ -44,6 +44,8 @@ class User extends Authenticatable
         'voluntary_work',
         'gad_training',
         'other_information',
+        'failed_login_attempts',
+        'password_locked_at',
     ];
 
     protected $hidden = [
@@ -65,6 +67,7 @@ class User extends Authenticatable
         'voluntary_work' => 'array',
         'gad_training' => 'array',
         'other_information' => 'array',
+        'password_locked_at' => 'datetime',
     ];
 
     public function getNameAttribute($value): string
@@ -119,7 +122,7 @@ class User extends Authenticatable
             }
         }
 
-        if (!$isEmployee) {
+        if (! $isEmployee) {
             $student = $this->student_information ?? [];
             foreach (['year_level', 'school_type', 'last_school_attended', 'financing_sources'] as $field) {
                 if (blank($student[$field] ?? null)) {

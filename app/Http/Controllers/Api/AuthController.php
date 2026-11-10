@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\CompatibleInsert;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,8 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    private const MAX_PASSWORD_ATTEMPTS = 3;
+
     public static function userPayload(User $user): array
     {
         return [
@@ -49,8 +52,40 @@ class AuthController extends Controller
 
         $user = User::where('email', strtolower(trim($data['email'])))->first();
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
+        if ($user?->password_locked_at !== null) {
+            return response()->json([
+                'message' => 'Your account is locked after three failed password attempts. Please reset your password.',
+                'password_reset_url' => route('password.code.form'),
+            ], 423);
+        }
+
+        if (! $user || ! Hash::check($data['password'], $user->password)) {
+            if ($user) {
+                $attempts = min(self::MAX_PASSWORD_ATTEMPTS, (int) $user->failed_login_attempts + 1);
+                $attributes = ['failed_login_attempts' => $attempts];
+
+                if ($attempts >= self::MAX_PASSWORD_ATTEMPTS) {
+                    $attributes['password_locked_at'] = now();
+                }
+
+                $user->forceFill($attributes)->saveQuietly();
+
+                if ($attempts >= self::MAX_PASSWORD_ATTEMPTS) {
+                    return response()->json([
+                        'message' => 'Your account is locked after three failed password attempts. Please reset your password.',
+                        'password_reset_url' => route('password.code.form'),
+                    ], 423);
+                }
+            }
+
             throw ValidationException::withMessages(['email' => ['These credentials do not match our records.']]);
+        }
+
+        if ($user->failed_login_attempts !== 0 || $user->password_locked_at !== null) {
+            $user->forceFill([
+                'failed_login_attempts' => 0,
+                'password_locked_at' => null,
+            ])->saveQuietly();
         }
 
         $status = strtolower(trim((string) ($user->account_status ?? 'active')));
@@ -59,7 +94,7 @@ class AuthController extends Controller
         }
         if ($status === 'rejected') {
             return response()->json([
-                'message' => 'Your registration was rejected. ' . ($user->rejection_reason ?: 'Please contact the GAD office for assistance.'),
+                'message' => 'Your registration was rejected. '.($user->rejection_reason ?: 'Please contact the GAD office for assistance.'),
             ], 403);
         }
         if ($status !== 'active') {
@@ -74,7 +109,7 @@ class AuthController extends Controller
                 'message' => 'GAD administrator accounts use the web dashboard. Please sign in on the website.',
             ], 403);
         }
-        if (!in_array($role, ['student', 'employee'], true)) {
+        if (! in_array($role, ['student', 'employee'], true)) {
             return response()->json(['message' => 'Unsupported account role. Please contact IT.'], 403);
         }
 
@@ -101,19 +136,19 @@ class AuthController extends Controller
         ])->after(function ($validator) use ($data) {
             $prefix = (string) str($data['email'] ?? '')->before('@');
             $type = $data['account_type'] ?? null;
-            if ($type === 'student' && !preg_match('/^\d/', $prefix)) {
+            if ($type === 'student' && ! preg_match('/^\d/', $prefix)) {
                 $validator->errors()->add('email', 'Student email must start with a number.');
             }
-            if ($type === 'employee' && !preg_match('/^[A-Za-z]/', $prefix)) {
+            if ($type === 'employee' && ! preg_match('/^[A-Za-z]/', $prefix)) {
                 $validator->errors()->add('email', 'Employee email must start with a letter.');
             }
         });
         $validator->validate();
 
         $accountType = $data['account_type'];
-        $cloakAlias = ucfirst($accountType) . strtoupper(Str::random(4));
+        $cloakAlias = ucfirst($accountType).strtoupper(Str::random(4));
         while (User::where('cloak_alias', $cloakAlias)->exists()) {
-            $cloakAlias = 'Student' . strtoupper(Str::random(4));
+            $cloakAlias = 'Student'.strtoupper(Str::random(4));
         }
 
         $stored = [];
@@ -124,7 +159,7 @@ class AuthController extends Controller
             $stored[] = ['public', $photo];
 
             DB::transaction(function () use ($data, $accountType, $cloakAlias, $photo, $selfie) {
-                \App\Support\CompatibleInsert::insert('users', [
+                CompatibleInsert::insert('users', [
                     'name' => trim($data['name']),
                     'email' => strtolower(trim($data['email'])),
                     'age' => $data['age'],

@@ -444,6 +444,9 @@
                             @if(session('error'))
                                 <div class="login-alert alert border-0 mb-3">
                                     <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ session('error') }}
+                                    @if(session('password_reset_url'))
+                                        <a href="{{ session('password_reset_url') }}" class="d-block mt-2 fw-bold">Reset your password</a>
+                                    @endif
                                 </div>
                             @endif
 
@@ -452,6 +455,9 @@
                                     <ul class="mb-0 small">
                                         @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
                                     </ul>
+                                    @if(session('password_reset_url'))
+                                        <a href="{{ session('password_reset_url') }}" class="d-block mt-2 fw-bold">Reset your password</a>
+                                    @endif
                                 </div>
                             @endif
 

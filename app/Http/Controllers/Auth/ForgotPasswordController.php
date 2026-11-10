@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ForgotPasswordController extends Controller
@@ -37,14 +37,14 @@ class ForgotPasswordController extends Controller
         ]);
 
         $user = User::whereRaw('LOWER(email) = ?', [$validated['email']])->first();
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors([
                 'email' => 'No SINAG account was found for this email. Check the address used when registering.',
             ])->withInput();
         }
 
         $path = $request->file('id_picture')->store('password-reset-requests', 'local');
-        if (!is_string($path) || $path === '') {
+        if (! is_string($path) || $path === '') {
             Log::error('Password reset request ID picture could not be stored', [
                 'email' => $validated['email'],
                 'ip' => $request->ip(),
@@ -55,7 +55,7 @@ class ForgotPasswordController extends Controller
             ])->withInput();
         }
 
-        $reference = 'PRR-' . Str::upper(Str::random(10));
+        $reference = 'PRR-'.Str::upper(Str::random(10));
         $resetRequestId = DB::transaction(function () use ($user, $validated, $reference, $path) {
             return CompatibleInsert::insert('password_reset_requests', [
                 'user_id' => $user->id,
@@ -95,19 +95,23 @@ class ForgotPasswordController extends Controller
         $resetRequest = PasswordResetRequest::where('reference_number', Str::upper(trim($validated['reference_number'])))
             ->where(fn ($query) => $query->whereRaw('LOWER(email) = ?', [Str::lower(trim($validated['email_or_id']))])->orWhere('student_employee_id', trim($validated['email_or_id'])))
             ->first();
-        if (!$resetRequest) return back()->withErrors(['reference_number' => 'The reference number and email or ID do not match.'])->withInput();
+        if (! $resetRequest) {
+            return back()->withErrors(['reference_number' => 'The reference number and email or ID do not match.'])->withInput();
+        }
         $token = null;
         if ($resetRequest->status === 'approved') {
             $token = Str::random(64);
             $resetRequest->update(['reset_token_hash' => Hash::make($token), 'reset_token_expires_at' => now()->addMinutes(15)]);
         }
         Log::info('Password reset request status viewed', ['request_id' => $resetRequest->id, 'reference_number' => $resetRequest->reference_number, 'ip' => $request->ip()]);
+
         return view('auth.password-status', compact('resetRequest', 'token'));
     }
 
     public function showResetForm(PasswordResetRequest $passwordResetRequest, string $token)
     {
         $this->ensureValidResetToken($passwordResetRequest, $token);
+
         return view('auth.reset-password', compact('passwordResetRequest', 'token'));
     }
 
@@ -116,9 +120,15 @@ class ForgotPasswordController extends Controller
         $this->ensureValidResetToken($passwordResetRequest, $token);
         $validated = $request->validate(['password' => ['required', 'string', 'min:8', 'confirmed']]);
         $user = $passwordResetRequest->user ?: User::where('email', $passwordResetRequest->email)->firstOrFail();
-        $user->update(['password' => Hash::make($validated['password'])]);
+        $attributes = ['password' => Hash::make($validated['password'])];
+        if (Schema::hasColumn('users', 'failed_login_attempts') && Schema::hasColumn('users', 'password_locked_at')) {
+            $attributes['failed_login_attempts'] = 0;
+            $attributes['password_locked_at'] = null;
+        }
+        $user->update($attributes);
         $passwordResetRequest->update(['status' => 'completed', 'reset_token_hash' => null, 'reset_token_expires_at' => null, 'completed_at' => now()]);
         Log::info('Password reset request completed', ['request_id' => $passwordResetRequest->id, 'reference_number' => $passwordResetRequest->reference_number, 'user_id' => $user->id, 'ip' => $request->ip()]);
+
         return redirect()->route('login')->with('status', 'Password reset successfully. You may now log in.');
     }
 

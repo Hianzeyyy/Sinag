@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
@@ -17,6 +19,8 @@ class LoginController extends Controller
      * Note: Mas mangingibabaw ang authenticated() function sa baba.
      */
     protected $redirectTo = '/student/dashboard';
+
+    private const MAX_PASSWORD_ATTEMPTS = 3;
 
     public function __construct()
     {
@@ -37,6 +41,13 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
+        if ($user->failed_login_attempts !== 0 || $user->password_locked_at !== null) {
+            $user->forceFill([
+                'failed_login_attempts' => 0,
+                'password_locked_at' => null,
+            ])->saveQuietly();
+        }
+
         if ($request->boolean('remember')) {
             $request->session()->put('remembered_login', true);
             Cookie::queue(cookie(
@@ -68,7 +79,7 @@ class LoginController extends Controller
             auth()->logout();
 
             if ($status === 'rejected') {
-                return redirect()->route('login')->with('error', 'Your registration was rejected. ' . ($user->rejection_reason ?: 'Please contact the GAD office for assistance.'));
+                return redirect()->route('login')->with('error', 'Your registration was rejected. '.($user->rejection_reason ?: 'Please contact the GAD office for assistance.'));
             }
 
             return redirect()->route('login')->with('status', 'Your account is pending admin verification. You can sign in once approved.');
@@ -86,19 +97,61 @@ class LoginController extends Controller
 
         if ($role === 'admin') {
             return redirect()->route('admin.dashboard')
-                             ->with('status', 'Welcome back, Administrator!');
+                ->with('status', 'Welcome back, Administrator!');
         }
 
         if ($role === 'student' || $role === 'security' || $role === 'employee') {
             return redirect()->route('student.dashboard')
-                             ->with('status', 'Logged in successfully as ' . ($user->cloak_alias ?: $user->name))
-                             ->with('dashboard_logo_sunburst', true);
+                ->with('status', 'Logged in successfully as '.($user->cloak_alias ?: $user->name))
+                ->with('dashboard_logo_sunburst', true);
         }
 
         auth()->logout();
 
         return redirect()->route('login')
             ->with('error', 'Unsupported account role. Please contact IT.');
+    }
+
+    protected function attemptLogin(Request $request)
+    {
+        $user = User::whereRaw('LOWER(email) = ?', [strtolower(trim((string) $request->input($this->username())))])->first();
+
+        if ($user?->password_locked_at !== null) {
+            return false;
+        }
+
+        return $this->guard()->attempt(
+            $this->credentials($request), $request->boolean('remember')
+        );
+    }
+
+    protected function sendFailedLoginResponse(Request $request)
+    {
+        $user = User::whereRaw('LOWER(email) = ?', [strtolower(trim((string) $request->input($this->username())))])->first();
+
+        if ($user) {
+            $attempts = min(self::MAX_PASSWORD_ATTEMPTS, (int) $user->failed_login_attempts + 1);
+            $attributes = ['failed_login_attempts' => $attempts];
+
+            if ($attempts >= self::MAX_PASSWORD_ATTEMPTS) {
+                $attributes['password_locked_at'] = now();
+            }
+
+            $user->forceFill($attributes)->saveQuietly();
+
+            if ($attempts >= self::MAX_PASSWORD_ATTEMPTS) {
+                $message = 'Your account is locked after three failed password attempts. Please reset your password to continue.';
+                $request->session()->flash('password_reset_url', route('password.code.form'));
+
+                throw ValidationException::withMessages([
+                    $this->username() => [$message],
+                ]);
+            }
+        }
+
+        throw ValidationException::withMessages([
+            $this->username() => [trans('auth.failed')],
+        ]);
     }
 
     public function logout(Request $request)
@@ -109,7 +162,7 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        if (!$keepUsername) {
+        if (! $keepUsername) {
             Cookie::queue(Cookie::forget('remembered_email'));
         }
 
