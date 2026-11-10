@@ -444,20 +444,14 @@
                             @if(session('error'))
                                 <div class="login-alert alert border-0 mb-3">
                                     <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ session('error') }}
-                                    @if(session('password_reset_url'))
-                                        <a href="{{ session('password_reset_url') }}" class="d-block mt-2 fw-bold">Reset your password</a>
-                                    @endif
                                 </div>
                             @endif
 
-                            @if($errors->any())
+                            @if($errors->any() && !session('password_reset_url'))
                                 <div class="alert alert-warning py-2 mb-3" role="alert">
                                     <ul class="mb-0 small">
                                         @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
                                     </ul>
-                                    @if(session('password_reset_url'))
-                                        <a href="{{ session('password_reset_url') }}" class="d-block mt-2 fw-bold">Reset your password</a>
-                                    @endif
                                 </div>
                             @endif
 
@@ -665,6 +659,30 @@
     </div>
 </div>
 
+@if(session('password_reset_url'))
+    <div class="modal fade password-lockout-modal" id="passwordLockoutModal" tabindex="-1"
+         aria-labelledby="passwordLockoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 rounded-4 shadow-lg">
+                <div class="modal-body text-center p-4">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis"
+                         style="width: 4rem; height: 4rem;">
+                        <i class="bi bi-shield-lock-fill fs-2"></i>
+                    </div>
+                    <h2 class="h5 fw-bold mb-2" id="passwordLockoutModalLabel">Password reset required</h2>
+                    <p class="text-secondary mb-4">
+                        Your account is locked after three failed password attempts. Reset your password to continue.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ session('password_reset_url') }}" class="btn btn-primary fw-bold">Reset your password</a>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 <script>
     const authStage = document.getElementById('authStage');
     const loginForm = document.getElementById('loginForm');
@@ -806,6 +824,11 @@
     }
     accountType.addEventListener('change', updateDepartmentOptions);
     updateDepartmentOptions();
+
+    const passwordLockoutModal = document.getElementById('passwordLockoutModal');
+    if (passwordLockoutModal && window.bootstrap) {
+        new bootstrap.Modal(passwordLockoutModal).show();
+    }
 
 </script>
 @endsection
