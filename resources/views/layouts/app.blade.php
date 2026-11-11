@@ -182,6 +182,35 @@
             overflow: visible;
         }
 
+        .main-content {
+            min-width: 0;
+        }
+
+        .main-content svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .pagination svg {
+            width: 1rem !important;
+            height: 1rem !important;
+            max-width: 1rem !important;
+            vertical-align: middle;
+        }
+
+        .modal-backdrop.show {
+            opacity: .35;
+        }
+
+        .modal.show .modal-dialog {
+            max-height: calc(100dvh - 1.5rem);
+        }
+
+        .modal.show .modal-content {
+            max-height: calc(100dvh - 1.5rem);
+            overflow-y: auto;
+        }
+
         .sidebar {
             width: 0;
             flex: 0 0 0;
@@ -205,6 +234,31 @@
             padding: 2rem 1.5rem;
             overflow: visible;
             visibility: visible;
+        }
+
+        @media (min-width: 1200px) {
+            .main-wrapper {
+                height: auto;
+                min-height: 100dvh;
+                overflow: visible;
+            }
+
+            .sidebar.active {
+                position: sticky;
+                top: 0;
+                height: 100dvh;
+                max-height: 100dvh;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .main-content {
+                flex: 1 1 auto;
+                height: auto;
+                min-height: 100dvh;
+                overflow: visible;
+            }
         }
 
         .sidebar .nav-menu {
@@ -368,8 +422,8 @@
         .nav-link-custom:focus-visible {
             background: linear-gradient(135deg, rgba(165, 148, 249, 0.12), rgba(250, 204, 21, 0.12));
             color: #4c1d95;
-            transform: translateX(4px);
-            box-shadow: 0 8px 18px rgba(165, 148, 249, 0.12);
+            transform: translateX(6px) scale(1.02);
+            box-shadow: 0 10px 22px rgba(165, 148, 249, 0.18);
         }
 
         .nav-link-custom i { font-size: 1.2rem; margin-right: 1rem; }
@@ -378,7 +432,7 @@
             background-color: #A594F9 !important;
             color: white !important;
             box-shadow: 0 4px 12px rgba(165, 148, 249, 0.28);
-            transform: translateX(2px);
+            transform: translateX(3px) scale(1.01);
         }
 
         .student-sidebar .nav-link-custom {
@@ -389,8 +443,8 @@
         .student-sidebar .nav-link-custom:focus-visible {
             background: #f3efff;
             color: #7658df;
-            transform: translateX(5px);
-            box-shadow: 0 6px 16px rgba(143, 114, 245, .14);
+            transform: translateX(6px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(143, 114, 245, .18);
         }
 
         .student-sidebar .nav-link-custom.active:hover,
@@ -416,6 +470,21 @@
             display: flex;
             flex-direction: column;
             align-items: stretch;
+        }
+
+        .page-load-motion > :not(.top-navbar):not(.student-navbar) {
+            animation: pageContentReveal .45s ease-out both;
+        }
+
+        @keyframes pageContentReveal {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .page-load-motion > :not(.top-navbar):not(.student-navbar) {
+                animation: none;
+            }
         }
 
         .main-content > .p-4,
@@ -1872,7 +1941,7 @@
             @endif
         @endauth
 
-        <main class="{{ Auth::check() ? 'main-content ' . (Auth::user()->role === 'admin' ? 'admin-main' : '') : (request()->routeIs('login', 'register', 'password.*') ? 'auth-main' : 'container py-5') }}">
+        <main class="{{ Auth::check() ? 'main-content ' . (Auth::user()->role === 'admin' ? 'admin-main' : '') . (!request()->routeIs('admin.dashboard', 'student.dashboard') ? ' page-load-motion' : '') : (request()->routeIs('login', 'register', 'password.*') ? 'auth-main' : 'container py-5') }}">
             @auth
                 <header class="top-navbar {{ in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true) ? 'student-navbar' : 'admin-navbar' }}">
                     <div class="d-flex align-items-center gap-3">
@@ -1966,12 +2035,8 @@
                         <div class="text-end">
                             <div class="dropdown user-meta">
                                 <a class="profile-menu-btn" href="{{ route('profile.show') }}" title="View profile">
-                                    @if(Auth::user()->profile_photo_path)
-                                        <img src="{{ route('profile.photo', Auth::user()) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
-                                        <span class="profile-avatar profile-avatar-fallback" hidden>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
-                                    @else
-                                        <span class="profile-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
-                                    @endif
+                                    <img src="{{ route('profile.photo', Auth::user()) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                                    <span class="profile-avatar profile-avatar-fallback" hidden>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                                     <span class="profile-mini-name">{{ Auth::user()->name }}</span>
                                 </a>
                                 <button class="profile-menu-btn ms-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Open account menu">
@@ -1979,12 +2044,8 @@
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end profile-dropdown p-2">
                                     <div class="profile-dropdown-head">
-                                        @if(Auth::user()->profile_photo_path)
-                                            <img src="{{ route('profile.photo', Auth::user()) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
-                                            <span class="profile-avatar profile-avatar-fallback" hidden>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
-                                        @else
-                                            <span class="profile-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
-                                        @endif
+                                        <img src="{{ route('profile.photo', Auth::user()) }}" alt="Profile photo" class="profile-avatar" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                                        <span class="profile-avatar profile-avatar-fallback" hidden>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                                         <div>
                                             <div class="fw-bold" style="line-height: 1.2;">{{ Auth::user()->name }}</div>
                                             <small class="text-muted">{{ Auth::user()->cloak_alias ?? 'Local profile' }}</small>
@@ -2046,6 +2107,23 @@
         document.getElementById('studentSidebarBackdrop')?.addEventListener('click', function () {
             toggleSidebar('studentSidebar', 'studentSidebarBackdrop');
         });
+
+        function settlePageMotion() {
+            document.querySelectorAll(
+                '.page-load-motion > :not(.top-navbar):not(.student-navbar), .admin-dashboard-page, .admin-dashboard-wrap > *'
+            ).forEach(function (element) {
+                element.style.animation = 'none';
+                element.style.opacity = '1';
+            });
+        }
+
+        document.addEventListener('animationend', function (event) {
+            if (event.animationName === 'pageContentReveal' || event.animationName === 'adminDashboardReveal') {
+                event.target.style.animation = 'none';
+            }
+        });
+
+        document.addEventListener('show.bs.modal', settlePageMotion);
 
         (function () {
             const navbar = document.querySelector('.top-navbar');

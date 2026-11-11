@@ -10,12 +10,30 @@
             <form method="POST" action="{{ route('password.reset.submit', [$passwordResetRequest, $token]) }}">
                 @csrf
                 <label class="form-label fw-bold" for="password">New password</label>
-                <input id="password" name="password" type="password" class="form-control mb-3" minlength="8" required autocomplete="new-password">
+                <div class="input-group mb-1">
+                    <input id="password" name="password" type="password" class="form-control" minlength="8" required autocomplete="new-password">
+                    <button class="btn btn-outline-secondary" type="button" data-password-toggle="password" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                </div>
+                <div class="form-text mb-3">Use at least 8 characters.</div>
                 <label class="form-label fw-bold" for="password_confirmation">Confirm new password</label>
-                <input id="password_confirmation" name="password_confirmation" type="password" class="form-control" minlength="8" required autocomplete="new-password">
+                <div class="input-group">
+                    <input id="password_confirmation" name="password_confirmation" type="password" class="form-control" minlength="8" required autocomplete="new-password">
+                    <button class="btn btn-outline-secondary" type="button" data-password-toggle="password_confirmation" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                </div>
                 <button class="btn btn-primary w-100 mt-4 fw-bold" type="submit"><i class="bi bi-check-circle me-2"></i>Update Password</button>
             </form>
         </div>
     </div>
 </div>
+<script>
+    document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const input = document.getElementById(button.dataset.passwordToggle);
+            const visible = input.type === 'password';
+            input.type = visible ? 'text' : 'password';
+            button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+            button.querySelector('i').className = visible ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+    });
+</script>
 @endsection

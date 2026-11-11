@@ -564,6 +564,7 @@
                                                   name="login_password" required autocomplete="off" style="font-size: 1rem;">
                                               <input type="hidden" name="password" id="passwordValue">
                                         </div>
+                                        <div class="form-text">Your password must be at least 8 characters.</div>
                                         <button class="btn p-0 bg-transparent border-0 text-secondary" type="button" id="togglePassword"
                                                 style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); z-index: 10;"
                                                 title="Toggle password visibility" aria-label="Toggle password visibility">
@@ -611,8 +612,8 @@
                                         <input type="text" class="form-control" name="first_name" value="{{ old('first_name') }}" maxlength="255" required autocomplete="given-name" placeholder="Juan">
                                     </div>
                                     <div class="col-12 col-sm-4 register-name-field">
-                                        <label class="form-label small fw-bold text-uppercase">Middle Name <span class="text-muted">(optional)</span></label>
-                                        <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" maxlength="255" autocomplete="additional-name" placeholder="Middle name (if any)">
+                                        <label class="form-label small fw-bold text-uppercase">Middle Name </label>
+                                        <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" maxlength="255" autocomplete="additional-name" placeholder="(Optonal)">
                                     </div>
                                     <div class="col-12 col-sm-4 register-name-field">
                                         <label class="form-label small fw-bold text-uppercase">Last Name</label>
@@ -676,6 +677,7 @@
                                             <input type="password" class="form-control register-password" name="password" id="registerPassword" autocomplete="new-password" required>
                                             <button type="button" class="register-password-toggle" data-password-target="registerPassword" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye"></i></button>
                                         </div>
+                                        <div class="form-text">Use at least 8 characters.</div>
                                     </div>
                                     <div class="col-12 col-sm-6">
                                         <label class="form-label small fw-bold text-uppercase">Confirm Password</label>

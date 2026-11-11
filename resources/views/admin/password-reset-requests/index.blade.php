@@ -8,9 +8,9 @@
     </div>
     @if (session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="table-responsive"><table class="table align-middle mb-0"><thead class="table-light"><tr><th>Reference</th><th>Requester</th><th>ID number</th><th>Status</th><th>Submitted</th><th></th></tr></thead><tbody>
+        <div class="table-responsive password-reset-table-wrap"><table class="table align-middle mb-0"><thead class="table-light"><tr><th>Requester</th><th>Reference</th><th>ID number</th><th>Status</th><th>Submitted</th><th></th></tr></thead><tbody>
         @forelse ($requests as $item)
-            <tr><td class="fw-bold">{{ $item->reference_number }}</td><td>{{ $item->name }}<div class="small text-muted">{{ $item->email }}</div></td><td>{{ $item->student_employee_id }}</td><td><span class="badge text-bg-{{ $item->status === 'pending' ? 'warning' : ($item->status === 'approved' ? 'success' : ($item->status === 'rejected' ? 'danger' : 'secondary')) }}">{{ ucfirst($item->status) }}</span></td><td>{{ $item->created_at->format('M d, Y h:i A') }}</td><td><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.password-resets.show', $item) }}">Review</a></td></tr>
+            <tr><td>{{ $item->name }}<div class="small text-muted">{{ $item->email }}</div></td><td class="fw-bold">{{ $item->reference_number }}</td><td>{{ $item->student_employee_id }}</td><td><span class="badge password-status-{{ $item->status }}">{{ ucfirst($item->status) }}</span></td><td>{{ $item->created_at->format('M d, Y h:i A') }}</td><td><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.password-resets.show', $item) }}">Review</a></td></tr>
         @empty
             <tr><td colspan="6" class="text-center py-5 text-muted">No password reset requests yet.</td></tr>
         @endforelse
@@ -18,4 +18,20 @@
         @if ($requests->hasPages())<div class="p-3">{{ $requests->links() }}</div>@endif
     </div>
 </div>
+<style>
+    .password-reset-table-wrap { overscroll-behavior-x: contain; }
+    .password-reset-table-wrap th:first-child,
+    .password-reset-table-wrap td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: #fff;
+    }
+    .password-reset-table-wrap th:first-child,
+    .password-reset-table-wrap td:first-child { min-width: 13rem; }
+    .password-reset-table-wrap thead th { z-index: 3; background: #f8f9fa; }
+    .password-status-approved { background: #d8cdfc; color: #5b4b9b; }
+    .password-status-rejected { background: #f7c4dd; color: #9d285d; }
+    .password-status-pending { background: #ede9fe; color: #6d55d9; }
+</style>
 @endsection

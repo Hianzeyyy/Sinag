@@ -27,19 +27,32 @@ class PasswordResetRequestController extends Controller
 
     public function idPicture(PasswordResetRequest $passwordResetRequest)
     {
-        abort_unless(Storage::disk('local')->exists($passwordResetRequest->id_picture_path), 404);
-        return response()->file(Storage::disk('local')->path($passwordResetRequest->id_picture_path), ['Content-Disposition' => 'inline; filename="id-picture-' . $passwordResetRequest->id . '"']);
+        foreach (['local', 'public'] as $diskName) {
+            $disk = Storage::disk($diskName);
+
+            if ($disk->exists($passwordResetRequest->id_picture_path)) {
+                $response = response()->file($disk->path($passwordResetRequest->id_picture_path), [
+                    'Content-Disposition' => 'inline; filename="id-picture-' . $passwordResetRequest->getKey() . '"',
+                ]);
+                $response->setPrivate();
+                $response->headers->set('Cache-Control', 'private, no-store');
+
+                return $response;
+            }
+        }
+
+        abort(404);
     }
 
     public function approve(PasswordResetRequest $passwordResetRequest)
     {
         $token = Str::random(64);
         DB::transaction(function () use ($passwordResetRequest, $token) {
-            $lockedRequest = PasswordResetRequest::whereKey($passwordResetRequest->id)->lockForUpdate()->firstOrFail();
+            $lockedRequest = PasswordResetRequest::whereKey($passwordResetRequest->getKey())->lockForUpdate()->firstOrFail();
             abort_unless($lockedRequest->status === 'pending', 422, 'Only pending requests can be approved.');
             $lockedRequest->update(['status' => 'approved', 'admin_id' => auth()->id(), 'reset_token_hash' => Hash::make($token), 'reset_token_expires_at' => now()->addMinutes(15), 'approved_at' => now(), 'admin_remarks' => null]);
         });
-        Log::info('Password reset request approved', ['request_id' => $passwordResetRequest->id, 'reference_number' => $passwordResetRequest->reference_number, 'admin_id' => auth()->id()]);
+        Log::info('Password reset request approved', ['request_id' => $passwordResetRequest->getKey(), 'reference_number' => $passwordResetRequest->reference_number, 'admin_id' => auth()->id()]);
         return back()->with('success', 'Request approved. The requester can now check the status and create a new password within 15 minutes.');
     }
 
@@ -48,7 +61,7 @@ class PasswordResetRequestController extends Controller
         $validated = $request->validate(['admin_remarks' => ['required', 'string', 'max:2000']]);
         abort_unless($passwordResetRequest->status === 'pending', 422, 'Only pending requests can be rejected.');
         $passwordResetRequest->update(['status' => 'rejected', 'admin_id' => auth()->id(), 'admin_remarks' => $validated['admin_remarks']]);
-        Log::info('Password reset request rejected', ['request_id' => $passwordResetRequest->id, 'reference_number' => $passwordResetRequest->reference_number, 'admin_id' => auth()->id()]);
+        Log::info('Password reset request rejected', ['request_id' => $passwordResetRequest->getKey(), 'reference_number' => $passwordResetRequest->reference_number, 'admin_id' => auth()->id()]);
         return back()->with('success', 'Request rejected.');
     }
 }

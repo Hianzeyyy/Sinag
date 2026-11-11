@@ -50,7 +50,14 @@ class VerificationImageAccessTest extends TestCase
             'email' => 'other@example.test',
             'password' => 'password',
             'role' => 'student',
+            'profile_photo_path' => 'profile-photos/missing.png',
         ]);
+
+        foreach ([$admin, $otherStudent] as $user) {
+            $avatarResponse = $this->get(route('profile.photo', $user))->assertOk();
+            $this->assertStringContainsString('image/svg+xml', $avatarResponse->headers->get('Content-Type'));
+            $this->assertStringContainsString(mb_substr($user->name, 0, 1), $avatarResponse->getContent());
+        }
 
         $this->actingAs($admin)
             ->get(route('profile.verification-image', $student))
@@ -72,9 +79,9 @@ class VerificationImageAccessTest extends TestCase
 
         $student->refresh();
         $this->assertNotEmpty($student->profile_photo_path);
-        Storage::disk('public')->assertExists($student->profile_photo_path);
+        $this->assertTrue(Storage::disk('public')->exists($student->profile_photo_path));
 
-        $photoResponse = $this->actingAs($student)
+        $photoResponse = $this->actingAs($otherStudent)
             ->get(route('profile.photo', $student))
             ->assertOk();
         $this->assertStringContainsString('private', $photoResponse->headers->get('Cache-Control'));
@@ -88,8 +95,8 @@ class VerificationImageAccessTest extends TestCase
 
         $student->refresh();
         $this->assertNotEmpty($student->id_image_path);
-        Storage::disk('local')->assertExists($student->id_image_path);
-        Storage::disk('public')->assertMissing($student->id_image_path);
+        $this->assertTrue(Storage::disk('local')->exists($student->id_image_path));
+        $this->assertFalse(Storage::disk('public')->exists($student->id_image_path));
 
         $this->actingAs($admin)
             ->get(route('profile.verification-image', $student))

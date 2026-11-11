@@ -69,7 +69,11 @@ class ProfileController extends Controller
             $disk = Storage::disk($diskName);
 
             if ($disk->exists($path)) {
-                return response()->file($disk->path($path));
+                $response = response()->file($disk->path($path));
+                $response->setPrivate();
+                $response->headers->set('Cache-Control', 'private, no-store');
+
+                return $response;
             }
         }
 
@@ -78,17 +82,60 @@ class ProfileController extends Controller
 
     public function profilePhoto(\App\Models\User $user)
     {
-        $path = $user->profile_photo_path;
-        abort_if(blank($path), 404);
-
+        $path = $this->normalizeProfilePhotoPath($user->profile_photo_path);
         $disk = Storage::disk('public');
-        abort_unless($disk->exists($path), 404);
 
-        $response = response()->file($disk->path($path));
+        if ($path && $disk->exists($path)) {
+            $response = response()->file($disk->path($path));
+        } else {
+            $response = response($this->defaultAvatarSvg($user->name, $user->role), 200, [
+                'Content-Type' => 'image/svg+xml',
+            ]);
+        }
+
         $response->setPrivate();
         $response->headers->set('Cache-Control', 'private, no-store');
 
         return $response;
+    }
+
+    private function normalizeProfilePhotoPath(?string $path): ?string
+    {
+        if (blank($path)) {
+            return null;
+        }
+
+        $path = ltrim(str_replace('\\', '/', trim($path)), '/');
+
+        foreach (['storage/app/public/', 'app/public/', 'public/storage/', 'storage/', 'public/'] as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                $path = substr($path, strlen($prefix));
+                break;
+            }
+        }
+
+        $segments = explode('/', $path);
+        if ($path === '' || in_array('', $segments, true) || in_array('.', $segments, true) || in_array('..', $segments, true)) {
+            return null;
+        }
+
+        return $path;
+    }
+
+    private function defaultAvatarSvg(string $name, string $role): string
+    {
+        $name = trim($name);
+        $initial = mb_strtoupper(mb_substr($name !== '' ? $name : 'User', 0, 1, 'UTF-8'), 'UTF-8');
+        $initial = htmlspecialchars($initial, ENT_QUOTES | ENT_XML1, 'UTF-8');
+        $background = strtolower(trim($role)) === 'admin' ? '#7c3aed' : '#8f72f5';
+
+        return <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+    <rect width="128" height="128" rx="64" fill="{$background}" />
+    <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle"
+          fill="#ffffff" font-family="Arial, sans-serif" font-size="58" font-weight="700">{$initial}</text>
+</svg>
+SVG;
     }
 
     public function update(Request $request): RedirectResponse

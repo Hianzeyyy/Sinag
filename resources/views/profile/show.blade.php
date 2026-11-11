@@ -227,12 +227,8 @@
             <div class="profile-head">
                 <div class="d-flex flex-column flex-md-row align-items-start gap-3 gap-md-4">
                     <div class="text-center text-md-start">
-                        @if($user->profile_photo_path)
-                            <img src="{{ route('profile.photo', $user) }}" alt="Profile photo" class="profile-avatar-xl" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
-                            <div class="profile-avatar-xl profile-avatar-xl-fallback d-flex align-items-center justify-content-center fw-black" style="font-size:5rem; color:#A594F9;" hidden>{{ strtoupper(substr($user->name, 0, 1)) }}</div>
-                        @else
-                            <div class="profile-avatar-xl d-flex align-items-center justify-content-center fw-black" style="font-size:5rem; color:#A594F9;">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
-                        @endif
+                        <img src="{{ route('profile.photo', $user) }}" alt="Profile photo" class="profile-avatar-xl" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                        <div class="profile-avatar-xl profile-avatar-xl-fallback d-flex align-items-center justify-content-center fw-black" style="font-size:5rem; color:#A594F9;" hidden>{{ strtoupper(substr($user->name, 0, 1)) }}</div>
 
                         <form class="d-inline" action="{{ route('profile.photo.update') }}" method="POST" enctype="multipart/form-data">
                             @csrf
@@ -598,12 +594,9 @@
 
             {{-- Avatar --}}
             <div class="sp-avatar-wrap">
-                @if($user->profile_photo_path)
-                    <img src="{{ route('profile.photo', $user) }}"
-                         class="sp-avatar" alt="{{ $user->name }}">
-                @else
-                    <div class="sp-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
-                @endif
+                <img src="{{ route('profile.photo', $user) }}"
+                     class="sp-avatar" alt="{{ $user->name }}" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                <div class="sp-avatar" hidden>{{ strtoupper(substr($user->name, 0, 1)) }}</div>
 
                 <form action="{{ route('profile.photo.update') }}" method="POST"
                       enctype="multipart/form-data" id="avatarForm">

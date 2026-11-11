@@ -542,10 +542,7 @@
 const scheduleData = @json($adminPayload);
 const scheduleMap = {};
 
-const latestSchedule = scheduleData
-    .filter(schedule => schedule.date && schedule.updated_at)
-    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))[0];
-const latestScheduleDate = latestSchedule ? dateFromKey(latestSchedule.date) : new Date();
+const latestScheduleDate = new Date();
 let adminMonth = latestScheduleDate.getMonth();
 let adminYear  = latestScheduleDate.getFullYear();
 const modifiedDays = {};

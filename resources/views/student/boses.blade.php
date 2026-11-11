@@ -5,7 +5,7 @@
     .boses-page {
         --accent: #A594F9;
         --accent-deep: #8f72f5;
-        --accent-warm: #facc15;
+        --accent-warm: #7658c7;
         --ink: #111827;
         --muted: #6b7280;
         --surface: rgba(255, 255, 255, 0.88);
@@ -13,7 +13,7 @@
         --border: rgba(165, 148, 249, 0.12);
         background:
             radial-gradient(circle at top left, rgba(165, 148, 249, 0.14), transparent 28%),
-            radial-gradient(circle at right top, rgba(250, 204, 21, 0.16), transparent 22%),
+            radial-gradient(circle at right top, rgba(118, 88, 199, 0.16), transparent 22%),
             linear-gradient(180deg, #faf7ff 0%, #f8fafc 60%, #f8fafc 100%);
         border-radius: 1.5rem;
         position: relative;
@@ -54,7 +54,7 @@
         height: 14rem;
         right: -4rem;
         bottom: 4rem;
-        background: rgba(250, 204, 21, 0.12);
+        background: rgba(118, 88, 199, 0.12);
     }
 
     .boses-shell {
@@ -81,7 +81,7 @@
         border-radius: 1.6rem;
         overflow: hidden;
         background:
-            linear-gradient(135deg, rgba(165, 148, 249, 0.97) 0%, rgba(196, 181, 253, 0.93) 55%, rgba(250, 204, 21, 0.92) 100%);
+            linear-gradient(135deg, rgba(165, 148, 249, 0.97) 0%, rgba(196, 181, 253, 0.93) 55%, rgba(118, 88, 199, 0.95) 100%);
         color: #fff;
     }
 
@@ -145,7 +145,7 @@
     }
 
     .hero-title span {
-        color: #fff6b0;
+        color: #eee8ff;
     }
 
     .hero-copy {
@@ -246,7 +246,7 @@
         align-items: center;
         justify-content: center;
         border-radius: 0.95rem;
-        background: linear-gradient(135deg, rgba(165, 148, 249, 0.16), rgba(250, 204, 21, 0.18));
+        background: linear-gradient(135deg, rgba(165, 148, 249, 0.16), rgba(118, 88, 199, 0.18));
         color: var(--accent-deep);
     }
 
@@ -313,6 +313,24 @@
         cursor: pointer;
     }
 
+    .suggestion-top > .d-flex,
+    .suggestion-actions,
+    .comment-form,
+    .comment-form .input-group {
+        min-width: 0;
+    }
+
+    .suggestion-actions {
+        justify-content: flex-start;
+    }
+
+    .suggestion-message,
+    .comment-text,
+    .comment-author {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
     .suggestion-feed-table {
         display: grid;
         gap: 1rem;
@@ -371,7 +389,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, rgba(165, 148, 249, 0.16), rgba(250, 204, 21, 0.2));
+        background: linear-gradient(135deg, rgba(165, 148, 249, 0.16), rgba(118, 88, 199, 0.2));
         color: var(--accent-deep);
         flex: 0 0 auto;
     }
@@ -382,6 +400,7 @@
         margin: 0;
         font-size: 1rem;
         line-height: 1.55;
+        text-align: justify;
         white-space: pre-wrap;
         overflow-wrap: anywhere;
     }
@@ -399,6 +418,15 @@
     .meta-badge.category {
         background: rgba(165, 148, 249, 0.1);
         color: var(--accent-deep);
+        text-decoration: none;
+        transition: background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .meta-badge.category:hover,
+    .meta-badge.category:focus-visible {
+        background: rgba(118, 88, 199, 0.18);
+        color: #5b3fa8;
+        transform: translateY(-1px);
     }
 
     .meta-badge.time {
@@ -490,7 +518,7 @@
     }
 
     .upvote-btn.is-active {
-        background: linear-gradient(135deg, rgba(165, 148, 249, 0.1), rgba(250, 204, 21, 0.16));
+        background: linear-gradient(135deg, rgba(165, 148, 249, 0.1), rgba(118, 88, 199, 0.16));
         color: var(--accent-deep);
     }
 
@@ -528,7 +556,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, rgba(165, 148, 249, 0.14), rgba(250, 204, 21, 0.18));
+        background: linear-gradient(135deg, rgba(165, 148, 249, 0.14), rgba(118, 88, 199, 0.18));
         color: var(--accent-deep);
     }
 
@@ -555,7 +583,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, rgba(165, 148, 249, 0.1), rgba(250, 204, 21, 0.14));
+        background: linear-gradient(135deg, rgba(165, 148, 249, 0.1), rgba(118, 88, 199, 0.14));
         color: var(--accent-deep);
     }
 
@@ -609,7 +637,10 @@
         .hero-panel h1 { font-size: 1.55rem; }
         .suggestion-card .suggestion-top, .suggestion-body { padding: .75rem !important; }
         .suggestion-card .d-flex.flex-column.flex-md-row { gap: .7rem !important; }
-        .suggestion-actions { justify-content: flex-end; }
+        .suggestion-actions { width: 100%; justify-content: flex-start; }
+        .suggestion-actions .upvote-btn { min-width: 0; flex: 1 1 auto; }
+        .suggestion-actions .report-content-form,
+        .suggestion-actions .dropdown { flex: 0 0 auto; }
         .comment-form .input-group { flex-wrap: nowrap; }
         .comment-form .input-group .form-control { min-width: 0; }
         .comment-form .input-group .btn { padding-inline: .8rem !important; }
@@ -730,9 +761,9 @@
                                                         <i class="bi bi-clock-history"></i>
                                                         {{ $sugg->created_at->diffForHumans() }}
                                                     </span>
-                                                    <span class="meta-badge category">
+                                                    <a class="meta-badge category" href="{{ route('student.boses', ['category' => $sugg->category ?? 'General']) }}" aria-label="Show {{ $sugg->category ?? 'General' }} suggestions">
                                                         #{{ $sugg->category ?? 'General' }}
-                                                    </span>
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>
@@ -857,12 +888,12 @@
                                         @endforelse
                                     </div>
 
-                                    <form action="{{ route('suggestions.comment', $sugg->id) }}" method="POST" class="comment-form mt-4">
+                                    <form action="{{ route('suggestions.comment', $sugg->id) }}" method="POST" class="comment-form mt-4 d-none" data-comment-form>
                                         @csrf
                                         <div class="input-group">
                                             <input type="text" id="comment-input-{{ $sugg->id }}" name="comment" class="form-control rounded-start-pill" data-moderated-input placeholder="Write a comment..." required>
                                             <button type="submit" class="btn btn-primary rounded-end-pill px-4" data-moderated-submit style="background: linear-gradient(135deg, #A594F9 0%, #8f72f5 100%); border:0; font-weight:800;">
-                                                Post
+                                                Comment
                                             </button>
                                         </div>
                                         <div class="moderation-warning text-danger small mt-2 d-none">Naglalaman ng hindi angkop na salita ang iyong komento.</div>
@@ -997,6 +1028,7 @@
                         <div class="col-md-8">
                             <label class="form-label small fw-bold text-muted">YOUR SUGGESTION</label>
                             <textarea name="message" class="form-control rounded-3" rows="5" data-moderated-input placeholder="Write your suggestions..." required>{{ old('message') }}</textarea>
+                            <div class="moderation-warning text-danger small mt-2 d-none">Please remove inappropriate language before posting.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-muted">IMAGE <span class="fw-normal">(optional)</span></label>
@@ -1173,11 +1205,13 @@
         document.querySelectorAll('[data-suggestion-card]').forEach(function (card) {
             const commentsPanel = card.querySelector('[data-comments-panel]');
             const commentToggle = card.querySelector('[data-comment-toggle]');
+            const commentForm = card.querySelector('[data-comment-form]');
             if (!commentsPanel || !commentToggle) return;
 
             const toggleComments = function () {
                 const expanded = commentToggle.getAttribute('aria-expanded') === 'true';
                 commentsPanel.classList.toggle('d-none', expanded);
+                commentForm?.classList.toggle('d-none', expanded);
                 commentToggle.setAttribute('aria-expanded', String(!expanded));
                 commentsPanel.setAttribute('aria-hidden', String(expanded));
             };

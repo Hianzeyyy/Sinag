@@ -241,9 +241,15 @@
                     <h1 class="pd-title">{{ $user->name }}</h1>
                     <div class="pd-subtitle">This page shows everything saved from your registration form.</div>
                 </div>
+                @php
+                    $accountType = strtolower((string) ($user->account_type ?? ''));
+                    $role = strtolower((string) ($user->role ?? ''));
+                @endphp
                 <div class="text-md-end">
-                    <div class="pd-badge mb-2">{{ ucfirst($user->account_type ?? 'student') }}</div>
-                    <div class="pd-badge">{{ ucfirst($user->role ?? 'student') }}</div>
+                    <div class="pd-badge">{{ ucfirst($accountType ?: $role ?: 'student') }}</div>
+                    @if($accountType && $role && $accountType !== $role)
+                        <div class="pd-badge mt-2">{{ ucfirst($role) }}</div>
+                    @endif
                 </div>
             </div>
         </div>

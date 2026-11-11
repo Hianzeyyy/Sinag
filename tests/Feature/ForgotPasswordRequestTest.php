@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\PasswordResetRequest;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -80,8 +81,8 @@ class ForgotPasswordRequestTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $request = \DB::table('password_reset_requests')->first();
-        Storage::disk('local')->assertExists($request->id_picture_path);
+        $request = DB::table('password_reset_requests')->first();
+        $this->assertTrue(Storage::disk('local')->exists($request->id_picture_path));
     }
 
     public function test_password_reset_request_matches_email_without_case_sensitivity(): void
@@ -147,6 +148,13 @@ class ForgotPasswordRequestTest extends TestCase
         ])->assertRedirect();
 
         $resetRequest = PasswordResetRequest::query()->firstOrFail();
+
+        $this->get(route('admin.password-resets.id-picture', $resetRequest))
+            ->assertRedirect(route('login'));
+
+        $this->actingAs($admin)
+            ->get(route('admin.password-resets.id-picture', $resetRequest))
+            ->assertOk();
 
         $this->actingAs($admin)
             ->post(route('admin.password-resets.approve', $resetRequest))

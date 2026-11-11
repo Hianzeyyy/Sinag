@@ -37,12 +37,12 @@
             @endforeach
         </div>
 
-        <div class="table-responsive bg-white rounded-4 shadow-sm border">
+        <div class="table-responsive bg-white rounded-4 shadow-sm border appointment-table-wrap">
             <table class="table table-hover align-middle mb-0" id="appointmentGrid">
                 <thead class="table-light">
                     <tr class="small text-muted text-uppercase">
-                        <th class="ps-4">Priority</th>
                         <th>Requested by</th>
+                        <th class="ps-4">Priority</th>
                         <th>Email</th>
                         <th>Scheduled</th>
                         <th>Submitted</th>
@@ -54,7 +54,6 @@
             @foreach ($appointments as $appointment)
                 @php($urgency = strtolower($appointment->urgency_level ?? 'low'))
                 <tr class="appointment-grid-item" data-urgency="{{ $urgency }}">
-                    <td class="ps-4"><span class="appointment-priority priority-{{ $urgency }}">{{ ucfirst($urgency) }}</span></td>
                     <td>
                         @if($appointment->user)
                             <button
@@ -75,6 +74,7 @@
                         @endif
                         <small class="d-block text-muted">ID: {{ $appointment->student_id }}</small>
                     </td>
+                    <td class="ps-4"><span class="appointment-priority priority-{{ $urgency }}">{{ ucfirst($urgency) }}</span></td>
                     <td class="small">{{ optional($appointment->user)->email ?: 'N/A' }}</td>
                     <td class="small">{{ optional($appointment->scheduled_date)->format('M d, Y') }}<span class="d-block text-muted">{{ optional($appointment->scheduled_time)->format('h:i A') }}</span></td>
                     <td class="small">{{ $appointment->created_at->format('M d, Y h:i A') }}</td>
@@ -87,41 +87,42 @@
                     </td>
                     <td class="text-end pe-4"><button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#appointmentModal{{ $appointment->id }}"><i class="bi bi-eye me-1"></i>View</button></td>
                 </tr>
-                <tr><td colspan="7" class="p-0 border-0"><div class="modal fade" id="appointmentModal{{ $appointment->id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                                        <div class="modal-content appointment-resume-modal">
-                                            <div class="modal-header border-0"><div><div class="small text-uppercase text-muted">Appointment Details</div><h5 class="modal-title fw-bold">{{ $appointment->full_name }}</h5></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                                            <div class="modal-body">
-                                                <div class="appointment-detail-grid">
-                                                    <div><span>Student/Employee ID</span><strong>{{ $appointment->student_id }}</strong></div>
-                                                    <div><span>Email</span><strong>{{ optional($appointment->user)->email ?: 'N/A' }}</strong></div>
-                                                    <div><span>Priority</span><strong>{{ $appointment->urgency_level }}</strong></div>
-                                                    <div><span>Appointment Format</span><strong><i class="bi {{ $appointment->format === 'Online' ? 'bi-camera-video-fill' : 'bi-people-fill' }} me-1"></i>{{ $appointment->format }}</strong></div>
-                                                    <div><span>Scheduled</span><strong>{{ optional($appointment->scheduled_date)->format('M d, Y') }} at {{ optional($appointment->scheduled_time)->format('h:i A') }}</strong></div>
-                                                    <div><span>Status</span><strong>{{ ucfirst($appointment->status) }}</strong></div>
-                                                    <div><span>Submitted</span><strong>{{ $appointment->created_at->format('M d, Y h:i A') }}</strong></div>
-                                                </div>
-                                                <div class="mt-3"><div class="small text-uppercase text-muted fw-bold">Concern</div><p class="mt-2 mb-0" style="white-space:pre-wrap;">{{ $appointment->description }}</p></div>
-                                                <form method="POST" action="{{ route('admin.appointments.add-details', $appointment->id) }}" class="mt-3">@csrf<label class="small text-uppercase text-muted fw-bold">Thoughts / Comments</label><textarea class="form-control mt-2" name="admin_notes" rows="3" required>{{ old('admin_notes', $appointment->admin_notes) }}</textarea><button class="btn btn-sm mt-2" style="background:#A594F9;color:#fff;" type="submit"><i class="bi bi-save me-1"></i>Save Notes</button></form>
-                                                @if($appointment->admin_notes)<div class="mt-3"><div class="small text-uppercase text-muted fw-bold">Admin Notes</div><p class="mt-2 mb-0">{{ $appointment->admin_notes }}</p></div>@endif
-                                                @if($appointment->cancellation_reason)<div class="mt-3"><div class="small text-uppercase text-muted fw-bold">Cancellation Reason</div><p class="mt-2 mb-0">{{ $appointment->cancellation_reason }}</p></div>@endif
-                                            </div>
-                                            <div class="modal-footer border-0">
-                                                @if($appointment->status !== 'completed' && $appointment->status !== 'cancelled')
-                                                    <form method="POST" action="{{ route('admin.appointments.complete', $appointment->id) }}" class="me-auto">@csrf<button type="submit" class="btn text-white" style="background:#b0a1fa;" onclick="return confirm('Mark this appointment as completed?')"><i class="bi bi-check2-circle me-1"></i>Mark as Completed</button></form>
-                                                @endif
-                                                @if($appointment->status !== 'completed' && $appointment->status !== 'cancelled')
-                                                    <form method="POST" action="{{ route('admin.appointments.cancel', $appointment->id) }}" class="d-flex gap-2 w-100">@csrf<input class="form-control" name="cancellation_reason" placeholder="Why is this appointment cancelled?" required><button class="btn btn-outline-secondary" type="submit">Cancel</button></form>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                </div></td></tr>
             @endforeach
                 </tbody>
             </table>
         </div>
+        @foreach ($appointments as $appointment)
+            <div class="modal fade" id="appointmentModal{{ $appointment->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content appointment-resume-modal">
+                        <div class="modal-header border-0"><div><div class="small text-uppercase text-muted">Appointment Details</div><h5 class="modal-title fw-bold">{{ $appointment->full_name }}</h5></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                        <div class="modal-body">
+                            <div class="appointment-detail-grid">
+                                <div><span>Student/Employee ID</span><strong>{{ $appointment->student_id }}</strong></div>
+                                <div><span>Email</span><strong>{{ optional($appointment->user)->email ?: 'N/A' }}</strong></div>
+                                <div><span>Priority</span><strong>{{ $appointment->urgency_level }}</strong></div>
+                                <div><span>Appointment Format</span><strong><i class="bi {{ $appointment->format === 'Online' ? 'bi-camera-video-fill' : 'bi-people-fill' }} me-1"></i>{{ $appointment->format }}</strong></div>
+                                <div><span>Scheduled</span><strong>{{ optional($appointment->scheduled_date)->format('M d, Y') }} at {{ optional($appointment->scheduled_time)->format('h:i A') }}</strong></div>
+                                <div><span>Status</span><strong>{{ ucfirst($appointment->status) }}</strong></div>
+                                <div><span>Submitted</span><strong>{{ $appointment->created_at->format('M d, Y h:i A') }}</strong></div>
+                            </div>
+                            <div class="mt-3"><div class="small text-uppercase text-muted fw-bold">Concern</div><p class="mt-2 mb-0" style="white-space:pre-wrap;">{{ $appointment->description }}</p></div>
+                            <form method="POST" action="{{ route('admin.appointments.add-details', $appointment->id) }}" class="mt-3">@csrf<label class="small text-uppercase text-muted fw-bold">Thoughts / Comments</label><textarea class="form-control mt-2" name="admin_notes" rows="3" required>{{ old('admin_notes', $appointment->admin_notes) }}</textarea><button class="btn btn-sm mt-2" style="background:#A594F9;color:#fff;" type="submit"><i class="bi bi-save me-1"></i>Save Notes</button></form>
+                            @if($appointment->admin_notes)<div class="mt-3"><div class="small text-uppercase text-muted fw-bold">Admin Notes</div><p class="mt-2 mb-0">{{ $appointment->admin_notes }}</p></div>@endif
+                            @if($appointment->cancellation_reason)<div class="mt-3"><div class="small text-uppercase text-muted fw-bold">Cancellation Reason</div><p class="mt-2 mb-0">{{ $appointment->cancellation_reason }}</p></div>@endif
+                        </div>
+                        <div class="modal-footer border-0">
+                            @if($appointment->status !== 'completed' && $appointment->status !== 'cancelled')
+                                <form method="POST" action="{{ route('admin.appointments.complete', $appointment->id) }}" class="me-auto">@csrf<button type="submit" class="btn text-white" style="background:#b0a1fa;" onclick="return confirm('Mark this appointment as completed?')"><i class="bi bi-check2-circle me-1"></i>Mark as Completed</button></form>
+                            @endif
+                            @if($appointment->status !== 'completed' && $appointment->status !== 'cancelled')
+                                <form method="POST" action="{{ route('admin.appointments.cancel', $appointment->id) }}" class="d-flex gap-2 w-100">@csrf<input class="form-control" name="cancellation_reason" placeholder="Why is this appointment cancelled?" required><button class="btn btn-outline-secondary" type="submit">Cancel</button></form>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
         <div id="appointmentEmpty" class="alert alert-light border rounded-3 text-muted text-center d-none mt-3">No appointments match this priority.</div>
         <div class="d-flex justify-content-center mt-4">
             {{ $appointments->onEachSide(1)->links() }}
@@ -159,6 +160,23 @@
     }
 
     .appointment-grid-item { width: 100%; }
+
+    .appointment-table-wrap {
+        overscroll-behavior-x: contain;
+    }
+
+    .appointment-table-wrap th:first-child,
+    .appointment-table-wrap td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: #fff;
+    }
+
+    .appointment-table-wrap thead th:first-child {
+        z-index: 3;
+        background: #f8f9fa;
+    }
 
     .appointment-priority {
         align-self: flex-start;

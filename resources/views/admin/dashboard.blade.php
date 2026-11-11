@@ -12,10 +12,35 @@
         --muted: #6b7280;
         background:
             radial-gradient(circle at top left, rgba(165, 148, 249, 0.12), transparent 34%),
-            radial-gradient(circle at right top, rgba(250, 204, 21, 0.12), transparent 22%),
+            radial-gradient(circle at right top, rgba(124, 92, 203, 0.12), transparent 22%),
             linear-gradient(180deg, #faf7ff 0%, #f8fafc 62%, #f8fafc 100%);
         border-radius: 1.45rem;
         padding: 1rem;
+        animation: adminDashboardReveal .55s ease-out both;
+    }
+
+    .admin-dashboard-wrap > * {
+        animation: adminDashboardReveal .55s ease-out both;
+    }
+
+    .admin-dashboard-wrap > *:nth-child(2) { animation-delay: .08s; }
+    .admin-dashboard-wrap > *:nth-child(3) { animation-delay: .16s; }
+    .admin-dashboard-wrap > *:nth-child(4) { animation-delay: .24s; }
+
+    @keyframes adminDashboardReveal {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .admin-dashboard-page,
+        .admin-dashboard-wrap > * {
+            animation: none;
+        }
     }
 
     .admin-dashboard-wrap {
@@ -28,7 +53,7 @@
         border-radius: 1.4rem;
         overflow: hidden;
         color: #fff;
-        background: linear-gradient(120deg, #A594F9 0%, #c4b5fd 58%, #facc15 100%);
+        background: linear-gradient(120deg, #8f72f5 0%, #b8a8ff 58%, #7658c7 100%);
         box-shadow: 0 20px 42px rgba(165, 148, 249, 0.22);
     }
 
@@ -75,6 +100,12 @@
         color: #fff;
         box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
         overflow: hidden;
+        transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 34px rgba(143, 114, 245, 0.24);
     }
 
     .metric-card .card-body {
@@ -270,39 +301,53 @@
 
         <div class="row g-3 mb-4">
             <div class="col-md-6 col-xl-3">
-                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #8f72f5 0%, #A594F9 100%);">
+                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #8f72f5 0%, #b8a8ff 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Total Reports</h6>
-                        <h2 class="fw-bold mb-1">{{ $totalReports ?? 0 }}</h2>
+                        <h2 class="fw-bold mb-1" data-counter="{{ $totalReports ?? 0 }}">0</h2>
                         <small class="text-white-50">Active database records</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
-                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #c084fc 0%, #facc15 100%);">
+                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #a594f9 0%, #7658c7 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Pending Review</h6>
-                        <h2 class="fw-bold mb-1">{{ $pendingReports ?? 0 }}</h2>
+                        <h2 class="fw-bold mb-1" data-counter="{{ $pendingReports ?? 0 }}">0</h2>
                         <small class="text-white-50">Requires attention</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
-                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #A594F9 0%, #c4b5fd 100%);">
+                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #9b86f7 0%, #c4b5fd 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Resolved Cases</h6>
-                        <h2 class="fw-bold mb-1">{{ $resolvedReports ?? 0 }}</h2>
+                        <h2 class="fw-bold mb-1" data-counter="{{ $resolvedReports ?? 0 }}">0</h2>
                         <small class="text-white-50">Completed actions</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
-                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #A594F9 0%, #c4b5fd 100%);">
+                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #a594f9 0%, #7658c7 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Suggestions</h6>
-                        <h2 class="fw-bold mb-1">28</h2>
+                        <h2 class="fw-bold mb-1" data-counter="{{ $totalSuggestions ?? 0 }}">0</h2>
                         <small class="text-white-50">Participatory suggestions feedback</small>
                     </div>
+
+                    <script>
+                        document.querySelectorAll('[data-counter]').forEach(function (counter) {
+                            const target = Number(counter.dataset.counter || 0);
+                            const duration = 700;
+                            const startedAt = performance.now();
+                            function tick(now) {
+                                const progress = Math.min((now - startedAt) / duration, 1);
+                                counter.textContent = Math.floor(progress * target).toLocaleString();
+                                if (progress < 1) window.requestAnimationFrame(tick);
+                            }
+                            window.requestAnimationFrame(tick);
+                        });
+                    </script>
                 </div>
             </div>
         </div>

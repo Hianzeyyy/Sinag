@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -52,7 +53,7 @@ class AuthController extends Controller
 
         $user = User::where('email', strtolower(trim($data['email'])))->first();
 
-        if ($user?->password_locked_at !== null) {
+        if ($this->passwordAttemptTrackingAvailable() && $user?->password_locked_at !== null) {
             return response()->json([
                 'message' => 'Your account is locked after three failed password attempts. Please reset your password.',
                 'password_reset_url' => route('password.code.form'),
@@ -60,7 +61,7 @@ class AuthController extends Controller
         }
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
-            if ($user) {
+            if ($user && $this->passwordAttemptTrackingAvailable()) {
                 $attempts = min(self::MAX_PASSWORD_ATTEMPTS, (int) $user->failed_login_attempts + 1);
                 $attributes = ['failed_login_attempts' => $attempts];
 
@@ -81,7 +82,8 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => ['These credentials do not match our records.']]);
         }
 
-        if ($user->failed_login_attempts !== 0 || $user->password_locked_at !== null) {
+        if ($this->passwordAttemptTrackingAvailable() &&
+            ($user->failed_login_attempts !== 0 || $user->password_locked_at !== null)) {
             $user->forceFill([
                 'failed_login_attempts' => 0,
                 'password_locked_at' => null,
@@ -191,6 +193,12 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Registration submitted. Please wait for admin verification before you can sign in.',
         ], 201);
+    }
+
+    private function passwordAttemptTrackingAvailable(): bool
+    {
+        return Schema::hasColumn('users', 'failed_login_attempts')
+            && Schema::hasColumn('users', 'password_locked_at');
     }
 
     public function logout(Request $request): JsonResponse

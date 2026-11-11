@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
@@ -41,7 +42,8 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        if ($user->failed_login_attempts !== 0 || $user->password_locked_at !== null) {
+        if ($this->passwordAttemptTrackingAvailable() &&
+            ($user->failed_login_attempts !== 0 || $user->password_locked_at !== null)) {
             $user->forceFill([
                 'failed_login_attempts' => 0,
                 'password_locked_at' => null,
@@ -116,7 +118,7 @@ class LoginController extends Controller
     {
         $user = User::whereRaw('LOWER(email) = ?', [strtolower(trim((string) $request->input($this->username())))])->first();
 
-        if ($user?->password_locked_at !== null) {
+        if ($this->passwordAttemptTrackingAvailable() && $user?->password_locked_at !== null) {
             return false;
         }
 
@@ -129,7 +131,7 @@ class LoginController extends Controller
     {
         $user = User::whereRaw('LOWER(email) = ?', [strtolower(trim((string) $request->input($this->username())))])->first();
 
-        if ($user) {
+        if ($user && $this->passwordAttemptTrackingAvailable()) {
             $attempts = min(self::MAX_PASSWORD_ATTEMPTS, (int) $user->failed_login_attempts + 1);
             $attributes = ['failed_login_attempts' => $attempts];
 
@@ -150,8 +152,16 @@ class LoginController extends Controller
         }
 
         throw ValidationException::withMessages([
-            $this->username() => [trans('auth.failed')],
+            $this->username() => [$user
+                ? 'The password is incorrect.'
+                : 'The username or email address was not found.'],
         ]);
+    }
+
+    private function passwordAttemptTrackingAvailable(): bool
+    {
+        return Schema::hasColumn('users', 'failed_login_attempts')
+            && Schema::hasColumn('users', 'password_locked_at');
     }
 
     public function logout(Request $request)

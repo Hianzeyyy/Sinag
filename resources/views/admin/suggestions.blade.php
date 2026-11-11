@@ -103,14 +103,14 @@
                             <input type="hidden" name="action" value="approve">
                             <label class="visually-hidden" for="approveRemarks{{ $suggestion->id }}">Approval comment</label>
                             <textarea id="approveRemarks{{ $suggestion->id }}" name="admin_remarks" class="form-control mb-2" rows="2" maxlength="1000" placeholder="Why approve? (optional)"></textarea>
-                            <button type="submit" class="btn btn-secondary">Approve Suggestion</button>
+                            <button type="submit" class="btn suggestion-approve-btn">Approve Suggestion</button>
                         </form>
                         <form action="{{ route('admin.suggestions.review', $suggestion->id) }}" method="POST">
                             @csrf
                             <input type="hidden" name="action" value="reject">
                             <label class="visually-hidden" for="rejectRemarks{{ $suggestion->id }}">Rejection comment</label>
                             <textarea id="rejectRemarks{{ $suggestion->id }}" name="admin_remarks" class="form-control mb-2" rows="2" maxlength="1000" placeholder="Why reject? (optional)"></textarea>
-                            <button type="submit" class="btn btn-outline-secondary">Reject Suggestion</button>
+                            <button type="submit" class="btn suggestion-reject-btn">Reject Suggestion</button>
                         </form>
                     </div>
                 </div>
@@ -195,8 +195,10 @@
 }
 
 .sinag-status-approved { background: #d8cdfc; color: #5b4b9b; }
-.sinag-status-rejected { background: #fff8d6; color: #806000; }
-.sinag-status-pending { background: #f8cb12; color: #4a3500; }
+.sinag-status-rejected { background: #f7c4dd; color: #9d285d; }
+.sinag-status-pending { background: #ede9fe; color: #6d55d9; }
+.suggestion-approve-btn { background: #d8cdfc; color: #5b4b9b; font-weight: 700; }
+.suggestion-reject-btn { border: 1px solid #ee78ae; color: #c33b76; font-weight: 700; }
 .fw-grid { display: block; }
 .fw-table-card .table { min-width: 760px; }
 .fw-table-card td { vertical-align: middle; }

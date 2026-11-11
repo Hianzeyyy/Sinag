@@ -622,11 +622,7 @@
                                data-conversation-student-id="{{ $otherUser->id }}"
                                class="conversation-item {{ $selectedStudentId == $otherUser->id ? 'active' : '' }}">
                                 <div class="conv-avatar">
-                                    @if($otherUser->profile_photo_path)
-                                        <img src="{{ route('profile.photo', $otherUser) }}" alt="{{ $otherUser->name }} profile photo">
-                                    @else
-                                        {{ $initials }}
-                                    @endif
+                                    <img src="{{ route('profile.photo', $otherUser) }}" alt="{{ $otherUser->name }} profile photo">
                                 </div>
                                 <div class="conv-info">
                                     <div class="conv-name">{{ $otherUser->name }}</div>
@@ -659,11 +655,7 @@
                         <a class="message-back-link btn btn-sm btn-outline-secondary" href="{{ route('admin.messages') }}" aria-label="Back to conversations"><i class="bi bi-arrow-left"></i></a>
                         <div class="msg-header-left">
                             <div class="header-avatar">
-                                @if($selectedStudent->profile_photo_path)
-                                    <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo">
-                                @else
-                                    {{ $selInitials }}
-                                @endif
+                                <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo">
                             </div>
                             <div>
                                 <button type="button" class="msg-name msg-profile-trigger" data-bs-toggle="modal" data-bs-target="#messageUserProfileModal">
@@ -702,10 +694,10 @@
 
                                 <div class="message-group {{ $isAdmin ? 'user' : 'admin' }}" data-message-id="{{ $message->id }}">
                                     <div class="msg-avatar {{ $isAdmin ? 'outgoing-av' : 'incoming-av' }}">
-                                        @if(!$isAdmin && $selectedStudent->profile_photo_path)
-                                            <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo">
+                                        @if($isAdmin)
+                                            <img src="{{ route('profile.photo', Auth::user()) }}" alt="{{ Auth::user()->name }} profile photo">
                                         @else
-                                            {{ $bubbleInitials }}
+                                            <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo">
                                         @endif
                                     </div>
                                     <div class="msg-content">
@@ -759,11 +751,7 @@
                 </div>
                 <div class="modal-body pt-0">
                     <div class="d-flex align-items-center gap-3 mb-4">
-                        @if($selectedStudent->profile_photo_path)
-                            <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo" class="rounded-circle" style="width:4.5rem;height:4.5rem;object-fit:cover;">
-                        @else
-                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width:4.5rem;height:4.5rem;background:#8f72f5;">{{ $selInitials }}</div>
-                        @endif
+                        <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo" class="rounded-circle" style="width:4.5rem;height:4.5rem;object-fit:cover;">
                         <div>
                             <h6 class="fw-bold mb-1">{{ $selectedStudent->name }}</h6>
                             <div class="small text-muted">{{ ucfirst($messageUserAccountType) }}{{ $selectedStudent->employee_category ? ' · ' . ucfirst(str_replace('_', ' ', $selectedStudent->employee_category)) : '' }}</div>

@@ -2,6 +2,21 @@
 
 @section('content')
 <style>
+    .reports-table-wrap { overscroll-behavior-x: contain; }
+    .reports-table-wrap th:first-child,
+    .reports-table-wrap td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        min-width: 8.5rem;
+        background: #fff;
+    }
+    .reports-table-wrap thead th:first-child {
+        z-index: 3;
+        background: #f8f9fa;
+    }
+</style>
+<style>
     .sinag-violet-badge { background: #d8cdfc; color: #5b4b9b; border-color: #c4b5fd !important; }
     .sinag-yellow-badge { background: #f8cb12; color: #4a3500; border-color: #e5b900 !important; }
     
@@ -35,12 +50,12 @@
                 </div>
                 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="table-responsive reports-table-wrap">
                         <table class="table table-hover align-middle mb-0" id="reportsTable">
                             <thead class="bg-light text-muted small">
                                 <tr>
-                                    <th class="ps-4 py-3">DATE FILED</th>
-                                    <th>INCIDENT ID</th>
+                                    <th class="ps-4 py-3">INCIDENT ID</th>
+                                    <th>DATE FILED</th>
                                     <th>CLOAK ALIAS</th>
                                     <th>NATURE OF ABUSE</th>
                                     <th>PRIORITY</th>
@@ -51,8 +66,8 @@
                             <tbody>
                                 @forelse($reports as $report)
                                 <tr>
-                                    <td class="ps-4 small text-muted">{{ $report->created_at->format('M d, Y') }}</td>
-                                    <td><span class="fw-bold text-dark">#{{ $report->incident_id }}</span></td>
+                                    <td class="ps-4"><span class="fw-bold text-dark">#{{ $report->incident_id }}</span></td>
+                                    <td class="small text-muted">{{ $report->created_at->format('M d, Y') }}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="rounded-circle d-flex align-items-center justify-content-center me-2" 

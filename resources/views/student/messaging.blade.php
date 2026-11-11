@@ -462,6 +462,39 @@ body {
     margin-bottom: 1rem;
 }
 
+.msg-info-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+}
+
+.msg-info-toggle .msg-info-title {
+    margin-bottom: 0;
+}
+
+.msg-info-toggle i {
+    color: var(--violet);
+    transition: transform .18s ease;
+}
+
+.msg-info-toggle[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+
+.msg-info-details {
+    margin-top: 1rem;
+}
+
+.msg-info-details[hidden] {
+    display: none !important;
+}
+
 .msg-info-row {
     display: flex;
     align-items: center;
@@ -653,7 +686,11 @@ body {
 
             {{-- Office Info --}}
             <div class="msg-info-card">
-                <div class="msg-info-title">Office Info</div>
+                <button type="button" class="msg-info-toggle" aria-expanded="false" aria-controls="officeInfoDetails">
+                    <span class="msg-info-title mb-0">Office Info</span>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                </button>
+                <div id="officeInfoDetails" class="msg-info-details" hidden>
 
                 <div class="msg-info-row">
                     <div class="msg-info-icon">
@@ -661,6 +698,7 @@ body {
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12 6 12 12 16 14"/>
                         </svg>
+                        </div>
                     </div>
                     {{ $officeInfo['office_hours'] ?? 'Mon – Fri, 8:00 AM – 5:00 PM' }}
                 </div>
@@ -708,6 +746,24 @@ body {
 <script>
 const CSRF = '{{ csrf_token() }}';
 const currentUserId = {{ Auth::id() }};
+
+document.querySelector('.msg-info-toggle')?.addEventListener('click', function () {
+    const details = document.getElementById('officeInfoDetails');
+    const expanded = this.getAttribute('aria-expanded') === 'true';
+    this.setAttribute('aria-expanded', String(!expanded));
+    details.hidden = expanded;
+});
+
+function resetOfficeInfo() {
+    const toggle = document.querySelector('.msg-info-toggle');
+    const details = document.getElementById('officeInfoDetails');
+    if (!toggle || !details) return;
+    toggle.setAttribute('aria-expanded', 'false');
+    details.hidden = true;
+}
+
+resetOfficeInfo();
+window.addEventListener('pageshow', resetOfficeInfo);
 
 function escapeHtml(text) {
     const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' };
