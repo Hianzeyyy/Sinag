@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -132,7 +133,7 @@ class RegisterController extends Controller
             return DB::transaction(function () use ($data, $accountType, $cloakAlias, $profilePhotoPath, $selfieImagePath) {
                 $email = strtolower(trim($data['email']));
 
-                $id = CompatibleInsert::insert('users', [
+                $userData = [
                     'name' => implode(' ', array_filter([
                         trim($data['first_name']),
                         trim($data['middle_name'] ?? ''),
@@ -156,7 +157,13 @@ class RegisterController extends Controller
                     'account_status' => 'pending',
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+
+                if (Schema::hasColumn('users', 'id_image_path')) {
+                    $userData['id_image_path'] = $selfieImagePath;
+                }
+
+                $id = CompatibleInsert::insert('users', $userData);
 
                 return User::query()->findOrFail($id);
             });

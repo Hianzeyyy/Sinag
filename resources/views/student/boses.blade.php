@@ -636,6 +636,9 @@
         .boses-page { padding-inline: .65rem; }
         .hero-panel h1 { font-size: 1.55rem; }
         .suggestion-card .suggestion-top, .suggestion-body { padding: .75rem !important; }
+        .suggestion-message { text-align: left; }
+        .suggestion-image-link { margin-inline: 0; }
+        .suggestion-attachment { margin-inline: 0; }
         .suggestion-card .d-flex.flex-column.flex-md-row { gap: .7rem !important; }
         .suggestion-actions { width: 100%; justify-content: flex-start; }
         .suggestion-actions .upvote-btn { min-width: 0; flex: 1 1 auto; }

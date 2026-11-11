@@ -198,6 +198,17 @@
             vertical-align: middle;
         }
 
+        .pagination {
+            flex-wrap: wrap;
+            gap: .25rem;
+            margin-bottom: 0;
+        }
+
+        .pagination .page-link {
+            min-width: 2.25rem;
+            text-align: center;
+        }
+
         .modal-backdrop.show {
             opacity: .35;
         }
