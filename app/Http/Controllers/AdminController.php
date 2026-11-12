@@ -42,6 +42,8 @@ class AdminController extends Controller
         $pendingReports   = Report::where('status', 'Pending')->count();
         $resolvedReports  = Report::where('status', 'Resolved')->count();
         $totalSuggestions = Suggestion::count();
+        $resolvedPercentage = $totalReports > 0 ? (int) round(($resolvedReports / $totalReports) * 100) : 0;
+        $pendingPercentage = $totalReports > 0 ? (int) round(($pendingReports / $totalReports) * 100) : 0;
 
         // 2. Active Emergencies Logic
         $activeEmergencies = Report::where(function($query) {
@@ -69,6 +71,8 @@ class AdminController extends Controller
             'totalReports',
             'pendingReports',
             'resolvedReports',
+            'resolvedPercentage',
+            'pendingPercentage',
             'totalSuggestions',
             'activeEmergencies',
             'recentReports',
@@ -83,7 +87,10 @@ class AdminController extends Controller
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
-        $validated = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:Pending,Under Review,Resolved,Emergency'],
+        ]);
         $query = trim($validated['q'] ?? '');
         $escapedQuery = '%' . addcslashes($query, '\\%_') . '%';
 
@@ -92,6 +99,7 @@ class AdminController extends Controller
                 $search->where('incident_id', 'like', $escapedQuery)
                     ->orWhere('cloak_alias', 'like', $escapedQuery);
             }))
+            ->when($validated['status'] ?? null, fn ($reports, $status) => $reports->where('status', $status))
             ->orderByRaw('CASE WHEN seen_at IS NULL THEN 0 ELSE 1 END')
             ->orderByDesc('created_at')
             ->paginate(15)
@@ -317,6 +325,7 @@ class AdminController extends Controller
             ->orderByDesc('id')
             ->paginate(30)
             ->withQueryString();
+        $filteredUserCount = (clone $usersQuery)->reorder()->count();
         $userCounts = $baseQuery
             ->selectRaw("SUM(CASE WHEN account_status = 'pending' THEN 1 ELSE 0 END) as pending, SUM(CASE WHEN account_status IN ('active', 'approved') THEN 1 ELSE 0 END) as active, SUM(CASE WHEN account_status = 'rejected' THEN 1 ELSE 0 END) as rejected, COUNT(*) as total")
             ->first();
@@ -344,7 +353,7 @@ class AdminController extends Controller
             default => $studentDepartments + $employeeDepartments,
         };
 
-        return view('admin.users-list', compact('users', 'userCounts', 'departments'));
+        return view('admin.users-list', compact('users', 'userCounts', 'departments', 'filteredUserCount'));
     }
 
     /**
@@ -358,14 +367,7 @@ class AdminController extends Controller
         $verificationImagePath = $user->id_image_path ?: $user->selfie_image_path;
         $verificationImageAvailable = false;
 
-        if ($verificationImagePath) {
-            foreach (['local', 'public'] as $diskName) {
-                if (Storage::disk($diskName)->exists($verificationImagePath)) {
-                    $verificationImageAvailable = true;
-                    break;
-                }
-            }
-        }
+        $verificationImageAvailable = \App\Support\MediaResolver::resolvePath($verificationImagePath) !== null;
 
         return view('profile.show', compact('user', 'verificationImageAvailable'));
     }

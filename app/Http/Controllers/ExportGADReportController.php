@@ -6,8 +6,10 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Report;
 use App\Models\Suggestion;
+use App\Models\CustomerSatisfactionSurvey;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class ExportGADReportController extends Controller
 {
@@ -20,6 +22,7 @@ class ExportGADReportController extends Controller
      */
     public function export(string $format, string $period = '30days')
     {
+        $request = request();
         $format = strtolower($format);
         if (!in_array($format, ['pdf', 'excel', 'xlsx', 'csv'], true)) {
             abort(400, 'Unsupported export format.');
@@ -50,6 +53,22 @@ class ExportGADReportController extends Controller
             ->whereBetween('created_at', [$startDate, $endDate])
             ->orderBy('created_at', 'desc')
             ->get();
+        $currentUser = auth()->user();
+        $showSatisfactionNames = strtolower((string) ($currentUser?->account_type)) === 'coordinator'
+            || strtolower((string) ($currentUser?->email)) === 'gadcoordinator@psu.edu.ph';
+        $hasSectionSelection = $request->has('include_reports') || $request->has('include_feedback');
+        $includeReports = $hasSectionSelection ? $request->boolean('include_reports') : true;
+        $includeFeedback = $hasSectionSelection ? $request->boolean('include_feedback') : true;
+        if (!$includeReports && !$includeFeedback) {
+            abort(422, 'Select at least one export section.');
+        }
+        $satisfactionSurveys = $includeFeedback && Schema::hasTable('customer_satisfaction_surveys')
+            ? CustomerSatisfactionSurvey::with('user')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->latest()
+                ->get()
+            : collect();
+        $surveyFindings = $this->surveyFindings($satisfactionSurveys);
 
         $data = [
             'period_label' => $periodLabel,
@@ -58,6 +77,8 @@ class ExportGADReportController extends Controller
             'total_users'  => $users->count(),
             'total_reports' => $reports->count(),
             'total_suggestions' => $suggestions->count(),
+            'total_satisfaction_surveys' => $satisfactionSurveys->count(),
+            'average_satisfaction' => round((float) $satisfactionSurveys->avg('rating'), 2),
             'generated_at' => Carbon::now()->format('F d, Y h:i A'),
         ];
 
@@ -69,12 +90,17 @@ class ExportGADReportController extends Controller
                 'employeeProfiles' => $this->profileDetails($employees, true),
                 'reports' => $reports,
                 'suggestions' => $suggestions,
+                'satisfactionSurveys' => $satisfactionSurveys,
+                'showSatisfactionNames' => $showSatisfactionNames,
+                'includeReports' => $includeReports,
+                'includeFeedback' => $includeFeedback,
+                'surveyFindings' => $surveyFindings,
             ])->setPaper('a4', 'portrait');
 
             return $pdf->download("GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf');
         }
 
-        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $period);
+        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, $surveyFindings, $showSatisfactionNames, $includeReports, $includeFeedback, $period);
     }
 
     /**
@@ -130,38 +156,81 @@ class ExportGADReportController extends Controller
         ];
     }
 
-    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, string $period)
+    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, array $surveyFindings, bool $showSatisfactionNames, bool $includeReports, bool $includeFeedback, string $period)
     {
+        $summaryRows = [
+            ['SINAG - GENDER AND DEVELOPMENT (GAD) OFFICE'],
+            ['Comprehensive Analytics & Operations Summary Report'],
+            ['Coverage Period', $data['period_label']],
+            ['Start Date', $data['start_date']],
+            ['End Date', $data['end_date']],
+            ['Generated On', $data['generated_at']],
+            [],
+            ['Metric', 'Count'],
+        ];
+        if ($includeReports) {
+            $summaryRows[] = ['New Registered Users', $data['total_users']];
+            $summaryRows[] = ['Incidents Reported', $data['total_reports']];
+        }
+        if ($includeFeedback) {
+            if ($includeReports) {
+                $summaryRows[] = ['Suggestions Submitted', $data['total_suggestions']];
+            }
+            $summaryRows[] = ['Customer Satisfaction Responses', $data['total_satisfaction_surveys']];
+            $summaryRows[] = ['Average System Rating', $data['average_satisfaction'] ?: 'N/A'];
+        }
+
         $sheets = [
-            'Summary' => [
-                ['SINAG - GENDER AND DEVELOPMENT (GAD) OFFICE'],
-                ['Comprehensive Analytics & Operations Summary Report'],
-                ['Coverage Period', $data['period_label']],
-                ['Start Date', $data['start_date']],
-                ['End Date', $data['end_date']],
-                ['Generated On', $data['generated_at']],
-                [],
-                ['Metric', 'Count'],
-                ['New Registered Users', $data['total_users']],
-                ['Incidents Reported', $data['total_reports']],
-                ['Suggestions Submitted', $data['total_suggestions']],
-            ],
-            'Users' => [[
-                'User ID', 'Full Name', 'Email', 'Phone', 'Account Type', 'Role',
-                'Gender', 'Age', 'Department', 'Account Status', 'Registered',
-            ]],
-            'Incident Reports' => [[
-                'Incident ID', 'Reporter Alias', 'Nature', 'Location', 'Incident Date',
-                'Incident Time', 'Priority', 'Status', 'Filed Date',
-            ]],
-            'Suggestions' => [[
-                'Suggestion ID', 'Submitted By', 'Category', 'Message', 'Upvotes', 'Status', 'Submitted',
-            ]],
-            'Student Information' => $this->profileSheetRows($students, false),
-            'Faculty and Non-Teaching' => $this->profileSheetRows($employees, true),
+            'Summary' => $summaryRows,
         ];
 
-        foreach ($users as $user) {
+        if ($includeReports) {
+            $sheets['Users'] = [[
+                'User ID', 'Full Name', 'Email', 'Phone', 'Account Type', 'Role',
+                'Gender', 'Age', 'Department', 'Account Status', 'Registered',
+            ]];
+            $sheets['Incident Reports'] = [[
+                'Incident ID', 'Reporter Alias', 'Nature', 'Location', 'Incident Date',
+                'Incident Time', 'Priority', 'Status', 'Filed Date',
+            ]];
+        }
+
+        if ($includeReports && $includeFeedback) {
+            $sheets['Suggestions'] = [[
+                'Suggestion ID', 'Submitted By', 'Category', 'Message', 'Upvotes', 'Status', 'Submitted',
+            ]];
+        }
+
+        if ($includeReports) {
+            $sheets['Student Information'] = $this->profileSheetRows($students, false);
+            $sheets['Faculty and Non-Teaching'] = $this->profileSheetRows($employees, true);
+        }
+
+        if ($includeFeedback) {
+            $sheets['Customer Satisfaction'] = [[
+                $showSatisfactionNames ? 'Respondent Name' : 'Respondent',
+                'Rating', 'Survey Responses', 'Feedback', 'Submitted',
+            ]];
+            $sheets['Survey Findings'] = [[
+                'Question', 'Responses', 'Average Score', 'Favorable Responses',
+                'Strongly Disagree', 'Disagree', 'Agree', 'Strongly Agree', 'Finding',
+            ]];
+            foreach ($surveyFindings as $finding) {
+                $sheets['Survey Findings'][] = [
+                    $finding['question'],
+                    $finding['responses'],
+                    $finding['average_score'],
+                    $finding['favorable_percentage'].'%',
+                    $finding['counts'][1],
+                    $finding['counts'][2],
+                    $finding['counts'][3],
+                    $finding['counts'][4],
+                    $finding['finding'],
+                ];
+            }
+        }
+
+        foreach ($includeReports ? $users : [] as $user) {
             $sheets['Users'][] = [
                 $user->id,
                 $user->name,
@@ -177,7 +246,7 @@ class ExportGADReportController extends Controller
             ];
         }
 
-        foreach ($reports as $report) {
+        foreach ($includeReports ? $reports : [] as $report) {
             $sheets['Incident Reports'][] = [
                 $report->incident_id,
                 $report->cloak_alias ?? 'Anonymous',
@@ -191,7 +260,7 @@ class ExportGADReportController extends Controller
             ];
         }
 
-        foreach ($suggestions as $suggestion) {
+        foreach ($includeReports && $includeFeedback ? $suggestions : [] as $suggestion) {
             $sheets['Suggestions'][] = [
                 $suggestion->id,
                 $suggestion->is_anonymous ? 'Anonymous' : (optional($suggestion->user)->name ?? 'Unknown'),
@@ -200,6 +269,16 @@ class ExportGADReportController extends Controller
                 $suggestion->upvotes_count ?? 0,
                 $suggestion->status ?? 'Open',
                 optional($suggestion->created_at)->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        foreach ($includeFeedback ? $satisfactionSurveys : [] as $survey) {
+            $sheets['Customer Satisfaction'][] = [
+                $showSatisfactionNames ? (optional($survey->user)->name ?? 'Unknown') : 'Anonymous',
+                $survey->rating,
+                json_encode($survey->responses ?? [], JSON_UNESCAPED_UNICODE),
+                $survey->feedback ?? '',
+                optional($survey->created_at)->format('Y-m-d H:i:s'),
             ];
         }
 
@@ -264,6 +343,92 @@ class ExportGADReportController extends Controller
             'GAD_Report_' . $period . '_' . Carbon::now()->format('Ymd_His') . '.xlsx',
             ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         )->deleteFileAfterSend(true);
+    }
+
+    private function surveyFindings($surveys): array
+    {
+        $questions = [
+            'The report or suggestion submission process was easy to use.',
+            'The instructions and information were clear.',
+            'The system made me feel safe sharing my concern or feedback.',
+            'The system responded well to my needs.',
+            'I would recommend this system to others who need support.',
+        ];
+
+        return collect($questions)->map(function (string $question, int $index) use ($surveys): array {
+            $answers = $surveys
+                ->map(fn ($survey) => (int) data_get($survey->responses, $index))
+                ->filter(fn (int $answer) => $answer >= 1 && $answer <= 4)
+                ->values();
+            $count = $answers->count();
+            $average = $count > 0 ? round((float) $answers->avg(), 2) : null;
+            $favorable = $count > 0
+                ? round(($answers->filter(fn (int $answer) => $answer >= 3)->count() / $count) * 100)
+                : 0;
+            $counts = collect([1, 2, 3, 4])->mapWithKeys(
+                fn (int $choice) => [$choice => $answers->filter(fn (int $answer) => $answer === $choice)->count()]
+            )->all();
+
+            return [
+                'question' => $question,
+                'responses' => $count,
+                'average_score' => $average ?? 'N/A',
+                'favorable_percentage' => $favorable,
+                'counts' => $counts,
+                'pie_image' => $this->pieImage($counts),
+                'finding' => $count === 0
+                    ? 'No responses recorded.'
+                    : ($favorable >= 75 ? 'Strength: respondents were generally favorable.'
+                        : ($favorable >= 50 ? 'Mixed finding: responses were divided.'
+                            : 'Priority finding: respondents were generally unfavorable.')),
+            ];
+        })->all();
+    }
+
+    private function pieImage(array $counts): ?string
+    {
+        if (!function_exists('imagecreatetruecolor')) {
+            return null;
+        }
+
+        $image = imagecreatetruecolor(220, 220);
+        imagealphablending($image, true);
+        $background = imagecolorallocate($image, 255, 255, 255);
+        imagefill($image, 0, 0, $background);
+        $colors = [
+            1 => imagecolorallocate($image, 239, 68, 68),
+            2 => imagecolorallocate($image, 245, 158, 11),
+            3 => imagecolorallocate($image, 132, 204, 22),
+            4 => imagecolorallocate($image, 34, 197, 94),
+        ];
+        $total = array_sum($counts);
+        $start = 270;
+        if ($total === 0) {
+            imagefilledellipse($image, 110, 110, 176, 176, imagecolorallocate($image, 209, 213, 219));
+        } else {
+            foreach ($counts as $choice => $count) {
+                if ($count === 0) {
+                    continue;
+                }
+                $end = $start + (360 * $count / $total);
+                imagefilledarc($image, 110, 110, 176, 176, $start, $end, $colors[$choice], IMG_ARC_PIE);
+                $percentage = round(($count / $total) * 100);
+                $label = $percentage.'%';
+                $labelAngle = deg2rad(($start + $end) / 2);
+                $labelX = 110 + (int) round(cos($labelAngle) * 55);
+                $labelY = 110 + (int) round(sin($labelAngle) * 55);
+                $labelWidth = imagefontwidth(3) * strlen($label);
+                imagestring($image, 3, $labelX - (int) ($labelWidth / 2), $labelY - 6, $label, imagecolorallocate($image, 255, 255, 255));
+                $start = $end;
+            }
+        }
+
+        ob_start();
+        imagepng($image);
+        $contents = ob_get_clean();
+        imagedestroy($image);
+
+        return is_string($contents) ? base64_encode($contents) : null;
     }
 
     private function profileSheetRows($users, bool $isEmployee): array

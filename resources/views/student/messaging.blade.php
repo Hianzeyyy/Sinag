@@ -698,7 +698,6 @@ body {
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12 6 12 12 16 14"/>
                         </svg>
-                        </div>
                     </div>
                     {{ $officeInfo['office_hours'] ?? 'Mon – Fri, 8:00 AM – 5:00 PM' }}
                 </div>

@@ -662,10 +662,10 @@
             <div class="alert border-0 shadow-sm" role="status" style="background:#f3efff;color:#5b4b9b;"><i class="bi bi-check-circle-fill me-2"></i>Personal data completed. You can now access Community Suggestions.</div>
         @endif
         @if(session('status'))
-            <div class="alert alert-success border-0 shadow-sm" role="status">{{ session('status') }}</div>
+            <div class="alert border-0 shadow-sm" role="status" style="background:#f1eaff;color:#4c2a9d;">{{ session('status') }}</div>
         @endif
         @if(session('success'))
-            <div class="alert alert-success border-0 shadow-sm" role="status">{{ session('success') }}</div>
+            <div class="alert border-0 shadow-sm" role="status" style="background:#f1eaff;color:#4c2a9d;"><i class="bi bi-check-circle-fill me-2" style="color:#8f72f5;"></i>{{ session('success') }}</div>
         @endif
         @if(session('error'))
             <div class="alert alert-danger border-0 shadow-sm" role="alert">{{ session('error') }}</div>
@@ -1001,6 +1001,10 @@
         </div>
     </div>
 </div>
+
+@if(session('show_satisfaction_modal') && !($hasSatisfactionSurvey ?? false))
+    @include('components.customer-satisfaction-modal')
+@endif
 
 <div class="modal fade" id="suggestionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">

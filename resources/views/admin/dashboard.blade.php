@@ -52,8 +52,8 @@
         border: 0;
         border-radius: 1.4rem;
         overflow: hidden;
-        color: #fff;
-        background: linear-gradient(120deg, #8f72f5 0%, #b8a8ff 58%, #7658c7 100%);
+        color: #35216d;
+        background: linear-gradient(135deg, #f1eaff 0%, #d9c8ff 52%, #c7b5ff 100%);
         box-shadow: 0 20px 42px rgba(165, 148, 249, 0.22);
     }
 
@@ -67,7 +67,8 @@
         font-weight: 800;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        background: rgba(255, 255, 255, 0.16);
+        color: #5b4b9b;
+        background: rgba(255, 255, 255, 0.62);
     }
 
     .hero-title {
@@ -77,27 +78,28 @@
     }
 
     .hero-copy {
-        color: rgba(255, 255, 255, 0.9);
+        color: #5b4b9b;
         max-width: 40rem;
     }
 
     .hero-action {
         border: 0;
         border-radius: 999px;
-        background: #fff;
-        color: #8f72f5;
+        background: #8f72f5;
+        color: #fff;
         font-weight: 800;
         box-shadow: 0 12px 22px rgba(17, 24, 39, 0.2);
     }
 
     .hero-action:hover {
-        color: #8f72f5;
+        color: #fff;
     }
 
     .metric-card {
-        border: 0;
+        border: 1px solid rgba(143, 114, 245, 0.14);
         border-radius: 1.1rem;
-        color: #fff;
+        color: #35216d;
+        text-decoration: none;
         box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
         overflow: hidden;
         transition: transform .22s ease, box-shadow .22s ease;
@@ -106,10 +108,20 @@
     .metric-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 18px 34px rgba(143, 114, 245, 0.24);
+        color: #35216d;
     }
 
     .metric-card .card-body {
         position: relative;
+    }
+
+    .metric-card .text-white,
+    .metric-card .text-white-50 {
+        color: #35216d !important;
+    }
+
+    .metric-card .metric-value {
+        color: #4c2a9d;
     }
 
     .metric-card .card-body::after {
@@ -197,6 +209,22 @@
     .command-tools-sub {
         color: #6b7280;
         font-size: 0.82rem;
+    }
+
+    .survey-choice {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        padding: .65rem .8rem;
+        border: 1px solid #e5e7eb;
+        border-radius: .65rem;
+        cursor: pointer;
+    }
+
+    .survey-choice:has(input:checked) {
+        color: #4c2a9d;
+        background: #f1eaff;
+        border-color: #a594f9;
     }
 
     .admin-tool-btn {
@@ -301,37 +329,37 @@
 
         <div class="row g-3 mb-4">
             <div class="col-md-6 col-xl-3">
-                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #8f72f5 0%, #b8a8ff 100%);">
+                <a href="{{ route('admin.reports') }}" class="card metric-card h-100" style="background: linear-gradient(135deg, #f1eaff 0%, #d9c8ff 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Total Reports</h6>
-                        <h2 class="fw-bold mb-1" data-counter="{{ $totalReports ?? 0 }}">0</h2>
+                        <h2 class="metric-value fw-bold mb-1" data-counter="{{ $totalReports ?? 0 }}">0</h2>
                         <small class="text-white-50">Active database records</small>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-6 col-xl-3">
-                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #a594f9 0%, #7658c7 100%);">
+                <a href="{{ route('admin.reports', ['status' => 'Pending']) }}" class="card metric-card h-100" style="background: linear-gradient(135deg, #e8ddff 0%, #cbb8ff 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Pending Review</h6>
-                        <h2 class="fw-bold mb-1" data-counter="{{ $pendingReports ?? 0 }}">0</h2>
+                        <h2 class="metric-value fw-bold mb-1" data-counter="{{ $pendingReports ?? 0 }}">0</h2>
                         <small class="text-white-50">Requires attention</small>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-6 col-xl-3">
-                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #9b86f7 0%, #c4b5fd 100%);">
+                <a href="{{ route('admin.reports', ['status' => 'Resolved']) }}" class="card metric-card h-100" style="background: linear-gradient(135deg, #eee8ff 0%, #d5c7ff 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Resolved Cases</h6>
-                        <h2 class="fw-bold mb-1" data-counter="{{ $resolvedReports ?? 0 }}">0</h2>
+                        <h2 class="metric-value fw-bold mb-1" data-counter="{{ $resolvedReports ?? 0 }}">0</h2>
                         <small class="text-white-50">Completed actions</small>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-6 col-xl-3">
-                <div class="card metric-card h-100" style="background: linear-gradient(130deg, #a594f9 0%, #7658c7 100%);">
+                <a href="{{ route('admin.suggestions') }}" class="card metric-card h-100" style="background: linear-gradient(135deg, #e5dcff 0%, #c7b5ff 100%);">
                     <div class="card-body text-white">
                         <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Suggestions</h6>
-                        <h2 class="fw-bold mb-1" data-counter="{{ $totalSuggestions ?? 0 }}">0</h2>
+                        <h2 class="metric-value fw-bold mb-1" data-counter="{{ $totalSuggestions ?? 0 }}">0</h2>
                         <small class="text-white-50">Participatory suggestions feedback</small>
                     </div>
 
@@ -348,7 +376,7 @@
                             window.requestAnimationFrame(tick);
                         });
                     </script>
-                </div>
+                </a>
             </div>
         </div>
 
@@ -490,7 +518,21 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="exportGadReportForm" method="GET" data-export-url-template="{{ route('admin.gad-report.export', ['format' => '__FORMAT__', 'period' => '__PERIOD__']) }}">
-                <div class="modal-body pt-0" id="exportGadFormatStep">
+                <div class="modal-body pt-0" id="exportGadDataStep">
+                    <label class="form-label fw-semibold">What would you like to export?</label>
+                    <div class="d-grid gap-2">
+                        <label class="survey-choice">
+                            <input type="checkbox" name="include_reports" value="1" checked>
+                            <span>Incident reports</span>
+                        </label>
+                        <label class="survey-choice">
+                            <input type="checkbox" name="include_feedback" value="1" checked>
+                            <span>Customer feedback and surveys</span>
+                        </label>
+                    </div>
+                    <div class="small text-danger mt-2 d-none" id="exportGadDataError">Select at least one export section.</div>
+                </div>
+                <div class="modal-body pt-0 d-none" id="exportGadFormatStep" aria-hidden="true">
                     <label for="exportGadReportFormat" class="form-label fw-semibold">File format</label>
                     <select id="exportGadReportFormat" class="form-select">
                         <option value="pdf">PDF</option>
@@ -505,7 +547,11 @@
                         <option value="lastyear">Last year</option>
                     </select>
                 </div>
-                <div class="modal-footer border-0" id="exportGadFormatActions">
+                <div class="modal-footer border-0" id="exportGadDataActions">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="continueGadData" class="btn rounded-pill px-4 text-white" style="background:#8f72f5;">Continue</button>
+                </div>
+                <div class="modal-footer border-0 d-none" id="exportGadFormatActions" aria-hidden="true">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" id="continueGadExport" class="btn rounded-pill px-4 text-white" style="background:#8f72f5;">Continue</button>
                 </div>
@@ -521,30 +567,46 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const formatStep = document.getElementById('exportGadFormatStep');
+        const dataStep = document.getElementById('exportGadDataStep');
+        const dataActions = document.getElementById('exportGadDataActions');
         const periodStep = document.getElementById('exportGadPeriodStep');
+        const dataError = document.getElementById('exportGadDataError');
         const formatActions = document.getElementById('exportGadFormatActions');
         const periodActions = document.getElementById('exportGadPeriodActions');
         const title = document.getElementById('exportGadFormatModalLabel');
         const formatTitle = 'Choose file format';
         const periodTitle = 'Choose date range';
 
-        function showExportPeriodStep(showPeriod) {
-            formatStep.classList.toggle('d-none', showPeriod);
-            formatStep.setAttribute('aria-hidden', String(showPeriod));
-            formatActions.classList.toggle('d-none', showPeriod);
-            formatActions.setAttribute('aria-hidden', String(showPeriod));
+        function showExportStep(step) {
+            const showData = step === 'data';
+            const showFormat = step === 'format';
+            const showPeriod = step === 'period';
+            dataStep.classList.toggle('d-none', !showData);
+            dataStep.setAttribute('aria-hidden', String(!showData));
+            dataActions.classList.toggle('d-none', !showData);
+            dataActions.setAttribute('aria-hidden', String(!showData));
+            formatStep.classList.toggle('d-none', !showFormat);
+            formatStep.setAttribute('aria-hidden', String(!showFormat));
+            formatActions.classList.toggle('d-none', !showFormat);
+            formatActions.setAttribute('aria-hidden', String(!showFormat));
             periodStep.classList.toggle('d-none', !showPeriod);
             periodStep.setAttribute('aria-hidden', String(!showPeriod));
             periodActions.classList.toggle('d-none', !showPeriod);
             periodActions.setAttribute('aria-hidden', String(!showPeriod));
-            title.textContent = showPeriod ? periodTitle : formatTitle;
+            title.textContent = showData ? 'Choose export sections' : (showPeriod ? periodTitle : formatTitle);
         }
 
+        showExportStep('data');
+        document.getElementById('continueGadData').addEventListener('click', function () {
+            const selected = document.querySelectorAll('#exportGadDataStep input[type="checkbox"]:checked').length;
+            dataError.classList.toggle('d-none', selected > 0);
+            if (selected > 0) showExportStep('format');
+        });
         document.getElementById('continueGadExport').addEventListener('click', function () {
-            showExportPeriodStep(true);
+            showExportStep('period');
         });
         document.getElementById('backToGadExportFormat').addEventListener('click', function () {
-            showExportPeriodStep(false);
+            showExportStep('format');
         });
         document.getElementById('exportGadReportForm').addEventListener('submit', function (event) {
             const form = event.currentTarget;
@@ -556,12 +618,12 @@
         });
 
         document.getElementById('exportGadFormatModal').addEventListener('hidden.bs.modal', function () {
-            showExportPeriodStep(false);
+            showExportStep('data');
+            dataError.classList.add('d-none');
         });
     });
 </script>
 
-{{-- Edit GAD Office Info Modal --}}
 <div class="modal fade" id="editOfficeInfoModal" tabindex="-1" aria-labelledby="editOfficeInfoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+kl*--@extends('layouts.app')
 
 @section('content')
 <div class="container-fluid py-4 appointment-page">

@@ -70,6 +70,7 @@
             <div class="col-md-6">
                 <h3 class="fw-bold mb-1" style="color: #A594F9;">User Management</h3>
                 <p class="text-muted small mb-0">Manage registered student and employee accounts.</p>
+                <p class="small fw-semibold mb-0"><span class="px-2 py-1 rounded-2" style="color:#4c2a9d;background:#e4d8ff;">Showing {{ $filteredUserCount }} user{{ $filteredUserCount === 1 ? '' : 's' }} matching the selected filters.</span></p>
             </div>
             <div class="col-md-6">
                 <div class="d-flex gap-2 justify-content-md-end mt-3 mt-md-0">

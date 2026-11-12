@@ -153,6 +153,7 @@
         border-color: #7259c9;
     }
     .login-input-group {
+        position: relative;
         border-radius: 12px;
         overflow: hidden;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -170,6 +171,20 @@
     .login-input-icon { padding-inline: clamp(0.85rem, 3vw, 1.5rem); }
     .login-input { min-width: 0; font-size: 1rem !important; }
     .login-password-hidden { -webkit-text-security: disc; }
+    .login-password-toggle {
+        position: absolute;
+        right: .85rem;
+        top: 0 !important;
+        bottom: 0 !important;
+        z-index: 3;
+        width: 2rem;
+        height: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transform: none !important;
+        margin: auto 0 !important;
+    }
     .login-actions { min-width: 0; }
     .login-actions > * { min-height: 52px; min-width: 0; }
 
@@ -555,7 +570,7 @@
                                         <label class="form-label small fw-bold text-uppercase mb-0" style="letter-spacing: 1px;">Password</label>
                                     </div>
 
-                                    <div class="position-relative">
+                                    <div>
                                         <div class="login-input-group input-group shadow-sm">
                                             <span class="login-input-icon input-group-text border-0">
                                                 <i class="bi bi-key fs-5"></i>
@@ -563,13 +578,12 @@
                                               <input id="password" type="text" class="login-input login-password-hidden form-control form-control-lg border-0 py-3 pe-5"
                                                   name="login_password" required autocomplete="off" style="font-size: 1rem;">
                                               <input type="hidden" name="password" id="passwordValue">
+                                            <button class="btn p-0 bg-transparent border-0 text-secondary login-password-toggle" type="button" id="togglePassword"
+                                                    title="Toggle password visibility" aria-label="Toggle password visibility">
+                                                <i class="bi bi-eye-slash fs-5" id="eyeIcon" style="opacity: 0.9; transition: opacity 0.2s ease, transform 0.2s ease;"></i>
+                                            </button>
                                         </div>
-                                        <div class="form-text">Your password must be at least 8 characters.</div>
-                                        <button class="btn p-0 bg-transparent border-0 text-secondary" type="button" id="togglePassword"
-                                                style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); z-index: 10;"
-                                                title="Toggle password visibility" aria-label="Toggle password visibility">
-                                            <i class="bi bi-eye-slash fs-5" id="eyeIcon" style="opacity: 0.9; transition: opacity 0.2s ease, transform 0.2s ease;"></i>
-                                        </button>
+                                        <div class="form-text" id="passwordHint" hidden>Your password must be at least 8 characters.</div>
                                     </div>
                                 </div>
 
@@ -826,6 +840,12 @@
     const togglePassword = document.querySelector('#togglePassword');
     const password = document.querySelector('#password');
     const eyeIcon = document.querySelector('#eyeIcon');
+    const passwordHint = document.querySelector('#passwordHint');
+
+    function updatePasswordHint() {
+        const length = loginPassword.value.length;
+        passwordHint.hidden = length === 0 || length >= 8;
+    }
 
     togglePassword.addEventListener('click', function () {
         password.classList.toggle('login-password-hidden');
@@ -833,6 +853,7 @@
         eyeIcon.classList.toggle('bi-eye-slash');
     });
 
+    loginPassword.addEventListener('input', updatePasswordHint);
     loginForm.addEventListener('submit', function () {
         passwordValue.value = loginPassword.value;
     });

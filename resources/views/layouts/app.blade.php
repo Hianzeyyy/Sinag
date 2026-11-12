@@ -1883,7 +1883,7 @@
                         <i class="bi bi-key-fill"></i> Password Reset Requests @if(($adminNotifications['password_resets'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['password_resets'] }}</span>@endif
                     </a>
                     <a href="{{ route('admin.suggestions') }}" class="nav-link-custom {{ Request::is('admin/suggestions*') ? 'active' : '' }}">
-                        <i class="bi bi-chat-square-dots-fill"></i> Participatory Suggestions @if(($adminNotifications['suggestions'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['suggestions'] }}</span>@endif
+                        <i class="bi bi-rss-fill"></i> Participatory Suggestions @if(($adminNotifications['suggestions'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['suggestions'] }}</span>@endif
                     </a>
                     <a href="{{ route('admin.messages') }}" class="nav-link-custom {{ Request::is('admin/messages*') ? 'active' : '' }}">
                         <i class="bi bi-chat-left-dots-fill"></i> Messages <span class="nav-notification ms-auto" data-admin-message-badge @if(($adminNotifications['messages'] ?? 0) < 1) hidden @endif>{{ $adminNotifications['messages'] ?? 0 }}</span>
@@ -1931,10 +1931,10 @@
                             <i class="bi bi-clipboard-check-fill"></i> Report Status
                         </a>
                         <a href="{{ route('student.boses') }}" class="nav-link-custom {{ Request::is('student/boses*') ? 'active' : '' }}">
-                            <i class="bi bi-chat-left-quote-fill"></i> Suggestions
+                            <i class="bi bi-rss-fill"></i> Suggestions
                         </a>
                         <a href="{{ route('student.appointments') }}" class="nav-link-custom {{ Request::is('student/appointments*') || Request::is('student/schedule-appointment*') ? 'active' : '' }}">
-                            <i class="bi bi-calendar2-week-fill"></i> Schedule
+                            <i class="bi bi-calendar2-week-fill"></i> Appointments
                         </a>
                         <a href="{{ route('student.wellness') }}" class="nav-link-custom {{ Request::is('student/wellness*') || Request::is('student/reference/*') ? 'active' : '' }}">
                             <i class="bi bi-book-half"></i> References
@@ -2018,13 +2018,13 @@
                                 </div>
 
                                 <a href="{{ route('student.boses') }}" class="student-nav-link {{ Request::is('student/boses*') ? 'active' : '' }}" aria-label="Suggestions" title="Suggestions">
-                                    <i class="bi bi-chat-left-quote-fill"></i>
+                                    <i class="bi bi-rss-fill"></i>
                                     <span>Suggestions</span>
                                 </a>
 
-                                <a href="{{ route('student.appointments') }}" class="student-nav-link {{ Request::is('student/appointments*') || Request::is('student/schedule-appointment*') ? 'active' : '' }}" aria-label="Schedule" title="Schedule">
+                                <a href="{{ route('student.appointments') }}" class="student-nav-link {{ Request::is('student/appointments*') || Request::is('student/schedule-appointment*') ? 'active' : '' }}" aria-label="Appointments" title="Appointments">
                                     <i class="bi bi-calendar2-week-fill"></i>
-                                    <span>Schedule</span>
+                                    <span>Appointments</span>
                                 </a>
 
                                 <a href="{{ route('student.wellness') }}" class="student-nav-link {{ Request::is('student/wellness*') ? 'active' : '' }}" aria-label="References" title="References">

@@ -23,7 +23,7 @@ body {
     margin-bottom: 3.5rem;
 }
 .ref-header h1 {
-    font-family: 'Times New Roman', Times, serif
+    font-family: 'Times New Roman', Times, serif;
     font-size: clamp(2rem, 5vw, 3.2rem);
     font-weight: 900;
     color: #9b60b1;
@@ -63,6 +63,17 @@ body {
     filter: drop-shadow(12px 18px 30px rgba(100,70,200,0.22));
 }
 
+.book::before {
+    content: '';
+    position: absolute;
+    inset: 5px -10px -5px 8px;
+    z-index: 0;
+    border-radius: 2px 10px 10px 2px;
+    background: repeating-linear-gradient(to bottom, #ffffff 0 2px, #e5e5e5 3px 4px);
+    box-shadow: 5px 8px 0 #d5d5d5, 10px 12px 18px rgba(35, 18, 83, 0.18);
+    transform: translateZ(-8px);
+}
+
 .book-wrapper:hover .book {
     transform: rotateY(-8deg) rotateX(2deg) translateY(-8px);
     filter: drop-shadow(20px 28px 40px rgba(100,70,200,0.32));
@@ -79,6 +90,8 @@ body {
     background: #fff;
     display: flex;
     flex-direction: column;
+    box-shadow: inset 6px 0 0 rgba(35, 18, 83, 0.2), inset -3px 0 0 rgba(255,255,255,0.28);
+    z-index: 2;
 }
 
 .book-cover-img {
@@ -102,6 +115,8 @@ body {
     color: #fff;
     padding: 0.8rem 1rem;
     font-family: 'Playfair Display', Georgia, serif;
+    min-height: 76px;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 -7px 14px rgba(45, 24, 116, 0.18);
 }
 
 .book-cover-label h3 {
@@ -134,6 +149,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1;
 }
 
 .book-spine span {
@@ -160,14 +176,28 @@ body {
     width: 18px;
     background: repeating-linear-gradient(
         to right,
-        #f5f0e8 0px,
-        #f0ebe2 1px,
-        #f8f4ee 2px,
-        #ece6dc 3px
+        #ffffff 0px,
+        #f7f7f7 1px,
+        #ffffff 2px,
+        #eeeeee 3px
     );
     transform: rotateY(90deg) translateZ(222px);
     transform-origin: right center;
     border-radius: 0;
+    box-shadow: 5px 0 8px rgba(35, 18, 83, 0.22);
+    z-index: 1;
+}
+
+.book-pages::after {
+    content: '';
+    position: absolute;
+    left: -3px;
+    right: -3px;
+    bottom: -7px;
+    height: 9px;
+    background: repeating-linear-gradient(to right, #ffffff 0 2px, #e5e5e5 3px 4px);
+    transform: skewX(-38deg);
+    transform-origin: top left;
 }
 
 /* ── OPEN-BOOK MODAL OVERLAY ── */

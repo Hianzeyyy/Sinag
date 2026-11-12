@@ -139,4 +139,28 @@ class GadReportExportTest extends TestCase
         $this->assertSame('application/pdf', $response->headers->get('Content-Type'));
         $this->assertStringStartsWith('%PDF-', $response->getContent());
     }
+
+    public function test_feedback_only_export_excludes_report_and_profile_sheets(): void
+    {
+        request()->merge(['include_feedback' => '1']);
+
+        $response = app(ExportGADReportController::class)->export('excel', '30days');
+        $workbookPath = $response->getFile()->getPathname();
+        $workbook = new ZipArchive;
+
+        try {
+            $this->assertSame(true, $workbook->open($workbookPath));
+            $workbookXml = $workbook->getFromName('xl/workbook.xml');
+            $this->assertStringContainsString('Customer Satisfaction', $workbookXml);
+            $this->assertStringContainsString('Survey Findings', $workbookXml);
+            $this->assertStringNotContainsString('Suggestions', $workbookXml);
+            $this->assertStringNotContainsString('Incident Reports', $workbookXml);
+            $this->assertStringNotContainsString('Student Information', $workbookXml);
+            $this->assertStringNotContainsString('Faculty and Non-Teaching', $workbookXml);
+            $this->assertStringNotContainsString('Users', $workbookXml);
+        } finally {
+            $workbook->close();
+            @unlink($workbookPath);
+        }
+    }
 }

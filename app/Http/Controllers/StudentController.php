@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Models\Announcement;
 use App\Models\Report;
@@ -13,6 +14,7 @@ use App\Models\Message;
 use App\Models\User;
 use App\Models\GadSchedule;
 use App\Models\AppointmentRequest;
+use App\Models\CustomerSatisfactionSurvey;
 
 class StudentController extends Controller
 {
@@ -88,7 +90,10 @@ class StudentController extends Controller
      */
     public function report()
     {
-        return view('student.report');
+        return view('student.report', [
+            'hasSatisfactionSurvey' => Schema::hasTable('customer_satisfaction_surveys')
+                && CustomerSatisfactionSurvey::where('user_id', Auth::id())->exists(),
+        ]);
     }
 
     /**
@@ -164,7 +169,13 @@ class StudentController extends Controller
             ->values()
             ->all();
 
-        return view('student.boses', compact('allSuggestions', 'categories', 'existingAliases'));
+        return view('student.boses', [
+            'allSuggestions' => $allSuggestions,
+            'categories' => $categories,
+            'existingAliases' => $existingAliases,
+            'hasSatisfactionSurvey' => Schema::hasTable('customer_satisfaction_surveys')
+                && CustomerSatisfactionSurvey::where('user_id', Auth::id())->exists(),
+        ]);
     }
 
     /**

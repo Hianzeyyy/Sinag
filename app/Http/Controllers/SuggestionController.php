@@ -101,7 +101,9 @@ class SuggestionController extends Controller
         \App\Support\CompatibleInsert::insert('suggestions', $suggestionData);
 
         // 3. Redirect back with Success Message
-        return redirect()->back()->with('success', 'Salamat sa iyong mungkahi! Ito ay ipapasa muna sa GAD admin para sa approval bago ma-post.');
+        return redirect()->back()
+            ->with('success', 'Salamat sa iyong mungkahi! Ito ay ipapasa muna sa GAD admin para sa approval bago ma-post.')
+            ->with('show_satisfaction_modal', true);
     }
 
     public function update(Request $request, $id)

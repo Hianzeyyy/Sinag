@@ -133,4 +133,9 @@ class User extends Authenticatable
 
         return true;
     }
+
+    public function customerSatisfactionSurvey()
+    {
+        return $this->hasOne(CustomerSatisfactionSurvey::class);
+    }
 }

@@ -158,7 +158,8 @@ class ReportController extends Controller
         // 4. Redirect back
         return redirect()->route('student.report')
             ->with('success', 'Report submitted successfully! Case ID: ' . $incidentId . '. This has been delivered to the GAD Admin inbox for review.')
-            ->with('report_case_id', $incidentId);
+            ->with('report_case_id', $incidentId)
+            ->with('show_satisfaction_modal', true);
     }
 
     private function logReportFailure(\Throwable $exception, array $context): void

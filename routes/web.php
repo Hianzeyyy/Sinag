@@ -15,6 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuggestionReportController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Admin\PasswordResetRequestController;
+use App\Http\Controllers\CustomerSatisfactionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -166,6 +167,7 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
     Route::post('/profile/verification-image', [ProfileController::class, 'updateVerificationImage'])->name('profile.verification-image.update');
     Route::post('/profile/availability', [ProfileController::class, 'updateAvailability'])->name('profile.availability.update');
+    Route::post('/customer-satisfaction', [CustomerSatisfactionController::class, 'store'])->name('customer-satisfaction.store');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/presence/heartbeat', [ProfileController::class, 'heartbeat'])->name('presence.heartbeat');
 });

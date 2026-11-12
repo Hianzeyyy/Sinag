@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Support\MediaResolver;
 
 class ProfileController extends Controller
 {
@@ -15,14 +16,7 @@ class ProfileController extends Controller
         $verificationImagePath = $request->user()->id_image_path ?: $request->user()->selfie_image_path;
         $verificationImageAvailable = false;
 
-        if ($verificationImagePath) {
-            foreach (['local', 'public'] as $diskName) {
-                if (Storage::disk($diskName)->exists($verificationImagePath)) {
-                    $verificationImageAvailable = true;
-                    break;
-                }
-            }
-        }
+        $verificationImageAvailable = MediaResolver::resolvePath($verificationImagePath) !== null;
 
         return view('profile.show', [
             'user' => $request->user(),
@@ -65,16 +59,13 @@ class ProfileController extends Controller
         $path = $user->id_image_path ?: $user->selfie_image_path;
         abort_if(blank($path), 404);
 
-        foreach (['local', 'public'] as $diskName) {
-            $disk = Storage::disk($diskName);
+        $realPath = MediaResolver::resolvePath($path);
+        if ($realPath !== null) {
+            $response = response()->file($realPath);
+            $response->setPrivate();
+            $response->headers->set('Cache-Control', 'private, no-store');
 
-            if ($disk->exists($path)) {
-                $response = response()->file($disk->path($path));
-                $response->setPrivate();
-                $response->headers->set('Cache-Control', 'private, no-store');
-
-                return $response;
-            }
+            return $response;
         }
 
         abort(404);
@@ -83,10 +74,10 @@ class ProfileController extends Controller
     public function profilePhoto(\App\Models\User $user)
     {
         $path = $this->normalizeProfilePhotoPath($user->profile_photo_path);
-        $disk = Storage::disk('public');
+        $realPath = MediaResolver::resolvePath($path);
 
-        if ($path && $disk->exists($path)) {
-            $response = response()->file($disk->path($path));
+        if ($realPath !== null) {
+            $response = response()->file($realPath);
         } else {
             $response = response($this->defaultAvatarSvg($user->name, $user->role), 200, [
                 'Content-Type' => 'image/svg+xml',

@@ -22,6 +22,10 @@ class LoginController extends Controller
     protected $redirectTo = '/student/dashboard';
 
     private const MAX_PASSWORD_ATTEMPTS = 3;
+    private const EXEMPT_PASSWORD_ATTEMPT_EMAILS = [
+        'admin@psu.edu.ph',
+        'gadcoordinator@psu.edu.ph',
+    ];
 
     public function __construct()
     {
@@ -118,7 +122,7 @@ class LoginController extends Controller
     {
         $user = User::whereRaw('LOWER(email) = ?', [strtolower(trim((string) $request->input($this->username())))])->first();
 
-        if ($this->passwordAttemptTrackingAvailable() && $user?->password_locked_at !== null) {
+        if ($this->shouldTrackPasswordAttempts($user) && $user?->password_locked_at !== null) {
             return false;
         }
 
@@ -131,7 +135,7 @@ class LoginController extends Controller
     {
         $user = User::whereRaw('LOWER(email) = ?', [strtolower(trim((string) $request->input($this->username())))])->first();
 
-        if ($user && $this->passwordAttemptTrackingAvailable()) {
+        if ($user && $this->shouldTrackPasswordAttempts($user)) {
             $attempts = min(self::MAX_PASSWORD_ATTEMPTS, (int) $user->failed_login_attempts + 1);
             $attributes = ['failed_login_attempts' => $attempts];
 
@@ -162,6 +166,15 @@ class LoginController extends Controller
     {
         return Schema::hasColumn('users', 'failed_login_attempts')
             && Schema::hasColumn('users', 'password_locked_at');
+    }
+
+    private function shouldTrackPasswordAttempts(?User $user): bool
+    {
+        if (!$this->passwordAttemptTrackingAvailable() || !$user) {
+            return false;
+        }
+
+        return !in_array(strtolower((string) $user->email), self::EXEMPT_PASSWORD_ATTEMPT_EMAILS, true);
     }
 
     public function logout(Request $request)

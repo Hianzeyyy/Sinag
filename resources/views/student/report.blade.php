@@ -83,16 +83,16 @@
             </div>
 
             @if(session('success'))
-                <div id="reportSuccessAlert" class="alert border-0 shadow-sm mb-4" style="background:#ecfdf5; color:#065f46; border-radius:14px; border-left:6px solid #10b981 !important;">
+                <div id="reportSuccessAlert" class="alert border-0 shadow-sm mb-4" style="background:#f1eaff; color:#4c2a9d; border-radius:14px; border-left:6px solid #8f72f5 !important;">
                     <div class="d-flex align-items-start gap-2">
-                        <i class="bi bi-check-circle-fill mt-1"></i>
+                        <i class="bi bi-check-circle-fill mt-1" style="color:#8f72f5;"></i>
                         <div>
                             <div class="fw-bold">Report Delivered</div>
                             <div>{{ session('success') }}</div>
                             @if(session('report_case_id'))
                                 <div class="mt-3 d-flex flex-column flex-md-row align-items-md-center gap-2">
-                                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">Case ID: {{ session('report_case_id') }}</span>
-                                    <a href="{{ route('student.vault') }}" class="btn btn-sm btn-success rounded-pill px-3">
+                                    <span class="badge rounded-pill" style="background:#ddd1ff;color:#4c2a9d;">Case ID: {{ session('report_case_id') }}</span>
+                                    <a href="{{ route('student.vault') }}" class="btn btn-sm rounded-pill px-3 text-white" style="background:#8f72f5;">
                                         <i class="bi bi-safe2 me-1"></i> Track This Case in Stealth Vault
                                     </a>
                                 </div>
@@ -273,6 +273,10 @@
         </div>
     </div>
 </div>
+
+@if(session('show_satisfaction_modal') && !($hasSatisfactionSurvey ?? false))
+    @include('components.customer-satisfaction-modal')
+@endif
 
 @if(session('success'))
 <script>
