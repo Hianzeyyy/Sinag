@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ReportApiController;
 use App\Http\Controllers\Api\StudentApiController;
 use App\Http\Controllers\Api\SuggestionApiController;
+use App\Http\Controllers\Api\SatisfactionSurveyApiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,6 +29,8 @@ Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
     Route::post('/reports', [ReportApiController::class, 'store']);
     Route::get('/reports', [ReportApiController::class, 'index']);
     Route::get('/reports/{report}/evidence/{index}', [ReportApiController::class, 'evidence'])->whereNumber('index');
+    Route::get('/satisfaction/{subject}/{id}', [SatisfactionSurveyApiController::class, 'show'])->whereIn('subject', ['report', 'suggestion'])->whereNumber('id');
+    Route::post('/satisfaction/{subject}/{id}', [SatisfactionSurveyApiController::class, 'store'])->whereIn('subject', ['report', 'suggestion'])->whereNumber('id');
 
     // Suggestions wall (Boses)
     Route::get('/suggestions', [SuggestionApiController::class, 'index']);
