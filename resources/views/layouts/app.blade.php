@@ -14,6 +14,14 @@
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
     <style>
+        a,
+        a:hover,
+        a:focus,
+        a:active,
+        a:visited {
+            text-decoration: none !important;
+        }
+
         html {
             min-height: 100%;
             height: auto;
