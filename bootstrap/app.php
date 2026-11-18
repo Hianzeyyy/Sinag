@@ -14,6 +14,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
 
         $middleware->alias([
             'profile.complete' => \App\Http\Middleware\EnsurePersonalDataComplete::class,
