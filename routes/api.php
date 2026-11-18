@@ -17,10 +17,20 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/forgot-password/request', [AuthController::class, 'forgotPasswordRequest'])->middleware('throttle:password-reset-request');
+Route::post('/forgot-password/status', [AuthController::class, 'forgotPasswordStatus'])->middleware('throttle:password-reset-status');
+Route::post('/forgot-password/reset/{passwordResetRequest}/{token}', [AuthController::class, 'forgotPasswordReset'])->middleware('throttle:password-reset-submit');
+
+// Backward-compatible password route aliases for mobile clients.
+Route::post('/password/forgot', [AuthController::class, 'forgotPasswordRequest'])->middleware('throttle:password-reset-request');
+Route::post('/password/status', [AuthController::class, 'forgotPasswordStatus'])->middleware('throttle:password-reset-status');
+Route::post('/password/reset/{passwordResetRequest}/{token}', [AuthController::class, 'forgotPasswordReset'])->middleware('throttle:password-reset-submit');
 
 Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/users', [AuthController::class, 'users']);
+    Route::get('/users/{user}', [AuthController::class, 'showUser']);
     Route::post('/presence/heartbeat', [AuthController::class, 'heartbeat']);
     Route::post('/profile/photo', [AuthController::class, 'updatePhoto']);
     Route::post('/profile/availability', [AuthController::class, 'updateAvailability']);
