@@ -1924,15 +1924,27 @@
                         <a href="{{ route('student.dashboard') }}" class="nav-link-custom {{ Request::is('student/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-house-door-fill"></i> Dashboard
                         </a>
+                        @if(Auth::user()->hasCompletedPersonalData())
                         <a href="{{ route('student.report') }}" class="nav-link-custom {{ Request::is('student/report*') ? 'active' : '' }}">
                             <i class="bi bi-flag-fill"></i> File a Report
                         </a>
+                        @else
+                        <a href="{{ route('personal-data.edit') }}" class="nav-link-custom text-muted" aria-disabled="true" title="Complete your personal information to unlock File a Report">
+                            <i class="bi bi-lock-fill"></i> File a Report
+                        </a>
+                        @endif
                         <a href="{{ route('student.vault') }}" class="nav-link-custom {{ Request::is('student/vault*') ? 'active' : '' }}">
                             <i class="bi bi-clipboard-check-fill"></i> Report Status
                         </a>
+                        @if(Auth::user()->hasCompletedPersonalData())
                         <a href="{{ route('student.boses') }}" class="nav-link-custom {{ Request::is('student/boses*') ? 'active' : '' }}">
                             <i class="bi bi-rss-fill"></i> Suggestions
                         </a>
+                        @else
+                        <a href="{{ route('personal-data.edit', ['return_to_suggestions' => 1]) }}" class="nav-link-custom text-muted" aria-disabled="true" title="Complete your personal information to unlock Suggestions">
+                            <i class="bi bi-lock-fill"></i> Suggestions
+                        </a>
+                        @endif
                         <a href="{{ route('student.appointments') }}" class="nav-link-custom {{ Request::is('student/appointments*') || Request::is('student/schedule-appointment*') ? 'active' : '' }}">
                             <i class="bi bi-calendar2-week-fill"></i> Appointments
                         </a>
@@ -2012,15 +2024,28 @@
                                         <span>Report</span>
                                     </button>
                                     <ul class="dropdown-menu student-nav-menu">
-                                        <li><a class="dropdown-item" href="{{ route('student.report') }}"><i class="bi bi-flag"></i><span>File a Report</span></a></li>
+                                        <li>
+                                            @if(Auth::user()->hasCompletedPersonalData())
+                                            <a class="dropdown-item" href="{{ route('student.report') }}"><i class="bi bi-flag"></i><span>File a Report</span></a>
+                                            @else
+                                            <a class="dropdown-item text-muted" href="{{ route('personal-data.edit') }}" aria-disabled="true"><i class="bi bi-lock"></i><span>File a Report</span></a>
+                                            @endif
+                                        </li>
                                         <li><a class="dropdown-item" href="{{ route('student.vault') }}"><i class="bi bi-clipboard-check"></i><span>Report Status</span></a></li>
                                     </ul>
                                 </div>
 
+                                @if(Auth::user()->hasCompletedPersonalData())
                                 <a href="{{ route('student.boses') }}" class="student-nav-link {{ Request::is('student/boses*') ? 'active' : '' }}" aria-label="Suggestions" title="Suggestions">
                                     <i class="bi bi-rss-fill"></i>
                                     <span>Suggestions</span>
                                 </a>
+                                @else
+                                <a href="{{ route('personal-data.edit', ['return_to_suggestions' => 1]) }}" class="student-nav-link text-muted" aria-disabled="true" title="Complete your personal information to unlock Suggestions">
+                                    <i class="bi bi-lock-fill"></i>
+                                    <span>Suggestions</span>
+                                </a>
+                                @endif
 
                                 <a href="{{ route('student.appointments') }}" class="student-nav-link {{ Request::is('student/appointments*') || Request::is('student/schedule-appointment*') ? 'active' : '' }}" aria-label="Appointments" title="Appointments">
                                     <i class="bi bi-calendar2-week-fill"></i>

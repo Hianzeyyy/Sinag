@@ -18,6 +18,11 @@ class ReportController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$request->user()->hasCompletedPersonalData()) {
+            return redirect()->route('personal-data.edit')
+                ->with('personal_data_required', 'Complete your personal information before filing a report.');
+        }
+
         $failureReference = (string) Str::uuid();
 
         try {

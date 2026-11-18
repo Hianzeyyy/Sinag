@@ -101,6 +101,13 @@ class ReportApiController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        if (! $request->user()->hasCompletedPersonalData()) {
+            return response()->json([
+                'message' => 'Complete your personal information before filing a report.',
+                'personal_data_complete' => false,
+            ], 403);
+        }
+
         $request->validate([
             'nature' => ['required', 'string', Rule::in(self::NATURES)],
             'other_nature' => 'required_if:nature,Other GAD-related Concern|nullable|string|min:3|max:150',

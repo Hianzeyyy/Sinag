@@ -101,6 +101,13 @@ class SuggestionApiController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        if (! $request->user()->hasCompletedPersonalData()) {
+            return response()->json([
+                'message' => 'Complete your personal information before submitting suggestions.',
+                'personal_data_complete' => false,
+            ], 403);
+        }
+
         $data = $request->validate([
             'category' => ['required', Rule::in(self::CATEGORIES)],
             'message' => 'required|string|min:10|max:2000',

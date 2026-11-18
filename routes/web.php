@@ -113,9 +113,9 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::get('/dashboard', [StudentController::class, 'index'])->name('dashboard');
 
         // Core Modules
-        Route::get('/report', [StudentController::class, 'report'])->name('report');
+        Route::get('/report', [StudentController::class, 'report'])->middleware('profile.complete')->name('report');
         Route::get('/vault', [StudentController::class, 'vault'])->name('vault');
-        Route::get('/boses', [StudentController::class, 'boses'])->name('boses');
+        Route::get('/boses', [StudentController::class, 'boses'])->middleware('profile.complete')->name('boses');
         Route::get('/gad-schedule', [StudentController::class, 'gadSchedule'])->name('gad-schedule');
         Route::get('/schedule-appointment', [StudentController::class, 'appointmentForm'])->name('schedule-appointment');
         Route::post('/schedule-appointment', [StudentController::class, 'storeAppointment'])->name('schedule-appointment.store');
@@ -148,14 +148,14 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     // --- SHARED ACTIONS ---
     Route::get('/schedule-feed', [AdminController::class, 'scheduleFeed'])->name('schedule.feed');
     Route::post('/submit-report', [ReportController::class, 'store'])
-        ->middleware('auth')
+        ->middleware(['auth', 'profile.complete'])
         ->name('reports.store');
     Route::get('/reports/{report}/evidence/{index}', [ReportController::class, 'viewEvidence'])
         ->middleware('auth')
         ->whereNumber('index')
         ->name('reports.evidence.view');
     Route::get('/suggestions/{suggestion}', [SuggestionController::class, 'show'])->name('suggestions.show');
-    Route::post('/submit-suggestion', [SuggestionController::class, 'store'])->name('suggestions.store');
+    Route::post('/submit-suggestion', [SuggestionController::class, 'store'])->middleware('profile.complete')->name('suggestions.store');
     Route::post('/upvote-suggestion/{id}', [SuggestionController::class, 'upvote'])->name('suggestions.upvote');
     Route::post('/suggestions/{suggestion}/comment', [App\Http\Controllers\SuggestionCommentController::class, 'store'])->name('suggestions.comment');
     Route::put('/suggestions/{id}', [SuggestionController::class, 'update'])->name('suggestions.update');

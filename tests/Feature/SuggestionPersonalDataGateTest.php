@@ -10,6 +10,32 @@ use Tests\TestCase;
 
 class SuggestionPersonalDataGateTest extends TestCase
 {
+    public function test_students_and_employees_cannot_access_reports_until_personal_data_is_complete(): void
+    {
+        $this->createUsersTable();
+
+        foreach ([
+            ['role' => 'student', 'account_type' => 'student', 'email' => 'student@example.test'],
+            ['role' => 'employee', 'account_type' => 'employee', 'employee_category' => 'teaching', 'email' => 'teaching@example.test'],
+            ['role' => 'employee', 'account_type' => 'employee', 'employee_category' => 'non_teaching', 'email' => 'staff@example.test'],
+        ] as $attributes) {
+            $user = User::create(array_merge([
+                'name' => 'Incomplete User',
+                'password' => 'password',
+            ], $attributes));
+
+            $this->actingAs($user)
+                ->get(route('student.report'))
+                ->assertRedirect(route('personal-data.edit'))
+                ->assertSessionHas('personal_data_required');
+
+            $this->actingAs($user)
+                ->post(route('reports.store'), [])
+                ->assertRedirect(route('personal-data.edit'))
+                ->assertSessionHas('personal_data_required');
+        }
+    }
+
     public function test_users_without_completed_personal_data_cannot_access_or_post_suggestions(): void
     {
         $this->createUsersTable();
@@ -337,6 +363,7 @@ class SuggestionPersonalDataGateTest extends TestCase
             $table->string('password');
             $table->string('role')->default('student');
             $table->string('account_type')->nullable();
+            $table->string('employee_category')->nullable();
             $table->string('cloak_alias')->nullable();
             $table->string('last_name')->nullable();
             $table->string('first_name')->nullable();

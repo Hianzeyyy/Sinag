@@ -125,7 +125,11 @@
                 <div class="text-center py-5 vault-glass rounded-4 shadow-sm">
                     <i class="bi bi-clipboard-x" style="color:#A594F9; font-size:4rem;"></i>
                     <p class="mt-3 text-muted">You haven't filed any reports yet.</p>
+                    @if(Auth::user()->hasCompletedPersonalData())
                     <a href="{{ route('student.report') }}" class="btn vault-action-btn rounded-pill px-4 mt-2">File a Report Now</a>
+                    @else
+                    <a href="{{ route('personal-data.edit') }}" class="btn vault-action-btn rounded-pill px-4 mt-2 text-muted" aria-disabled="true"><i class="bi bi-lock-fill me-1"></i>Complete Personal Information</a>
+                    @endif
                 </div>
             @else
                 <div class="row g-3">

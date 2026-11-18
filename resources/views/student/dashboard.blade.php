@@ -867,9 +867,17 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="d-grid gap-3">
+                            @if(Auth::user()->hasCompletedPersonalData())
                             <a href="{{ route('student.report') }}" class="quick-action-btn primary">File a Report</a>
+                            @else
+                            <a href="{{ route('personal-data.edit') }}" class="quick-action-btn primary text-muted" aria-disabled="true"><i class="bi bi-lock-fill me-1"></i>File a Report</a>
+                            @endif
                             <a href="{{ route('student.vault') }}" class="quick-action-btn">Stealth Vault</a>
+                            @if(Auth::user()->hasCompletedPersonalData())
                             <a href="{{ route('student.boses') }}" class="quick-action-btn">Community Suggestions</a>
+                            @else
+                            <a href="{{ route('personal-data.edit', ['return_to_suggestions' => 1]) }}" class="quick-action-btn text-muted" aria-disabled="true"><i class="bi bi-lock-fill me-1"></i>Community Suggestions</a>
+                            @endif
                             <a href="{{ route('student.messaging') }}" class="quick-action-btn">Message GAD</a>
                         </div>
                         <div class="mt-4 p-3 rounded-4" style="background: rgba(124,58,237,0.05); border:1px solid rgba(124,58,237,0.08);">

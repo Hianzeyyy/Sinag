@@ -90,6 +90,11 @@ class StudentController extends Controller
      */
     public function report()
     {
+        if (!Auth::user()->hasCompletedPersonalData()) {
+            return redirect()->route('personal-data.edit')
+                ->with('personal_data_required', 'Complete your personal information before filing a report.');
+        }
+
         return view('student.report', [
             'hasSatisfactionSurvey' => Schema::hasTable('customer_satisfaction_surveys')
                 && CustomerSatisfactionSurvey::where('user_id', Auth::id())->exists(),
