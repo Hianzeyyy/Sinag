@@ -28,6 +28,7 @@ Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
     // Reports (file a report, view own vault)
     Route::post('/reports', [ReportApiController::class, 'store']);
     Route::get('/reports', [ReportApiController::class, 'index']);
+    Route::delete('/reports/{report}', [ReportApiController::class, 'destroy']);
     Route::get('/reports/{report}/evidence/{index}', [ReportApiController::class, 'evidence'])->whereNumber('index');
     Route::get('/satisfaction/{subject}/{id}', [SatisfactionSurveyApiController::class, 'show'])->whereIn('subject', ['report', 'suggestion'])->whereNumber('id');
     Route::post('/satisfaction/{subject}/{id}', [SatisfactionSurveyApiController::class, 'store'])->whereIn('subject', ['report', 'suggestion'])->whereNumber('id');

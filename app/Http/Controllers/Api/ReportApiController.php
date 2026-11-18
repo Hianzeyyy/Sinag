@@ -162,6 +162,17 @@ class ReportApiController extends Controller
         ], 201);
     }
 
+    public function destroy(Request $request, Report $report): JsonResponse
+    {
+        abort_unless($report->user_id === $request->user()->id, 403);
+        abort_unless(strtolower(trim((string) $report->status)) === 'pending', 403,
+            'Only pending reports can be cancelled.');
+
+        $report->delete();
+
+        return response()->json(['ok' => true]);
+    }
+
     public function evidence(Request $request, Report $report, int $index)
     {
         abort_unless($report->user_id === $request->user()->id, 403);
