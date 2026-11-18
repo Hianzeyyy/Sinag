@@ -14,7 +14,7 @@ class SatisfactionSurveyApiController extends Controller
     public function show(Request $request, string $subject, int $id): JsonResponse
     {
         $this->assertSubjectBelongsToUser($request, $subject, $id);
-        $survey = $this->survey($request->user()->id);
+        $survey = $this->survey($request->user()->id, $subject, $id);
 
         return response()->json([
             'available' => $this->isAvailable($subject, $id),
@@ -36,12 +36,14 @@ class SatisfactionSurveyApiController extends Controller
         ]);
         $userId = $request->user()->id;
 
-        if ($this->survey($userId) !== null) {
+        if ($this->survey($userId, $subject, $id) !== null) {
             return response()->json(['message' => 'You already submitted this survey.'], 409);
         }
 
         DB::table('customer_satisfaction_surveys')->insert([
             'user_id' => $userId,
+            'subject' => $subject,
+            'subject_id' => $id,
             'rating' => $data['rating'],
             'feedback' => $data['feedback'] ?? null,
             'responses' => json_encode($data['responses']),
@@ -73,10 +75,12 @@ class SatisfactionSurveyApiController extends Controller
         return in_array($status, $terminal, true);
     }
 
-    private function survey(int $userId): ?array
+    private function survey(int $userId, string $subject, int $subjectId): ?array
     {
         $row = DB::table('customer_satisfaction_surveys')
             ->where('user_id', $userId)
+            ->where('subject', $subject)
+            ->where('subject_id', $subjectId)
             ->first();
 
         return $row ? [
