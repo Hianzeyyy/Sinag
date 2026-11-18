@@ -29,6 +29,9 @@ class SuggestionApiController extends Controller
         return [
             'id' => $s->id,
             'alias' => optional($s->user)->cloak_alias ?? 'Anonymous',
+            'profile_photo_url' => $s->user
+                ? url("users/{$s->user->id}/profile-photo")
+                : null,
             'category' => $s->category,
             'message' => $s->message,
             'status' => $s->status,
@@ -36,6 +39,15 @@ class SuggestionApiController extends Controller
             'upvotes_count' => $s->upvotes_count ?? $s->upvotes()->count(),
             'upvoted' => $s->isUpvotedBy($viewerId),
             'created_at' => optional($s->created_at)->toIso8601String(),
+            'satisfaction_survey_pending' => $s->user_id === $viewerId && in_array(
+                strtolower(trim((string) $s->status)),
+                ['approved', 'disapproved', 'rejected'],
+                true
+            ) && !DB::table('customer_satisfaction_surveys')
+                ->where('user_id', $viewerId)
+                ->where('subject', 'suggestion')
+                ->where('subject_id', $s->id)
+                ->exists(),
             'comments' => $s->relationLoaded('comments')
                 ? $s->comments->map(fn ($c) => [
                     'id' => $c->id,
@@ -86,7 +98,8 @@ class SuggestionApiController extends Controller
         $message = trim($data['message']);
         $this->assertClean($message, 'message', 'Please submit positive and constructive suggestions only. Negative or offensive language is not allowed.');
 
-        \App\Support\CompatibleInsert::insert('suggestions', [
+        DB::table('suggestions')->insert([
+            'id' => ((int) DB::table('suggestions')->max('id')) + 1,
             'user_id' => $request->user()->id,
             'category' => $data['category'],
             'message' => $message,
@@ -135,7 +148,8 @@ class SuggestionApiController extends Controller
             $s->upvotes()->detach($uid);
             $upvoted = false;
         } else {
-            \App\Support\CompatibleInsert::insert('suggestion_user_upvotes', [
+            DB::table('suggestion_user_upvotes')->insert([
+                'id' => ((int) DB::table('suggestion_user_upvotes')->max('id')) + 1,
                 'suggestion_id' => $s->id,
                 'user_id' => $uid,
                 'created_at' => now(),
@@ -152,7 +166,9 @@ class SuggestionApiController extends Controller
         $data = $request->validate(['comment' => 'required|string|max:1000']);
         $this->assertClean($data['comment'], 'comment', 'Naglalaman ng hindi angkop na salita ang iyong komento.');
         $s = Suggestion::findOrFail($id);
-        \App\Support\CompatibleInsert::insert('suggestion_comments', [
+
+        DB::table('suggestion_comments')->insert([
+            'id' => ((int) DB::table('suggestion_comments')->max('id')) + 1,
             'suggestion_id' => $s->id,
             'user_id' => $request->user()->id,
             'comment' => $data['comment'],
@@ -203,7 +219,8 @@ class SuggestionApiController extends Controller
         $key = ['reporter_id' => $request->user()->id, 'status' => 'pending'] + $target;
 
         if (!DB::table('suggestion_reports')->where($key)->exists()) {
-            \App\Support\CompatibleInsert::insert('suggestion_reports', $key + [
+            DB::table('suggestion_reports')->insert($key + [
+                'id' => ((int) DB::table('suggestion_reports')->max('id')) + 1,
                 'suggestion_id' => $suggestionId,
                 'reason' => $data['reason'],
                 'created_at' => now(),
