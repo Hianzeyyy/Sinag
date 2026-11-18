@@ -532,7 +532,6 @@ body {
 
 .msg-info-link:hover {
     color: var(--violet);
-    text-decoration: underline;
 }
 
 .msg-call-badge {

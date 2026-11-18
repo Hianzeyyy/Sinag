@@ -119,7 +119,7 @@
     .gad-faq-answer-links { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .65rem; }
     .gad-faq-answer-links a { display: inline-flex; align-items: center; gap: .3rem; padding: .38rem .58rem; border: 1px solid #d9ceff; border-radius: 999px; color: #6148b1; background: #f6f3ff; font-size: .76rem; font-weight: 800; text-decoration: none; }
     .gad-faq-answer-links a::after { content: '\2197'; font-size: .72rem; }
-    .gad-faq-answer-links a:hover, .gad-faq-answer-links a:focus-visible { border-color: #a594f9; background: #ebe5ff; text-decoration: underline; }
+    .gad-faq-answer-links a:hover, .gad-faq-answer-links a:focus-visible { border-color: #a594f9; background: #ebe5ff; }
     .gad-faq-quick-questions { display: flex; flex-wrap: wrap; gap: .4rem; }
     .gad-faq-quick-questions button { padding: .38rem .58rem; border: 1px solid #d9ceff; border-radius: 999px; color: #6148b1; background: #f6f3ff; font-size: .72rem; font-weight: 800; transition: transform .18s ease, background .18s ease; }
     .gad-faq-quick-questions button:hover { transform: translateY(-2px); background: #ebe5ff; }

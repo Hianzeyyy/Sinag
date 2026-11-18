@@ -18,7 +18,11 @@
         a:hover,
         a:focus,
         a:active,
-        a:visited {
+        a:visited,
+        button,
+        button:hover,
+        button:focus,
+        button:active {
             text-decoration: none !important;
         }
 

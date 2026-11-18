@@ -440,7 +440,7 @@
     }
     .message-bubble.is-deleted { color: #6b5b91; background: #f3efff !important; border: 1px dashed #c4b5fd !important; font-style: italic; }
     .message-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; }
-    .message-action, .message-edited-link { padding: 0; border: 0; color: #7658df; background: transparent; font-size: .7rem; text-decoration: underline; }
+    .message-action, .message-edited-link { padding: 0; border: 0; color: #7658df; background: transparent; font-size: .7rem; }
     .msg-content { position: relative; }
     .message-edited-link { position: absolute; top: -.8rem; right: .15rem; }
     .message-group.admin .message-edited-link { right: auto; left: .15rem; }

@@ -263,7 +263,7 @@
     .appointment-detail-grid span { display: block; color: #6b7280; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
     .appointment-detail-grid strong { display: block; margin-top: .25rem; overflow-wrap: anywhere; }
     .appointment-user-link { color: #35216d; }
-    .appointment-user-link:hover, .appointment-user-link:focus-visible { color: #7658df; text-decoration: underline !important; }
+    .appointment-user-link:hover, .appointment-user-link:focus-visible { color: #7658df; }
 
     @media (max-width: 575.98px) {
         .container-fluid.py-4 { padding: 1rem !important; }

@@ -243,7 +243,6 @@
     .login-forgot:hover,
     .login-forgot:focus-visible {
         color: #35216d;
-        text-decoration: underline !important;
     }
 
     .reset-modal-card { background: linear-gradient(145deg, #f8f7ff, #ede9fe); border: 1px solid rgba(143, 114, 245, 0.25); }

@@ -89,8 +89,6 @@
         font-weight: 800;
         background: #f3efff;
         color: #6d55d9;
-        text-decoration: underline;
-        text-underline-offset: 3px;
         transition: background 0.2s ease, transform 0.2s ease;
     }
 
