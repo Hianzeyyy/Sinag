@@ -41,6 +41,25 @@ class ReportApiController extends Controller
             'status' => $r->status,
             'priority' => $r->priority,
             'evidence_count' => count($r->evidence_files),
+            'evidence' => collect($r->evidence_files)->map(fn ($path, $index) => [
+                'index' => $index,
+                'url' => url("api/reports/{$r->id}/evidence/{$index}"),
+                'image' => in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), [
+                    'jpg', 'jpeg', 'png', 'gif', 'webp',
+                ], true),
+            ])->values(),
+            'profile_photo_url' => $r->user
+                ? url("users/{$r->user->id}/profile-photo")
+                : null,
+            'satisfaction_survey_pending' => in_array(
+                strtolower(trim((string) $r->status)),
+                ['completed', 'resolved', 'closed'],
+                true
+            )             && !DB::table('customer_satisfaction_surveys')
+                ->where('user_id', $request->user()->id)
+                ->where('subject', 'report')
+                ->where('subject_id', $r->id)
+                ->exists(),
             'created_at' => optional($r->created_at)->toIso8601String(),
         ]);
 
@@ -76,12 +95,7 @@ class ReportApiController extends Controller
 
         $paths = [];
         foreach ((array) $request->file('evidence', []) as $file) {
-            $path = $file->store('evidence', 'local');
-            if (!is_string($path)) {
-                throw new \RuntimeException('Incident evidence could not be stored.');
-            }
-
-            $paths[] = $path;
+            $paths[] = $file->store('evidence', 'public');
         }
 
         do {
@@ -89,6 +103,7 @@ class ReportApiController extends Controller
         } while (DB::table('reports')->where('incident_id', $incidentId)->exists());
 
         $row = [
+            'id' => ((int) DB::table('reports')->max('id')) + 1,
             'user_id' => $user->id,
             'incident_id' => $incidentId,
             'cloak_alias' => $alias,
@@ -106,7 +121,7 @@ class ReportApiController extends Controller
             'updated_at' => now(),
         ];
 
-        \App\Support\CompatibleInsert::insert('reports', array_intersect_key($row, array_flip(Schema::getColumnListing('reports'))));
+        DB::table('reports')->insert(array_intersect_key($row, array_flip(Schema::getColumnListing('reports'))));
 
         return response()->json([
             'message' => 'Report submitted. It has been delivered to the GAD Admin inbox for review.',
@@ -119,8 +134,14 @@ class ReportApiController extends Controller
         abort_unless($report->user_id === $request->user()->id, 403);
 
         $files = $report->evidence_files;
-        abort_unless(isset($files[$index]) && Storage::disk('local')->exists($files[$index]), 404);
+        abort_unless(
+            isset($files[$index])
+            && (Storage::disk('local')->exists($files[$index])
+                || Storage::disk('public')->exists($files[$index])),
+            404
+        );
 
-        return Storage::disk('local')->response($files[$index]);
+        $disk = Storage::disk('local')->exists($files[$index]) ? 'local' : 'public';
+        return Storage::disk($disk)->response($files[$index]);
     }
 }
