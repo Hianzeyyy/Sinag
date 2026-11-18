@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use App\Support\MediaResolver;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -129,19 +130,23 @@ class ReportApiController extends Controller
         ], 201);
     }
 
-    public function evidence(Request $request, Report $report, int $index)
+    public function evidence(Request \, Report \, int \)
     {
-        abort_unless($report->user_id === $request->user()->id, 403);
+        abort_unless(\->user_id === \->user()->id, 403);
 
-        $files = $report->evidence_files;
-        abort_unless(
-            isset($files[$index])
-            && (Storage::disk('local')->exists($files[$index])
-                || Storage::disk('public')->exists($files[$index])),
-            404
-        );
+        \ = \->evidence_files;
+        abort_unless(isset(\[\]), 404);
 
-        $disk = Storage::disk('local')->exists($files[$index]) ? 'local' : 'public';
-        return Storage::disk($disk)->response($files[$index]);
+        \ = MediaResolver::resolvePath(\[\]);
+        abort_if(\ === null, 404);
+
+        \ = mime_content_type(\) ?: 'application/octet-stream';
+        \ = response()->file(\, [
+            'Content-Type' => \,
+            'Cache-Control' => 'private, no-store',
+        ]);
+        \->setPrivate();
+
+        return \;
     }
 }
