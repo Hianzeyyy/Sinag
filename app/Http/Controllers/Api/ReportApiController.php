@@ -31,40 +31,72 @@ class ReportApiController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $reports = Report::where('user_id', $request->user()->id)->latest()->get()->map(fn (Report $r) => [
-            'id' => $r->id,
-            'incident_id' => $r->incident_id,
-            'nature' => $r->nature,
-            'incident_date' => optional($r->incident_date)->toDateString(),
-            'incident_time' => $r->incident_time,
-            'location' => $r->location,
-            'description' => $r->description,
-            'status' => $r->status,
-            'priority' => $r->priority,
-            'evidence_count' => count($r->evidence_files),
-            'evidence' => collect($r->evidence_files)->map(fn ($path, $index) => [
-                'index' => $index,
-                'url' => url("api/reports/{$r->id}/evidence/{$index}"),
-                'image' => in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), [
-                    'jpg', 'jpeg', 'png', 'gif', 'webp',
-                ], true),
-            ])->values(),
-            'profile_photo_url' => $r->user
-                ? url("users/{$r->user->id}/profile-photo")
-                : null,
-            'satisfaction_survey_pending' => in_array(
-                strtolower(trim((string) $r->status)),
+        $userId = $request->user()->id;
+        $rows = DB::table('reports')
+            ->where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $surveyTableAvailable = Schema::hasTable('customer_satisfaction_surveys');
+        $surveyColumns = $surveyTableAvailable
+            ? Schema::getColumnListing('customer_satisfaction_surveys')
+            : [];
+
+        $reports = $rows->map(function ($r) use (
+            $userId,
+            $surveyTableAvailable,
+            $surveyColumns
+        ) {
+            $evidence = [];
+            $decoded = json_decode((string) ($r->evidence ?? '[]'), true);
+            if (is_array($decoded)) {
+                $evidence = array_values(array_filter(
+                    $decoded,
+                    fn ($path) => is_string($path) && trim($path) !== ''
+                ));
+            }
+
+            $surveyPending = in_array(
+                strtolower(trim((string) ($r->status ?? ''))),
                 ['completed', 'resolved', 'closed'],
                 true
-            )             && !DB::table('customer_satisfaction_surveys')
-                ->where('user_id', $request->user()->id)
-                ->where('subject', 'report')
-                ->where('subject_id', $r->id)
-                ->exists(),
-            'created_at' => optional($r->created_at)->toIso8601String(),
-        ]);
+            ) && $surveyTableAvailable
+                && in_array('subject', $surveyColumns, true)
+                && in_array('subject_id', $surveyColumns, true)
+                && !DB::table('customer_satisfaction_surveys')
+                    ->where('user_id', $userId)
+                    ->where('subject', 'report')
+                    ->where('subject_id', $r->id)
+                    ->exists();
 
-        return response()->json(['data' => $reports, 'natures' => self::NATURES]);
+            return [
+                'id' => (int) $r->id,
+                'incident_id' => (string) ($r->incident_id ?? ''),
+                'nature' => (string) ($r->nature ?? ''),
+                'incident_date' => $r->incident_date ?? null,
+                'incident_time' => $r->incident_time ?? null,
+                'location' => $r->location ?? null,
+                'description' => $r->description ?? null,
+                'status' => (string) ($r->status ?? 'Pending'),
+                'priority' => $r->priority ?? null,
+                'evidence_count' => count($evidence),
+                'evidence' => collect($evidence)->map(fn ($path, $index) => [
+                    'index' => $index,
+                    'url' => url("api/reports/{$r->id}/evidence/{$index}"),
+                    'image' => in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), [
+                        'jpg', 'jpeg', 'png', 'gif', 'webp',
+                    ], true),
+                ])->values(),
+                'profile_photo_url' => url("users/{$userId}/profile-photo"),
+                'satisfaction_survey_pending' => $surveyPending,
+                'created_at' => $r->created_at ?? null,
+            ];
+        });
+
+        return response()->json([
+            'data' => $reports->values(),
+            'natures' => self::NATURES,
+        ]);
     }
 
     public function store(Request $request): JsonResponse
@@ -130,23 +162,23 @@ class ReportApiController extends Controller
         ], 201);
     }
 
-    public function evidence(Request \, Report \, int \)
+    public function evidence(Request $request, Report $report, int $index)
     {
-        abort_unless(\->user_id === \->user()->id, 403);
+        abort_unless($report->user_id === $request->user()->id, 403);
 
-        \ = \->evidence_files;
-        abort_unless(isset(\[\]), 404);
+        $files = $report->evidence_files;
+        abort_unless(isset($files[$index]), 404);
 
-        \ = MediaResolver::resolvePath(\[\]);
-        abort_if(\ === null, 404);
+        $realPath = MediaResolver::resolvePath($files[$index]);
+        abort_if($realPath === null, 404);
 
-        \ = mime_content_type(\) ?: 'application/octet-stream';
-        \ = response()->file(\, [
-            'Content-Type' => \,
+        $mime = mime_content_type($realPath) ?: 'application/octet-stream';
+        $response = response()->file($realPath, [
+            'Content-Type' => $mime,
             'Cache-Control' => 'private, no-store',
         ]);
-        \->setPrivate();
+        $response->setPrivate();
 
-        return \;
+        return $response;
     }
 }

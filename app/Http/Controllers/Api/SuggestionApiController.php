@@ -9,6 +9,7 @@ use App\Support\ContentModeration;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -26,6 +27,24 @@ class SuggestionApiController extends Controller
     // Only the cloak alias is ever exposed, never the real name.
     private function suggestionPayload(Suggestion $s, int $viewerId): array
     {
+        $surveyPending = false;
+        if (Schema::hasTable('customer_satisfaction_surveys')) {
+            $surveyColumns = Schema::getColumnListing('customer_satisfaction_surveys');
+            $surveyPending = $s->user_id === $viewerId
+                && in_array(
+                    strtolower(trim((string) $s->status)),
+                    ['approved', 'disapproved', 'rejected'],
+                    true
+                )
+                && in_array('subject', $surveyColumns, true)
+                && in_array('subject_id', $surveyColumns, true)
+                && !DB::table('customer_satisfaction_surveys')
+                    ->where('user_id', $viewerId)
+                    ->where('subject', 'suggestion')
+                    ->where('subject_id', $s->id)
+                    ->exists();
+        }
+
         return [
             'id' => $s->id,
             'alias' => optional($s->user)->cloak_alias ?? 'Anonymous',
@@ -39,15 +58,7 @@ class SuggestionApiController extends Controller
             'upvotes_count' => $s->upvotes_count ?? $s->upvotes()->count(),
             'upvoted' => $s->isUpvotedBy($viewerId),
             'created_at' => optional($s->created_at)->toIso8601String(),
-            'satisfaction_survey_pending' => $s->user_id === $viewerId && in_array(
-                strtolower(trim((string) $s->status)),
-                ['approved', 'disapproved', 'rejected'],
-                true
-            ) && !DB::table('customer_satisfaction_surveys')
-                ->where('user_id', $viewerId)
-                ->where('subject', 'suggestion')
-                ->where('subject_id', $s->id)
-                ->exists(),
+            'satisfaction_survey_pending' => $surveyPending,
             'comments' => $s->relationLoaded('comments')
                 ? $s->comments->map(fn ($c) => [
                     'id' => $c->id,
