@@ -17,7 +17,7 @@
             @if (isset($errors) && $errors->any())
                 <div class="alert alert-danger"><ul class="mb-0">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
             @endif
-            <form method="POST" action="{{ route('password.code.request') }}" enctype="multipart/form-data">
+            <form id="passwordRequestForm" method="POST" action="{{ route('password.code.request') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="row g-3">
                     <div class="col-md-6"><label class="form-label fw-bold" for="email">Registered email</label><input id="email" name="email" type="email" class="form-control" value="{{ old('email') }}" required></div>
@@ -28,7 +28,7 @@
                     <div class="col-12"><label class="form-label fw-bold" for="reason">Reason for password reset <span class="text-muted fw-normal">(optional)</span></label><textarea id="reason" name="reason" class="form-control" rows="4" maxlength="2000">{{ old('reason') }}</textarea></div>
                 </div>
                 <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
-                    <button class="btn btn-primary flex-fill fw-bold" type="submit"><i class="bi bi-send me-2"></i>Submit Request</button>
+                    <button id="passwordRequestSubmit" class="btn btn-primary flex-fill fw-bold" type="submit"><i class="bi bi-send me-2"></i><span>Submit Request</span></button>
                     <a class="btn btn-outline-secondary flex-fill" href="{{ route('password.status.form') }}"><i class="bi bi-search me-2"></i>Check Request Status</a>
                     <a class="btn btn-outline-secondary flex-fill" href="{{ route('login') }}">Back to Login</a>
                 </div>
@@ -36,4 +36,16 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('passwordRequestForm');
+        const button = document.getElementById('passwordRequestSubmit');
+        if (!form || !button) return;
+
+        form.addEventListener('submit', function () {
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Submitting...';
+        });
+    });
+</script>
 @endsection

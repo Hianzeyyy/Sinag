@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Throwable;
 
 class ForgotPasswordController extends Controller
 {
@@ -43,35 +44,44 @@ class ForgotPasswordController extends Controller
             ])->withInput();
         }
 
-        $path = $request->file('id_picture')->store('password-reset-requests', 'local');
-        if (! is_string($path) || $path === '') {
-            Log::error('Password reset request ID picture could not be stored', [
+        $path = null;
+        $reference = 'PRR-'.Str::upper(Str::random(10));
+        try {
+            $path = $request->file('id_picture')->store('password-reset-requests', 'local');
+            if (! is_string($path) || $path === '') {
+                throw new \RuntimeException('The password reset ID picture could not be stored.');
+            }
+
+            $resetRequestId = DB::transaction(function () use ($user, $validated, $reference, $path) {
+                return CompatibleInsert::insert('password_reset_requests', [
+                    'user_id' => $user->id,
+                    'reference_number' => $reference,
+                    'email' => $user->email,
+                    'name' => $validated['name'],
+                    'student_employee_id' => $validated['student_employee_id'],
+                    'department' => $validated['department'] ?? null,
+                    'id_picture_path' => $path,
+                    'reason' => $validated['reason'] ?? null,
+                    'status' => 'pending',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            });
+        } catch (Throwable $exception) {
+            if (is_string($path) && $path !== '') {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($path);
+            }
+            Log::error('Password reset request submission failed', [
                 'email' => $validated['email'],
                 'ip' => $request->ip(),
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
             ]);
 
             return back()->withErrors([
-                'id_picture' => 'The ID picture could not be saved. Please try again later.',
+                'id_picture' => 'The password reset request could not be submitted right now. Please try again.',
             ])->withInput();
         }
-
-        $reference = 'PRR-'.Str::upper(Str::random(10));
-        $resetRequestId = DB::transaction(function () use ($user, $validated, $reference, $path) {
-            return CompatibleInsert::insert('password_reset_requests', [
-                'user_id' => $user->id,
-                'reference_number' => $reference,
-                'email' => $user->email,
-                'name' => $validated['name'],
-                'student_employee_id' => $validated['student_employee_id'],
-                'department' => $validated['department'] ?? null,
-                'id_picture_path' => $path,
-                'reason' => $validated['reason'] ?? null,
-                'status' => 'pending',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-        });
         Log::info('Password reset request submitted', ['request_id' => $resetRequestId, 'reference_number' => $reference, 'ip' => $request->ip()]);
 
         return redirect()->route('password.status.form', ['reference' => $reference])

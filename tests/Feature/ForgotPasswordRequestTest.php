@@ -69,7 +69,8 @@ class ForgotPasswordRequestTest extends TestCase
         ]);
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        $this->get($response->headers->get('Location'))->assertOk();
+        $statusResponse = $this->get($response->headers->get('Location'))->assertOk();
+        $statusResponse->assertSeeText('Your reference number is');
 
         parse_str((string) parse_url($response->headers->get('Location'), PHP_URL_QUERY), $redirectQuery);
         $this->assertMatchesRegularExpression('/^PRR-[A-Z0-9]{10}$/', $redirectQuery['reference'] ?? '');

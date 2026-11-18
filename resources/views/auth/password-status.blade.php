@@ -14,7 +14,10 @@
                     <div>{{ session('success') ?? 'Request submitted. Keep your reference number to check its status.' }}</div>
                     @if ($refNumber)
                         <div class="mt-2">Your reference number is:</div>
-                        <div class="h4 fw-bold mb-0">{{ $refNumber }}</div>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <div id="passwordResetReference" class="h4 fw-bold mb-0">{{ $refNumber }}</div>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="navigator.clipboard?.writeText(document.getElementById('passwordResetReference').textContent.trim()).then(() => this.textContent = 'Copied')">Copy</button>
+                        </div>
                         <div class="small mt-2">Save this number. You will need it together with your registered email or ID to check approval.</div>
                     @endif
                 </div>
