@@ -194,4 +194,48 @@ class GadReportExportTest extends TestCase
             Carbon::setTestNow();
         }
     }
+
+    public function test_sex_disaggregated_rows_use_database_records_and_suppress_small_gender_cells(): void
+    {
+        $students = collect();
+        foreach (range(1, 5) as $index) {
+            $students->push(User::create([
+                'name' => 'Student ' . $index,
+                'email' => 'student' . $index . '@example.test',
+                'password' => 'password',
+                'role' => 'student',
+                'account_type' => 'student',
+                'department' => 'Biology',
+                'personal_information' => [
+                    'sex' => 'Male',
+                    'gender_identity' => $index === 1 ? 'Lesbian' : 'Cisgender/Heterosexual',
+                ],
+                'student_information' => ['year_level' => 'Second Year'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]));
+        }
+
+        $method = new \ReflectionMethod(ExportGADReportController::class, 'sexDisaggregatedData');
+        $reportData = $method->invoke(
+            app(ExportGADReportController::class),
+            $students,
+            collect(),
+            collect(),
+            collect(),
+            collect(),
+            collect(),
+            Carbon::now()->startOfDay(),
+            Carbon::now()->endOfDay()
+        );
+        $studentRow = collect($reportData['reports'][3])->first();
+
+        $this->assertSame('Biology / Second Year', $studentRow['category']);
+        $this->assertSame(5, $studentRow['male']);
+        $this->assertSame('100.0', $studentRow['male_percent']);
+        $this->assertSame(5, $studentRow['total']);
+        $this->assertSame('<5', $studentRow['genders']['Lesbian']);
+        $this->assertSame('<5', $studentRow['genders']['Cisgender/Heterosexual']);
+        $this->assertArrayNotHasKey('name', $studentRow);
+    }
 }

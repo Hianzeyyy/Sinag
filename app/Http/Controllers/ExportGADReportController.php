@@ -95,7 +95,7 @@ class ExportGADReportController extends Controller
                 'includeReports' => $includeReports,
                 'includeFeedback' => $includeFeedback,
                 'surveyFindings' => $surveyFindings,
-                'sexDisaggregatedData' => $this->sexDisaggregatedData($students, $employees, $reports, $suggestions, $satisfactionSurveys, $startDate, $endDate),
+                'sexDisaggregatedData' => $this->sexDisaggregatedData($students, $employees, $profileUsers->keyBy('id'), $reports, $suggestions, $satisfactionSurveys, $startDate, $endDate),
             ])->setPaper('a4', 'portrait');
 
             return $pdf->download("GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf');
@@ -408,10 +408,10 @@ class ExportGADReportController extends Controller
         )->deleteFileAfterSend(true);
     }
 
-    private function sexDisaggregatedData($students, $employees, $reports, $suggestions, $satisfactionSurveys, Carbon $startDate, Carbon $endDate): array
+    private function sexDisaggregatedData($students, $employees, $usersById, $reports, $suggestions, $satisfactionSurveys, Carbon $startDate, Carbon $endDate): array
     {
-        $genderFieldAvailable = Schema::hasColumn('users', 'gender');
-        $reportGenderAvailable = Schema::hasTable('reports') && Schema::hasColumn('reports', 'gender');
+        $studentsInPeriod = $students->filter(fn (User $user) => $user->created_at && $user->created_at->betweenIncluded($startDate, $endDate))->values();
+        $employeesInPeriod = $employees->filter(fn (User $user) => $user->created_at && $user->created_at->betweenIncluded($startDate, $endDate))->values();
 
         return [
             'coverage_start' => $startDate->format('M d, Y'),
@@ -421,9 +421,642 @@ class ExportGADReportController extends Controller
             'incident_count' => $reports->count(),
             'suggestion_count' => $suggestions->count(),
             'satisfaction_count' => $satisfactionSurveys->count(),
-            'gender_field_available' => $genderFieldAvailable,
-            'report_gender_available' => $reportGenderAvailable,
+            'reports' => [
+                1 => $this->populationRows($students, $startDate, $endDate, false),
+                2 => $this->populationRows($employees, $startDate, $endDate, true),
+                3 => $this->profileRows($studentsInPeriod, fn (User $user) => [
+                    trim(($user->department ?: 'Program not reported') . ' / ' . (data_get($user->student_information, 'year_level') ?: 'Year level not reported')),
+                ]),
+                4 => $this->profileRows($studentsInPeriod, fn (User $user) => $this->studentSocioeconomicCategories($user)),
+                5 => $this->profileRows($studentsInPeriod, fn (User $user) => $this->studentAcademicCategories($user)),
+                6 => [],
+                7 => $this->profileRows($studentsInPeriod, fn (User $user) => $this->studentTrainingCategories($user)),
+                8 => $this->profileRows($employeesInPeriod, fn (User $user) => $this->employeeAppointmentCategories($user)),
+                9 => $this->profileRows($employeesInPeriod, fn (User $user) => $this->employeeEducationCategories($user)),
+                10 => $this->profileRows($employeesInPeriod, fn (User $user) => $this->employeeHouseholdCategories($user)),
+                11 => $this->profileRows($employeesInPeriod, fn (User $user) => $this->employeeOrganizationCategories($user)),
+                12 => $this->profileRows($employeesInPeriod, fn (User $user) => $this->employeeTrainingCategories($user, $startDate, $endDate)),
+                15 => $this->incidentReporterRows($reports, $usersById),
+            ],
+            'incident_departments' => $this->incidentDepartmentRows($reports, $usersById),
+            'incident_types' => $this->incidentTypeRows($reports, $usersById),
+            'suggestion_rows' => $this->suggestionRows($suggestions),
+            'anonymous_suggestion_rows' => $this->anonymousSuggestionRows($suggestions),
+            'training_summary' => $this->employeeTrainingSummary($employeesInPeriod, $startDate, $endDate),
+            'satisfaction_rows' => $this->satisfactionRows($satisfactionSurveys),
         ];
+    }
+
+    private function populationRows($users, Carbon $startDate, Carbon $endDate, bool $isEmployee): array
+    {
+        $records = [];
+        foreach ($users as $user) {
+            $department = trim((string) ($user->department ?: 'Department not reported'));
+            $status = $this->accountStatusLabel((string) ($user->account_status ?: 'Active'));
+            $role = $isEmployee
+                ? ucfirst(str_replace('_', ' ', trim((string) ($user->employee_category ?: 'Employee category not reported'))))
+                : 'Student';
+            $base = "{$department} / {$role} / Population / Status: {$status}";
+            $records[] = $this->disaggregationRecord($user, $base);
+
+            if ($user->created_at && $user->created_at->betweenIncluded($startDate, $endDate)) {
+                $records[] = $this->disaggregationRecord($user, "{$department} / {$role} / New user / Status: {$status}");
+            }
+        }
+
+        return $this->aggregateDisaggregationRows($records);
+    }
+
+    private function profileRows($users, callable $categoryResolver): array
+    {
+        $records = [];
+        foreach ($users as $user) {
+            foreach (array_unique(array_filter($categoryResolver($user), fn ($category) => is_string($category) && trim($category) !== '')) as $category) {
+                $records[] = $this->disaggregationRecord($user, trim($category));
+            }
+        }
+
+        return $this->aggregateDisaggregationRows($records);
+    }
+
+    private function disaggregationRecord(User $user, string $category): array
+    {
+        $sex = data_get($user->personal_information, 'sex', $user->gender);
+
+        return [
+            'category' => $category,
+            'sex' => $this->normalizeSex($sex),
+            'gender' => $this->normalizeGenderIdentity(data_get($user->personal_information, 'gender_identity')),
+        ];
+    }
+
+    private function aggregateDisaggregationRows(array $records): array
+    {
+        $groups = [];
+        foreach ($records as $record) {
+            if (!in_array($record['sex'], ['Male', 'Female'], true)) {
+                continue;
+            }
+            $category = $record['category'];
+            $groups[$category] ??= [
+                'category' => $category,
+                'male' => 0,
+                'female' => 0,
+                'genders' => array_fill_keys(['Lesbian', 'Gay', 'Bisexual', 'Transsexual', 'Cisgender/Heterosexual', 'Non-Binary', 'Prefer Not to Say'], 0),
+            ];
+
+            $groups[$category][strtolower($record['sex'])]++;
+            if ($record['gender'] !== null) {
+                $groups[$category]['genders'][$record['gender']]++;
+            }
+        }
+
+        ksort($groups, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return array_map(function (array $group): array {
+            $total = $group['male'] + $group['female'];
+            $group['total'] = $total;
+            $group['male_percent'] = $total > 0 ? number_format($group['male'] / $total * 100, 1) : '0.0';
+            $group['female_percent'] = $total > 0 ? number_format($group['female'] / $total * 100, 1) : '0.0';
+            foreach ($group['genders'] as $gender => $count) {
+                $group['genders'][$gender] = $count < 5 ? '<5' : $count;
+            }
+
+            return $group;
+        }, array_values($groups));
+    }
+
+    private function normalizeSex($value): ?string
+    {
+        return match (strtolower(trim((string) $value))) {
+            'male' => 'Male',
+            'female' => 'Female',
+            default => null,
+        };
+    }
+
+    private function accountStatusLabel(string $value): string
+    {
+        return match (strtolower(trim($value))) {
+            'active', 'approved' => 'Active',
+            'rejected' => 'Rejected',
+            'pending', '' => 'Pending',
+            default => ucfirst(strtolower(trim($value))),
+        };
+    }
+
+    private function normalizeGenderIdentity($value): ?string
+    {
+        $normalized = strtolower(trim((string) $value));
+
+        return match ($normalized) {
+            'lesbian' => 'Lesbian',
+            'gay' => 'Gay',
+            'bisexual', 'bi' => 'Bisexual',
+            'transsexual', 'transgender' => 'Transsexual',
+            'cisgender/heterosexual', 'cisgender', 'heterosexual' => 'Cisgender/Heterosexual',
+            'non-binary', 'nonbinary', 'non binary' => 'Non-Binary',
+            'prefer not to say', 'prefer not to disclose' => 'Prefer Not to Say',
+            default => null,
+        };
+    }
+
+    private function studentSocioeconomicCategories(User $user): array
+    {
+        $categories = [];
+        $familyType = strtolower((string) data_get($user->family_background, 'family_type'));
+        if (str_contains($familyType, 'single-parent') || str_contains($familyType, 'solo-parent')) {
+            $categories[] = 'Solo-parent family';
+        }
+
+        $workType = trim((string) data_get($user->student_information, 'financing_other_work'));
+        if ($workType !== '') {
+            $categories[] = 'Working student / ' . $this->classifyWorkType($workType);
+        }
+
+        foreach ($this->valueList(data_get($user->personal_information, 'disabilities')) as $disability) {
+            if (strtolower($disability) !== 'none') {
+                $categories[] = 'PWD / ' . (strtolower($disability) === 'other' ? 'Other disability' : $disability);
+            }
+        }
+
+        $income = $this->incomeBracket(data_get($user->family_background, 'monthly_income'));
+        if ($income !== null) {
+            $categories[] = 'Monthly family income / ' . $income;
+        }
+
+        $ownership = trim((string) data_get($user->family_background, 'home_ownership_type'));
+        if ($ownership !== '') {
+            $categories[] = 'Home ownership / ' . $ownership;
+        }
+
+        foreach ($this->valueList(data_get($user->student_information, 'financing_sources')) as $source) {
+            $categories[] = 'Schooling financier / ' . $this->classifyFinancier($source);
+        }
+
+        return $categories;
+    }
+
+    private function studentAcademicCategories(User $user): array
+    {
+        $categories = [];
+        $schoolType = trim((string) data_get($user->student_information, 'school_type'));
+        if ($schoolType !== '') {
+            $categories[] = 'Feeder school / ' . $schoolType;
+        }
+
+        $achievements = $this->valueList(data_get($user->student_information, 'achievements'));
+        $otherRank = trim((string) data_get($user->student_information, 'achievement_other_rank'));
+        $achievements[] = $otherRank;
+        foreach ($achievements as $achievement) {
+            $normalized = strtolower($achievement);
+            foreach (['valedictorian' => 'Valedictorian', 'salutatorian' => 'Salutatorian', 'honorable mention' => 'Honorable Mention'] as $needle => $label) {
+                if (str_contains($normalized, $needle)) {
+                    $categories[] = 'Academic honor / ' . $label;
+                }
+            }
+            if ($achievement !== '' && !preg_match('/valedictorian|salutatorian|honorable mention/i', $achievement)) {
+                $categories[] = 'Academic honor / Other';
+            }
+        }
+
+        return $categories;
+    }
+
+    private function studentTrainingCategories(User $user): array
+    {
+        $attended = data_get($user->student_information, 'gad_training_attended');
+        if ($attended === null) {
+            return [];
+        }
+
+        return [trim((string) ($user->department ?: 'Department not reported')) . ' / GAD training / ' . ($attended ? 'Yes' : 'No')];
+    }
+
+    private function employeeAppointmentCategories(User $user): array
+    {
+        $rows = $this->recordList($user->work_experience);
+        if (!$rows) {
+            return ['Appointment status / Not reported'];
+        }
+
+        $categories = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $status = $this->classifyAppointmentStatus((string) ($row['appointment_status'] ?? ''));
+            $grade = $this->normalizeSalaryGrade((string) ($row['grade_step'] ?? ''));
+            $categories[] = trim((string) ($user->department ?: 'Department not reported'))
+                . ' / ' . trim((string) ($user->employee_category ?: 'Employee category not reported'))
+                . ' / Appointment: ' . $status . ' / Salary grade: ' . $grade;
+        }
+
+        return $categories;
+    }
+
+    private function employeeEducationCategories(User $user): array
+    {
+        $categories = [];
+        foreach ($this->recordList($user->employee_education) as $row) {
+            if (is_array($row) && trim((string) ($row['degree'] ?? '')) !== '') {
+                $categories[] = 'Educational attainment / ' . trim((string) $row['degree']);
+            }
+        }
+        foreach ($this->recordList($user->civil_service_eligibility) as $row) {
+            if (is_array($row) && trim((string) ($row['career'] ?? '')) !== '') {
+                $categories[] = 'Civil service eligibility / ' . trim((string) $row['career']);
+            }
+        }
+
+        return $categories;
+    }
+
+    private function employeeHouseholdCategories(User $user): array
+    {
+        $categories = [];
+        $familyType = strtolower((string) data_get($user->family_background, 'family_type'));
+        if (str_contains($familyType, 'single-parent') || str_contains($familyType, 'solo-parent')) {
+            $categories[] = 'Solo-parent employee';
+        }
+        foreach ($this->valueList(data_get($user->personal_information, 'disabilities')) as $disability) {
+            if (strtolower($disability) !== 'none') {
+                $categories[] = 'PWD / ' . (strtolower($disability) === 'other' ? 'Other disability' : $disability);
+            }
+        }
+        $income = $this->incomeBracket(data_get($user->family_background, 'monthly_income'));
+        if ($income !== null) {
+            $categories[] = 'Income / ' . $income;
+        }
+        $children = filter_var(data_get($user->family_background, 'children_total'), FILTER_VALIDATE_INT);
+        if ($children !== false && $children !== null) {
+            $categories[] = 'Number of children / ' . ($children === 0 ? '0' : ($children <= 2 ? '1–2' : '3 or more'));
+        }
+
+        return $categories;
+    }
+
+    private function employeeOrganizationCategories(User $user): array
+    {
+        $text = strtolower(
+            (string) data_get($user->other_information, 'emp_membership') . ' '
+            . json_encode($user->voluntary_work ?? [], JSON_UNESCAPED_UNICODE)
+        );
+        $categories = [];
+        foreach (['CODI', 'GFPS', 'BAC', 'HRMPSB'] as $organization) {
+            if (preg_match('/\\b' . preg_quote(strtolower($organization), '/') . '\\b/', $text)) {
+                $categories[] = 'Organization / ' . $organization;
+            }
+        }
+        if (trim($text) !== '' && !$categories) {
+            $categories[] = 'Civic / other organization involvement reported';
+        }
+
+        return $categories;
+    }
+
+    private function employeeTrainingCategories(User $user, Carbon $startDate, Carbon $endDate): array
+    {
+        $categories = [];
+        foreach ($this->recordList($user->gad_training) as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $trainingDate = $row['from'] ?? $row['to'] ?? null;
+            if (!$trainingDate || !Carbon::hasFormat((string) $trainingDate, 'Y-m-d')) {
+                continue;
+            }
+            $date = Carbon::createFromFormat('Y-m-d', (string) $trainingDate);
+            if (!$date->betweenIncluded($startDate, $endDate)) {
+                continue;
+            }
+            $title = trim((string) ($row['title'] ?? 'Training title not reported'));
+            $categories[] = trim((string) ($user->department ?: 'Department not reported')) . ' / Training: ' . $title;
+        }
+
+        return $categories;
+    }
+
+    private function employeeTrainingSummary($employees, Carbon $startDate, Carbon $endDate): array
+    {
+        $summary = [];
+        foreach ($employees as $user) {
+            $department = trim((string) ($user->department ?: 'Department not reported'));
+            foreach ($this->recordList($user->gad_training) as $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                $trainingDate = $row['from'] ?? $row['to'] ?? null;
+                if (!$trainingDate || !Carbon::hasFormat((string) $trainingDate, 'Y-m-d')) {
+                    continue;
+                }
+                $date = Carbon::createFromFormat('Y-m-d', (string) $trainingDate);
+                if (!$date->betweenIncluded($startDate, $endDate)) {
+                    continue;
+                }
+                $summary[$department] ??= ['department' => $department, 'hours' => 0.0, 'training_count' => 0, 'titles' => []];
+                $summary[$department]['training_count']++;
+                $hours = $row['hours'] ?? null;
+                if (is_numeric($hours)) {
+                    $summary[$department]['hours'] += (float) $hours;
+                }
+                $title = trim((string) ($row['title'] ?? ''));
+                if ($title !== '') {
+                    $summary[$department]['titles'][$title] = $title;
+                }
+            }
+        }
+
+        return array_values(array_map(function (array $row): array {
+            $row['hours'] = number_format($row['hours'], 1);
+            $row['titles'] = array_values($row['titles']);
+
+            return $row;
+        }, $summary));
+    }
+
+    private function incomeBracket($value): ?string
+    {
+        $raw = trim((string) $value);
+        if ($raw === '') {
+            return null;
+        }
+        $amount = preg_replace('/[^0-9.]/', '', $raw);
+        if ($amount !== '' && is_numeric($amount)) {
+            $amount = (float) $amount;
+
+            return match (true) {
+                $amount <= 10000 => '10,000 or below',
+                $amount < 30000 => '10,001–29,999',
+                $amount < 50000 => '30,000–49,999',
+                default => '50,000 and above',
+            };
+        }
+
+        return 'Bracket not normalized';
+    }
+
+    private function classifyWorkType(string $value): string
+    {
+        $normalized = strtolower($value);
+
+        return match (true) {
+            str_contains($normalized, 'self') => 'Self-employed',
+            str_contains($normalized, 'part') => 'Part-time',
+            str_contains($normalized, 'full') => 'Full-time',
+            default => 'Other work reported',
+        };
+    }
+
+    private function classifyFinancier(string $value): string
+    {
+        $normalized = strtolower($value);
+
+        return match (true) {
+            str_contains($normalized, 'parent'), str_contains($normalized, 'guardian') => 'Parent/guardian',
+            str_contains($normalized, 'scholar') => 'Scholarship',
+            str_contains($normalized, 'self') => 'Self',
+            str_contains($normalized, 'relative') => 'Relative',
+            default => 'Other financier reported',
+        };
+    }
+
+    private function classifyAppointmentStatus(string $value): string
+    {
+        $normalized = strtolower(trim($value));
+
+        return match (true) {
+            str_contains($normalized, 'permanent') => 'Permanent',
+            str_contains($normalized, 'temporary') => 'Temporary',
+            str_contains($normalized, 'contractual'), str_contains($normalized, 'cos') => 'Contractual/COS',
+            str_contains($normalized, 'job order') => 'Job Order',
+            str_contains($normalized, 'part-time'), str_contains($normalized, 'part time') => 'Part-Time',
+            default => 'Not reported or unclassified',
+        };
+    }
+
+    private function normalizeSalaryGrade(string $value): string
+    {
+        if (preg_match('/(?:sg\\s*)?\\d{1,2}(?:\\s*\\/\\s*step\\s*\\d{1,2})?/i', trim($value), $matches)) {
+            return strtoupper(preg_replace('/\\s+/', ' ', trim($matches[0])));
+        }
+
+        return 'Not reported or unclassified';
+    }
+
+    private function valueList($value): array
+    {
+        if (is_array($value)) {
+            $items = [];
+            foreach ($value as $item) {
+                $items = array_merge($items, $this->valueList($item));
+            }
+
+            return $items;
+        }
+        if (!is_scalar($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', preg_split('/[,;\r\n]+/', (string) $value) ?: [])));
+    }
+
+    private function recordList($value): array
+    {
+        if (is_array($value)) {
+            return array_is_list($value) ? $value : [$value];
+        }
+        if (is_string($value) && trim($value) !== '') {
+            $decoded = json_decode($value, true);
+
+            return is_array($decoded) ? (array_is_list($decoded) ? $decoded : [$decoded]) : [];
+        }
+
+        return [];
+    }
+
+    private function incidentDepartmentRows($reports, $usersById): array
+    {
+        $departments = [];
+        foreach ($reports as $report) {
+            $reporter = $usersById->get($report->getAttribute('user_id'));
+            $department = trim((string) ($reporter?->department ?: 'Not disclosed'));
+            $role = strtolower((string) ($reporter?->account_type ?? $reporter?->role));
+            $departments[$department] ??= ['department' => $department, 'student' => 0, 'employee' => 0, 'total' => 0, 'resolved' => 0, 'pending' => 0, 'priorities' => ['High' => 0, 'Normal' => 0, 'Low' => 0]];
+            $departments[$department]['total']++;
+            if ($role === 'student') {
+                $departments[$department]['student']++;
+            } elseif ($role === 'employee') {
+                $departments[$department]['employee']++;
+            }
+            $status = strtolower((string) $report->status);
+            if ($status === 'resolved') {
+                $departments[$department]['resolved']++;
+            } elseif ($status === 'pending') {
+                $departments[$department]['pending']++;
+            }
+            $priority = ucfirst(strtolower((string) ($report->priority ?: 'Normal')));
+            if (isset($departments[$department]['priorities'][$priority])) {
+                $departments[$department]['priorities'][$priority]++;
+            }
+        }
+        $totalReports = $reports->count();
+        foreach ($departments as &$row) {
+            $row['share'] = $totalReports > 0 ? number_format($row['total'] / $totalReports * 100, 1) : '0.0';
+            $row['resolution_rate'] = $row['total'] > 0 ? number_format($row['resolved'] / $row['total'] * 100, 1) : '0.0';
+            $row['priority_summary'] = 'High ' . $row['priorities']['High'] . ' / Normal ' . $row['priorities']['Normal'] . ' / Low ' . $row['priorities']['Low'];
+        }
+        unset($row);
+        usort($departments, fn (array $a, array $b) => $b['total'] <=> $a['total']);
+
+        return $departments;
+    }
+
+    private function incidentTypeRows($reports, $usersById): array
+    {
+        $groups = [];
+        $departmentLocations = [];
+        foreach ($reports as $report) {
+            $reporter = $usersById->get($report->getAttribute('user_id'));
+            $department = trim((string) ($reporter?->department ?: 'Not disclosed'));
+            $nature = trim((string) ($report->nature ?: 'Nature not reported'));
+            $key = $department . '|' . $nature;
+            $groups[$key] ??= ['department' => $department, 'nature' => $nature, 'count' => 0, 'locations' => [], 'pending' => 0, 'resolved' => 0, 'priorities' => []];
+            $groups[$key]['count']++;
+            $location = trim((string) $report->location);
+            if ($location !== '') {
+                $groups[$key]['locations'][$location] = ($groups[$key]['locations'][$location] ?? 0) + 1;
+                $departmentLocations[$department][$location] = ($departmentLocations[$department][$location] ?? 0) + 1;
+            }
+            if (strtolower((string) $report->status) === 'resolved') {
+                $groups[$key]['resolved']++;
+            } elseif (strtolower((string) $report->status) === 'pending') {
+                $groups[$key]['pending']++;
+            }
+            $priority = ucfirst(strtolower((string) ($report->priority ?: 'Normal')));
+            if (in_array($priority, ['High', 'Normal', 'Low'], true)) {
+                $groups[$key]['priorities'][$priority] = ($groups[$key]['priorities'][$priority] ?? 0) + 1;
+            }
+        }
+        $rows = array_values(array_map(function (array $group): array {
+            $group['top_location'] = 'Not reported';
+            unset($group['locations']);
+
+            return $group;
+        }, $groups));
+        foreach ($departmentLocations as $department => $locations) {
+            arsort($locations);
+            $departmentTopLocation[$department] = (string) array_key_first($locations);
+        }
+        $topTypes = [];
+        foreach ($rows as $row) {
+            if (!isset($topTypes[$row['department']]) || $row['count'] > $topTypes[$row['department']]['count']) {
+                $topTypes[$row['department']] = ['nature' => $row['nature'], 'count' => $row['count']];
+            }
+        }
+        foreach ($rows as &$row) {
+            $row['top_type'] = $topTypes[$row['department']]['nature'];
+            $row['top_location'] = $departmentTopLocation[$row['department']] ?? 'Not reported';
+            $row['priority_summary'] = 'High ' . ($row['priorities']['High'] ?? 0)
+                . ' / Normal ' . ($row['priorities']['Normal'] ?? 0)
+                . ' / Low ' . ($row['priorities']['Low'] ?? 0);
+        }
+        unset($row);
+        usort($rows, fn (array $a, array $b) => [$a['department'], -$a['count']] <=> [$b['department'], -$b['count']]);
+
+        return $rows;
+    }
+
+    private function incidentReporterRows($reports, $usersById): array
+    {
+        $records = [];
+        foreach ($reports as $report) {
+            $reporter = $usersById->get($report->getAttribute('user_id'));
+            $role = strtolower((string) ($reporter?->account_type ?? $reporter?->role));
+            $sex = $reporter
+                ? data_get($reporter->personal_information, 'sex', $reporter->gender)
+                : $report->getAttribute('gender');
+            $records[] = [
+                'category' => ucfirst($role ?: 'Complainant role not disclosed'),
+                'sex' => $this->normalizeSex($sex),
+                'gender' => $reporter ? $this->normalizeGenderIdentity(data_get($reporter->personal_information, 'gender_identity')) : null,
+            ];
+        }
+
+        return $this->aggregateDisaggregationRows($records);
+    }
+
+    private function suggestionRows($suggestions): array
+    {
+        $records = [];
+        foreach ($suggestions as $suggestion) {
+            $category = trim((string) ($suggestion->category ?: 'Category not reported'));
+            $user = $suggestion->is_anonymous ? null : $suggestion->user;
+            if (!$user) {
+                continue;
+            }
+            $records[] = [
+                'category' => $category,
+                'sex' => $this->normalizeSex(data_get($user->personal_information, 'sex', $user->gender)),
+                'gender' => $this->normalizeGenderIdentity(data_get($user->personal_information, 'gender_identity')),
+            ];
+        }
+
+        return $this->aggregateDisaggregationRows($records);
+    }
+
+    private function anonymousSuggestionRows($suggestions): array
+    {
+        return $suggestions
+            ->filter(fn ($suggestion) => $suggestion->is_anonymous || !$suggestion->user)
+            ->groupBy(fn ($suggestion) => trim((string) ($suggestion->category ?: 'Category not reported')))
+            ->map(fn ($categorySuggestions, $category) => [
+                'category' => $category,
+                'count' => $categorySuggestions->count(),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function satisfactionRows($surveys): array
+    {
+        $questions = [
+            'The report or suggestion submission process was easy to use.',
+            'The instructions and information were clear.',
+            'The system made me feel safe sharing my concern or feedback.',
+            'The system responded well to my needs.',
+            'I would recommend this system to others who need support.',
+        ];
+        $groups = [];
+        foreach ($surveys as $survey) {
+            $user = $survey->user;
+            if (!$user || !$this->normalizeSex(data_get($user->personal_information, 'sex', $user->gender))) {
+                continue;
+            }
+            $sex = $this->normalizeSex(data_get($user->personal_information, 'sex', $user->gender));
+            $gender = $this->normalizeGenderIdentity(data_get($user->personal_information, 'gender_identity'));
+            foreach ($questions as $index => $question) {
+                $rating = (int) data_get($survey->responses, $index);
+                if ($rating < 1 || $rating > 4) {
+                    continue;
+                }
+                $key = $question . '|' . $sex . '|' . ($gender ?? 'Gender not disclosed');
+                $groups[$key] ??= ['question' => $question, 'sex' => $sex, 'gender' => $gender ?? 'Gender not disclosed', 'counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0]];
+                $groups[$key]['counts'][$rating]++;
+            }
+        }
+
+        $eligibleGroups = array_filter($groups, fn (array $group): bool => array_sum($group['counts']) >= 5);
+
+        return array_values(array_map(function (array $group): array {
+            $count = array_sum($group['counts']);
+            $group['responses'] = $count;
+            $group['average'] = number_format(array_sum(array_map(fn ($rating, $frequency) => $rating * $frequency, array_keys($group['counts']), $group['counts'])) / $count, 2);
+            $group['favorable'] = number_format(($group['counts'][3] + $group['counts'][4]) / $count * 100, 1);
+            $group['pie_image'] = $this->pieImage($group['counts']);
+
+            return $group;
+        }, $eligibleGroups));
     }
 
     private function surveyFindings($surveys): array
