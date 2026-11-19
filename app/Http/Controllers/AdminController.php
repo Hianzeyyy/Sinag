@@ -889,7 +889,8 @@ class AdminController extends Controller
             Mail::raw(
                 "Hello {$user->name},\n\nYour SINAG account has been approved and is now active. You may sign in using your institutional email and password.\n\nThank you.",
                 function ($message) use ($user) {
-                    $message->to($user->email)
+                    $message->from('obreroemilhene@gmail.com', 'SINAG Admin')
+                        ->to($user->email)
                         ->subject('SINAG Account Approved');
                 }
             );
@@ -929,7 +930,8 @@ class AdminController extends Controller
             Mail::raw(
                 "Hello {$user->name},\n\nYour SINAG account has been rejected and is not active.\n{$reasonText}Please coordinate with the GAD office for the next steps.\n\nThank you.",
                 function ($message) use ($user) {
-                    $message->to($user->email)
+                    $message->from('obreroemilhene@gmail.com', 'SINAG Admin')
+                        ->to($user->email)
                         ->subject('SINAG Account Rejected');
                 }
             );

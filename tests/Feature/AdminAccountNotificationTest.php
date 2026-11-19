@@ -23,6 +23,7 @@ class AdminAccountNotificationTest extends TestCase
                 $this->assertIsCallable($configureMessage);
 
                 $message = \Mockery::mock();
+                $message->shouldReceive('from')->once()->with('obreroemilhene@gmail.com', 'SINAG Admin')->andReturnSelf();
                 $message->shouldReceive('to')->once()->with($user->email)->andReturnSelf();
                 $message->shouldReceive('subject')->once()->with('SINAG Account Approved');
                 $configureMessage($message);
@@ -50,6 +51,7 @@ class AdminAccountNotificationTest extends TestCase
                 $this->assertIsCallable($configureMessage);
 
                 $message = \Mockery::mock();
+                $message->shouldReceive('from')->once()->with('obreroemilhene@gmail.com', 'SINAG Admin')->andReturnSelf();
                 $message->shouldReceive('to')->once()->with($user->email)->andReturnSelf();
                 $message->shouldReceive('subject')->once()->with('SINAG Account Rejected');
                 $configureMessage($message);
