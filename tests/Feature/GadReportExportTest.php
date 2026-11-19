@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\ExportGADReportController;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -114,6 +115,9 @@ class GadReportExportTest extends TestCase
             $this->assertStringContainsString('1 - Degree', $employeeSheet);
             $this->assertStringContainsString('Bachelor of Arts', $employeeSheet);
             $this->assertStringContainsString('GAD Orientation', $employeeSheet);
+            $workbookXml = $workbook->getFromName('xl/workbook.xml');
+            $this->assertStringContainsString('Sex-Disaggregated Data', $workbookXml);
+            $this->assertStringContainsString('Data Dictionary', $workbookXml);
         } finally {
             $workbook->close();
             @unlink($workbookPath);
@@ -161,6 +165,33 @@ class GadReportExportTest extends TestCase
         } finally {
             $workbook->close();
             @unlink($workbookPath);
+        }
+    }
+
+    public function test_calendar_report_periods_cover_quarters_midyear_and_full_year(): void
+    {
+        Carbon::setTestNow('2026-11-19 12:00:00');
+        $controller = app(ExportGADReportController::class);
+        $resolvePeriod = new \ReflectionMethod($controller, 'resolvePeriod');
+
+        try {
+            $expected = [
+                'q1' => ['2026-01-01', '2026-03-31', 'Quarter 1 (2026)'],
+                'q2' => ['2026-04-01', '2026-06-30', 'Quarter 2 (2026)'],
+                'q3' => ['2026-07-01', '2026-09-30', 'Quarter 3 (2026)'],
+                'q4' => ['2026-10-01', '2026-12-31', 'Quarter 4 (2026)'],
+                'midyear' => ['2026-01-01', '2026-06-30', 'Mid-Year (January–June 2026)'],
+                'annual' => ['2026-01-01', '2026-12-31', 'Annual (2026)'],
+            ];
+
+            foreach ($expected as $period => [$start, $end, $label]) {
+                $resolved = $resolvePeriod->invoke($controller, $period);
+                $this->assertSame($start, $resolved['start']->toDateString());
+                $this->assertSame($end, $resolved['end']->toDateString());
+                $this->assertSame($label, $resolved['label']);
+            }
+        } finally {
+            Carbon::setTestNow();
         }
     }
 }

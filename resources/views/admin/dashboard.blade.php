@@ -544,6 +544,12 @@
                     <select id="exportGadReportPeriod" class="form-select" required>
                         <option value="30days">Last 30 days</option>
                         <option value="7days">Last 7 days</option>
+                        <option value="q1">Quarter 1 (Jan–Mar)</option>
+                        <option value="q2">Quarter 2 (Apr–Jun)</option>
+                        <option value="q3">Quarter 3 (Jul–Sep)</option>
+                        <option value="q4">Quarter 4 (Oct–Dec)</option>
+                        <option value="midyear">Mid-year (Jan–Jun)</option>
+                        <option value="annual">Annual (Jan–Dec)</option>
                         <option value="lastyear">Last year</option>
                     </select>
                 </div>

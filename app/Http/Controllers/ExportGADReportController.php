@@ -17,7 +17,7 @@ class ExportGADReportController extends Controller
      * Download the GAD report as a PDF or Excel workbook.
      *
      * @param string $format  pdf or excel
-     * @param string $period  7days, 30days, lastyear, lastmonth, yearly
+     * @param string $period  A supported rolling or calendar report period
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function export(string $format, string $period = '30days')
@@ -95,6 +95,7 @@ class ExportGADReportController extends Controller
                 'includeReports' => $includeReports,
                 'includeFeedback' => $includeFeedback,
                 'surveyFindings' => $surveyFindings,
+                'sexDisaggregatedData' => $this->sexDisaggregatedData($students, $employees, $reports, $suggestions, $satisfactionSurveys, $startDate, $endDate),
             ])->setPaper('a4', 'portrait');
 
             return $pdf->download("GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf');
@@ -131,6 +132,40 @@ class ExportGADReportController extends Controller
             case '30days':
                 $start = $now->copy()->subDays(30)->startOfDay();
                 $label = 'Last 30 Days';
+                break;
+            case 'q1':
+            case 'quarter1':
+                $start = $now->copy()->startOfYear();
+                $now = $start->copy()->addMonths(2)->endOfMonth();
+                $label = 'Quarter 1 (' . $start->format('Y') . ')';
+                break;
+            case 'q2':
+            case 'quarter2':
+                $start = $now->copy()->startOfYear()->addMonths(3);
+                $now = $start->copy()->addMonths(2)->endOfMonth();
+                $label = 'Quarter 2 (' . $start->format('Y') . ')';
+                break;
+            case 'q3':
+            case 'quarter3':
+                $start = $now->copy()->startOfYear()->addMonths(6);
+                $now = $start->copy()->addMonths(2)->endOfMonth();
+                $label = 'Quarter 3 (' . $start->format('Y') . ')';
+                break;
+            case 'q4':
+            case 'quarter4':
+                $start = $now->copy()->startOfYear()->addMonths(9);
+                $now = $start->copy()->addMonths(2)->endOfMonth();
+                $label = 'Quarter 4 (' . $start->format('Y') . ')';
+                break;
+            case 'midyear':
+                $start = $now->copy()->startOfYear();
+                $now = $start->copy()->addMonths(5)->endOfMonth();
+                $label = 'Mid-Year (January–June ' . $start->format('Y') . ')';
+                break;
+            case 'annual':
+                $start = $now->copy()->startOfYear();
+                $now = $start->copy()->endOfYear();
+                $label = 'Annual (' . $start->format('Y') . ')';
                 break;
             case 'yearly':
             case 'year':
@@ -205,6 +240,34 @@ class ExportGADReportController extends Controller
             $sheets['Student Information'] = $this->profileSheetRows($students, false);
             $sheets['Faculty and Non-Teaching'] = $this->profileSheetRows($employees, true);
         }
+
+        $partBHeaders = [[
+            'Report', 'Category', 'Male (f / %)', 'Female (f / %)', 'Total (N)',
+            'Lesbian', 'Gay', 'Bisexual', 'Transsexual', 'Cisgender/Heterosexual',
+            'Non-Binary', 'Prefer Not to Say',
+        ]];
+        foreach (range(7, 15) as $reportNumber) {
+            $partBHeaders[] = [
+                $reportNumber,
+                '{{category}}',
+                '{{f}} / {{%}}',
+                '{{f}} / {{%}}',
+                '{{N}}',
+                '{{f}}', '{{f}}', '{{f}}', '{{f}}', '{{f}}', '{{f}}', '{{f}}',
+            ];
+        }
+        $sheets['Sex-Disaggregated Data'] = $partBHeaders;
+        $sheets['Data Dictionary'] = [[
+            'Field', 'Source Form', 'Database Column Placeholder', 'Allowed Values', 'Report',
+        ], [
+            'Sex', 'Student / Faculty Information Sheet', '{{users.personal_information.sex}}', 'Male, Female, Prefer not to say', '7-12',
+        ], [
+            'Gender/SOGIESC', 'Student / Faculty Information Sheet', '{{users.personal_information.gender_identity}}', 'Lesbian, Gay, Bisexual, Transsexual, Cisgender/Heterosexual, Non-Binary, Prefer Not to Say', '7-12',
+        ], [
+            'Department / Office', 'System-generated account field', '{{users.department}}', 'Database-defined departments/offices', '7-12',
+        ], [
+            'Incident Nature', 'Safe Spaces incident report', '{{reports.nature}}', 'Database/system-defined incident types', '10, 15',
+        ]];
 
         if ($includeFeedback) {
             $sheets['Customer Satisfaction'] = [[
@@ -343,6 +406,24 @@ class ExportGADReportController extends Controller
             'GAD_Report_' . $period . '_' . Carbon::now()->format('Ymd_His') . '.xlsx',
             ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         )->deleteFileAfterSend(true);
+    }
+
+    private function sexDisaggregatedData($students, $employees, $reports, $suggestions, $satisfactionSurveys, Carbon $startDate, Carbon $endDate): array
+    {
+        $genderFieldAvailable = Schema::hasColumn('users', 'gender');
+        $reportGenderAvailable = Schema::hasTable('reports') && Schema::hasColumn('reports', 'gender');
+
+        return [
+            'coverage_start' => $startDate->format('M d, Y'),
+            'coverage_end' => $endDate->format('M d, Y'),
+            'student_count' => $students->count(),
+            'employee_count' => $employees->count(),
+            'incident_count' => $reports->count(),
+            'suggestion_count' => $suggestions->count(),
+            'satisfaction_count' => $satisfactionSurveys->count(),
+            'gender_field_available' => $genderFieldAvailable,
+            'report_gender_available' => $reportGenderAvailable,
+        ];
     }
 
     private function surveyFindings($surveys): array
