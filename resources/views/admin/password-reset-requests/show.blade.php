@@ -12,16 +12,18 @@
         </div>
         <div class="col-lg-5"><div class="card border-0 shadow-sm rounded-4"><div class="card-body p-4"><h2 class="h5 fw-bold mb-3">Private ID picture</h2><img src="{{ route('admin.password-resets.id-picture', $passwordResetRequest) }}" alt="Submitted ID picture" class="img-fluid rounded border mb-3" style="max-height: 360px; width: 100%; object-fit: contain;"><div class="small text-muted mb-3">This image is served only to authorized admins.</div>
             @if ($passwordResetRequest->status === 'pending')
-                <form method="POST" action="{{ route('admin.password-resets.approve', $passwordResetRequest) }}" class="mb-3">@csrf<button class="btn password-approve-btn w-100 fw-bold" type="submit"><i class="bi bi-check-circle me-2"></i>Approve Request</button></form>
-                <form method="POST" action="{{ route('admin.password-resets.reject', $passwordResetRequest) }}">@csrf<label class="form-label fw-bold" for="admin_remarks">Rejection remarks</label><textarea id="admin_remarks" name="admin_remarks" class="form-control mb-2" rows="3" required></textarea><button class="btn password-reject-btn w-100 fw-bold" type="submit"><i class="bi bi-x-circle me-2"></i>Reject Request</button></form>
+                <form method="POST" action="{{ route('admin.password-resets.approve', $passwordResetRequest) }}" class="mb-3">@csrf<button class="btn password-approve-btn rounded-pill px-3 w-100 fw-bold" type="submit"><i class="bi bi-check-circle me-2"></i>Approve Request</button></form>
+                <form method="POST" action="{{ route('admin.password-resets.reject', $passwordResetRequest) }}">@csrf<label class="form-label fw-bold" for="admin_remarks">Rejection remarks</label><textarea id="admin_remarks" name="admin_remarks" class="form-control mb-2" rows="3" required></textarea><button class="btn password-reject-btn rounded-pill px-3 w-100 fw-bold" type="submit"><i class="bi bi-x-circle me-2"></i>Reject Request</button></form>
             @elseif ($passwordResetRequest->admin_remarks)<div class="alert alert-light mb-0"><strong>Admin remarks</strong><div>{{ $passwordResetRequest->admin_remarks }}</div></div>@endif
         </div></div></div>
     </div>
 </div>
 <style>
     .password-status-approved, .password-approve-btn { background: #d8cdfc; color: #5b4b9b; }
-    .password-status-rejected, .password-reject-btn { background: #f7c4dd; color: #9d285d; }
+    .password-status-rejected { background: #f7c4dd; color: #9d285d; }
+    .password-reject-btn { background: #facc15; color: #4a3500; border: 0; }
     .password-status-pending { background: #ede9fe; color: #6d55d9; }
-    .password-approve-btn:hover, .password-reject-btn:hover { filter: brightness(.96); color: inherit; }
+    .password-approve-btn:hover { filter: brightness(.96); color: #5b4b9b; }
+    .password-reject-btn:hover { filter: brightness(.96); color: #4a3500; }
 </style>
 @endsection

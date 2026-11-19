@@ -89,6 +89,11 @@
             <i class="bi bi-check-circle-fill me-1"></i> {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-3">
+            <i class="bi bi-exclamation-circle-fill me-1"></i> {{ session('error') }}
+        </div>
+    @endif
 
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
         <div style="height: 5px; background: linear-gradient(90deg, #A594F9, #c4b5fd);"></div>

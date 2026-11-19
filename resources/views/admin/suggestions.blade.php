@@ -54,7 +54,7 @@
                             </td>
                             <td class="text-nowrap">{{ optional($suggestion->created_at)->format('M d, Y') }}</td>
                             <td class="text-end text-nowrap pe-4">
-                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#suggestionModal{{ $suggestion->id }}">
+                                <button type="button" class="btn btn-sm rounded-pill px-3 user-management-approve-btn" data-bs-toggle="modal" data-bs-target="#suggestionModal{{ $suggestion->id }}">
                                     <i class="bi bi-eye me-1"></i>View
                                 </button>
                                 <form action="{{ route('admin.suggestions.delete', $suggestion->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this suggestion?');">
@@ -103,14 +103,14 @@
                             <input type="hidden" name="action" value="approve">
                             <label class="visually-hidden" for="approveRemarks{{ $suggestion->id }}">Approval comment</label>
                             <textarea id="approveRemarks{{ $suggestion->id }}" name="admin_remarks" class="form-control mb-2" rows="2" maxlength="1000" placeholder="Why approve? (optional)"></textarea>
-                            <button type="submit" class="btn suggestion-approve-btn">Approve Suggestion</button>
+                            <button type="submit" class="btn suggestion-approve-btn rounded-pill px-3">Approve Suggestion</button>
                         </form>
                         <form action="{{ route('admin.suggestions.review', $suggestion->id) }}" method="POST">
                             @csrf
                             <input type="hidden" name="action" value="reject">
                             <label class="visually-hidden" for="rejectRemarks{{ $suggestion->id }}">Rejection comment</label>
                             <textarea id="rejectRemarks{{ $suggestion->id }}" name="admin_remarks" class="form-control mb-2" rows="2" maxlength="1000" placeholder="Why reject? (optional)"></textarea>
-                            <button type="submit" class="btn suggestion-reject-btn">Reject Suggestion</button>
+                            <button type="submit" class="btn suggestion-reject-btn rounded-pill px-3">Reject Suggestion</button>
                         </form>
                     </div>
                 </div>
@@ -198,7 +198,10 @@
 .sinag-status-rejected { background: #f7c4dd; color: #9d285d; }
 .sinag-status-pending { background: #ede9fe; color: #6d55d9; }
 .suggestion-approve-btn { background: #d8cdfc; color: #5b4b9b; font-weight: 700; }
-.suggestion-reject-btn { border: 1px solid #ee78ae; color: #c33b76; font-weight: 700; }
+.suggestion-reject-btn { background: #facc15; color: #4a3500; border: 0; font-weight: 700; }
+.suggestion-reject-btn:hover { background: #e5b900; color: #4a3500; }
+.user-management-approve-btn { background: #8f72f5; color: #fff; border: 0; }
+.user-management-approve-btn:hover { background: #7658df; color: #fff; }
 .fw-grid { display: block; }
 .fw-table-card .table { min-width: 760px; }
 .fw-table-card td { vertical-align: middle; }

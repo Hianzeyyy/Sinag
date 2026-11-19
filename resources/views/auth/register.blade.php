@@ -233,12 +233,12 @@
                                     <div class="col-md-12 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Institutional Email</label>
                                         <input type="email" class="form-control" name="email" value="{{ old('email') }}" required placeholder="username@psu.edu.ph">
-                                        <div id="emailHelp" class="form-text text-white-50">Students use an email beginning with a number; employees use one beginning with a letter.</div>
+                                        <div id="emailHelp" class="form-text text-white-50">Students and employees must use their institutional email addresses.</div>
                                     </div>
                                     <div class="col-md-12 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Contact Number</label>
                                         <input type="tel" class="form-control" name="phone_number" value="{{ old('phone_number') }}" inputmode="numeric" pattern="09[0-9]{9}" minlength="11" maxlength="11" required placeholder="e.g. 09123456789" title="Enter an 11-digit Philippine mobile number starting with 09">
-                                        <div class="form-text">Use 11 digits and start with 09 (example: 09123456789).</div>
+                                        <div class="form-text"></div>
                                         @error('phone_number')
                                             <div class="text-warning small mt-1">{{ $message }}</div>
                                         @enderror
@@ -267,7 +267,7 @@
                                     <div class="col-md-4 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Department / Course</label>
                                         <select class="form-select" name="department" id="department" required data-old-department="{{ old('department') }}">
-                                            <option value="" disabled {{ old('department') ? '' : 'selected' }}>Choose course or department</option>
+                                            <option value="" disabled {{ old('department') ? '' : 'selected' }}>Choose Program or department</option>
                                         </select>
                                     </div>
                                     <div class="col-md-12 mb-3 d-none" id="employeeCategoryField">

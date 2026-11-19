@@ -873,25 +873,34 @@ class AdminController extends Controller
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
+        $user = User::findOrFail($id);
+
+        \DB::table('users')->where('id', $user->id)->update([
+            'account_status'   => 'active',
+            'approved_at'      => now(),
+            'approved_by'      => Auth::id(),
+            'rejection_reason' => null,
+            'updated_at'       => now(),
+        ]);
+
+        \Log::info('SINAG account approved', ['user_id' => $user->id, 'admin_id' => Auth::id()]);
+
         try {
-            $user = User::findOrFail($id);
-
-            \DB::table('users')->where('id', $user->id)->update([
-                'account_status'   => 'active',
-                'approved_at'      => now(),
-                'approved_by'      => Auth::id(),
-                'rejection_reason' => null,
-                'updated_at'       => now(),
-            ]);
-
-            \Log::info('SINAG account approved', ['user_id' => $user->id, 'admin_id' => Auth::id()]);
-
-            return redirect('/admin/users')->with('success', 'User account approved successfully.');
+            Mail::raw(
+                "Hello {$user->name},\n\nYour SINAG account has been approved and is now active. You may sign in using your institutional email and password.\n\nThank you.",
+                function ($message) use ($user) {
+                    $message->to($user->email)
+                        ->subject('SINAG Account Approved');
+                }
+            );
         } catch (\Throwable $exception) {
             report($exception);
+            \Log::warning('Approval email failed for user ' . $user->id . ': ' . $exception->getMessage());
 
-            return redirect('/admin/users')->with('error', 'The account was updated, but the approval response failed. Please refresh the user list.');
+            return redirect('/admin/users')->with('error', 'Account approved, but the notification email could not be sent. Please check the mail configuration and contact the user.');
         }
+
+        return redirect('/admin/users')->with('success', 'User account approved successfully and the user was notified by email.');
     }
 
     /**
@@ -918,17 +927,20 @@ class AdminController extends Controller
 
         try {
             Mail::raw(
-                "Hello {$user->name},\n\nYour SINAG registration was not approved at this time.\n{$reasonText}Please coordinate with the GAD office for the next steps.\n\nThank you.",
+                "Hello {$user->name},\n\nYour SINAG account has been rejected and is not active.\n{$reasonText}Please coordinate with the GAD office for the next steps.\n\nThank you.",
                 function ($message) use ($user) {
                     $message->to($user->email)
-                        ->subject('SINAG Account Verification Update');
+                        ->subject('SINAG Account Rejected');
                 }
             );
-        } catch (\Throwable $e) {
-            \Log::warning('Rejection email failed for user ' . $user->id . ': ' . $e->getMessage());
+        } catch (\Throwable $exception) {
+            report($exception);
+            \Log::warning('Rejection email failed for user ' . $user->id . ': ' . $exception->getMessage());
+
+            return back()->with('error', 'Account rejected, but the notification email could not be sent. Please check the mail configuration and contact the user.');
         }
 
-        return back()->with('success', "User {$user->name} has been rejected.");
+        return back()->with('success', "User {$user->name} has been rejected and notified by email.");
     }
 
     /**
