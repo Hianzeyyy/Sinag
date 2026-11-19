@@ -388,7 +388,31 @@
             <div class="data-note"><strong>Data logic:</strong> Incident types are grouped from reports.nature, including all database values. Top type and location are selected by highest frequency. Status and high-priority counts are grouped per department/type.</div>
         </div>
         <div class="page-section">
-            <h3>10.3 Report 15: Incident Disaggregation by Sex, Gender and Campus Role</h3>
+            <h3>10.3 Table 4: Sex-Disaggregated Cyber-Harassment Cases by Department</h3>
+            <div class="report-meta"><strong>Purpose:</strong> Summarize cyber-harassment reports by department, reporter sex, and case status.<br><strong>Source:</strong> reports.nature, reports.status, reports.user_id and linked users.department/personal_information.sex.<br><strong>Filters:</strong> cyber-harassment reports created within the Coverage Period. <strong>Access:</strong> GAD Administrator only.</div>
+            <table class="sex-table">
+                <thead>
+                    <tr><th>Department</th><th colspan="2">Total Reporters (M/F)</th><th>Cyber-Harassment Reports</th><th colspan="3">Case Status Counts</th></tr>
+                    <tr><th></th><th>Male</th><th>Female</th><th>Total Count</th><th>Pending</th><th>In-Progress</th><th>Resolved</th></tr>
+                </thead>
+                <tbody>
+                    @foreach($sexDisaggregatedData['cyber_harassment_departments'] as $department)
+                        <tr style="{{ $department['department'] === 'UNIVERSITY TOTAL' ? 'font-weight: bold; background: #ede9fe;' : '' }}">
+                            <td>{{ $department['department'] }}</td>
+                            <td>{{ $department['male'] }}</td>
+                            <td>{{ $department['female'] }}</td>
+                            <td>{{ $department['total'] }}</td>
+                            <td>{{ $department['pending'] }}</td>
+                            <td>{{ $department['in_progress'] }}</td>
+                            <td>{{ $department['resolved'] }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            <div class="data-note"><strong>Data note:</strong> M/F counts are based on disclosed reporter sex. Department and case totals exclude unidentified or undisclosed values where applicable. The University Total row includes all cyber-harassment reports in the period.</div>
+        </div>
+        <div class="page-section">
+            <h3>10.4 Report 15: Incident Disaggregation by Sex, Gender and Campus Role</h3>
             <div class="report-meta"><strong>Purpose:</strong> Aggregate complainants/respondents by Sex, Gender/SOGIESC, and campus role.<br><strong>Source:</strong> reports.user_id/gender, users.personal_information.sex/gender_identity/account_type/role.<br><strong>Filters:</strong> reports.created_at within Coverage Period. <strong>Access:</strong> GAD Administrator only.</div>
             <table class="sex-table"><thead><tr><th>Category</th><th>Male (f / %)</th><th>Female (f / %)</th><th>Total (N)</th><th>Lesbian</th><th>Gay</th><th>Bisexual</th><th>Transsexual</th><th>Cisgender/Heterosexual</th><th>Non-Binary</th><th>Prefer Not to Say</th></tr></thead>
             @include('admin.partials.gad-sex-disaggregation-table', ['rows' => $sexDisaggregatedData['reports'][15]])</table>
