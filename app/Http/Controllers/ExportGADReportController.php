@@ -81,6 +81,16 @@ class ExportGADReportController extends Controller
             'average_satisfaction' => round((float) $satisfactionSurveys->avg('rating'), 2),
             'generated_at' => Carbon::now()->format('F d, Y h:i A'),
         ];
+        $sexDisaggregatedData = $this->sexDisaggregatedData(
+            $students,
+            $employees,
+            $profileUsers->keyBy('id'),
+            $reports,
+            $suggestions,
+            $satisfactionSurveys,
+            $startDate,
+            $endDate
+        );
 
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('admin.gad-report-export-pdf', [
@@ -95,13 +105,13 @@ class ExportGADReportController extends Controller
                 'includeReports' => $includeReports,
                 'includeFeedback' => $includeFeedback,
                 'surveyFindings' => $surveyFindings,
-                'sexDisaggregatedData' => $this->sexDisaggregatedData($students, $employees, $profileUsers->keyBy('id'), $reports, $suggestions, $satisfactionSurveys, $startDate, $endDate),
+                'sexDisaggregatedData' => $sexDisaggregatedData,
             ])->setPaper('a4', 'portrait');
 
             return $pdf->download("GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf');
         }
 
-        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, $surveyFindings, $showSatisfactionNames, $includeReports, $includeFeedback, $period);
+        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, $surveyFindings, $sexDisaggregatedData, $showSatisfactionNames, $includeReports, $includeFeedback, $period);
     }
 
     /**
@@ -191,7 +201,7 @@ class ExportGADReportController extends Controller
         ];
     }
 
-    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, array $surveyFindings, bool $showSatisfactionNames, bool $includeReports, bool $includeFeedback, string $period)
+    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, array $surveyFindings, array $sexDisaggregatedData, bool $showSatisfactionNames, bool $includeReports, bool $includeFeedback, string $period)
     {
         $summaryRows = [
             ['SINAG - GENDER AND DEVELOPMENT (GAD) OFFICE'],
@@ -241,32 +251,37 @@ class ExportGADReportController extends Controller
             $sheets['Faculty and Non-Teaching'] = $this->profileSheetRows($employees, true);
         }
 
-        $partBHeaders = [[
-            'Report', 'Category', 'Male (f / %)', 'Female (f / %)', 'Total (N)',
-            'Lesbian', 'Gay', 'Bisexual', 'Transsexual', 'Cisgender/Heterosexual',
-            'Non-Binary', 'Prefer Not to Say',
-        ]];
-        foreach (range(7, 15) as $reportNumber) {
-            $partBHeaders[] = [
-                $reportNumber,
-                '{{category}}',
-                '{{f}} / {{%}}',
-                '{{f}} / {{%}}',
-                '{{N}}',
-                '{{f}}', '{{f}}', '{{f}}', '{{f}}', '{{f}}', '{{f}}', '{{f}}',
-            ];
-        }
-        $sheets['Sex-Disaggregated Data'] = $partBHeaders;
+        $sheets['Sex-Disaggregated Data'] = $this->sexDisaggregatedSheetRows($sexDisaggregatedData, $data);
+        $sheets['Incident Analytics'] = $this->incidentAnalyticsSheetRows($sexDisaggregatedData, $data);
+        $sheets['Suggestions by Sex Gender'] = $this->suggestionDisaggregationSheetRows($sexDisaggregatedData, $data);
+        $sheets['Satisfaction by Sex Gender'] = $this->satisfactionDisaggregationSheetRows($sexDisaggregatedData, $data);
+        $sheets['GAD Training Summary'] = $this->trainingSummarySheetRows($sexDisaggregatedData, $data);
         $sheets['Data Dictionary'] = [[
-            'Field', 'Source Form', 'Database Column Placeholder', 'Allowed Values', 'Report',
+            'Field', 'Source Form', 'Database Column(s)', 'Allowed Values', 'Report',
         ], [
-            'Sex', 'Student / Faculty Information Sheet', '{{users.personal_information.sex}}', 'Male, Female, Prefer not to say', '7-12',
+            'Sex', 'Student / Faculty Information Sheet', 'users.personal_information.sex; users.gender (legacy fallback)', 'Male, Female', '7-12',
         ], [
-            'Gender/SOGIESC', 'Student / Faculty Information Sheet', '{{users.personal_information.gender_identity}}', 'Lesbian, Gay, Bisexual, Transsexual, Cisgender/Heterosexual, Non-Binary, Prefer Not to Say', '7-12',
+            'Gender/SOGIESC', 'Student / Faculty Information Sheet', 'users.personal_information.gender_identity', 'Lesbian, Gay, Bisexual, Transsexual, Cisgender/Heterosexual, Non-Binary, Prefer Not to Say', '7-12',
         ], [
-            'Department / Office', 'System-generated account field', '{{users.department}}', 'Database-defined departments/offices', '7-12',
+            'Department / Office', 'System-generated account field', 'users.department', 'Database-defined departments/offices', '7-12',
         ], [
-            'Incident Nature', 'Safe Spaces incident report', '{{reports.nature}}', 'Database/system-defined incident types', '10, 15',
+            'Account Status / Registration Date', 'System-generated account fields', 'users.account_status; users.created_at', 'Active; Rejected; Pending; database timestamps', '7',
+        ], [
+            'Student program / major and year level', 'Student Information Sheet', 'users.department; users.student_information.year_level', 'Stored program/major and year-level values', '7-8',
+        ], [
+            'Student profile and honors', 'Student Information Sheet', 'users.personal_information; users.family_background; users.student_information', 'Stored form values, normalized for report categories', '8',
+        ], [
+            'Employee profile and appointment', 'Faculty and Non-Teaching Information Sheet', 'users.work_experience; users.employee_education; users.civil_service_eligibility; users.gad_training', 'Stored form values; individual salary excluded', '9',
+        ], [
+            'Retention / LOA / attrition', 'Pending data source', 'No corresponding fields currently available', 'Status, reason and effective date required', '8',
+        ], [
+            'Incident Nature / Status / Priority', 'Safe Spaces incident report / system workflow', 'reports.nature; reports.status; reports.priority; reports.location; reports.created_at', 'Database/system-defined values', '10',
+        ], [
+            'Incident respondent Sex/Gender and relationship', 'Pending data source', 'Respondent fields not currently available', 'Student-to-Student; Employee-to-Student; Employee-to-Employee', '10',
+        ], [
+            'Suggestions', 'Suggestion form', 'suggestions.category; suggestions.is_anonymous; suggestions.user_id; suggestions.created_at', 'Database-defined categories; anonymous/unlinked as Not disclosed', '11',
+        ], [
+            'Customer satisfaction responses', 'Customer Satisfaction Survey', 'customer_satisfaction_surveys.responses; customer_satisfaction_surveys.created_at; user_id', 'Valid 1-4 ratings; group shown only at N >= 5', '11',
         ]];
 
         if ($includeFeedback) {
@@ -406,6 +421,229 @@ class ExportGADReportController extends Controller
             'GAD_Report_' . $period . '_' . Carbon::now()->format('Ymd_His') . '.xlsx',
             ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         )->deleteFileAfterSend(true);
+    }
+
+    private function sexDisaggregatedSheetRows(array $partBData, array $data): array
+    {
+        $rows = [
+            ['Part B - Sex-Disaggregated Data Summary'],
+            ['Coverage Period', $data['period_label'], $data['start_date'] . ' - ' . $data['end_date']],
+            ['Access', 'GAD Administrator only; aggregate data only'],
+            ['Logic', 'Male/Female row percentages use their combined count as N; Gender/SOGIESC cells with f < 5 are suppressed as <5.'],
+            ['Scope', 'Current population for Reports 1-2; profile reports use records registered within the Coverage Period.'],
+            [],
+        ];
+        $headers = [
+            'Report', 'Category', 'Male (f / %)', 'Female (f / %)', 'Total (N)',
+            'Lesbian', 'Gay', 'Bisexual', 'Transsexual', 'Cisgender/Heterosexual',
+            'Non-Binary', 'Prefer Not to Say',
+        ];
+        $rows[] = $headers;
+
+        $reportTitles = [
+            1 => '7.1 Report 1 - Student Population, New Users and Gender per Department/Program',
+            2 => '7.2 Report 2 - Employee Population, New Users and Gender per Department/Office',
+            3 => '8.1 Report 3 - Course/Major and Year Level',
+            4 => '8.2 Report 4 - Vulnerable Sectors and Socio-Economic Profile',
+            5 => '8.3 Report 5 - Academic Background and Honors',
+            6 => '8.4 Report 6 - Retention, LOA and Attrition Reasons',
+            7 => '8.5 Report 7 - Student GAD Training and Seminar Participation',
+            8 => '9.1 Report 8 - Appointment Status and Salary Grade',
+            9 => '9.2 Report 9 - Educational Attainment and Civil Service Eligibility',
+            10 => '9.3 Report 10 - Vulnerable Sectors and Household Profile',
+            11 => '9.4 Report 11 - Leadership, Civic Involvement and Organization Membership',
+            12 => '9.5 Report 12 - GAD Training Hours and Capacity Building',
+            15 => '10.3 Report 15 - Incident Disaggregation by Sex, Gender and Campus Role',
+        ];
+
+        foreach ($reportTitles as $reportNumber => $title) {
+            $rows[] = [$title];
+            if ($reportNumber === 6) {
+                $rows[] = [6, 'Pending data source: retention, LOA, and attrition status/reason/date fields are not present.'];
+                continue;
+            }
+
+            $reportRows = $partBData['reports'][$reportNumber] ?? [];
+            if (!$reportRows) {
+                $rows[] = [$reportNumber, 'No records for this period'];
+                continue;
+            }
+
+            foreach ($reportRows as $reportRow) {
+                $rows[] = [
+                    $reportNumber,
+                    $reportRow['category'],
+                    $reportRow['male'] . ' / ' . $reportRow['male_percent'] . '%',
+                    $reportRow['female'] . ' / ' . $reportRow['female_percent'] . '%',
+                    $reportRow['total'],
+                    $reportRow['genders']['Lesbian'],
+                    $reportRow['genders']['Gay'],
+                    $reportRow['genders']['Bisexual'],
+                    $reportRow['genders']['Transsexual'],
+                    $reportRow['genders']['Cisgender/Heterosexual'],
+                    $reportRow['genders']['Non-Binary'],
+                    $reportRow['genders']['Prefer Not to Say'],
+                ];
+            }
+        }
+
+        return $rows;
+    }
+
+    private function incidentAnalyticsSheetRows(array $partBData, array $data): array
+    {
+        $rows = [
+            ['Safe Spaces and Incident Analytics'],
+            ['Coverage Period', $data['period_label'], $data['start_date'] . ' - ' . $data['end_date']],
+            ['Access', 'GAD Administrator only; aggregate data only; reporter aliases are not included.'],
+            [],
+            ['Report 13 - Departmental Incident Volume and Ranking'],
+            ['Department', 'Student Reports', 'Employee Reports', 'Total', '% Share', 'Resolution Rate'],
+        ];
+
+        if (!$partBData['incident_departments']) {
+            $rows[] = ['No records for this period'];
+        } else {
+            foreach ($partBData['incident_departments'] as $row) {
+                $rows[] = [
+                    $row['department'],
+                    $row['student'],
+                    $row['employee'],
+                    $row['total'],
+                    $row['share'] . '%',
+                    $row['resolution_rate'] . '%',
+                ];
+            }
+        }
+
+        $rows[] = [];
+        $rows[] = ['Report 14 - Department x Incident Type, Location, Status and Priority'];
+        $rows[] = ['Department', 'Incident Type', 'Count', '#1 Type per Department', 'Most Frequent Location', 'Pending', 'Resolved', 'Priority Counts'];
+        if (!$partBData['incident_types']) {
+            $rows[] = ['No records for this period'];
+        } else {
+            foreach ($partBData['incident_types'] as $row) {
+                $rows[] = [
+                    $row['department'],
+                    $row['nature'],
+                    $row['count'],
+                    $row['top_type'],
+                    $row['top_location'],
+                    $row['pending'],
+                    $row['resolved'],
+                    $row['priority_summary'],
+                ];
+            }
+        }
+
+        $rows[] = [];
+        $rows[] = ['Report 15 respondent Sex/Gender and relationship fields are pending data source. Complainant breakdown is available in the Sex-Disaggregated Data sheet.'];
+
+        return $rows;
+    }
+
+    private function suggestionDisaggregationSheetRows(array $partBData, array $data): array
+    {
+        $rows = [
+            ['Suggestions by Sex and Gender'],
+            ['Coverage Period', $data['period_label'], $data['start_date'] . ' - ' . $data['end_date']],
+            ['Access', 'GAD Administrator only; anonymous/unlinked submissions are not identified.'],
+            ['Logic', 'Anonymous and unlinked submissions are reported separately as Not disclosed. Gender/SOGIESC cells with f < 5 are suppressed as <5.'],
+            [],
+            ['Category', 'Male (f / %)', 'Female (f / %)', 'Total (N)', 'Lesbian', 'Gay', 'Bisexual', 'Transsexual', 'Cisgender/Heterosexual', 'Non-Binary', 'Prefer Not to Say'],
+        ];
+
+        if (!$partBData['suggestion_rows']) {
+            $rows[] = ['No records for this period'];
+        } else {
+            foreach ($partBData['suggestion_rows'] as $row) {
+                $rows[] = [
+                    $row['category'],
+                    $row['male'] . ' / ' . $row['male_percent'] . '%',
+                    $row['female'] . ' / ' . $row['female_percent'] . '%',
+                    $row['total'],
+                    $row['genders']['Lesbian'],
+                    $row['genders']['Gay'],
+                    $row['genders']['Bisexual'],
+                    $row['genders']['Transsexual'],
+                    $row['genders']['Cisgender/Heterosexual'],
+                    $row['genders']['Non-Binary'],
+                    $row['genders']['Prefer Not to Say'],
+                ];
+            }
+        }
+
+        $rows[] = [];
+        $rows[] = ['Not Disclosed Suggestions'];
+        $rows[] = ['Suggestion Category', 'Anonymous / Unlinked Count'];
+        if (!$partBData['anonymous_suggestion_rows']) {
+            $rows[] = ['No records for this period'];
+        } else {
+            foreach ($partBData['anonymous_suggestion_rows'] as $row) {
+                $rows[] = [$row['category'], $row['count']];
+            }
+        }
+
+        return $rows;
+    }
+
+    private function satisfactionDisaggregationSheetRows(array $partBData, array $data): array
+    {
+        $rows = [
+            ['Customer Satisfaction and Survey Findings by Sex and Gender'],
+            ['Coverage Period', $data['period_label'], $data['start_date'] . ' - ' . $data['end_date']],
+            ['Access', 'GAD Administrator only; groups with fewer than 5 valid responses are omitted.'],
+            ['Logic', 'Average = mean of valid responses; favorable % = ratings 3 or 4 divided by valid responses.'],
+            [],
+            ['Question', 'Sex', 'Gender/SOGIESC', 'Responses (N)', 'Average', 'Favorable %', 'Strongly Disagree', 'Disagree', 'Agree', 'Strongly Agree'],
+        ];
+
+        if (!$partBData['satisfaction_rows']) {
+            $rows[] = ['No groups have at least 5 valid responses for this period'];
+        } else {
+            foreach ($partBData['satisfaction_rows'] as $row) {
+                $rows[] = [
+                    $row['question'],
+                    $row['sex'],
+                    $row['gender'],
+                    $row['responses'],
+                    $row['average'],
+                    $row['favorable'] . '%',
+                    $row['counts'][1],
+                    $row['counts'][2],
+                    $row['counts'][3],
+                    $row['counts'][4],
+                ];
+            }
+        }
+
+        return $rows;
+    }
+
+    private function trainingSummarySheetRows(array $partBData, array $data): array
+    {
+        $rows = [
+            ['GAD Training Hours and Capacity Building'],
+            ['Coverage Period', $data['period_label'], $data['start_date'] . ' - ' . $data['end_date']],
+            ['Access', 'GAD Administrator only; names are excluded.'],
+            [],
+            ['Department', 'Total Training Hours', 'Number of Trainings', 'Training Titles'],
+        ];
+
+        if (!$partBData['training_summary']) {
+            $rows[] = ['No training records with dates in this period'];
+        } else {
+            foreach ($partBData['training_summary'] as $row) {
+                $rows[] = [
+                    $row['department'],
+                    $row['hours'],
+                    $row['training_count'],
+                    $row['titles'] ? implode('; ', $row['titles']) : 'Not reported',
+                ];
+            }
+        }
+
+        return $rows;
     }
 
     private function sexDisaggregatedData($students, $employees, $usersById, $reports, $suggestions, $satisfactionSurveys, Carbon $startDate, Carbon $endDate): array

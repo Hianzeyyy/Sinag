@@ -78,6 +78,8 @@ class GadReportExportTest extends TestCase
             'password' => 'password',
             'role' => 'student',
             'account_type' => 'student',
+            'department' => 'Biology',
+            'account_status' => 'Active',
             'personal_information' => ['sex' => 'Female'],
             'family_background' => ['family_type' => 'Nuclear'],
             'student_information' => ['year_level' => 'Second Year'],
@@ -117,6 +119,11 @@ class GadReportExportTest extends TestCase
             $this->assertStringContainsString('GAD Orientation', $employeeSheet);
             $workbookXml = $workbook->getFromName('xl/workbook.xml');
             $this->assertStringContainsString('Sex-Disaggregated Data', $workbookXml);
+            $this->assertStringContainsString('Incident Analytics', $workbookXml);
+            $sexSheet = $workbook->getFromName('xl/worksheets/sheet7.xml');
+            $this->assertStringContainsString('Biology / Student / Population / Status: Active', $sexSheet);
+            $this->assertStringContainsString('1 / 100.0%', $sexSheet);
+            $this->assertStringNotContainsString('{{f}}', $sexSheet);
             $this->assertStringContainsString('Data Dictionary', $workbookXml);
         } finally {
             $workbook->close();
@@ -157,7 +164,7 @@ class GadReportExportTest extends TestCase
             $workbookXml = $workbook->getFromName('xl/workbook.xml');
             $this->assertStringContainsString('Customer Satisfaction', $workbookXml);
             $this->assertStringContainsString('Survey Findings', $workbookXml);
-            $this->assertStringNotContainsString('Suggestions', $workbookXml);
+            $this->assertStringNotContainsString('name="Suggestions"', $workbookXml);
             $this->assertStringNotContainsString('Incident Reports', $workbookXml);
             $this->assertStringNotContainsString('Student Information', $workbookXml);
             $this->assertStringNotContainsString('Faculty and Non-Teaching', $workbookXml);
