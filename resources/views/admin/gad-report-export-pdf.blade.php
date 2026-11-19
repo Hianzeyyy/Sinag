@@ -392,11 +392,11 @@
             <div class="report-meta"><strong>Purpose:</strong> Summarize cyber-harassment reports by department, reporter sex, and case status.<br><strong>Source:</strong> reports.nature, reports.status, reports.user_id and linked users.department/personal_information.sex.<br><strong>Filters:</strong> cyber-harassment reports created within the Coverage Period. <strong>Access:</strong> GAD Administrator only.</div>
             <table class="sex-table">
                 <thead>
-                    <tr><th>Department</th><th colspan="2">Total Reporters (M/F)</th><th>Cyber-Harassment Reports</th><th colspan="3">Case Status Counts</th></tr>
-                    <tr><th></th><th>Male</th><th>Female</th><th>Total Count</th><th>Pending</th><th>In-Progress</th><th>Resolved</th></tr>
+                    <tr><th>Department</th><th colspan="2">Total Reporters (M/F)</th><th>Cyber-Harassment Reports</th><th colspan="4">Case Status Counts</th></tr>
+                    <tr><th></th><th>Male</th><th>Female</th><th>Total Count</th><th>Pending</th><th>In-Progress</th><th>Resolved</th><th>Other Status</th></tr>
                 </thead>
                 <tbody>
-                    @foreach($sexDisaggregatedData['cyber_harassment_departments'] as $department)
+                    @forelse($sexDisaggregatedData['cyber_harassment_departments'] as $department)
                         <tr style="{{ $department['department'] === 'UNIVERSITY TOTAL' ? 'font-weight: bold; background: #ede9fe;' : '' }}">
                             <td>{{ $department['department'] }}</td>
                             <td>{{ $department['male'] }}</td>
@@ -405,11 +405,14 @@
                             <td>{{ $department['pending'] }}</td>
                             <td>{{ $department['in_progress'] }}</td>
                             <td>{{ $department['resolved'] }}</td>
+                            <td>{{ $department['other'] }}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr><td colspan="8">No cyber-harassment reports for this period.</td></tr>
+                    @endforelse
                 </tbody>
             </table>
-            <div class="data-note"><strong>Data note:</strong> M/F counts are based on disclosed reporter sex. Department and case totals exclude unidentified or undisclosed values where applicable. The University Total row includes all cyber-harassment reports in the period.</div>
+            <div class="data-note"><strong>Data note:</strong> Male/Female counts are distinct linked reporters based on users' current department and sex fields; case counts include every matching incident record in the selected Coverage Period. Missing reporter sex is not included in the M/F columns; unlinked or missing department values appear as Not disclosed. Other Status contains statuses outside Pending, In-Progress/Under Review, and Resolved.</div>
         </div>
         <div class="page-section">
             <h3>10.4 Report 15: Incident Disaggregation by Sex, Gender and Campus Role</h3>

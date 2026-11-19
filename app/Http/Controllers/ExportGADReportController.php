@@ -47,6 +47,7 @@ class ExportGADReportController extends Controller
         $reports = Report::whereBetween('created_at', [$startDate, $endDate])
             ->orderBy('created_at', 'desc')
             ->get();
+        $reportUsers = User::whereIn('id', $reports->pluck('user_id')->filter()->unique())->get();
 
         $suggestions = Suggestion::with('user')
             ->withCount('upvotes')
@@ -84,7 +85,7 @@ class ExportGADReportController extends Controller
         $sexDisaggregatedData = $this->sexDisaggregatedData(
             $students,
             $employees,
-            $profileUsers->keyBy('id'),
+            $profileUsers->merge($reportUsers)->keyBy('id'),
             $reports,
             $suggestions,
             $satisfactionSurveys,
@@ -538,17 +539,23 @@ class ExportGADReportController extends Controller
 
         $rows[] = [];
         $rows[] = ['Table 4 - Sex-Disaggregated Cyber-Harassment Cases by Department'];
-        $rows[] = ['Department', 'Male Reporters', 'Female Reporters', 'Cyber-Harassment Reports', 'Pending', 'In-Progress', 'Resolved'];
-        foreach ($partBData['cyber_harassment_departments'] as $row) {
-            $rows[] = [
-                $row['department'],
-                $row['male'],
-                $row['female'],
-                $row['total'],
-                $row['pending'],
-                $row['in_progress'],
-                $row['resolved'],
-            ];
+        $rows[] = ['Source', 'Cyber-harassment incident records within the selected period, linked to users.department and personal_information.sex. Male/Female counts are distinct linked reporters; case counts include every matching report. Other Status contains values outside Pending, In-Progress / Under Review, and Resolved.'];
+        if (!$partBData['cyber_harassment_departments']) {
+            $rows[] = ['No cyber-harassment reports for this period'];
+        } else {
+            $rows[] = ['Department', 'Male Reporters', 'Female Reporters', 'Cyber-Harassment Reports', 'Pending', 'In-Progress', 'Resolved', 'Other Status'];
+            foreach ($partBData['cyber_harassment_departments'] as $row) {
+                $rows[] = [
+                    $row['department'],
+                    $row['male'],
+                    $row['female'],
+                    $row['total'],
+                    $row['pending'],
+                    $row['in_progress'],
+                    $row['resolved'],
+                    $row['other'],
+                ];
+            }
         }
 
         $rows[] = [];
@@ -1131,15 +1138,7 @@ class ExportGADReportController extends Controller
 
     private function cyberHarassmentDepartmentRows($reports, $usersById): array
     {
-        $departments = [
-            'College of Engineering (COE)' => ['department' => 'College of Engineering (COE)', 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0],
-            'College of Business and Accountancy (CBA)' => ['department' => 'College of Business and Accountancy (CBA)', 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0],
-            'College of Teacher Education (CTE)' => ['department' => 'College of Teacher Education (CTE)', 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0],
-            'College of Arts and Sciences (CAS)' => ['department' => 'College of Arts and Sciences (CAS)', 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0],
-            'College of Computing and Informatics (CCI)' => ['department' => 'College of Computing and Informatics (CCI)', 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0],
-            'College of Hospitality Management (CHM)' => ['department' => 'College of Hospitality Management (CHM)', 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0],
-            'College of Agriculture (COA)' => ['department' => 'College of Agriculture (COA)', 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0],
-        ];
+        $departments = [];
 
         foreach ($reports as $report) {
             $nature = strtolower(trim((string) $report->nature));
@@ -1149,18 +1148,29 @@ class ExportGADReportController extends Controller
 
             $reporter = $usersById->get($report->getAttribute('user_id'));
             $department = trim((string) ($reporter?->department ?: ''));
-            $departmentKey = $this->canonicalDepartmentName($department);
-            if (!isset($departments[$departmentKey])) {
-                $departments[$departmentKey] = ['department' => $departmentKey, 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0];
-            }
+            $departmentKey = $department !== '' ? $department : 'Not disclosed';
+            $departments[$departmentKey] ??= [
+                'department' => $departmentKey,
+                'male' => 0,
+                'female' => 0,
+                'total' => 0,
+                'pending' => 0,
+                'in_progress' => 0,
+                'resolved' => 0,
+                'other' => 0,
+                'male_reporters' => [],
+                'female_reporters' => [],
+            ];
 
             $row = &$departments[$departmentKey];
             $row['total']++;
-            $sex = $this->normalizeSex($reporter ? data_get($reporter->personal_information, 'sex', $reporter->gender) : $report->getAttribute('gender'));
-            if ($sex === 'Male') {
-                $row['male']++;
-            } elseif ($sex === 'Female') {
-                $row['female']++;
+            $sex = $reporter
+                ? $this->normalizeSex(data_get($reporter->personal_information, 'sex', $reporter->gender))
+                : null;
+            if ($reporter && $sex === 'Male') {
+                $row['male_reporters'][$reporter->id] = true;
+            } elseif ($reporter && $sex === 'Female') {
+                $row['female_reporters'][$reporter->id] = true;
             }
 
             $status = strtolower(trim((string) $report->status));
@@ -1168,44 +1178,34 @@ class ExportGADReportController extends Controller
                 $row['resolved']++;
             } elseif (str_contains($status, 'progress') || str_contains($status, 'review')) {
                 $row['in_progress']++;
-            } else {
+            } elseif ($status === 'pending' || $status === '') {
                 $row['pending']++;
+            } else {
+                $row['other']++;
             }
         }
         unset($row);
 
-        $total = ['department' => 'UNIVERSITY TOTAL', 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0];
+        if (!$departments) {
+            return [];
+        }
+
+        foreach ($departments as &$row) {
+            $row['male'] = count($row['male_reporters']);
+            $row['female'] = count($row['female_reporters']);
+            unset($row['male_reporters'], $row['female_reporters']);
+        }
+        unset($row);
+
+        $total = ['department' => 'UNIVERSITY TOTAL', 'male' => 0, 'female' => 0, 'total' => 0, 'pending' => 0, 'in_progress' => 0, 'resolved' => 0, 'other' => 0];
         foreach ($departments as $row) {
-            foreach (['male', 'female', 'total', 'pending', 'in_progress', 'resolved'] as $field) {
+            foreach (['male', 'female', 'total', 'pending', 'in_progress', 'resolved', 'other'] as $field) {
                 $total[$field] += $row[$field];
             }
         }
         $departments['UNIVERSITY TOTAL'] = $total;
 
         return array_values($departments);
-    }
-
-    private function canonicalDepartmentName(string $department): string
-    {
-        $key = strtolower(preg_replace('/[^a-z]/', '', $department));
-        $aliases = [
-            'coe' => 'College of Engineering (COE)',
-            'collegeofengineering' => 'College of Engineering (COE)',
-            'cba' => 'College of Business and Accountancy (CBA)',
-            'collegeofbusinessandaccountancy' => 'College of Business and Accountancy (CBA)',
-            'cte' => 'College of Teacher Education (CTE)',
-            'collegeofteachereducation' => 'College of Teacher Education (CTE)',
-            'cas' => 'College of Arts and Sciences (CAS)',
-            'collegeofartsandsciences' => 'College of Arts and Sciences (CAS)',
-            'cci' => 'College of Computing and Informatics (CCI)',
-            'collegeofcomputingandinformatics' => 'College of Computing and Informatics (CCI)',
-            'chm' => 'College of Hospitality Management (CHM)',
-            'collegeofhospitalitymanagement' => 'College of Hospitality Management (CHM)',
-            'coa' => 'College of Agriculture (COA)',
-            'collegeofagriculture' => 'College of Agriculture (COA)',
-        ];
-
-        return $aliases[$key] ?? ($department !== '' ? $department : 'Department not reported');
     }
 
     private function incidentDepartmentRows($reports, $usersById): array

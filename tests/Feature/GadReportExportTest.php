@@ -43,9 +43,11 @@ class GadReportExportTest extends TestCase
 
         Schema::create('reports', function (Blueprint $table): void {
             $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->string('incident_id');
             $table->string('cloak_alias')->nullable();
             $table->string('nature');
+            $table->string('gender')->nullable();
             $table->string('location')->nullable();
             $table->string('priority')->nullable();
             $table->string('status')->nullable();
@@ -125,6 +127,89 @@ class GadReportExportTest extends TestCase
             $this->assertStringContainsString('1 / 100.0%', $sexSheet);
             $this->assertStringNotContainsString('{{f}}', $sexSheet);
             $this->assertStringContainsString('Data Dictionary', $workbookXml);
+        } finally {
+            $workbook->close();
+            @unlink($workbookPath);
+        }
+    }
+
+    public function test_cyber_harassment_table_uses_linked_database_department_sex_and_status_values(): void
+    {
+        $users = [
+            User::create([
+                'name' => 'Nursing Reporter',
+                'email' => 'nursing@example.test',
+                'password' => 'password',
+                'role' => 'coordinator',
+                'account_type' => 'coordinator',
+                'department' => 'School of Nursing',
+                'personal_information' => ['sex' => 'Female'],
+            ]),
+            User::create([
+                'name' => 'Arts Reporter',
+                'email' => 'arts@example.test',
+                'password' => 'password',
+                'role' => 'employee',
+                'account_type' => 'employee',
+                'department' => 'College of Media Arts',
+                'personal_information' => ['sex' => 'Male'],
+            ]),
+        ];
+
+        foreach ([
+            [$users[0], 'Pending'],
+            [$users[1], 'Under Review'],
+            [$users[1], 'Dismissed'],
+        ] as $index => [$user, $status]) {
+            \App\Models\Report::create([
+                'user_id' => $user->id,
+                'incident_id' => 'CASE-' . $index,
+                'nature' => 'Cyber-harassment',
+                'status' => $status,
+            ]);
+        }
+
+        \App\Models\Report::create([
+            'user_id' => $users[0]->id,
+            'incident_id' => 'CASE-OTHER',
+            'nature' => 'Catcalling',
+            'status' => 'Pending',
+        ]);
+
+        $response = app(ExportGADReportController::class)->export('excel', '30days');
+        $workbookPath = $response->getFile()->getPathname();
+        $workbook = new ZipArchive;
+
+        try {
+            $this->assertSame(true, $workbook->open($workbookPath));
+            $incidentAnalyticsSheet = $workbook->getFromName('xl/worksheets/sheet8.xml');
+            $tableStart = strpos($incidentAnalyticsSheet, 'Table 4 - Sex-Disaggregated Cyber-Harassment Cases by Department');
+            $this->assertNotFalse($tableStart);
+            $tableSection = substr($incidentAnalyticsSheet, $tableStart, strpos($incidentAnalyticsSheet, 'Report 15 respondent', $tableStart) - $tableStart);
+            $document = new \DOMDocument;
+            $this->assertTrue($document->loadXML($incidentAnalyticsSheet));
+            $xpath = new \DOMXPath($document);
+            $xpath->registerNamespace('xlsx', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
+            $tableRows = [];
+            foreach ($xpath->query('//xlsx:sheetData/xlsx:row') as $sheetRow) {
+                $values = [];
+                foreach ($xpath->query('./xlsx:c/xlsx:is/xlsx:t', $sheetRow) as $cell) {
+                    $values[] = $cell->textContent;
+                }
+                if (in_array($values[0] ?? '', ['School of Nursing', 'College of Media Arts', 'UNIVERSITY TOTAL'], true)) {
+                    $tableRows[$values[0]] = $values;
+                }
+            }
+
+            $this->assertStringContainsString('School of Nursing', $tableSection);
+            $this->assertStringContainsString('College of Media Arts', $tableSection);
+            $this->assertStringContainsString('UNIVERSITY TOTAL', $tableSection);
+            $this->assertStringContainsString('Other Status', $tableSection);
+            $this->assertStringNotContainsString('College of Engineering (COE)', $tableSection);
+            $this->assertStringNotContainsString('CASE-OTHER', $tableSection);
+            $this->assertSame(['School of Nursing', '0', '1', '1', '1', '0', '0', '0'], $tableRows['School of Nursing']);
+            $this->assertSame(['College of Media Arts', '1', '0', '2', '0', '1', '0', '1'], $tableRows['College of Media Arts']);
+            $this->assertSame(['UNIVERSITY TOTAL', '1', '1', '3', '1', '1', '0', '1'], $tableRows['UNIVERSITY TOTAL']);
         } finally {
             $workbook->close();
             @unlink($workbookPath);
