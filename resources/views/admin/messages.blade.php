@@ -629,7 +629,7 @@
                                     <div class="conv-preview">{{ $conversation->deleted_at ? 'Message deleted' : Str::limit($conversation->message, 40) }}</div>
                                 </div>
                                 <div class="conv-meta">
-                                    <div class="conv-time">{{ $conversation->created_at->format('M d') }}</div>
+                                    <time class="conv-time" datetime="{{ $conversation->created_at->copy()->utc()->toIso8601String() }}" data-user-local-time data-local-time-format="month-day">{{ $conversation->created_at->copy()->timezone('Asia/Manila')->format('M d') }}</time>
                                     @if($conversation->conversation_unread && (int) $selectedStudentId !== (int) $otherUser->id)
                                         <div class="unread-dot"></div>
                                     @endif
@@ -677,22 +677,15 @@
                                 <p>No messages yet. Start the conversation!</p>
                             </div>
                         @else
-                            @php $prevDate = null; @endphp
                             @foreach($messages as $message)
-                                @php $msgDate = $message->created_at->format('F j, Y'); @endphp
-                                @if($msgDate !== $prevDate)
-                                    <div class="date-divider">
-                                        <span>{{ $msgDate }}</span>
-                                    </div>
-                                    @php $prevDate = $msgDate; @endphp
-                                @endif
-
                                 @php
+                                    $messageTimestamp = $message->created_at?->copy()->utc()->toIso8601String() ?? '';
+                                    $messageLocalTime = $message->created_at?->copy()->timezone('Asia/Manila')->format('g:i A') ?? '';
                                     $isAdmin = $message->sender_id === Auth::id();
                                     $bubbleInitials = $isAdmin ? 'G' : $selInitials;
                                 @endphp
 
-                                <div class="message-group {{ $isAdmin ? 'user' : 'admin' }}" data-message-id="{{ $message->id }}">
+                                <div class="message-group {{ $isAdmin ? 'user' : 'admin' }}" data-message-id="{{ $message->id }}" data-message-timestamp="{{ $messageTimestamp }}">
                                     <div class="msg-avatar {{ $isAdmin ? 'outgoing-av' : 'incoming-av' }}">
                                         @if($isAdmin)
                                             <img src="{{ route('profile.photo', Auth::user()) }}" alt="{{ Auth::user()->name }} profile photo">
@@ -703,7 +696,7 @@
                                     <div class="msg-content">
                                         <div class="message-bubble {{ $message->deleted_at ? 'is-deleted' : '' }}" id="messageBubble{{ $message->id }}">{{ $message->deleted_at ? 'This message was deleted.' : $message->message }}</div>
                                         <div class="message-meta">
-                                            <span class="message-time">{{ $message->created_at->format('g:i A') }}</span>
+                                            <time class="message-time" datetime="{{ $messageTimestamp }}" data-user-local-time data-local-time-format="time">{{ $messageLocalTime }}</time>
                                             @if(!$message->deleted_at && $isAdmin)
                                                 <button class="message-action" type="button" onclick="startAdminEdit({{ $message->id }})">Edit</button>
                                                 <button class="message-action" type="button" onclick="deleteAdminMessage({{ $message->id }})">Delete</button>
@@ -798,11 +791,11 @@
             ? `<button class="message-edited-link" type="button" onclick="toggleOriginal(${id})">Edited</button><div class="message-original" id="messageOriginal${id}"><strong>Original message:</strong> ${escapeHtml(message.original_message)}</div>`
             : '';
         const state = JSON.stringify([message.message, message.original_message, message.deleted_at]);
-        return `<div class="message-group ${own ? 'user' : 'admin'}" data-message-id="${id}" data-message-state="${escapeHtml(state)}">
+        return `<div class="message-group ${own ? 'user' : 'admin'}" data-message-id="${id}" data-message-state="${escapeHtml(state)}" data-message-timestamp="${escapeHtml(message.created_at || '')}">
             <div class="msg-avatar ${own ? 'outgoing-av' : 'incoming-av'}">${own ? 'G' : @json($selInitials ?? '')}</div>
             <div class="msg-content">
                 <div class="${classes}" id="messageBubble${id}">${escapeHtml(content)}</div>
-                <div class="message-meta"><span class="message-time">${escapeHtml(message.created_at || '')}</span>${actions}</div>
+                <div class="message-meta"><span class="message-time">${escapeHtml(formatUserLocalTime(message.created_at, 'time'))}</span>${actions}</div>
                 ${original}
             </div></div>`;
     }
@@ -941,6 +934,61 @@
         return text.replace(/[&<>"']/g, m => map[m]);
     }
 
+    function formatUserLocalTime(value, format = 'message') {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value || '';
+
+        const options = format === 'time'
+            ? { hour: 'numeric', minute: '2-digit' }
+            : format === 'month-day'
+                ? { month: 'short', day: 'numeric' }
+                : { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+
+        return new Intl.DateTimeFormat(undefined, options).format(date);
+    }
+
+    function localizeUserTimes(root = document) {
+        root.querySelectorAll('[data-user-local-time]').forEach(function (element) {
+            element.textContent = formatUserLocalTime(element.dateTime, element.dataset.localTimeFormat);
+        });
+    }
+
+    function updateLocalDateDividers() {
+        if (!adminMessageThread) return;
+
+        adminMessageThread.querySelectorAll('.date-divider').forEach(divider => divider.remove());
+        let previousDate = null;
+        const dateKeyFormatter = new Intl.DateTimeFormat(undefined, {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+        });
+        const dateLabelFormatter = new Intl.DateTimeFormat(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        adminMessageThread.querySelectorAll('.message-group[data-message-timestamp]').forEach(function (message) {
+            const date = new Date(message.dataset.messageTimestamp);
+            if (Number.isNaN(date.getTime())) return;
+
+            const localDate = dateKeyFormatter.format(date);
+            if (localDate !== previousDate) {
+                const divider = document.createElement('div');
+                divider.className = 'date-divider';
+                const label = document.createElement('span');
+                label.textContent = dateLabelFormatter.format(date);
+                divider.appendChild(label);
+                message.before(divider);
+                previousDate = localDate;
+            }
+        });
+    }
+
+    localizeUserTimes();
+    updateLocalDateDividers();
+
     async function refreshAdminMessages() {
         const thread = selectedStudentId ? document.getElementById('messagingThread') : null;
         const wasNearBottom = thread
@@ -982,6 +1030,8 @@
                         thread.insertAdjacentHTML('beforeend', adminMessageMarkup(message));
                     }
                 }
+                localizeUserTimes(thread);
+                updateLocalDateDividers();
                 if (wasNearBottom) thread.scrollTop = thread.scrollHeight;
             }
         } catch (error) {

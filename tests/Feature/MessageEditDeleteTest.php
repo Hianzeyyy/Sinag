@@ -82,6 +82,28 @@ class MessageEditDeleteTest extends TestCase
         ]);
     }
 
+    public function test_message_timestamps_are_returned_as_utc_and_rendered_for_the_viewers_timezone(): void
+    {
+        [$student, $admin] = $this->users();
+        $message = $this->message($student, $admin, 'A timestamped message', 'student');
+        $timestamp = $message->created_at->toIso8601String();
+
+        $this->actingAs($student)
+            ->get(route('student.messaging'))
+            ->assertOk()
+            ->assertSee('datetime="' . $timestamp . '"', false)
+            ->assertSee('data-user-local-time', false);
+
+        $this->getJson(route('student.messages.feed'))
+            ->assertOk()
+            ->assertJsonPath('messages.0.created_at', $timestamp);
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.messages.feed', ['student_id' => $student->id]))
+            ->assertOk()
+            ->assertJsonPath('messages.0.created_at', $timestamp);
+    }
+
     public function test_user_cannot_edit_another_users_message(): void
     {
         [$student, $admin] = $this->users();

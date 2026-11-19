@@ -36,14 +36,13 @@ class CustomerSatisfactionController extends Controller
             ->first(['status']);
 
         abort_unless($item, 404);
-        $availableStatuses = $validated['subject'] === 'report'
-            ? ['completed', 'resolved', 'closed']
-            : ['approved', 'disapproved', 'rejected'];
-        abort_unless(
-            in_array(strtolower(trim((string) $item->status)), $availableStatuses, true),
-            409,
-            'This item is not ready for a satisfaction survey.'
-        );
+        if ($validated['subject'] === 'suggestion') {
+            abort_unless(
+                in_array(strtolower(trim((string) $item->status)), ['approved', 'disapproved', 'rejected'], true),
+                409,
+                'This item is not ready for a satisfaction survey.'
+            );
+        }
 
         CustomerSatisfactionSurvey::firstOrCreate(
             [

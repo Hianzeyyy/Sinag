@@ -1084,7 +1084,7 @@ class AdminController extends Controller
                 'original_message' => $message->original_message,
                 'deleted_at' => $message->deleted_at?->toIso8601String(),
                 'sender_id' => $message->sender_id,
-                'created_at' => $message->created_at?->format('g:i A'),
+                'created_at' => $message->created_at?->toIso8601String(),
             ]),
             'unread_count' => $unreadQuery->count(),
             'latest_unread_student_id' => (clone $unreadQuery)->latest('id')->value('sender_id'),

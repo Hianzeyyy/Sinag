@@ -61,11 +61,12 @@ return [
     |
     | Here you may specify the default timezone for your application, which
     | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | stays in UTC for stored timestamps; the interface formats them in
+    | each viewer's local timezone.
     |
     */
 
-    'timezone' => env('APP_TIMEZONE', 'Asia/Manila'),
+    'timezone' => 'UTC',
 
     /*
     |--------------------------------------------------------------------------

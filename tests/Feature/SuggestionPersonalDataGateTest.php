@@ -116,7 +116,7 @@ class SuggestionPersonalDataGateTest extends TestCase
             ->assertSee('name="subject_id" value="' . $suggestionId . '"', false);
     }
 
-    public function test_satisfaction_survey_waits_for_report_resolution_and_is_recorded_for_that_report(): void
+    public function test_satisfaction_survey_is_recorded_for_the_specific_report(): void
     {
         $this->createUsersTable();
         $this->createSatisfactionSurveysTable();
@@ -158,21 +158,7 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->actingAs($user)
             ->get(route('student.vault'))
             ->assertOk()
-            ->assertDontSee('id="customerSatisfactionModal"', false);
-
-        $this->post(route('customer-satisfaction.store'), [
-            'subject' => 'report',
-            'subject_id' => $reportId,
-            'rating' => 5,
-            'responses' => [4, 4, 4, 4, 4],
-        ])->assertStatus(409);
-
-        DB::table('reports')->where('id', $reportId)->update(['status' => 'Resolved']);
-
-        $this->get(route('student.vault'))
-            ->assertOk()
             ->assertSee('id="customerSatisfactionModal"', false)
-            ->assertSee('name="subject" value="report"', false)
             ->assertSee('name="subject_id" value="' . $reportId . '"', false);
 
         $this->post(route('customer-satisfaction.store'), [
@@ -182,11 +168,72 @@ class SuggestionPersonalDataGateTest extends TestCase
             'responses' => [4, 4, 4, 4, 4],
         ])->assertRedirect();
 
+        DB::table('reports')->where('id', $reportId)->update(['status' => 'Resolved']);
+
+        $this->get(route('student.vault'))
+            ->assertOk()
+            ->assertDontSee('id="customerSatisfactionModal"', false);
+
         $this->assertDatabaseHas('customer_satisfaction_surveys', [
             'user_id' => $user->id,
             'subject' => 'report',
             'subject_id' => $reportId,
             'rating' => 5,
+        ]);
+    }
+
+    public function test_satisfaction_survey_opens_after_a_report_is_submitted_and_accepts_pending_reports(): void
+    {
+        $this->createUsersTable();
+        $this->createSatisfactionSurveysTable();
+        Schema::create('reports', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('incident_id')->unique();
+            $table->string('cloak_alias');
+            $table->string('nature');
+            $table->date('incident_date');
+            $table->time('incident_time')->nullable();
+            $table->string('course')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('location');
+            $table->text('description');
+            $table->json('evidence')->nullable();
+            $table->string('priority');
+            $table->string('status');
+            $table->timestamps();
+        });
+
+        $user = $this->makeCompletedStudent();
+        $this->actingAs($user)
+            ->post(route('reports.store'), [
+                'nature' => 'Catcalling',
+                'incident_date' => now()->toDateString(),
+                'incident_time' => '12:30',
+                'description' => 'A test report description.',
+                'location' => 'Test location',
+                'gender' => 'Female',
+            ])
+            ->assertRedirect(route('student.report'))
+            ->assertSessionHas('satisfaction_survey_report_id', 1);
+
+        $this->get(route('student.report'))
+            ->assertOk()
+            ->assertSee('id="customerSatisfactionModal"', false)
+            ->assertSee('name="subject" value="report"', false)
+            ->assertSee('name="subject_id" value="1"', false);
+
+        $this->post(route('customer-satisfaction.store'), [
+            'subject' => 'report',
+            'subject_id' => 1,
+            'rating' => 5,
+            'responses' => [4, 4, 4, 4, 4],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('customer_satisfaction_surveys', [
+            'user_id' => $user->id,
+            'subject' => 'report',
+            'subject_id' => 1,
         ]);
     }
 

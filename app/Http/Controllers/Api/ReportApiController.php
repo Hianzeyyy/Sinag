@@ -56,11 +56,7 @@ class ReportApiController extends Controller
                 ));
             }
 
-            $surveyPending = in_array(
-                strtolower(trim((string) ($r->status ?? ''))),
-                ['completed', 'resolved', 'closed'],
-                true
-            ) && $surveyTableAvailable
+            $surveyPending = $surveyTableAvailable
                 && in_array('subject', $surveyColumns, true)
                 && in_array('subject_id', $surveyColumns, true)
                 && !DB::table('customer_satisfaction_surveys')

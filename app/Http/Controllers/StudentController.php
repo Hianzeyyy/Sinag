@@ -95,7 +95,12 @@ class StudentController extends Controller
                 ->with('personal_data_required', 'Complete your personal information before filing a report.');
         }
 
-        return view('student.report');
+        $reportId = session('satisfaction_survey_report_id');
+        $pendingSatisfactionSurvey = $reportId
+            ? $this->pendingSatisfactionSurvey(Auth::id(), 'report', (int) $reportId)
+            : null;
+
+        return view('student.report', compact('pendingSatisfactionSurvey'));
     }
 
     /**
@@ -182,7 +187,7 @@ class StudentController extends Controller
         ]);
     }
 
-    private function pendingSatisfactionSurvey(int $userId, string $subject): ?array
+    private function pendingSatisfactionSurvey(int $userId, string $subject, ?int $subjectId = null): ?array
     {
         if (!Schema::hasTable('customer_satisfaction_surveys')
             || !Schema::hasColumn('customer_satisfaction_surveys', 'subject')
@@ -191,17 +196,18 @@ class StudentController extends Controller
         }
 
         [$table, $statuses] = match ($subject) {
-            'report' => ['reports', ['completed', 'resolved', 'closed']],
+            'report' => ['reports', null],
             'suggestion' => ['suggestions', ['approved', 'disapproved', 'rejected']],
             default => throw new \InvalidArgumentException('Unsupported satisfaction survey subject.'),
         };
 
-        $row = DB::table($table)
+        $query = DB::table($table)
             ->where('user_id', $userId)
-            ->whereRaw(
+            ->when($subjectId !== null, fn ($query) => $query->where('id', $subjectId))
+            ->when($statuses !== null, fn ($query) => $query->whereRaw(
                 'LOWER(TRIM(status)) IN (' . implode(', ', array_fill(0, count($statuses), '?')) . ')',
                 $statuses
-            )
+            ))
             ->whereNotExists(function ($query) use ($table, $userId, $subject): void {
                 $query->selectRaw('1')
                     ->from('customer_satisfaction_surveys')
@@ -210,8 +216,8 @@ class StudentController extends Controller
                     ->where('customer_satisfaction_surveys.subject', $subject);
             })
             ->orderByDesc('updated_at')
-            ->orderByDesc('id')
-            ->first(['id']);
+            ->orderByDesc('id');
+        $row = $query->first(['id']);
 
         return $row ? ['subject' => $subject, 'subject_id' => (int) $row->id] : null;
     }
@@ -514,7 +520,7 @@ class StudentController extends Controller
                 'original_message' => $message->original_message,
                 'deleted_at' => $message->deleted_at?->toIso8601String(),
                 'sender_id' => $message->sender_id,
-                'created_at' => $message->created_at?->format('M d, g:i A'),
+                'created_at' => $message->created_at?->toIso8601String(),
             ]),
         ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }

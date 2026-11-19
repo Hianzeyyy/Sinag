@@ -631,6 +631,10 @@ body {
                     </div>
                 @else
                     @foreach($messages as $message)
+                        @php
+                            $messageTimestamp = $message->created_at?->copy()->utc()->toIso8601String() ?? '';
+                            $messageLocalTime = $message->created_at?->copy()->timezone('Asia/Manila')->format('M d, g:i A') ?? '';
+                        @endphp
                         <div class="msg-group {{ $message->sender_id === Auth::id() ? 'user' : 'admin' }}"
                              data-message-id="{{ $message->id }}">
 
@@ -651,7 +655,7 @@ body {
                                     <button class="msg-action-btn edit msg-edited-control" type="button" onclick="toggleStudentOriginal({{ $message->id }})">Edited</button>
                                 @endif
                                 <div class="msg-message-meta" style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                                    <div class="msg-time">{{ $message->created_at->format('M d, g:i A') }}</div>
+                                    <time class="msg-time" datetime="{{ $messageTimestamp }}" data-user-local-time>{{ $messageLocalTime }}</time>
                                     @if($message->sender_id === Auth::id() && !$message->deleted_at)
                                         <button class="msg-action-btn edit" onclick="startEdit({{ $message->id }})">Edit</button>
                                         <button class="msg-action-btn delete" onclick="confirmDelete({{ $message->id }})">Delete</button>
@@ -768,6 +772,21 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
+function formatUserLocalMessageTime(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value || '';
+    return new Intl.DateTimeFormat(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    }).format(date);
+}
+
+document.querySelectorAll('[data-user-local-time]').forEach(function (element) {
+    element.textContent = formatUserLocalMessageTime(element.dateTime);
+});
+
 function sendMessage() {
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
@@ -813,7 +832,7 @@ function sendMessage() {
             el.innerHTML = `
                 <div class="msg-bubble-wrap">
                     <div class="msg-bubble" id="bubble-${data.message.id}"><span class="message-text" id="message-text-${data.message.id}">${escapeHtml(message)}</span></div>
-                    <div class="msg-message-meta"><div class="msg-time">${escapeHtml(data.message.created_at || 'Just now')}</div>
+                    <div class="msg-message-meta"><div class="msg-time">${escapeHtml(formatUserLocalMessageTime(data.message.created_at) || 'Just now')}</div>
                     <button class="msg-action-btn edit" onclick="startEdit(${data.message.id})">Edit</button>
                     <button class="msg-action-btn delete" onclick="confirmDelete(${data.message.id})">Delete</button></div>
                 </div>`;
@@ -842,7 +861,7 @@ function studentMessageMarkup(message) {
     return `<div class="msg-group ${own ? 'user' : 'admin'}" data-message-id="${id}" data-message-state="${escapeHtml(state)}">
         ${own ? '' : '<img src="{{ asset('images/gadlogo.png') }}" alt="GAD" class="msg-admin-avatar">'}
         <div class="msg-bubble-wrap">${own ? '' : '<div class="msg-sender-name">GAD Office</div>'}<div class="msg-bubble${deleted ? ' msg-deleted' : ''}" id="bubble-${id}"><span class="message-text" id="message-text-${id}">${escapeHtml(content)}</span></div>${editedControl}
-        <div class="msg-message-meta"><div class="msg-time">${escapeHtml(message.created_at || '')}</div>${actions}</div>${original}</div></div>`;
+        <div class="msg-message-meta"><div class="msg-time">${escapeHtml(formatUserLocalMessageTime(message.created_at))}</div>${actions}</div>${original}</div></div>`;
 }
 
 async function refreshMessages() {

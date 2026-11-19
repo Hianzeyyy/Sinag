@@ -150,7 +150,10 @@ class ReportController extends Controller
         }
 
         try {
-            \App\Support\CompatibleInsert::insert('reports', array_intersect_key($reportData, $reportColumns));
+            $reportId = \App\Support\CompatibleInsert::insert(
+                'reports',
+                array_intersect_key($reportData, $reportColumns)
+            );
         } catch (\Throwable $exception) {
             $this->logReportFailure($exception, [
                 'user_id' => Auth::id(),
@@ -163,7 +166,8 @@ class ReportController extends Controller
         // 4. Redirect back
         return redirect()->route('student.report')
             ->with('success', 'Report submitted successfully! Case ID: ' . $incidentId . '. This has been delivered to the GAD Admin inbox for review.')
-            ->with('report_case_id', $incidentId);
+            ->with('report_case_id', $incidentId)
+            ->with('satisfaction_survey_report_id', $reportId);
     }
 
     private function logReportFailure(\Throwable $exception, array $context): void

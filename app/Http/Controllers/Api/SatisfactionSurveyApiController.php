@@ -66,13 +66,14 @@ class SatisfactionSurveyApiController extends Controller
 
     private function isAvailable(string $subject, int $id): bool
     {
+        if ($subject === 'report') {
+            return true;
+        }
+
         $table = $subject === 'report' ? 'reports' : 'suggestions';
         $status = strtolower(trim((string) DB::table($table)->where('id', $id)->value('status')));
-        $terminal = $subject === 'report'
-            ? ['completed', 'resolved', 'closed']
-            : ['approved', 'disapproved', 'rejected'];
 
-        return in_array($status, $terminal, true);
+        return in_array($status, ['approved', 'disapproved', 'rejected'], true);
     }
 
     private function survey(int $userId, string $subject, int $subjectId): ?array
