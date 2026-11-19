@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Models\Announcement;
@@ -14,7 +15,6 @@ use App\Models\Message;
 use App\Models\User;
 use App\Models\GadSchedule;
 use App\Models\AppointmentRequest;
-use App\Models\CustomerSatisfactionSurvey;
 
 class StudentController extends Controller
 {
@@ -95,10 +95,7 @@ class StudentController extends Controller
                 ->with('personal_data_required', 'Complete your personal information before filing a report.');
         }
 
-        return view('student.report', [
-            'hasSatisfactionSurvey' => Schema::hasTable('customer_satisfaction_surveys')
-                && CustomerSatisfactionSurvey::where('user_id', Auth::id())->exists(),
-        ]);
+        return view('student.report');
     }
 
     /**
@@ -117,7 +114,10 @@ class StudentController extends Controller
             ->paginate(15, ['*'], 'suggestions_page')
             ->withQueryString();
 
-        return view('student.vault', compact('myReports', 'mySuggestions'));
+        $pendingSatisfactionSurvey = $this->pendingSatisfactionSurvey($user_id, 'report')
+            ?? $this->pendingSatisfactionSurvey($user_id, 'suggestion');
+
+        return view('student.vault', compact('myReports', 'mySuggestions', 'pendingSatisfactionSurvey'));
     }
 
     /**
@@ -178,9 +178,42 @@ class StudentController extends Controller
             'allSuggestions' => $allSuggestions,
             'categories' => $categories,
             'existingAliases' => $existingAliases,
-            'hasSatisfactionSurvey' => Schema::hasTable('customer_satisfaction_surveys')
-                && CustomerSatisfactionSurvey::where('user_id', Auth::id())->exists(),
+            'pendingSatisfactionSurvey' => $this->pendingSatisfactionSurvey(Auth::id(), 'suggestion'),
         ]);
+    }
+
+    private function pendingSatisfactionSurvey(int $userId, string $subject): ?array
+    {
+        if (!Schema::hasTable('customer_satisfaction_surveys')
+            || !Schema::hasColumn('customer_satisfaction_surveys', 'subject')
+            || !Schema::hasColumn('customer_satisfaction_surveys', 'subject_id')) {
+            return null;
+        }
+
+        [$table, $statuses] = match ($subject) {
+            'report' => ['reports', ['completed', 'resolved', 'closed']],
+            'suggestion' => ['suggestions', ['approved', 'disapproved', 'rejected']],
+            default => throw new \InvalidArgumentException('Unsupported satisfaction survey subject.'),
+        };
+
+        $row = DB::table($table)
+            ->where('user_id', $userId)
+            ->whereRaw(
+                'LOWER(TRIM(status)) IN (' . implode(', ', array_fill(0, count($statuses), '?')) . ')',
+                $statuses
+            )
+            ->whereNotExists(function ($query) use ($table, $userId, $subject): void {
+                $query->selectRaw('1')
+                    ->from('customer_satisfaction_surveys')
+                    ->whereColumn('customer_satisfaction_surveys.subject_id', $table . '.id')
+                    ->where('customer_satisfaction_surveys.user_id', $userId)
+                    ->where('customer_satisfaction_surveys.subject', $subject);
+            })
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
+            ->first(['id']);
+
+        return $row ? ['subject' => $subject, 'subject_id' => (int) $row->id] : null;
     }
 
     /**

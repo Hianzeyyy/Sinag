@@ -1002,8 +1002,11 @@
     </div>
 </div>
 
-@if(session('show_satisfaction_modal') && !($hasSatisfactionSurvey ?? false))
-    @include('components.customer-satisfaction-modal')
+@if($pendingSatisfactionSurvey)
+    @include('components.customer-satisfaction-modal', [
+        'surveySubject' => $pendingSatisfactionSurvey['subject'],
+        'surveySubjectId' => $pendingSatisfactionSurvey['subject_id'],
+    ])
 @endif
 
 <div class="modal fade" id="suggestionModal" tabindex="-1" aria-hidden="true">

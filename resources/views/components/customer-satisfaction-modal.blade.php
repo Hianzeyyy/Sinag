@@ -10,6 +10,8 @@
             </div>
             <form method="POST" action="{{ route('customer-satisfaction.store') }}">
                 @csrf
+                <input type="hidden" name="subject" value="{{ $surveySubject }}">
+                <input type="hidden" name="subject_id" value="{{ $surveySubjectId }}">
                 <div class="modal-body pt-0">
                     <fieldset class="mb-3">
                         <legend class="form-label fw-semibold">How satisfied are you with this system?</legend>
@@ -56,7 +58,7 @@
                     </fieldset>
                     <label for="customerSatisfactionFeedback" class="form-label fw-semibold">Additional feedback</label>
                     <textarea id="customerSatisfactionFeedback" name="feedback" class="form-control" rows="4" maxlength="2000" placeholder="What can we improve? (Optional)"></textarea>
-                    <p class="small text-muted mt-2 mb-0">Your submitted survey is recorded once and will not be asked again.</p>
+                    <p class="small text-muted mt-2 mb-0">Your submitted survey for this item is recorded once.</p>
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Maybe later</button>

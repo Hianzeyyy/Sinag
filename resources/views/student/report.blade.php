@@ -274,10 +274,6 @@
     </div>
 </div>
 
-@if(session('show_satisfaction_modal') && !($hasSatisfactionSurvey ?? false))
-    @include('components.customer-satisfaction-modal')
-@endif
-
 @if(session('success'))
 <script>
     window.addEventListener('load', function () {

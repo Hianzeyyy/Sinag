@@ -9,6 +9,8 @@ class CustomerSatisfactionSurvey extends Model
 {
     protected $fillable = [
         'user_id',
+        'subject',
+        'subject_id',
         'rating',
         'feedback',
         'responses',

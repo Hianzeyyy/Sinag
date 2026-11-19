@@ -86,6 +86,110 @@ class SuggestionPersonalDataGateTest extends TestCase
         $response->assertSee('No suggestions yet');
     }
 
+    public function test_satisfaction_survey_waits_for_a_suggestion_moderation_decision(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+        $this->createSatisfactionSurveysTable();
+
+        $user = $this->makeCompletedStudent();
+        $suggestionId = $this->createSuggestion($user, 'Pending', 'Please add more GAD awareness activities.');
+
+        $this->actingAs($user)
+            ->get(route('student.boses'))
+            ->assertOk()
+            ->assertDontSee('id="customerSatisfactionModal"', false);
+
+        DB::table('suggestions')->where('id', $suggestionId)->update(['status' => 'Approved']);
+
+        $this->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('id="customerSatisfactionModal"', false)
+            ->assertSee('name="subject" value="suggestion"', false)
+            ->assertSee('name="subject_id" value="' . $suggestionId . '"', false);
+
+        DB::table('suggestions')->where('id', $suggestionId)->update(['status' => 'Rejected']);
+
+        $this->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('id="customerSatisfactionModal"', false)
+            ->assertSee('name="subject_id" value="' . $suggestionId . '"', false);
+    }
+
+    public function test_satisfaction_survey_waits_for_report_resolution_and_is_recorded_for_that_report(): void
+    {
+        $this->createUsersTable();
+        $this->createSatisfactionSurveysTable();
+        Schema::create('reports', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('incident_id');
+            $table->string('cloak_alias')->nullable();
+            $table->string('nature')->nullable();
+            $table->string('category')->nullable();
+            $table->string('location')->nullable();
+            $table->text('description')->nullable();
+            $table->json('evidence')->nullable();
+            $table->string('priority')->nullable();
+            $table->string('status')->default('Pending');
+            $table->boolean('is_anonymous')->default(true);
+            $table->timestamps();
+        });
+        Schema::create('suggestions', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('category')->nullable();
+            $table->text('message')->nullable();
+            $table->string('status')->default('Pending');
+            $table->timestamps();
+        });
+
+        $user = $this->makeCompletedStudent();
+        $reportId = DB::table('reports')->insertGetId([
+            'user_id' => $user->id,
+            'incident_id' => 'SN-TEST',
+            'cloak_alias' => 'StudentTest',
+            'nature' => 'Catcalling',
+            'status' => 'Pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('student.vault'))
+            ->assertOk()
+            ->assertDontSee('id="customerSatisfactionModal"', false);
+
+        $this->post(route('customer-satisfaction.store'), [
+            'subject' => 'report',
+            'subject_id' => $reportId,
+            'rating' => 5,
+            'responses' => [4, 4, 4, 4, 4],
+        ])->assertStatus(409);
+
+        DB::table('reports')->where('id', $reportId)->update(['status' => 'Resolved']);
+
+        $this->get(route('student.vault'))
+            ->assertOk()
+            ->assertSee('id="customerSatisfactionModal"', false)
+            ->assertSee('name="subject" value="report"', false)
+            ->assertSee('name="subject_id" value="' . $reportId . '"', false);
+
+        $this->post(route('customer-satisfaction.store'), [
+            'subject' => 'report',
+            'subject_id' => $reportId,
+            'rating' => 5,
+            'responses' => [4, 4, 4, 4, 4],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('customer_satisfaction_surveys', [
+            'user_id' => $user->id,
+            'subject' => 'report',
+            'subject_id' => $reportId,
+            'rating' => 5,
+        ]);
+    }
+
     public function test_post_validation_errors_are_visible_and_preserve_the_draft(): void
     {
         $this->createUsersTable();
@@ -460,6 +564,20 @@ class SuggestionPersonalDataGateTest extends TestCase
             $table->foreignId('user_id');
             $table->timestamps();
             $table->unique(['suggestion_id', 'user_id']);
+        });
+    }
+
+    private function createSatisfactionSurveysTable(): void
+    {
+        Schema::create('customer_satisfaction_surveys', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('subject', 20)->nullable();
+            $table->unsignedBigInteger('subject_id')->nullable();
+            $table->unsignedTinyInteger('rating');
+            $table->text('feedback')->nullable();
+            $table->json('responses')->nullable();
+            $table->timestamps();
         });
     }
 }

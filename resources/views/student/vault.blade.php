@@ -316,4 +316,11 @@
         // This script is intentionally left blank to avoid double initialization
     });
 </script>
+
+@if($pendingSatisfactionSurvey)
+    @include('components.customer-satisfaction-modal', [
+        'surveySubject' => $pendingSatisfactionSurvey['subject'],
+        'surveySubjectId' => $pendingSatisfactionSurvey['subject_id'],
+    ])
+@endif
 @endsection

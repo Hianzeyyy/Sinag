@@ -102,8 +102,7 @@ class SuggestionController extends Controller
 
         // 3. Redirect back with Success Message
         return redirect()->back()
-            ->with('success', 'Salamat sa iyong mungkahi! Ito ay ipapasa muna sa GAD admin para sa approval bago ma-post.')
-            ->with('show_satisfaction_modal', true);
+            ->with('success', 'Salamat sa iyong mungkahi! Ito ay ipapasa muna sa GAD admin para sa approval bago ma-post.');
     }
 
     public function update(Request $request, $id)

@@ -5,7 +5,9 @@ use Illuminate\Support\Str;
 $sessionDriver = env('SESSION_DRIVER', 'file');
 if (env('APP_ENV', 'production') === 'production'
     && ! filter_var(env('SESSION_ALLOW_DATABASE', false), FILTER_VALIDATE_BOOL)) {
-    $sessionDriver = 'cookie';
+    $sessionDriver = filter_var(env('VERCEL', false), FILTER_VALIDATE_BOOL)
+        ? 'cookie'
+        : 'file';
 }
 
 return [
