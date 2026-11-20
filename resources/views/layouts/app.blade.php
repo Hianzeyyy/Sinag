@@ -1943,6 +1943,9 @@
                         <a href="{{ route('student.boses') }}" class="nav-link-custom {{ Request::is('student/boses*') ? 'active' : '' }}">
                             <i class="bi bi-rss-fill"></i> Suggestions
                         </a>
+                        <a href="{{ route('admin.messages') }}" class="nav-link-custom {{ Request::is('admin/messages*') ? 'active' : '' }}">
+                            <i class="bi bi-chat-dots-fill"></i> Messages
+                        </a>
                         @else
                         <a href="{{ route('student.dashboard') }}" class="nav-link-custom {{ Request::is('student/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-house-door-fill"></i> Dashboard
@@ -2044,6 +2047,10 @@
                                 <a href="{{ route('student.boses') }}" class="student-nav-link {{ Request::is('student/boses*') ? 'active' : '' }}" aria-label="Suggestions" title="Suggestions">
                                     <i class="bi bi-rss-fill"></i>
                                     <span>Suggestions</span>
+                                </a>
+                                <a href="{{ route('admin.messages') }}" class="student-nav-link {{ Request::is('admin/messages*') ? 'active' : '' }}" aria-label="Messages" title="Messages">
+                                    <i class="bi bi-chat-dots-fill"></i>
+                                    <span>Messages</span>
                                 </a>
                             </nav>
                         @else

@@ -209,7 +209,7 @@
     <div style="clear:both"></div>
     @endif
 
-    @if($includeReports && $includeStudentInformation)
+    @if($includeReports && $includeProfileSheets)
     <h2>{{ 5 + $sectionOffset }}. Student Information Sheets ({{ count($studentProfiles) }})</h2>
     @forelse($studentProfiles as $profile)
         <h3 class="profile-name">{{ $profile['user']->name }} ({{ $profile['user']->email }})</h3>
@@ -226,7 +226,7 @@
     @endforelse
     @endif
 
-    @if($includeReports)
+    @if($includeReports && $includeProfileSheets)
     <h2>{{ 6 + $sectionOffset }}. Faculty and Non-Teaching Information Sheets ({{ count($employeeProfiles) }})</h2>
     @forelse($employeeProfiles as $profile)
         <h3 class="profile-name">{{ $profile['user']->name }} ({{ $profile['user']->email }})</h3>
@@ -253,6 +253,7 @@
         <div class="muted">Coverage Period: {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
     </div>
 
+    @if($includeDetailedGadReports)
     <div class="part-b">
         <h2>{{ 7 + $sectionOffset }}. Population, New Users and Gender</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
@@ -428,6 +429,7 @@
             @include('admin.partials.gad-sex-disaggregation-table', ['rows' => $sexDisaggregatedData['reports'][15]])</table>
             <div class="data-note"><strong>Data logic:</strong> Complainant Sex/Gender comes from linked-user fields or reports.gender fallback. Respondent Sex/Gender and Student-to-Student, Employee-to-Student, Employee-to-Employee relationship fields are pending; no respondent identity is inferred.</div>
         </div>
+    @endif
 
         <h2>{{ 11 + $sectionOffset }}. Suggestions and Satisfaction by Sex and Gender</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
@@ -477,8 +479,12 @@
         <h2>{{ 12 + $sectionOffset }}. Findings and Recommendations (Automated)</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
         @php
-            $largestStudentGroup = collect($sexDisaggregatedData['reports'][1])->sortByDesc('total')->first();
-            $highestIncidentDepartment = collect($sexDisaggregatedData['incident_departments'])->first();
+            $largestStudentGroup = $includeDetailedGadReports
+                ? collect($sexDisaggregatedData['reports'][1])->sortByDesc('total')->first()
+                : null;
+            $highestIncidentDepartment = $includeDetailedGadReports
+                ? collect($sexDisaggregatedData['incident_departments'])->first()
+                : null;
             $lowSatisfactionGroup = collect($sexDisaggregatedData['satisfaction_rows'])->first(fn ($row) => (float) $row['favorable'] < 75);
         @endphp
         <table class="sex-table"><thead><tr><th>Database-driven finding</th><th>Action prompt rule</th></tr></thead><tbody>

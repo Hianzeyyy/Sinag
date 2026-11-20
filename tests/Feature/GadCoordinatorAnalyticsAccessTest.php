@@ -34,6 +34,16 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             $table->string('priority')->nullable();
             $table->timestamps();
         });
+
+        Schema::create('messages', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('receiver_id');
+            $table->text('message');
+            $table->string('sender_type')->default('student');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
+        });
     }
 
     public function test_coordinator_can_view_read_only_report_analytics_but_not_admin_tools(): void
@@ -86,6 +96,8 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertSee('GAD Report Analytics')
             ->assertSee(route('student.boses'), false)
             ->assertSeeText('Suggestions')
+            ->assertSee(route('admin.messages'), false)
+            ->assertSeeText('Messages')
             ->assertDontSeeText('Community Directory')
             ->assertSee('Total Reports')
             ->assertDontSee('Registered Users Summary')
@@ -101,6 +113,44 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
         foreach (['admin.users', 'admin.appointments', 'admin.suggestions', 'admin.reports'] as $routeName) {
             $this->get(route($routeName))->assertForbidden();
         }
+    }
+
+    public function test_gad_coordinator_can_open_messages_and_send_a_message(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'account_status' => 'active',
+        ]);
+        $student = User::create([
+            'name' => 'Active Student',
+            'email' => 'active-student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_type' => 'student',
+            'account_status' => 'active',
+        ]);
+
+        $this->actingAs($coordinator)
+            ->get(route('admin.messages'))
+            ->assertOk()
+            ->assertSeeText('Messages');
+
+        $this->postJson(route('admin.messages.store'), [
+            'student_id' => $student->id,
+            'message' => 'Hello from the GAD Coordinator',
+        ])->assertOk()
+            ->assertJsonPath('message.message', 'Hello from the GAD Coordinator');
+
+        $this->assertDatabaseHas('messages', [
+            'sender_id' => $coordinator->id,
+            'receiver_id' => $student->id,
+            'message' => 'Hello from the GAD Coordinator',
+            'sender_type' => 'admin',
+        ]);
     }
 
     public function test_gad_coordinator_is_excluded_from_admin_access_gate(): void

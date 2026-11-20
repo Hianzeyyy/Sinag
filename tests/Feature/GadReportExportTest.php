@@ -111,6 +111,7 @@ class GadReportExportTest extends TestCase
             $this->assertSame(true, $workbook->open($workbookPath));
             $this->assertStringContainsString('Student Information', $workbook->getFromName('xl/workbook.xml'));
             $this->assertStringContainsString('Faculty and Non-Teaching', $workbook->getFromName('xl/workbook.xml'));
+            $this->assertStringContainsString('GAD Training Summary', $workbook->getFromName('xl/workbook.xml'));
             $studentSheet = $workbook->getFromName('xl/worksheets/sheet5.xml');
             $employeeSheet = $workbook->getFromName('xl/worksheets/sheet6.xml');
             $this->assertStringContainsString('Student Example', $studentSheet);
@@ -171,7 +172,7 @@ class GadReportExportTest extends TestCase
         }
     }
 
-    public function test_coordinator_exports_omit_registered_users_and_student_information_data(): void
+    public function test_coordinator_excel_omits_registered_users_profiles_and_detailed_gad_reports(): void
     {
         $coordinator = User::create([
             'name' => 'GAD Coordinator',
@@ -203,6 +204,17 @@ class GadReportExportTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        User::create([
+            'name' => 'Employee Private Example',
+            'email' => 'employee-private@example.test',
+            'password' => 'password',
+            'role' => 'employee',
+            'account_type' => 'employee',
+            'department' => 'Human Resources',
+            'work_experience' => ['appointment_status' => 'Private Appointment Status'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $this->actingAs($coordinator);
         $response = app(ExportGADReportController::class)->export('excel', '30days');
@@ -215,8 +227,11 @@ class GadReportExportTest extends TestCase
             $summarySheet = $workbook->getFromName('xl/worksheets/sheet1.xml');
             $this->assertStringNotContainsString('name="Users"', $workbookXml);
             $this->assertStringNotContainsString('name="Student Information"', $workbookXml);
-            $this->assertStringContainsString('name="Faculty and Non-Teaching"', $workbookXml);
+            $this->assertStringNotContainsString('name="Faculty and Non-Teaching"', $workbookXml);
             $this->assertStringContainsString('Incident Reports', $workbookXml);
+            $this->assertStringNotContainsString('Sex-Disaggregated Data', $workbookXml);
+            $this->assertStringNotContainsString('Incident Analytics', $workbookXml);
+            $this->assertStringNotContainsString('GAD Training Summary', $workbookXml);
             $this->assertStringNotContainsString('New Registered Users', $summarySheet);
             $this->assertStringContainsString('Incidents Reported', $summarySheet);
 
@@ -226,13 +241,15 @@ class GadReportExportTest extends TestCase
             }
             $this->assertStringNotContainsString('Student Private Example', $worksheetXml);
             $this->assertStringNotContainsString('student-private@example.test', $worksheetXml);
+            $this->assertStringNotContainsString('Employee Private Example', $worksheetXml);
+            $this->assertStringNotContainsString('employee-private@example.test', $worksheetXml);
         } finally {
             $workbook->close();
             @unlink($workbookPath);
         }
     }
 
-    public function test_coordinator_pdf_omits_the_registered_users_section(): void
+    public function test_coordinator_pdf_omits_registered_users_profiles_and_detailed_gad_reports(): void
     {
         $coordinator = User::create([
             'name' => 'GAD Coordinator',
@@ -253,6 +270,16 @@ class GadReportExportTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        User::create([
+            'name' => 'Employee Private Example',
+            'email' => 'employee-private@example.test',
+            'password' => 'password',
+            'role' => 'employee',
+            'account_type' => 'employee',
+            'work_experience' => ['appointment_status' => 'Private Appointment Status'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $pdf = \Mockery::mock(\Barryvdh\DomPDF\PDF::class);
         $pdf->shouldReceive('setPaper')->once()->with('a4', 'portrait')->andReturnSelf();
@@ -265,9 +292,36 @@ class GadReportExportTest extends TestCase
                 $this->assertStringNotContainsString('Registered Users', $html);
                 $this->assertStringNotContainsString('New Registered Users', $html);
                 $this->assertStringNotContainsString('Student Information Sheets (', $html);
+                $this->assertStringNotContainsString('Faculty and Non-Teaching Information Sheets', $html);
                 $this->assertStringNotContainsString('Student Private Example', $html);
                 $this->assertStringNotContainsString('student-private@example.test', $html);
-                $this->assertStringContainsString('Faculty and Non-Teaching Information Sheets', $html);
+                $this->assertStringNotContainsString('Employee Private Example', $html);
+                $this->assertStringNotContainsString('employee-private@example.test', $html);
+                foreach ([
+                    '7. Population, New Users and Gender',
+                    '7.1 Report 1:',
+                    '7.2 Report 2:',
+                    '8. Student Reports',
+                    '8.1 Report 3:',
+                    '8.2 Report 4:',
+                    '8.3 Report 5:',
+                    '8.4 Report 6:',
+                    '8.5 Report 7:',
+                    '9. Employee Reports',
+                    '9.1 Report 8:',
+                    '9.2 Report 9:',
+                    '9.3 Report 10:',
+                    '9.4 Report 11:',
+                    '9.5 Report 12:',
+                    '10. Safe Spaces and Incident Analytics',
+                    '10.1 Report 13:',
+                    '10.2 Report 14:',
+                    '10.3 Table 4:',
+                    '10.4 Report 15:',
+                ] as $restrictedSection) {
+                    $this->assertStringNotContainsString($restrictedSection, $html);
+                }
+                $this->assertStringContainsString('Suggestions and Satisfaction by Sex and Gender', $html);
                 $this->assertStringContainsString('1. Incident Reports', $html);
 
                 return true;

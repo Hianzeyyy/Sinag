@@ -35,7 +35,8 @@ class ExportGADReportController extends Controller
         $currentUser = auth()->user();
         $isGadCoordinator = $currentUser?->isGadCoordinator() ?? false;
         $includeRegisteredUsers = ! $isGadCoordinator;
-        $includeStudentInformation = ! $isGadCoordinator;
+        $includeProfileSheets = ! $isGadCoordinator;
+        $includeDetailedGadReports = ! $isGadCoordinator;
 
         // Retrieve data within the selected period
         $users = $includeRegisteredUsers
@@ -104,14 +105,15 @@ class ExportGADReportController extends Controller
             $pdf = Pdf::loadView('admin.gad-report-export-pdf', [
                 'data' => $data,
                 'users' => $users,
-                'studentProfiles' => $includeStudentInformation ? $this->profileDetails($students, false) : [],
-                'employeeProfiles' => $this->profileDetails($employees, true),
+                'studentProfiles' => $includeProfileSheets ? $this->profileDetails($students, false) : [],
+                'employeeProfiles' => $includeProfileSheets ? $this->profileDetails($employees, true) : [],
                 'reports' => $reports,
                 'suggestions' => $suggestions,
                 'satisfactionSurveys' => $satisfactionSurveys,
                 'showSatisfactionNames' => $showSatisfactionNames,
                 'includeRegisteredUsers' => $includeRegisteredUsers,
-                'includeStudentInformation' => $includeStudentInformation,
+                'includeProfileSheets' => $includeProfileSheets,
+                'includeDetailedGadReports' => $includeDetailedGadReports,
                 'includeReports' => $includeReports,
                 'includeFeedback' => $includeFeedback,
                 'surveyFindings' => $surveyFindings,
@@ -121,7 +123,7 @@ class ExportGADReportController extends Controller
             return $pdf->download("GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf');
         }
 
-        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, $surveyFindings, $sexDisaggregatedData, $showSatisfactionNames, $includeRegisteredUsers, $includeStudentInformation, $includeReports, $includeFeedback, $period);
+        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, $surveyFindings, $sexDisaggregatedData, $showSatisfactionNames, $includeRegisteredUsers, $includeProfileSheets, $includeDetailedGadReports, $includeReports, $includeFeedback, $period);
     }
 
     /**
@@ -211,7 +213,7 @@ class ExportGADReportController extends Controller
         ];
     }
 
-    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, array $surveyFindings, array $sexDisaggregatedData, bool $showSatisfactionNames, bool $includeRegisteredUsers, bool $includeStudentInformation, bool $includeReports, bool $includeFeedback, string $period)
+    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, array $surveyFindings, array $sexDisaggregatedData, bool $showSatisfactionNames, bool $includeRegisteredUsers, bool $includeProfileSheets, bool $includeDetailedGadReports, bool $includeReports, bool $includeFeedback, string $period)
     {
         $summaryRows = [
             ['SINAG - GENDER AND DEVELOPMENT (GAD) OFFICE'],
@@ -261,18 +263,18 @@ class ExportGADReportController extends Controller
             ]];
         }
 
-        if ($includeReports) {
-            if ($includeStudentInformation) {
-                $sheets['Student Information'] = $this->profileSheetRows($students, false);
-            }
+        if ($includeReports && $includeProfileSheets) {
+            $sheets['Student Information'] = $this->profileSheetRows($students, false);
             $sheets['Faculty and Non-Teaching'] = $this->profileSheetRows($employees, true);
         }
 
-        $sheets['Sex-Disaggregated Data'] = $this->sexDisaggregatedSheetRows($sexDisaggregatedData, $data);
-        $sheets['Incident Analytics'] = $this->incidentAnalyticsSheetRows($sexDisaggregatedData, $data);
+        if ($includeDetailedGadReports) {
+            $sheets['Sex-Disaggregated Data'] = $this->sexDisaggregatedSheetRows($sexDisaggregatedData, $data);
+            $sheets['Incident Analytics'] = $this->incidentAnalyticsSheetRows($sexDisaggregatedData, $data);
+            $sheets['GAD Training Summary'] = $this->trainingSummarySheetRows($sexDisaggregatedData, $data);
+        }
         $sheets['Suggestions by Sex Gender'] = $this->suggestionDisaggregationSheetRows($sexDisaggregatedData, $data);
         $sheets['Satisfaction by Sex Gender'] = $this->satisfactionDisaggregationSheetRows($sexDisaggregatedData, $data);
-        $sheets['GAD Training Summary'] = $this->trainingSummarySheetRows($sexDisaggregatedData, $data);
         $sheets['Data Dictionary'] = [[
             'Field', 'Source Form', 'Database Column(s)', 'Allowed Values', 'Report',
         ], [
