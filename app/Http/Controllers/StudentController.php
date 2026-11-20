@@ -24,7 +24,8 @@ class StudentController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'can:student-access']);
+        $this->middleware('auth');
+        $this->middleware('can:student-access')->except('boses');
     }
 
     /**
@@ -205,9 +206,14 @@ class StudentController extends Controller
      */
     public function boses(Request $request)
     {
+        abort_unless(
+            $request->user()->can('student-access') || $request->user()->isGadCoordinator(),
+            403
+        );
+
         $validated = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
 
-        if (!$request->user()->hasCompletedPersonalData()) {
+        if (!$request->user()->isGadCoordinator() && !$request->user()->hasCompletedPersonalData()) {
             return redirect()->route('personal-data.edit', ['return_to_suggestions' => 1])
                 ->with('personal_data_required', 'Complete your personal data to access Community Suggestions.');
         }

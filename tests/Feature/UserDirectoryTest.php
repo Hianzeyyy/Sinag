@@ -50,16 +50,31 @@ class UserDirectoryTest extends TestCase
             'role' => 'student',
             'account_status' => 'pending',
         ]);
+        $employee = User::create([
+            'name' => 'Employee Viewer',
+            'email' => 'employee@example.test',
+            'password' => 'password',
+            'role' => 'employee',
+            'account_status' => 'active',
+        ]);
 
         $this->actingAs($viewer)
             ->get(route('users.directory'))
             ->assertOk()
             ->assertSeeText('Community Directory')
+            ->assertDontSee('href="' . route('users.directory') . '"', false)
+            ->assertSeeText('Suggestions')
             ->assertSeeText('Community Member')
             ->assertSee(route('profile.photo', $member), false)
             ->assertDontSeeText('Private Name')
             ->assertDontSee('verification/id/private.png', false)
             ->assertDontSeeText('Pending Member');
+
+        $this->actingAs($employee)
+            ->get(route('users.directory'))
+            ->assertOk()
+            ->assertDontSee('href="' . route('users.directory') . '"', false)
+            ->assertSeeText('Suggestions');
     }
 
     public function test_directory_requires_authentication(): void

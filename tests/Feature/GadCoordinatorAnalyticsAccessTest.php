@@ -82,19 +82,15 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertViewHas('totalReports', 3)
             ->assertViewHas('reportCountsByStatus', fn ($counts) => (int) $counts->get('Pending') === 1
                 && (int) $counts->get('Resolved') === 2)
-            ->assertViewHas('registeredUserSummary', fn ($summary) => (int) $summary->total === 4
-                && (int) $summary->active === 2
-                && (int) $summary->pending === 1
-                && (int) $summary->rejected === 1
-                && (int) $summary->students === 2
-                && (int) $summary->employees === 1
-                && (int) $summary->administrators === 1)
+            ->assertViewMissing('registeredUserSummary')
             ->assertSee('GAD Report Analytics')
+            ->assertSee(route('student.boses'), false)
+            ->assertSeeText('Suggestions')
+            ->assertDontSeeText('Community Directory')
             ->assertSee('Total Reports')
-            ->assertSee('Registered Users Summary')
-            ->assertSee('Total Registered Users')
-            ->assertSee('Pending Approval')
-            ->assertSee('Students')
+            ->assertDontSee('Registered Users Summary')
+            ->assertDontSee('Total Registered Users')
+            ->assertDontSee('Pending Approval')
             ->assertSee('Harassment')
             ->assertDontSee('Pending Employee')
             ->assertDontSee('PRIVATE-CASE-1')

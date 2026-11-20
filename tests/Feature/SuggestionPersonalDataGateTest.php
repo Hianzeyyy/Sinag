@@ -65,6 +65,40 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->assertDatabaseMissing('suggestions', ['user_id' => $user->id]);
     }
 
+    public function test_gad_coordinator_can_view_suggestions_without_a_student_profile(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+        ]);
+        $this->createSuggestion($coordinator, 'Approved', 'Please add more GAD awareness activities.');
+
+        $this->actingAs($coordinator)
+            ->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('Community suggestions')
+            ->assertSee('Please add more GAD awareness activities.')
+            ->assertDontSee('id="suggestionModal"', false)
+            ->assertDontSee('Write your suggestions...');
+
+        $securityUser = User::create([
+            'name' => 'Security User',
+            'email' => 'security@example.test',
+            'password' => 'password',
+            'role' => 'security',
+        ]);
+
+        $this->actingAs($securityUser)
+            ->get(route('student.boses'))
+            ->assertForbidden();
+    }
+
     public function test_suggestions_page_displays_its_empty_state_instead_of_a_blank_page(): void
     {
         $this->createUsersTable();

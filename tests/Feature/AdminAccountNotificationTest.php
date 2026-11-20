@@ -15,6 +15,10 @@ class AdminAccountNotificationTest extends TestCase
         $this->createAccountSchema();
         $admin = $this->createUser('GAD Admin', 'admin@example.test', 'admin', 'active');
         $user = $this->createUser('Student User', 'student@example.test', 'student', 'pending');
+        config([
+            'mail.from.address' => 'sinag-mailer@example.test',
+            'mail.from.name' => 'SINAG Mailer',
+        ]);
 
         Mail::shouldReceive('raw')
             ->once()
@@ -23,7 +27,7 @@ class AdminAccountNotificationTest extends TestCase
                 $this->assertIsCallable($configureMessage);
 
                 $message = \Mockery::mock();
-                $message->shouldReceive('from')->once()->with('obreroemilhene@gmail.com', 'SINAG Admin')->andReturnSelf();
+                $message->shouldReceive('from')->once()->with('sinag-mailer@example.test', 'SINAG Mailer')->andReturnSelf();
                 $message->shouldReceive('to')->once()->with($user->email)->andReturnSelf();
                 $message->shouldReceive('subject')->once()->with('SINAG Account Approved');
                 $configureMessage($message);
@@ -43,6 +47,10 @@ class AdminAccountNotificationTest extends TestCase
         $this->createAccountSchema();
         $admin = $this->createUser('GAD Admin', 'admin@example.test', 'admin', 'active');
         $user = $this->createUser('Student User', 'student@example.test', 'student', 'pending');
+        config([
+            'mail.from.address' => 'sinag-mailer@example.test',
+            'mail.from.name' => 'SINAG Mailer',
+        ]);
 
         Mail::shouldReceive('raw')
             ->once()
@@ -51,7 +59,7 @@ class AdminAccountNotificationTest extends TestCase
                 $this->assertIsCallable($configureMessage);
 
                 $message = \Mockery::mock();
-                $message->shouldReceive('from')->once()->with('obreroemilhene@gmail.com', 'SINAG Admin')->andReturnSelf();
+                $message->shouldReceive('from')->once()->with('sinag-mailer@example.test', 'SINAG Mailer')->andReturnSelf();
                 $message->shouldReceive('to')->once()->with($user->email)->andReturnSelf();
                 $message->shouldReceive('subject')->once()->with('SINAG Account Rejected');
                 $configureMessage($message);

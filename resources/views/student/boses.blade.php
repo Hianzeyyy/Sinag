@@ -693,7 +693,7 @@
             <div class="row g-4 align-items-center">
                 <div class="col-lg-12">
 
-
+                    @unless($user->isGadCoordinator())
                     <div class="composer-shell">
                         <div class="d-flex align-items-center gap-2 gap-md-3">
                             <span class="composer-avatar">
@@ -707,6 +707,7 @@
                             </button>
                         </div>
                     </div>
+                    @endunless
                 </div>
             </div>
         </div>
@@ -1010,6 +1011,7 @@
     ])
 @endif
 
+@unless($user->isGadCoordinator())
 <div class="modal fade" id="suggestionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content border-0 shadow-lg">
@@ -1075,6 +1077,7 @@
         </div>
     </div>
 </div>
+@endunless
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {

@@ -89,33 +89,6 @@
         @endforeach
     </div>
 
-    <section class="card coordinator-panel mb-4">
-        <div class="card-header bg-white border-0 py-3">
-            <h2 class="h5 fw-bold mb-1">Registered Users Summary</h2>
-            <p class="small text-muted mb-0">Aggregate account counts only; no personal user details are shown.</p>
-        </div>
-        <div class="card-body pt-0">
-            <div class="row g-3">
-                @foreach([
-                    'Total Registered Users' => $registeredUserSummary->total,
-                    'Active' => $registeredUserSummary->active,
-                    'Pending Approval' => $registeredUserSummary->pending,
-                    'Rejected' => $registeredUserSummary->rejected,
-                    'Students' => $registeredUserSummary->students,
-                    'Employees' => $registeredUserSummary->employees,
-                    'Administrators' => $registeredUserSummary->administrators,
-                ] as $label => $count)
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="coordinator-metric h-100 p-3">
-                            <div class="small fw-bold text-uppercase text-muted">{{ $label }}</div>
-                            <div class="coordinator-metric-value">{{ number_format((int) $count) }}</div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
     <div class="row g-4">
         <div class="col-lg-6">
             <section class="card coordinator-panel h-100">

@@ -1940,15 +1940,12 @@
                         <a href="{{ route('admin.dashboard') }}" class="nav-link-custom {{ Request::is('admin/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-bar-chart-fill"></i> GAD Report Analytics
                         </a>
-                        <a href="{{ route('users.directory') }}" class="nav-link-custom {{ Request::is('users') ? 'active' : '' }}">
-                            <i class="bi bi-person-lines-fill"></i> Community Directory
+                        <a href="{{ route('student.boses') }}" class="nav-link-custom {{ Request::is('student/boses*') ? 'active' : '' }}">
+                            <i class="bi bi-rss-fill"></i> Suggestions
                         </a>
                         @else
                         <a href="{{ route('student.dashboard') }}" class="nav-link-custom {{ Request::is('student/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-house-door-fill"></i> Dashboard
-                        </a>
-                        <a href="{{ route('users.directory') }}" class="nav-link-custom {{ Request::is('users') ? 'active' : '' }}">
-                            <i class="bi bi-person-lines-fill"></i> Community Directory
                         </a>
                         @if(Auth::user()->hasCompletedPersonalData())
                         <a href="{{ route('student.report') }}" class="nav-link-custom {{ Request::is('student/report*') ? 'active' : '' }}">
@@ -2044,9 +2041,9 @@
                                     <i class="bi bi-bar-chart-fill"></i>
                                     <span>GAD Report Analytics</span>
                                 </a>
-                                <a href="{{ route('users.directory') }}" class="student-nav-link {{ Request::is('users') ? 'active' : '' }}">
-                                    <i class="bi bi-person-lines-fill"></i>
-                                    <span>Community Directory</span>
+                                <a href="{{ route('student.boses') }}" class="student-nav-link {{ Request::is('student/boses*') ? 'active' : '' }}" aria-label="Suggestions" title="Suggestions">
+                                    <i class="bi bi-rss-fill"></i>
+                                    <span>Suggestions</span>
                                 </a>
                             </nav>
                         @else
@@ -2055,10 +2052,17 @@
                                     <i class="bi bi-house-door-fill"></i>
                                     <span>Dashboard</span>
                                 </a>
-                                <a href="{{ route('users.directory') }}" class="student-nav-link {{ Request::is('users') ? 'active' : '' }}" aria-label="Community Directory" title="Community Directory">
-                                    <i class="bi bi-person-lines-fill"></i>
-                                    <span>Community</span>
+                                @if(Auth::user()->hasCompletedPersonalData())
+                                <a href="{{ route('student.boses') }}" class="student-nav-link {{ Request::is('student/boses*') ? 'active' : '' }}" aria-label="Suggestions" title="Suggestions">
+                                    <i class="bi bi-rss-fill"></i>
+                                    <span>Suggestions</span>
                                 </a>
+                                @else
+                                <a href="{{ route('personal-data.edit', ['return_to_suggestions' => 1]) }}" class="student-nav-link text-muted" aria-disabled="true" title="Complete your personal information to unlock Suggestions">
+                                    <i class="bi bi-lock-fill"></i>
+                                    <span>Suggestions</span>
+                                </a>
+                                @endif
 
                                 <div class="dropdown d-inline-block">
                                     <button type="button" class="student-nav-link dropdown-toggle {{ Request::is('student/report*') || Request::is('student/vault*') ? 'active' : '' }}" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Report" title="Report">
@@ -2076,18 +2080,6 @@
                                         <li><a class="dropdown-item" href="{{ route('student.vault') }}"><i class="bi bi-clipboard-check"></i><span>Report Status</span></a></li>
                                     </ul>
                                 </div>
-
-                                @if(Auth::user()->hasCompletedPersonalData())
-                                <a href="{{ route('student.boses') }}" class="student-nav-link {{ Request::is('student/boses*') ? 'active' : '' }}" aria-label="Suggestions" title="Suggestions">
-                                    <i class="bi bi-rss-fill"></i>
-                                    <span>Suggestions</span>
-                                </a>
-                                @else
-                                <a href="{{ route('personal-data.edit', ['return_to_suggestions' => 1]) }}" class="student-nav-link text-muted" aria-disabled="true" title="Complete your personal information to unlock Suggestions">
-                                    <i class="bi bi-lock-fill"></i>
-                                    <span>Suggestions</span>
-                                </a>
-                                @endif
 
                                 <a href="{{ route('student.appointments') }}" class="student-nav-link {{ Request::is('student/appointments*') || Request::is('student/schedule-appointment*') ? 'active' : '' }}" aria-label="Appointments" title="Appointments">
                                     <i class="bi bi-calendar2-week-fill"></i>

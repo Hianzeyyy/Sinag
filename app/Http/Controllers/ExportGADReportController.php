@@ -32,11 +32,17 @@ class ExportGADReportController extends Controller
         $startDate = $dates['start'];
         $endDate = $dates['end'];
         $periodLabel = $dates['label'];
+        $currentUser = auth()->user();
+        $includeRegisteredUsers = ! $currentUser?->isGadCoordinator();
 
         // Retrieve data within the selected period
-        $users = User::whereBetween('created_at', [$startDate, $endDate])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $users = $includeRegisteredUsers
+            ? User::whereBetween('created_at', [$startDate, $endDate])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->reject(fn (User $user) => $user->isGadCoordinator())
+                ->values()
+            : collect();
 
         $profileUsers = User::whereRaw("LOWER(COALESCE(account_type, role, '')) IN ('student', 'employee')")
             ->orderBy('created_at', 'desc')
@@ -54,7 +60,6 @@ class ExportGADReportController extends Controller
             ->whereBetween('created_at', [$startDate, $endDate])
             ->orderBy('created_at', 'desc')
             ->get();
-        $currentUser = auth()->user();
         $showSatisfactionNames = strtolower((string) ($currentUser?->account_type)) === 'coordinator'
             || strtolower((string) ($currentUser?->email)) === 'gadcoordinator@psu.edu.ph';
         $hasSectionSelection = $request->has('include_reports') || $request->has('include_feedback');
@@ -103,6 +108,7 @@ class ExportGADReportController extends Controller
                 'suggestions' => $suggestions,
                 'satisfactionSurveys' => $satisfactionSurveys,
                 'showSatisfactionNames' => $showSatisfactionNames,
+                'includeRegisteredUsers' => $includeRegisteredUsers,
                 'includeReports' => $includeReports,
                 'includeFeedback' => $includeFeedback,
                 'surveyFindings' => $surveyFindings,
@@ -112,7 +118,7 @@ class ExportGADReportController extends Controller
             return $pdf->download("GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf');
         }
 
-        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, $surveyFindings, $sexDisaggregatedData, $showSatisfactionNames, $includeReports, $includeFeedback, $period);
+        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, $surveyFindings, $sexDisaggregatedData, $showSatisfactionNames, $includeRegisteredUsers, $includeReports, $includeFeedback, $period);
     }
 
     /**
@@ -202,7 +208,7 @@ class ExportGADReportController extends Controller
         ];
     }
 
-    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, array $surveyFindings, array $sexDisaggregatedData, bool $showSatisfactionNames, bool $includeReports, bool $includeFeedback, string $period)
+    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, array $surveyFindings, array $sexDisaggregatedData, bool $showSatisfactionNames, bool $includeRegisteredUsers, bool $includeReports, bool $includeFeedback, string $period)
     {
         $summaryRows = [
             ['SINAG - GENDER AND DEVELOPMENT (GAD) OFFICE'],
@@ -215,7 +221,9 @@ class ExportGADReportController extends Controller
             ['Metric', 'Count'],
         ];
         if ($includeReports) {
-            $summaryRows[] = ['New Registered Users', $data['total_users']];
+            if ($includeRegisteredUsers) {
+                $summaryRows[] = ['New Registered Users', $data['total_users']];
+            }
             $summaryRows[] = ['Incidents Reported', $data['total_reports']];
         }
         if ($includeFeedback) {
@@ -230,11 +238,14 @@ class ExportGADReportController extends Controller
             'Summary' => $summaryRows,
         ];
 
-        if ($includeReports) {
+        if ($includeReports && $includeRegisteredUsers) {
             $sheets['Users'] = [[
                 'User ID', 'Full Name', 'Email', 'Phone', 'Account Type', 'Role',
                 'Gender', 'Age', 'Department', 'Account Status', 'Registered',
             ]];
+        }
+
+        if ($includeReports) {
             $sheets['Incident Reports'] = [[
                 'Incident ID', 'Reporter Alias', 'Nature', 'Location', 'Incident Date',
                 'Incident Time', 'Priority', 'Status', 'Filed Date',
@@ -309,7 +320,7 @@ class ExportGADReportController extends Controller
             }
         }
 
-        foreach ($includeReports ? $users : [] as $user) {
+        foreach ($includeReports && $includeRegisteredUsers ? $users : [] as $user) {
             $sheets['Users'][] = [
                 $user->id,
                 $user->name,

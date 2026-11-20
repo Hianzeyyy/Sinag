@@ -47,6 +47,9 @@
     </style>
 </head>
 <body>
+    @php
+        $sectionOffset = $includeReports && ! $includeRegisteredUsers ? -1 : 0;
+    @endphp
     <div class="header">
         <h1>SINAG - Gender and Development (GAD) Office</h1>
         <div class="subtitle">Comprehensive Analytics &amp; Operations Summary Report</div>
@@ -63,7 +66,9 @@
     <table class="summary">
         <tr>
             @if($includeReports)
+                @if($includeRegisteredUsers)
                 <td><div class="number">{{ $data['total_users'] }}</div><div class="label">New Registered Users</div></td>
+                @endif
                 <td><div class="number">{{ $data['total_reports'] }}</div><div class="label">Incidents Reported</div></td>
             @endif
         </tr>
@@ -79,7 +84,7 @@
         @endif
     </table>
 
-    @if($includeReports)
+    @if($includeReports && $includeRegisteredUsers)
     <h2>1. Registered Users ({{ $users->count() }})</h2>
     <table class="report-table">
         <thead>
@@ -104,7 +109,7 @@
     @endif
 
     @if($includeReports)
-    <h2>2. Incident Reports ({{ $reports->count() }})</h2>
+    <h2>{{ 2 + $sectionOffset }}. Incident Reports ({{ $reports->count() }})</h2>
     <table class="report-table">
         <thead>
             <tr><th>Incident ID</th><th>Reporter Alias</th><th>Nature</th><th>Location</th><th>Priority</th><th>Status</th><th>Filed Date</th></tr>
@@ -129,7 +134,7 @@
 
     @if($includeFeedback)
     @if($includeReports)
-    <h2>3. Suggestions &amp; Community Feedback ({{ $suggestions->count() }})</h2>
+    <h2>{{ 3 + $sectionOffset }}. Suggestions &amp; Community Feedback ({{ $suggestions->count() }})</h2>
     <table class="report-table">
         <thead><tr><th>ID</th><th>Submitted By</th><th>Category</th><th>Message</th><th>Upvotes</th><th>Date</th></tr></thead>
         <tbody>
@@ -149,7 +154,7 @@
     </table>
     @endif
 
-    <h2>{{ $includeReports ? 4 : 3 }}. Customer Satisfaction Survey ({{ $satisfactionSurveys->count() }})</h2>
+    <h2>{{ ($includeReports ? 4 : 3) + $sectionOffset }}. Customer Satisfaction Survey ({{ $satisfactionSurveys->count() }})</h2>
     <table class="report-table">
         <thead><tr><th>Respondent</th><th>Rating</th><th>Survey Responses</th><th>Feedback</th><th>Date</th></tr></thead>
         <tbody>
@@ -167,7 +172,7 @@
         </tbody>
     </table>
 
-    <h2>{{ $includeReports ? 5 : 4 }}. Survey Findings</h2>
+    <h2>{{ ($includeReports ? 5 : 4) + $sectionOffset }}. Survey Findings</h2>
     <table class="report-table">
         <thead><tr><th>Question</th><th>Responses</th><th>Average</th><th>Favorable</th><th>Finding</th></tr></thead>
         <tbody>
@@ -205,7 +210,7 @@
     @endif
 
     @if($includeReports)
-    <h2>5. Student Information Sheets ({{ count($studentProfiles) }})</h2>
+    <h2>{{ 5 + $sectionOffset }}. Student Information Sheets ({{ count($studentProfiles) }})</h2>
     @forelse($studentProfiles as $profile)
         <h3 class="profile-name">{{ $profile['user']->name }} ({{ $profile['user']->email }})</h3>
         <table class="profile-table">
@@ -220,7 +225,7 @@
         <p class="muted">No student information sheets were submitted.</p>
     @endforelse
 
-    <h2>6. Faculty and Non-Teaching Information Sheets ({{ count($employeeProfiles) }})</h2>
+    <h2>{{ 6 + $sectionOffset }}. Faculty and Non-Teaching Information Sheets ({{ count($employeeProfiles) }})</h2>
     @forelse($employeeProfiles as $profile)
         <h3 class="profile-name">{{ $profile['user']->name }} ({{ $profile['user']->email }})</h3>
         <table class="profile-table">
@@ -247,7 +252,7 @@
     </div>
 
     <div class="part-b">
-        <h2>7. Population, New Users and Gender</h2>
+        <h2>{{ 7 + $sectionOffset }}. Population, New Users and Gender</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
         <div class="data-note">Student and employee population totals are current account counts; new-user counts use registration dates in this Coverage Period. Student and employee form-based breakdowns use accounts registered in this Coverage Period because the forms do not retain historical versions. All outputs are aggregate-only.</div>
 
@@ -274,7 +279,7 @@
             <div class="data-note"><strong>Data logic:</strong> Filter by employee role and employee_category. f = distinct employee count; row % and N follow the standard Male/Female rule stated below the table. Sex values other than Male/Female are excluded from the standard table denominator. Status counts use Active/Rejected/Pending. Any Gender/SOGIESC cell f &lt; 5 displays "&lt;5".</div>
         </div>
 
-        <h2>8. Student Reports</h2>
+        <h2>{{ 8 + $sectionOffset }}. Student Reports</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
 
         <div class="page-section">
@@ -316,7 +321,7 @@
             <div class="data-note"><strong>Data logic:</strong> Yes/No normalized from gad_training_attended. f = distinct students; row % and N follow the standard rule. Small-cell rule applies.</div>
         </div>
 
-        <h2>9. Employee Reports</h2>
+        <h2>{{ 9 + $sectionOffset }}. Employee Reports</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
         <div class="page-section">
             <h3>9.1 Report 8: Appointment Status and Salary Grade</h3>
@@ -361,7 +366,7 @@
             <div class="data-note"><strong>Data logic:</strong> Training records are date-filtered; title rows are aggregate and contain no staff names. Records without parseable dates are excluded from this period.</div>
         </div>
 
-        <h2>10. Safe Spaces and Incident Analytics</h2>
+        <h2>{{ 10 + $sectionOffset }}. Safe Spaces and Incident Analytics</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
         <div class="page-section">
             <h3>10.1 Report 13: Departmental Incident Volume and Ranking</h3>
@@ -422,7 +427,7 @@
             <div class="data-note"><strong>Data logic:</strong> Complainant Sex/Gender comes from linked-user fields or reports.gender fallback. Respondent Sex/Gender and Student-to-Student, Employee-to-Student, Employee-to-Employee relationship fields are pending; no respondent identity is inferred.</div>
         </div>
 
-        <h2>11. Suggestions and Satisfaction by Sex and Gender</h2>
+        <h2>{{ 11 + $sectionOffset }}. Suggestions and Satisfaction by Sex and Gender</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
         <div class="page-section">
             <h3>11.1 Suggestions by Category and Sex/Gender</h3>
@@ -467,7 +472,7 @@
             <div class="data-note"><strong>Data logic:</strong> Average = mean of valid ratings; favorable % = responses rated 3 or 4 ÷ valid responses × 100.0. Groups below N = 5 are omitted. Only aggregate outputs are shown.</div>
         </div>
 
-        <h2>12. Findings and Recommendations (Automated)</h2>
+        <h2>{{ 12 + $sectionOffset }}. Findings and Recommendations (Automated)</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
         @php
             $largestStudentGroup = collect($sexDisaggregatedData['reports'][1])->sortByDesc('total')->first();
@@ -491,7 +496,7 @@
         </tbody></table>
         <div class="data-note">Findings are generated from the database aggregates above. Recommendation thresholds are prompts for administrator review, not conclusions about actual causes or outcomes.</div>
 
-        <h2>13. Annex: Data Dictionary and Traceability</h2>
+        <h2>{{ 13 + $sectionOffset }}. Annex: Data Dictionary and Traceability</h2>
         <div class="report-meta"><strong>Coverage Period:</strong> {{ $data['period_label'] }} ({{ $data['start_date'] }} – {{ $data['end_date'] }})</div>
         <table class="sex-table"><thead><tr><th>Field</th><th>Source Form</th><th>Database Column Placeholder</th><th>Allowed Values</th><th>Report</th></tr></thead><tbody>
             <tr><td>Sex</td><td>Student / Faculty and Non-Teaching Information Sheet</td><td>@{{users.personal_information.sex}}</td><td>Male; Female; Prefer Not to Say</td><td>7-12</td></tr>

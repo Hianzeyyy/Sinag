@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\ExportGADReportController;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -131,6 +132,115 @@ class GadReportExportTest extends TestCase
             $workbook->close();
             @unlink($workbookPath);
         }
+    }
+
+    public function test_registered_users_export_excludes_the_gad_coordinator(): void
+    {
+        User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@psu.edu.ph',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        User::create([
+            'name' => 'Student Example',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_type' => 'student',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = app(ExportGADReportController::class)->export('excel', '30days');
+        $workbookPath = $response->getFile()->getPathname();
+        $workbook = new ZipArchive;
+
+        try {
+            $this->assertSame(true, $workbook->open($workbookPath));
+            $usersSheet = $workbook->getFromName('xl/worksheets/sheet2.xml');
+            $this->assertStringContainsString('Student Example', $usersSheet);
+            $this->assertStringNotContainsString('GAD Coordinator', $usersSheet);
+            $this->assertStringNotContainsString('gadcoordinator@psu.edu.ph', $usersSheet);
+        } finally {
+            $workbook->close();
+            @unlink($workbookPath);
+        }
+    }
+
+    public function test_coordinator_exports_omit_registered_users_data(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@psu.edu.ph',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        User::create([
+            'name' => 'Student Example',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_type' => 'student',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($coordinator);
+        $response = app(ExportGADReportController::class)->export('excel', '30days');
+        $workbookPath = $response->getFile()->getPathname();
+        $workbook = new ZipArchive;
+
+        try {
+            $this->assertSame(true, $workbook->open($workbookPath));
+            $workbookXml = $workbook->getFromName('xl/workbook.xml');
+            $summarySheet = $workbook->getFromName('xl/worksheets/sheet1.xml');
+            $this->assertStringNotContainsString('name="Users"', $workbookXml);
+            $this->assertStringContainsString('Incident Reports', $workbookXml);
+            $this->assertStringNotContainsString('New Registered Users', $summarySheet);
+            $this->assertStringContainsString('Incidents Reported', $summarySheet);
+        } finally {
+            $workbook->close();
+            @unlink($workbookPath);
+        }
+    }
+
+    public function test_coordinator_pdf_omits_the_registered_users_section(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@psu.edu.ph',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $pdf = \Mockery::mock(\Barryvdh\DomPDF\PDF::class);
+        $pdf->shouldReceive('setPaper')->once()->with('a4', 'portrait')->andReturnSelf();
+        $pdf->shouldReceive('download')->once()->andReturn(response('PDF'));
+        Pdf::shouldReceive('loadView')
+            ->once()
+            ->withArgs(function (string $viewName, array $viewData): bool {
+                $html = view($viewName, $viewData)->render();
+
+                $this->assertStringNotContainsString('Registered Users', $html);
+                $this->assertStringNotContainsString('New Registered Users', $html);
+                $this->assertStringContainsString('1. Incident Reports', $html);
+
+                return true;
+            })
+            ->andReturn($pdf);
+
+        $this->actingAs($coordinator);
+        app(ExportGADReportController::class)->export('pdf', '30days');
     }
 
     public function test_cyber_harassment_table_uses_linked_database_department_sex_and_status_values(): void
