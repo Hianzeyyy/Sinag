@@ -14,11 +14,6 @@ return new class extends Migration
 
         $gadAdminIds = DB::table('users')
             ->whereRaw('LOWER(TRIM(COALESCE(role, ?))) = ?', ['', 'admin'])
-            ->where(function ($query) {
-                $query->whereNull('account_type')
-                    ->orWhereRaw('LOWER(TRIM(COALESCE(account_type, ?))) != ?', ['', 'coordinator']);
-            })
-            ->whereRaw('LOWER(TRIM(COALESCE(email, ?))) != ?', ['', 'gadcoordinator@psu.edu.ph'])
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
@@ -30,7 +25,7 @@ return new class extends Migration
         DB::table('messages')
             ->where(function ($query) use ($gadAdminIds) {
                 $query->whereIn('sender_id', $gadAdminIds)
-                    ->orWhereIn('receiver_id', $gadAdminIds);
+                    ->whereIn('receiver_id', $gadAdminIds);
             })
             ->delete();
     }
