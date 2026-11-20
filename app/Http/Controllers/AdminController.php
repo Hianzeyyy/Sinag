@@ -51,12 +51,24 @@ class AdminController extends Controller
                 ->get();
             $reportCountsByStatus = $reportStatusCounts->pluck('total', 'status');
             $totalReports = (int) $reportStatusCounts->sum('total');
+            $registeredUserSummary = User::query()
+                ->selectRaw("
+                    COUNT(*) as total,
+                    SUM(CASE WHEN LOWER(TRIM(COALESCE(account_status, 'active'))) IN ('active', 'approved') THEN 1 ELSE 0 END) as active,
+                    SUM(CASE WHEN LOWER(TRIM(COALESCE(account_status, ''))) = 'pending' THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN LOWER(TRIM(COALESCE(account_status, ''))) = 'rejected' THEN 1 ELSE 0 END) as rejected,
+                    SUM(CASE WHEN LOWER(TRIM(COALESCE(NULLIF(TRIM(account_type), ''), role, ''))) = 'student' THEN 1 ELSE 0 END) as students,
+                    SUM(CASE WHEN LOWER(TRIM(COALESCE(NULLIF(TRIM(account_type), ''), role, ''))) = 'employee' THEN 1 ELSE 0 END) as employees,
+                    SUM(CASE WHEN LOWER(TRIM(COALESCE(role, ''))) = 'admin' THEN 1 ELSE 0 END) as administrators
+                ")
+                ->first();
 
             return view('admin.coordinator-dashboard', compact(
                 'reportStatusCounts',
                 'reportNatureCounts',
                 'reportCountsByStatus',
-                'totalReports'
+                'totalReports',
+                'registeredUserSummary'
             ));
         }
 
