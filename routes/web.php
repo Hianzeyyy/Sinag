@@ -16,6 +16,7 @@ use App\Http\Controllers\SuggestionReportController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Admin\PasswordResetRequestController;
 use App\Http\Controllers\CustomerSatisfactionController;
+use App\Http\Controllers\UserDirectoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +48,7 @@ Route::get('/users/{user}/profile-photo', [ProfileController::class, 'profilePho
 
 // --- AUTHENTICATED USERS ONLY ---
 Route::middleware(['auth', 'account.active'])->group(function () {
+    Route::get('/users', [UserDirectoryController::class, 'index'])->name('users.directory');
 
     // The coordinator shares the GAD analytics dashboard and report export, but not admin tools.
     Route::prefix('admin')->name('admin.')->middleware('can:gad-analytics-access')->group(function () {

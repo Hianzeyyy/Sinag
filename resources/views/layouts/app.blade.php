@@ -1891,6 +1891,9 @@
                     <a href="{{ route('admin.users') }}" class="nav-link-custom {{ Request::is('admin/users*') ? 'active' : '' }}">
                         <i class="bi bi-people-fill"></i> User Management @if(($adminNotifications['users'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['users'] }}</span>@endif
                     </a>
+                    <a href="{{ route('users.directory') }}" class="nav-link-custom {{ Request::is('users') ? 'active' : '' }}">
+                        <i class="bi bi-person-lines-fill"></i> Community Directory
+                    </a>
                     <a href="{{ route('admin.password-resets.index') }}" class="nav-link-custom {{ Request::is('admin/password-reset-requests*') ? 'active' : '' }}">
                         <i class="bi bi-key-fill"></i> Password Reset Requests @if(($adminNotifications['password_resets'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['password_resets'] }}</span>@endif
                     </a>
@@ -1937,9 +1940,15 @@
                         <a href="{{ route('admin.dashboard') }}" class="nav-link-custom {{ Request::is('admin/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-bar-chart-fill"></i> GAD Report Analytics
                         </a>
+                        <a href="{{ route('users.directory') }}" class="nav-link-custom {{ Request::is('users') ? 'active' : '' }}">
+                            <i class="bi bi-person-lines-fill"></i> Community Directory
+                        </a>
                         @else
                         <a href="{{ route('student.dashboard') }}" class="nav-link-custom {{ Request::is('student/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-house-door-fill"></i> Dashboard
+                        </a>
+                        <a href="{{ route('users.directory') }}" class="nav-link-custom {{ Request::is('users') ? 'active' : '' }}">
+                            <i class="bi bi-person-lines-fill"></i> Community Directory
                         </a>
                         @if(Auth::user()->hasCompletedPersonalData())
                         <a href="{{ route('student.report') }}" class="nav-link-custom {{ Request::is('student/report*') ? 'active' : '' }}">
@@ -2035,12 +2044,20 @@
                                     <i class="bi bi-bar-chart-fill"></i>
                                     <span>GAD Report Analytics</span>
                                 </a>
+                                <a href="{{ route('users.directory') }}" class="student-nav-link {{ Request::is('users') ? 'active' : '' }}">
+                                    <i class="bi bi-person-lines-fill"></i>
+                                    <span>Community Directory</span>
+                                </a>
                             </nav>
                         @else
                             <nav class="student-top-nav me-3" aria-label="Student main navigation">
                                 <a href="{{ route('student.dashboard') }}" class="student-nav-link {{ Request::is('student/dashboard*') ? 'active' : '' }}" aria-label="Dashboard" title="Dashboard">
                                     <i class="bi bi-house-door-fill"></i>
                                     <span>Dashboard</span>
+                                </a>
+                                <a href="{{ route('users.directory') }}" class="student-nav-link {{ Request::is('users') ? 'active' : '' }}" aria-label="Community Directory" title="Community Directory">
+                                    <i class="bi bi-person-lines-fill"></i>
+                                    <span>Community</span>
                                 </a>
 
                                 <div class="dropdown d-inline-block">

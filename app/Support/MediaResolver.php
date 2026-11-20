@@ -17,7 +17,16 @@ class MediaResolver
             return null;
         }
 
-        $clean = ltrim(str_replace('\\', '/', $path), '/');
+        $clean = ltrim(str_replace('\\', '/', trim($path)), '/');
+
+        if (preg_match('#(?:^|/)(?:storage/app/(?:public|private)|app/(?:public|private)|public/storage)/#i', $clean, $match, PREG_OFFSET_CAPTURE)) {
+            $clean = substr($clean, $match[0][1] + strlen($match[0][0]));
+        }
+
+        $segments = explode('/', $clean);
+        if ($clean === '' || in_array('', $segments, true) || in_array('.', $segments, true) || in_array('..', $segments, true)) {
+            return null;
+        }
 
         $candidates = [
             Storage::disk('public')->path($clean),
