@@ -5,6 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $sender_id
+ * @property int $receiver_id
+ * @property string $message
+ * @property string|null $original_message
+ */
 class Message extends Model
 {
     use HasFactory;

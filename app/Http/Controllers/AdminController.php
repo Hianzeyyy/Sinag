@@ -83,7 +83,7 @@ class AdminController extends Controller
                                 ->take(5)
                                 ->get();
 
-        $officeInfo = \Illuminate\Support\Facades\Cache::get('gad_office_info', [
+        $officeInfo = Cache::get('gad_office_info', [
             'phone_number' => Auth::user()->phone_number ?: '0919-777-7377',
             'office_hours' => 'Mon – Fri, 8:00 AM – 5:00 PM',
             'office_location' => 'Admin Building, Room 105',
@@ -998,7 +998,7 @@ class AdminController extends Controller
     public function deleteReport($id)
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
-        $report = \App\Models\Report::findOrFail($id);
+        $report = Report::findOrFail($id);
         $report->delete();
         return redirect()->back()->with('success', 'Report deleted successfully.');
     }
@@ -1262,7 +1262,7 @@ class AdminController extends Controller
         }
         $user->save();
 
-        \Illuminate\Support\Facades\Cache::forever('gad_office_info', [
+        Cache::forever('gad_office_info', [
             'phone_number' => $validated['phone_number'],
             'office_hours' => $validated['office_hours'] ?? 'Mon – Fri, 8:00 AM – 5:00 PM',
             'office_location' => $validated['office_location'] ?? 'Admin Building, Room 105',

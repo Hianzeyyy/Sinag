@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int|null $comment_id
+ */
 class SuggestionReport extends Model
 {
     protected $fillable = ['reporter_id', 'suggestion_id', 'comment_id', 'reason', 'status', 'reviewed_by', 'reviewed_at'];
