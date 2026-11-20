@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Mail\AccountStatusMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -900,10 +901,13 @@ class AdminController extends Controller
     /**
      * Approve newly registered user account.
      */
-    public function approveUser($id)
+    public function approveUser(Request $request, $id)
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
+        $validated = $request->validate([
+            'approval_note' => ['nullable', 'string', 'max:2000'],
+        ]);
         $user = User::findOrFail($id);
 
         \DB::table('users')->where('id', $user->id)->update([
@@ -917,19 +921,20 @@ class AdminController extends Controller
         \Log::info('SINAG account approved', ['user_id' => $user->id, 'admin_id' => Auth::id()]);
 
         try {
-            Mail::raw(
-                "Hello {$user->name},\n\nYour SINAG account has been approved and is now active. You may sign in using your institutional email and password.\n\nThank you.",
-                function ($message) use ($user) {
-                    $message->from(config('mail.from.address'), config('mail.from.name'))
-                        ->to($user->email)
-                        ->subject('SINAG Account Approved');
-                }
-            );
+            Mail::to($user->email)->send(new AccountStatusMail(
+                $user->name,
+                'approved',
+                $validated['approval_note'] ?? null,
+            ));
         } catch (\Throwable $exception) {
-            report($exception);
-            \Log::warning('Approval email failed for user ' . $user->id . ': ' . $exception->getMessage());
+            Log::error('SINAG account approval email failed', [
+                'user_id' => $user->id,
+                'admin_id' => Auth::id(),
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
 
-            return redirect('/admin/users')->with('error', 'Account approved, but the notification email could not be sent. Please check the mail configuration and contact the user.');
+            return redirect('/admin/users')->with('warning', 'Account approved, but the notification email could not be sent. Check the mail configuration and contact the user.');
         }
 
         return redirect('/admin/users')->with('success', 'User account approved successfully and the user was notified by email.');
@@ -944,7 +949,10 @@ class AdminController extends Controller
 
         $user = User::findOrFail($id);
 
-        $reason = $request->input('rejection_reason');
+        $validated = $request->validate([
+            'rejection_reason' => ['nullable', 'string', 'max:2000'],
+        ]);
+        $reason = $validated['rejection_reason'] ?? null;
 
         \DB::table('users')->where('id', $user->id)->update([
             'account_status'   => 'rejected',
@@ -955,22 +963,21 @@ class AdminController extends Controller
         ]);
         $this->revokeUserAccess($user);
 
-        $reasonText = $reason ? "Reason: {$reason}\n\n" : '';
-
         try {
-            Mail::raw(
-                "Hello {$user->name},\n\nYour SINAG account has been rejected and is not active.\n{$reasonText}Please coordinate with the GAD office for the next steps.\n\nThank you.",
-                function ($message) use ($user) {
-                    $message->from(config('mail.from.address'), config('mail.from.name'))
-                        ->to($user->email)
-                        ->subject('SINAG Account Rejected');
-                }
-            );
+            Mail::to($user->email)->send(new AccountStatusMail(
+                $user->name,
+                'rejected',
+                $reason,
+            ));
         } catch (\Throwable $exception) {
-            report($exception);
-            \Log::warning('Rejection email failed for user ' . $user->id . ': ' . $exception->getMessage());
+            Log::error('SINAG account rejection email failed', [
+                'user_id' => $user->id,
+                'admin_id' => Auth::id(),
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
 
-            return back()->with('error', 'Account rejected, but the notification email could not be sent. Please check the mail configuration and contact the user.');
+            return back()->with('warning', 'Account rejected, but the notification email could not be sent. Check the mail configuration and contact the user.');
         }
 
         return back()->with('success', "User {$user->name} has been rejected and notified by email.");

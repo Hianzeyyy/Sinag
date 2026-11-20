@@ -123,6 +123,9 @@
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
+    @if(session('warning'))
+        <div class="alert alert-warning" role="alert">{{ session('warning') }}</div>
+    @endif
 
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
         <div style="height: 5px; background: linear-gradient(90deg, #A594F9, #c4b5fd);"></div>
@@ -202,7 +205,7 @@
                 <div id="viewUserIdPictureWrap" class="mt-4 d-none"><div class="small text-muted fw-bold text-uppercase mb-2">ID Picture</div><img id="viewUserIdPicture" src="" alt="Selected user's ID picture" class="img-fluid rounded-3 border" style="max-height:320px;object-fit:contain;"><p id="viewUserIdPictureError" class="small text-muted mt-2 mb-0 d-none">The ID picture could not be loaded from storage.</p></div>
                 <div class="text-muted small mt-4"><i class="bi bi-calendar-event me-1"></i>Registered <span id="viewUserJoined"></span></div>
             </div>
-            <div class="modal-footer border-0 bg-light justify-content-between"><div class="d-flex gap-2"><a id="viewPersonalDataLink" href="#" class="btn btn-outline-secondary"><i class="bi bi-person-vcard me-1"></i>Full personal information</a><form id="viewApproveForm" method="POST" class="d-none">@csrf<button type="submit" class="btn" style="background:#8f72f5;color:#fff;"><i class="bi bi-check-circle me-1"></i>Approve</button></form><form id="viewRejectForm" method="POST" class="d-none">@csrf<input type="hidden" name="rejection_reason" value="Rejected by administrator"><button type="submit" class="btn btn-warning"><i class="bi bi-x-circle me-1"></i>Reject</button></form></div><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+            <div class="modal-footer border-0 bg-light justify-content-between"><div class="d-flex gap-2"><a id="viewPersonalDataLink" href="#" class="btn btn-outline-secondary"><i class="bi bi-person-vcard me-1"></i>Full personal information</a><form id="viewApproveForm" method="POST" class="d-none">@csrf<input type="text" name="approval_note" class="form-control form-control-sm mb-2" maxlength="2000" placeholder="Optional approval note" aria-label="Optional approval note"><button type="submit" class="btn" style="background:#8f72f5;color:#fff;"><i class="bi bi-check-circle me-1"></i>Approve</button></form><form id="viewRejectForm" method="POST" class="d-none">@csrf<input type="hidden" name="rejection_reason" value="Rejected by administrator"><button type="submit" class="btn btn-warning"><i class="bi bi-x-circle me-1"></i>Reject</button></form></div><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
         </div>
     </div>
 </div>

@@ -94,6 +94,11 @@
             <i class="bi bi-exclamation-circle-fill me-1"></i> {{ session('error') }}
         </div>
     @endif
+    @if(session('warning'))
+        <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ session('warning') }}
+        </div>
+    @endif
 
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
         <div style="height: 5px; background: linear-gradient(90deg, #A594F9, #c4b5fd);"></div>
@@ -180,6 +185,7 @@
                                 @if($user->role !== 'admin' && ($user->account_status ?? 'pending') === 'pending')
                                     <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" class="d-inline">
                                         @csrf
+                                        <input type="text" name="approval_note" class="form-control form-control-sm d-inline-block align-middle" style="width:160px;" maxlength="2000" placeholder="Optional approval note" aria-label="Optional approval note">
                                         <button type="submit" class="btn btn-sm rounded-pill px-3" style="background:#8f72f5;color:#fff;border:0;">Approve</button>
                                     </form>
 
@@ -240,7 +246,7 @@
                                         <a href="{{ route('admin.users.personal-data', $user->id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-person-vcard me-1"></i>Full personal information</a>
                                         @if($user->role !== 'admin' && $accountStatus === 'pending')
                                             <div class="d-flex gap-2">
-                                                <form action="{{ route('admin.users.approve', $user->id) }}" method="POST">@csrf<button class="btn btn-sm" style="background:#8f72f5;color:#fff;">Approve</button></form>
+                                                <form action="{{ route('admin.users.approve', $user->id) }}" method="POST">@csrf<input type="text" name="approval_note" class="form-control form-control-sm mb-2" maxlength="2000" placeholder="Optional approval note" aria-label="Optional approval note"><button class="btn btn-sm" style="background:#8f72f5;color:#fff;">Approve</button></form>
                                                 <form action="{{ route('admin.users.reject', $user->id) }}" method="POST" class="reject-user-form">@csrf<input type="hidden" name="rejection_reason" value=""><button class="btn btn-sm" style="background:#facc15;color:#4a3500;">Reject</button></form>
                                             </div>
                                         @endif
