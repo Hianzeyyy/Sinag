@@ -51,6 +51,32 @@ class AdminAccountNotificationTest extends TestCase
         );
     }
 
+    public function test_approval_succeeds_when_optional_audit_columns_are_missing(): void
+    {
+        Schema::create('users', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('role');
+            $table->string('account_status')->nullable();
+            $table->timestamps();
+        });
+
+        $admin = $this->createUser('GAD Admin', 'admin@example.test', 'admin', 'active');
+        $user = $this->createUser('Student User', 'student@example.test', 'student', 'pending');
+        Mail::fake();
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.approve', $user->id))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'account_status' => 'active']);
+        Mail::assertSent(AccountStatusMail::class, fn (AccountStatusMail $mail): bool =>
+            $mail->hasTo($user->email) && $mail->status === 'approved'
+        );
+    }
+
     public function test_rejecting_an_account_emails_the_institutional_address(): void
     {
         $this->createAccountSchema();

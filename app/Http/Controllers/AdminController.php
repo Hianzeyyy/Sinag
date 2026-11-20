@@ -910,13 +910,7 @@ class AdminController extends Controller
         ]);
         $user = User::findOrFail($id);
 
-        \DB::table('users')->where('id', $user->id)->update([
-            'account_status'   => 'active',
-            'approved_at'      => now(),
-            'approved_by'      => Auth::id(),
-            'rejection_reason' => null,
-            'updated_at'       => now(),
-        ]);
+        $this->updateAccountStatus($user, 'active');
 
         \Log::info('SINAG account approved', ['user_id' => $user->id, 'admin_id' => Auth::id()]);
 
@@ -954,13 +948,7 @@ class AdminController extends Controller
         ]);
         $reason = $validated['rejection_reason'] ?? null;
 
-        \DB::table('users')->where('id', $user->id)->update([
-            'account_status'   => 'rejected',
-            'approved_at'      => null,
-            'approved_by'      => Auth::id(),
-            'rejection_reason' => $reason,
-            'updated_at'       => now(),
-        ]);
+        $this->updateAccountStatus($user, 'rejected', $reason);
         $this->revokeUserAccess($user);
 
         try {
@@ -981,6 +969,27 @@ class AdminController extends Controller
         }
 
         return back()->with('success', "User {$user->name} has been rejected and notified by email.");
+    }
+
+    private function updateAccountStatus(User $user, string $status, ?string $reason = null): void
+    {
+        $updates = [
+            'account_status' => $status,
+            'updated_at' => now(),
+        ];
+        $optionalColumns = [
+            'approved_at' => $status === 'active' ? now() : null,
+            'approved_by' => Auth::id(),
+            'rejection_reason' => $reason,
+        ];
+
+        foreach ($optionalColumns as $column => $value) {
+            if (Schema::hasColumn('users', $column)) {
+                $updates[$column] = $value;
+            }
+        }
+
+        \DB::table('users')->where('id', $user->id)->update($updates);
     }
 
     /**
