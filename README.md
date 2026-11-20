@@ -151,6 +151,15 @@ The archive is stored privately under the `media-backups/` prefix in the
 configured S3-compatible bucket. PDF and other non-image report evidence is not
 included. The command is manual and does not run on a schedule.
 
+## One-time account removal migration
+
+The migration `2026_11_20_000003_delete_configured_user` removes only the
+non-admin account whose email matches `USER_EMAIL_TO_DELETE`, including its
+database-cascaded records and associated uploaded media. Set this variable in
+the production environment before deploying, then remove it after the migration
+has run. The target email is intentionally not stored in the repository. The
+migration cannot be rolled back to restore deleted data.
+
 Render can alternatively use an attached persistent disk mounted at
 `/var/www/html/storage/app`; retain the default storage paths or set
 `PRIVATE_STORAGE_PATH=/var/www/html/storage/app/private` and
