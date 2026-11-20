@@ -142,6 +142,9 @@ class User extends Authenticatable
     public function isGadCoordinator(): bool
     {
         return strtolower(trim((string) $this->role)) === 'admin'
-            && strtolower(trim((string) $this->account_type)) === 'coordinator';
+            && (
+                strtolower(trim((string) $this->account_type)) === 'coordinator'
+                || strtolower(trim((string) $this->email)) === 'gadcoordinator@psu.edu.ph'
+            );
     }
 }

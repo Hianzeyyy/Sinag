@@ -74,10 +74,17 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
     public function test_gad_coordinator_is_excluded_from_admin_access_gate(): void
     {
         $coordinator = new User(['role' => 'admin', 'account_type' => 'coordinator']);
+        $legacyCoordinator = new User([
+            'role' => 'admin',
+            'account_type' => 'admin',
+            'email' => 'gadcoordinator@psu.edu.ph',
+        ]);
         $administrator = new User(['role' => 'admin', 'account_type' => 'admin']);
 
         $this->assertFalse(Gate::forUser($coordinator)->allows('admin-access'));
         $this->assertTrue(Gate::forUser($coordinator)->allows('gad-analytics-access'));
+        $this->assertFalse(Gate::forUser($legacyCoordinator)->allows('admin-access'));
+        $this->assertTrue(Gate::forUser($legacyCoordinator)->allows('gad-analytics-access'));
         $this->assertTrue(Gate::forUser($administrator)->allows('admin-access'));
     }
 }
