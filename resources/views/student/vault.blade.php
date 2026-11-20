@@ -152,7 +152,11 @@
                                                     'Dismissed' => 'bg-secondary text-white'
                                                 ][$report->status] ?? 'bg-dark';
                                             @endphp
-                                            <span class="badge {{ $statusClass }} py-2 px-3 rounded-pill vault-status">{{ $report->status }}</span>
+                                            @if(in_array((int) $report->id, $pendingReportSurveyIds, true))
+                                                <button type="button" class="badge {{ $statusClass }} py-2 px-3 rounded-pill vault-status border-0" style="cursor:pointer; font-family:inherit;" title="Click to rate this report" aria-label="Open satisfaction survey for report {{ $report->incident_id }}" data-report-survey-id="{{ $report->id }}">{{ $report->status }}</button>
+                                            @else
+                                                <span class="badge {{ $statusClass }} py-2 px-3 rounded-pill vault-status">{{ $report->status }}</span>
+                                            @endif
                                             <div class="mt-2">
                                                 @if($report->is_anonymous)
                                                     <span class="badge bg-dark rounded-pill" title="Filed Anonymously">
@@ -167,7 +171,7 @@
                                         $modalId = 'reportModal-' . $report->id . '-' . uniqid();
                                     @endphp
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-light btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#{{ $modalId }}" @if(in_array((int) $report->id, $pendingReportSurveyIds, true)) data-report-survey-id="{{ $report->id }}" @endif>View Details</button>
+                                        <button type="button" class="btn btn-light btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#{{ $modalId }}">View Details</button>
                                         @if($report->status == 'Pending')
                                             <button class="btn btn-sm rounded-pill px-3 fw-bold" style="color:#7658df; border:1px solid #a594f9; background:#f3efff;">Cancel Report</button>
                                         @endif
@@ -245,9 +249,6 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            @if(in_array((int) $report->id, $pendingReportSurveyIds, true))
-                                                <p class="small text-muted mt-3 mb-0">Close these details to continue to the satisfaction survey.</p>
-                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -331,18 +332,13 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('[data-report-survey-id]').forEach(function (button) {
-            const detailsModal = document.querySelector(button.dataset.bsTarget);
-            if (!detailsModal) return;
-
-            detailsModal.addEventListener('shown.bs.modal', function () {
+            button.addEventListener('click', function () {
                 const surveyModal = document.getElementById('customerSatisfactionModal');
-                if (!window.bootstrap?.Modal || !surveyModal || !detailsModal) return;
+                if (!window.bootstrap?.Modal || !surveyModal) return;
 
                 surveyModal.querySelector('[name="subject"]').value = 'report';
                 surveyModal.querySelector('[name="subject_id"]').value = button.dataset.reportSurveyId;
-                detailsModal.addEventListener('hidden.bs.modal', function () {
-                    bootstrap.Modal.getOrCreateInstance(surveyModal).show();
-                }, { once: true });
+                bootstrap.Modal.getOrCreateInstance(surveyModal).show();
             });
         });
     });
