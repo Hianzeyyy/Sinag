@@ -29,6 +29,8 @@ class VerificationImageAccessTest extends TestCase
         Storage::fake('local');
         Storage::fake('public');
         Storage::disk('local')->put('verification/selfie/student.png', 'test image');
+        Storage::disk('local')->put('verification/id/student.png', 'test ID image');
+        Storage::disk('public')->put('profile-photos/student.png', 'test profile image');
 
         $student = User::create([
             'name' => 'Test Student',
@@ -36,6 +38,8 @@ class VerificationImageAccessTest extends TestCase
             'password' => 'password',
             'role' => 'student',
             'selfie_image_path' => 'verification/selfie/student.png',
+            'id_image_path' => 'C:\\legacy-app\\storage\\app\\private\\verification\\id\\student.png',
+            'profile_photo_path' => 'C:\\legacy-app\\storage\\app\\public\\profile-photos\\student.png',
         ]);
 
         $admin = User::create([
@@ -59,9 +63,14 @@ class VerificationImageAccessTest extends TestCase
             $this->assertStringContainsString(mb_substr($user->name, 0, 1), $avatarResponse->getContent());
         }
 
-        $this->actingAs($admin)
+        $idImageResponse = $this->actingAs($admin)
             ->get(route('profile.verification-image', $student))
             ->assertOk();
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\BinaryFileResponse::class, $idImageResponse->baseResponse);
+        $this->assertSame(
+            Storage::disk('local')->path('verification/id/student.png'),
+            $idImageResponse->baseResponse->getFile()->getPathname()
+        );
 
         $this->actingAs($student)
             ->get(route('profile.verification-image', $student))
@@ -70,6 +79,17 @@ class VerificationImageAccessTest extends TestCase
         $this->actingAs($otherStudent)
             ->get(route('profile.verification-image', $student))
             ->assertForbidden();
+
+        $photoResponse = $this->actingAs($otherStudent)
+            ->get(route('profile.photo', $student))
+            ->assertOk();
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\BinaryFileResponse::class, $photoResponse->baseResponse);
+        $this->assertSame(
+            Storage::disk('public')->path('profile-photos/student.png'),
+            $photoResponse->baseResponse->getFile()->getPathname()
+        );
+        $this->assertStringContainsString('private', $photoResponse->headers->get('Cache-Control'));
+        $this->assertStringContainsString('no-store', $photoResponse->headers->get('Cache-Control'));
 
         $this->actingAs($student)
             ->post(route('profile.photo.update'), [
@@ -80,12 +100,6 @@ class VerificationImageAccessTest extends TestCase
         $student->refresh();
         $this->assertNotEmpty($student->profile_photo_path);
         $this->assertTrue(Storage::disk('public')->exists($student->profile_photo_path));
-
-        $photoResponse = $this->actingAs($otherStudent)
-            ->get(route('profile.photo', $student))
-            ->assertOk();
-        $this->assertStringContainsString('private', $photoResponse->headers->get('Cache-Control'));
-        $this->assertStringContainsString('no-store', $photoResponse->headers->get('Cache-Control'));
 
         $this->actingAs($student)
             ->post(route('profile.verification-image.update'), [

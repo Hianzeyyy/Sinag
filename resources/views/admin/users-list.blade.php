@@ -189,7 +189,7 @@
         <div class="modal-content border-0 rounded-4 shadow-lg">
             <div class="modal-header border-0 bg-light"><div><div class="small text-uppercase text-muted fw-bold">Account Profile</div><h2 class="modal-title h5 fw-bold mb-0" id="viewUserModalLabel">User details</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close user details"></button></div>
             <div class="modal-body p-4 view-modal-body">
-                <div class="d-flex align-items-center gap-3 mb-4 pb-4 border-bottom"><div id="viewUserAvatar" class="rounded-3 d-flex align-items-center justify-content-center fw-bold" style="width:88px;height:88px;background:#f3e8ff;color:#8f72f5;font-size:2rem;">U</div><div><h3 class="h4 mb-1" id="viewUserName">User</h3><p class="mb-1 text-muted" id="viewUserType"></p><p class="mb-0 small text-muted" id="viewUserId"></p></div></div>
+                <div class="d-flex align-items-center gap-3 mb-4 pb-4 border-bottom"><div class="rounded-3 d-flex align-items-center justify-content-center fw-bold overflow-hidden" style="width:88px;height:88px;background:#f3e8ff;color:#8f72f5;font-size:2rem;"><img id="viewUserAvatarImage" src="" alt="" class="w-100 h-100 object-fit-cover" hidden><span id="viewUserAvatarFallback">U</span></div><div><h3 class="h4 mb-1" id="viewUserName">User</h3><p class="mb-1 text-muted" id="viewUserType"></p><p class="mb-0 small text-muted" id="viewUserId"></p></div></div>
                 <div class="row g-3">
                     <div class="col-sm-6"><div class="bg-light rounded-3 p-3"><div class="small text-muted fw-bold text-uppercase mb-1">Cloak alias</div><div class="fw-semibold small" id="viewUserAlias"></div></div></div>
                     <div class="col-sm-6"><div class="bg-light rounded-3 p-3"><div class="small text-muted fw-bold text-uppercase mb-1">Email</div><div class="fw-semibold small" id="viewUserEmail"></div></div></div>
@@ -199,7 +199,7 @@
                     <div class="col-sm-6"><div class="bg-light rounded-3 p-3"><div class="small text-muted fw-bold text-uppercase mb-1">Gender</div><div class="fw-semibold small" id="viewUserGender"></div></div></div>
                     <div class="col-sm-6"><div class="bg-light rounded-3 p-3"><div class="small text-muted fw-bold text-uppercase mb-1">Age</div><div class="fw-semibold small" id="viewUserAge"></div></div></div>
                 </div>
-                <div id="viewUserIdPictureWrap" class="mt-4 d-none"><div class="small text-muted fw-bold text-uppercase mb-2">ID Picture</div><img id="viewUserIdPicture" src="" alt="Selected user's ID picture" class="img-fluid rounded-3 border" style="max-height:320px;object-fit:contain;"></div>
+                <div id="viewUserIdPictureWrap" class="mt-4 d-none"><div class="small text-muted fw-bold text-uppercase mb-2">ID Picture</div><img id="viewUserIdPicture" src="" alt="Selected user's ID picture" class="img-fluid rounded-3 border" style="max-height:320px;object-fit:contain;"><p id="viewUserIdPictureError" class="small text-muted mt-2 mb-0 d-none">The ID picture could not be loaded from storage.</p></div>
                 <div class="text-muted small mt-4"><i class="bi bi-calendar-event me-1"></i>Registered <span id="viewUserJoined"></span></div>
             </div>
             <div class="modal-footer border-0 bg-light justify-content-between"><div class="d-flex gap-2"><a id="viewPersonalDataLink" href="#" class="btn btn-outline-secondary"><i class="bi bi-person-vcard me-1"></i>Full personal information</a><form id="viewApproveForm" method="POST" class="d-none">@csrf<button type="submit" class="btn" style="background:#8f72f5;color:#fff;"><i class="bi bi-check-circle me-1"></i>Approve</button></form><form id="viewRejectForm" method="POST" class="d-none">@csrf<input type="hidden" name="rejection_reason" value="Rejected by administrator"><button type="submit" class="btn btn-warning"><i class="bi bi-x-circle me-1"></i>Reject</button></form></div><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
@@ -245,15 +245,32 @@
                 }
             }
             document.getElementById('viewUserModalLabel').textContent = data.userName;
-            const avatar = document.getElementById('viewUserAvatar');
-            avatar.textContent = data.userName.charAt(0).toUpperCase();
-            avatar.style.backgroundImage = data.userPhoto ? `url("${data.userPhoto}")` : '';
-            avatar.style.backgroundSize = 'cover';
-            avatar.style.backgroundPosition = 'center';
-            avatar.style.color = data.userPhoto ? 'transparent' : '#8f72f5';
+            const avatarImage = document.getElementById('viewUserAvatarImage');
+            const avatarFallback = document.getElementById('viewUserAvatarFallback');
+            avatarFallback.textContent = data.userName.charAt(0).toUpperCase();
+            avatarImage.onerror = function () {
+                avatarImage.hidden = true;
+                avatarFallback.hidden = false;
+            };
+            if (data.userPhoto) {
+                avatarImage.hidden = false;
+                avatarFallback.hidden = true;
+                avatarImage.src = data.userPhoto;
+            } else {
+                avatarImage.removeAttribute('src');
+                avatarImage.hidden = true;
+                avatarFallback.hidden = false;
+            }
             const idPictureWrap = document.getElementById('viewUserIdPictureWrap');
             const idPicture = document.getElementById('viewUserIdPicture');
+            const idPictureError = document.getElementById('viewUserIdPictureError');
+            idPicture.onerror = function () {
+                idPicture.hidden = true;
+                idPictureError.classList.remove('d-none');
+            };
             idPictureWrap.classList.toggle('d-none', !data.userIdPicture);
+            idPicture.hidden = !data.userIdPicture;
+            idPictureError.classList.add('d-none');
             idPicture.src = data.userIdPicture || '';
             const approveForm = document.getElementById('viewApproveForm');
             const rejectForm = document.getElementById('viewRejectForm');
