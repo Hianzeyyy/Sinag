@@ -77,6 +77,8 @@ class AdminUserListingTest extends TestCase
             ->get(route('admin.users'))
             ->assertOk()
             ->assertSeeText($admin->name)
-            ->assertSeeText($admin->email);
+            ->assertSeeText($admin->email)
+            ->assertDontSeeText('Community Directory')
+            ->assertDontSee('href="' . route('users.directory') . '"', false);
     }
 }
