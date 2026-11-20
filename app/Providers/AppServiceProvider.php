@@ -50,7 +50,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         view()->composer('layouts.app', function ($view): void {
-            if (!auth()->check() || auth()->user()->role !== 'admin') {
+            if (!auth()->check() || auth()->user()->role !== 'admin' || auth()->user()->isGadCoordinator()) {
                 return;
             }
 
@@ -66,6 +66,11 @@ class AppServiceProvider extends ServiceProvider
         });
         // 1. Gate para sa GAD Administrator
         Gate::define('admin-access', function (User $user) {
+            return strtolower(trim((string) $user->role)) === 'admin'
+                && !$user->isGadCoordinator();
+        });
+
+        Gate::define('gad-analytics-access', function (User $user) {
             return strtolower(trim((string) $user->role)) === 'admin';
         });
 

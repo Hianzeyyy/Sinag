@@ -1863,7 +1863,7 @@
     <div id="app" class="main-wrapper {{ request()->routeIs('splash') ? 'splash-wrapper' : '' }}">
 
         @auth
-            @if(Auth::user()->role === 'admin')
+            @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
             <aside class="sidebar" id="mainSidebar">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <a class="navbar-brand-custom mb-0" href="{{ url('/') }}" style="display:inline-flex; align-items:center; gap:0.7rem; background:#b9adf4; border-radius:1.2rem; padding:0.2em 1.1em 0.2em 1.1em;">
@@ -1919,10 +1919,10 @@
         @endauth
 
         @auth
-            @if(Auth::user()->role !== 'admin')
-                <aside class="sidebar student-sidebar" id="studentSidebar" aria-label="Student navigation">
+            @if(Auth::user()->role !== 'admin' || Auth::user()->isGadCoordinator())
+                <aside class="sidebar student-sidebar" id="studentSidebar" aria-label="{{ Auth::user()->isGadCoordinator() ? 'Coordinator' : 'Student' }} navigation">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <a class="navbar-brand-custom mb-0" href="{{ route('student.dashboard') }}" style="display:inline-flex; align-items:center; gap:.7rem; background:#f3efff; border-radius:1rem; padding:.3rem .75rem; text-decoration:none;">
+                        <a class="navbar-brand-custom mb-0" href="{{ Auth::user()->isGadCoordinator() ? route('admin.dashboard') : route('student.dashboard') }}" style="display:inline-flex; align-items:center; gap:.7rem; background:#f3efff; border-radius:1rem; padding:.3rem .75rem; text-decoration:none;">
                             <img src="{{ asset('images/gadlogo.png') }}" alt="GAD Logo" style="width:38px; height:38px; border-radius:50%; object-fit:cover;">
                             <span style="font-size:1.3rem; font-weight:900; letter-spacing:1px; line-height:1; color:#8f72f5;">SI<span style="color:#facc15;">NAG</span></span>
                         </a>
@@ -1931,8 +1931,13 @@
                         </button>
                     </div>
 
-                    <nav class="nav-menu mt-4 d-flex flex-column" aria-label="Student menu">
+                    <nav class="nav-menu mt-4 d-flex flex-column" aria-label="{{ Auth::user()->isGadCoordinator() ? 'Coordinator' : 'Student' }} menu">
                         <p class="text-uppercase small fw-bold text-muted mb-3" style="font-size:.7rem; letter-spacing:1px;">Main Menu</p>
+                        @if(Auth::user()->isGadCoordinator())
+                        <a href="{{ route('admin.dashboard') }}" class="nav-link-custom {{ Request::is('admin/dashboard*') ? 'active' : '' }}">
+                            <i class="bi bi-bar-chart-fill"></i> GAD Report Analytics
+                        </a>
+                        @else
                         <a href="{{ route('student.dashboard') }}" class="nav-link-custom {{ Request::is('student/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-house-door-fill"></i> Dashboard
                         </a>
@@ -1970,23 +1975,24 @@
                             <i class="bi bi-camera-video-fill"></i> Urgent Call
                         </a>
                         <hr class="text-muted opacity-25">
+                        @endif
                     </nav>
                 </aside>
                 <button type="button" class="sidebar-backdrop student-sidebar-backdrop d-none" id="studentSidebarBackdrop" aria-label="Close navigation menu"></button>
             @endif
         @endauth
 
-        <main class="{{ Auth::check() ? 'main-content ' . (Auth::user()->role === 'admin' ? 'admin-main' : '') . (!request()->routeIs('admin.dashboard', 'student.dashboard') ? ' page-load-motion' : '') : (request()->routeIs('login', 'register', 'password.*') ? 'auth-main' : 'container py-5') }}">
+        <main class="{{ Auth::check() ? 'main-content ' . (Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator() ? 'admin-main' : '') . (!request()->routeIs('admin.dashboard', 'student.dashboard') ? ' page-load-motion' : '') : (request()->routeIs('login', 'register', 'password.*') ? 'auth-main' : 'container py-5') }}">
             @auth
-                <header class="top-navbar {{ in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true) ? 'student-navbar' : 'admin-navbar' }}">
+                <header class="top-navbar {{ in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true) || Auth::user()->isGadCoordinator() ? 'student-navbar' : 'admin-navbar' }}">
                     <div class="d-flex align-items-center gap-3">
-                         @if(Auth::user()->role === 'admin')
+                         @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
                             <button class="sidebar-toggle" onclick="toggleSidebar()" style="background: #A594F9; color: #fff; border: none; box-shadow: 0 2px 8px rgba(165,148,249,0.15);">
                                 <i class="bi bi-list fs-5" style="color:#fff;"></i>
                             </button>
 
                         @endif
-                        @if(Auth::user()->role !== 'admin')
+                        @if(Auth::user()->role !== 'admin' || Auth::user()->isGadCoordinator())
                             <button type="button" class="student-sidebar-toggle" onclick="toggleSidebar('studentSidebar', 'studentSidebarBackdrop')" aria-label="Open navigation menu" aria-controls="studentSidebar" aria-expanded="false">
                                 <i class="bi bi-list fs-5"></i>
                             </button>
@@ -2017,12 +2023,19 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-3">
-                        @if(Auth::user()->role === 'admin')
+                        @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
                             <a href="{{ route('admin.messages') }}" class="btn btn-sm" style="background: linear-gradient(135deg, #A594F9 0%, #8f72f5 100%); color: white; border: none; border-radius: 0.85rem; padding: 0.6rem 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 4px 12px rgba(165, 148, 249, 0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(165, 148, 249, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(165, 148, 249, 0.2);'">
                                 <i class="bi bi-chat-dots-fill"></i>
                                 <span>Messages</span>
                                 <span class="nav-notification" data-admin-message-badge @if(($adminNotifications['messages'] ?? 0) < 1) hidden @endif>{{ $adminNotifications['messages'] ?? 0 }}</span>
                             </a>
+                        @elseif(Auth::user()->isGadCoordinator())
+                            <nav class="student-top-nav me-3" aria-label="Coordinator main navigation">
+                                <a href="{{ route('admin.dashboard') }}" class="student-nav-link {{ Request::is('admin/dashboard*') ? 'active' : '' }}">
+                                    <i class="bi bi-bar-chart-fill"></i>
+                                    <span>GAD Report Analytics</span>
+                                </a>
+                            </nav>
                         @else
                             <nav class="student-top-nav me-3" aria-label="Student main navigation">
                                 <a href="{{ route('student.dashboard') }}" class="student-nav-link {{ Request::is('student/dashboard*') ? 'active' : '' }}" aria-label="Dashboard" title="Dashboard">

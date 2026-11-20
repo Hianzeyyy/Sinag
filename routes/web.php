@@ -48,10 +48,14 @@ Route::get('/users/{user}/profile-photo', [ProfileController::class, 'profilePho
 // --- AUTHENTICATED USERS ONLY ---
 Route::middleware(['auth', 'account.active'])->group(function () {
 
+    // The coordinator shares the GAD analytics dashboard and report export, but not admin tools.
+    Route::prefix('admin')->name('admin.')->middleware('can:gad-analytics-access')->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+        Route::get('/gad-report/export/{format}/{period?}', [ExportGADReportController::class, 'export'])->name('gad-report.export');
+    });
+
     // --- ADMIN ROUTES ---
     Route::prefix('admin')->name('admin.')->middleware('can:admin-access')->group(function () {
-        Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
-
         Route::get('/password-reset-requests', [PasswordResetRequestController::class, 'index'])->name('password-resets.index');
         Route::get('/password-reset-requests/{passwordResetRequest}', [PasswordResetRequestController::class, 'show'])->name('password-resets.show');
         Route::get('/password-reset-requests/{passwordResetRequest}/id-picture', [PasswordResetRequestController::class, 'idPicture'])->name('password-resets.id-picture');
@@ -74,8 +78,6 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::get('/gad-schedules', [AdminController::class, 'gadSchedules'])->name('gad-schedules.index');
         Route::post('/gad-schedules/sync', [AdminController::class, 'syncGadSchedule'])->name('gad-schedules.sync');
         Route::post('/office-info', [AdminController::class, 'updateOfficeInfo'])->name('office-info.update');
-        // Export the comprehensive GAD report as PDF or Excel (admin only)
-        Route::get('/gad-report/export/{format}/{period?}', [ExportGADReportController::class, 'export'])->name('gad-report.export');
         Route::post('/gad-schedules', [AdminController::class, 'storeGadSchedule'])->name('gad-schedules.store');
         Route::put('/gad-schedules/{id}', [AdminController::class, 'updateGadSchedule'])->name('gad-schedules.update');
         Route::post('/gad-schedules/{id}/status', [AdminController::class, 'updateGadScheduleStatus'])->name('gad-schedules.status');
