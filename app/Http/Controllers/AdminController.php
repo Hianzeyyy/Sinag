@@ -442,37 +442,7 @@ class AdminController extends Controller
 
         $adminIds = $this->gadOfficeAdminIds();
         $selectedStudentId = $request->query('student_id');
-
-        $conversations = Message::whereIn('receiver_id', $adminIds)
-            ->orWhereIn('sender_id', $adminIds)
-            ->with(['sender', 'receiver'])
-            ->latest()
-            ->get()
-            ->reject(fn (Message $message) => $message->deleted_at)
-            // Older versions allowed an admin to address another admin. Do
-            // not expose those internal messages as student conversations.
-            ->filter(function ($message) use ($adminIds) {
-                $otherUser = in_array((int) $message->sender_id, $adminIds, true)
-                    ? $message->receiver
-                    : $message->sender;
-
-                return $otherUser && $this->isMessageRecipient($otherUser);
-            })
-            ->groupBy(function ($message) use ($adminIds) {
-                return in_array((int) $message->sender_id, $adminIds, true)
-                    ? $message->receiver_id
-                    : $message->sender_id;
-            })
-            ->map(function ($messages) use ($adminIds) {
-                $latestMessage = $messages->first();
-                $latestMessage->setAttribute('conversation_unread', $messages->contains(
-                    fn (Message $message) => in_array((int) $message->receiver_id, $adminIds, true)
-                        && $message->read_at === null
-                ));
-
-                return $latestMessage;
-            })
-            ->sortByDesc('created_at');
+        $conversations = $this->buildAdminConversations($adminIds);
 
         $messages = collect();
         $selectedStudent = null;
@@ -491,18 +461,69 @@ class AdminController extends Controller
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
 
-            $messages = Message::where(function ($query) use ($adminIds, $selectedStudentId) {
-                $query->where('sender_id', $selectedStudentId)
-                    ->whereIn('receiver_id', $adminIds);
-            })->orWhere(function ($query) use ($adminIds, $selectedStudentId) {
-                $query->whereIn('sender_id', $adminIds)
-                    ->where('receiver_id', $selectedStudentId);
-            })->orderBy('created_at', 'asc')->get()
-                ->reject(fn (Message $message) => $message->deleted_at)
-                ->values();
+            $messages = $this->messagesForConversation($selectedStudent, $adminIds);
         }
 
         return view('admin.messages', compact('conversations', 'messages', 'selectedStudent', 'selectedStudentId'));
+    }
+
+    private function buildAdminConversations(array $adminIds): \Illuminate\Support\Collection
+    {
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Message> $messages */
+        $messages = Message::query()
+            ->whereIn('receiver_id', $adminIds)
+            ->orWhereIn('sender_id', $adminIds)
+            ->with(['sender', 'receiver'])
+            ->latest()
+            ->get();
+
+        $conversations = collect();
+        foreach ($messages as $message) {
+            if ($message->deleted_at) {
+                continue;
+            }
+
+            $isAdminSender = in_array((int) $message->sender_id, $adminIds, true);
+            $otherUser = $isAdminSender ? $message->receiver : $message->sender;
+
+            // Older versions allowed an admin to address another admin.
+            if (!$otherUser || !$this->isMessageRecipient($otherUser)) {
+                continue;
+            }
+
+            $conversationId = $isAdminSender ? $message->receiver_id : $message->sender_id;
+            if (!$conversations->has($conversationId)) {
+                $message->setAttribute('conversation_unread', false);
+                $conversations->put($conversationId, $message);
+            }
+
+            if (in_array((int) $message->receiver_id, $adminIds, true) && $message->read_at === null) {
+                $latestMessage = $conversations->get($conversationId);
+                if ($latestMessage instanceof Message) {
+                    $latestMessage->setAttribute('conversation_unread', true);
+                }
+            }
+        }
+
+        return $conversations->sortByDesc('created_at');
+    }
+
+    private function messagesForConversation(User $student, array $adminIds): \Illuminate\Support\Collection
+    {
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Message> $messages */
+        $messages = Message::query()
+            ->where(function ($query) use ($student, $adminIds) {
+                $query->where('sender_id', $student->id)
+                    ->whereIn('receiver_id', $adminIds);
+            })
+            ->orWhere(function ($query) use ($student, $adminIds) {
+                $query->whereIn('sender_id', $adminIds)
+                    ->where('receiver_id', $student->id);
+            })
+            ->orderBy('created_at')
+            ->get();
+
+        return $messages->reject(fn (Message $message) => $message->deleted_at)->values();
     }
 
     public function searchMessageUsers(Request $request)
@@ -518,6 +539,7 @@ class AdminController extends Controller
             ->distinct()
             ->pluck('user_id');
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, User> $users */
         $users = User::query()
             ->whereIn('role', ['student', 'employee'])
             ->where(function ($query) use ($like, $term, $appointmentMatches) {
@@ -1111,6 +1133,7 @@ class AdminController extends Controller
 
         $student = User::find($validated['student_id']);
         abort_unless($student && $this->isMessageRecipient($student), 404);
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Message> $messages */
         $messages = Message::where(function ($query) use ($student, $adminIds) {
                 $query->whereIn('sender_id', $adminIds)->where('receiver_id', $student->id);
             })->orWhere(function ($query) use ($student, $adminIds) {
