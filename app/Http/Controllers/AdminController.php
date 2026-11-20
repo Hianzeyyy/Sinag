@@ -441,6 +441,7 @@ class AdminController extends Controller
             ->with(['sender', 'receiver'])
             ->latest()
             ->get()
+            ->reject(fn (Message $message) => $message->deleted_at)
             // Older versions allowed an admin to address another admin. Do
             // not expose those internal messages as student conversations.
             ->filter(function ($message) use ($adminIds) {
@@ -489,7 +490,9 @@ class AdminController extends Controller
             })->orWhere(function ($query) use ($adminIds, $selectedStudentId) {
                 $query->whereIn('sender_id', $adminIds)
                     ->where('receiver_id', $selectedStudentId);
-            })->orderBy('created_at', 'asc')->get();
+            })->orderBy('created_at', 'asc')->get()
+                ->reject(fn (Message $message) => $message->deleted_at)
+                ->values();
         }
 
         return view('admin.messages', compact('conversations', 'messages', 'selectedStudent', 'selectedStudentId'));

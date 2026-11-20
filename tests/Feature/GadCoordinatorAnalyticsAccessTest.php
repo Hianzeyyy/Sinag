@@ -66,6 +66,8 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             $table->unsignedBigInteger('sender_id');
             $table->unsignedBigInteger('receiver_id');
             $table->text('message');
+            $table->text('original_message')->nullable();
+            $table->timestamp('deleted_at')->nullable();
             $table->string('sender_type')->default('student');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
@@ -257,6 +259,43 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertOk()
             ->assertJsonCount(2, 'messages')
             ->assertJsonPath('messages.1.message', 'We received your message');
+    }
+
+    public function test_deleted_messages_are_hidden_from_coordinator_and_admin_threads(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'account_status' => 'active',
+        ]);
+        $gadAdmin = User::create([
+            'name' => 'GAD Administrator',
+            'email' => 'gadadmin@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'admin',
+            'account_status' => 'active',
+        ]);
+        $deletedMessage = \App\Models\Message::create([
+            'sender_id' => $coordinator->id,
+            'receiver_id' => $gadAdmin->id,
+            'message' => '',
+            'deleted_at' => now(),
+            'sender_type' => 'student',
+        ]);
+
+        $this->actingAs($coordinator)
+            ->get(route('student.messaging'))
+            ->assertOk()
+            ->assertDontSee('data-message-id="' . $deletedMessage->id . '"');
+
+        $this->actingAs($gadAdmin)
+            ->get(route('admin.messages', ['student_id' => $coordinator->id]))
+            ->assertOk()
+            ->assertDontSee('data-message-id="' . $deletedMessage->id . '"');
     }
 
     public function test_gad_coordinator_is_excluded_from_admin_access_gate(): void

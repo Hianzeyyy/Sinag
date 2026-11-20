@@ -431,7 +431,9 @@ class StudentController extends Controller
         })->orWhere(function ($query) use ($userId, $adminIds) {
             $query->whereIn('sender_id', $adminIds)
                 ->where('receiver_id', $userId);
-        })->orderBy('created_at', 'asc')->get();
+        })->orderBy('created_at', 'asc')->get()
+            ->reject(fn (Message $message) => $message->deleted_at)
+            ->values();
 
         $officeInfo = \Illuminate\Support\Facades\Cache::get('gad_office_info', [
             'phone_number' => $admin?->phone_number ?: '0919-777-7377',
