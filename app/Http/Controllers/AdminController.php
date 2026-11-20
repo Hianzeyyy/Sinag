@@ -433,30 +433,33 @@ class AdminController extends Controller
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
-        $adminId = Auth::id();
+        $adminIds = $this->gadOfficeAdminIds();
         $selectedStudentId = $request->query('student_id');
 
-        $conversations = Message::where('receiver_id', $adminId)
-            ->orWhere('sender_id', $adminId)
+        $conversations = Message::whereIn('receiver_id', $adminIds)
+            ->orWhereIn('sender_id', $adminIds)
             ->with(['sender', 'receiver'])
             ->latest()
             ->get()
             // Older versions allowed an admin to address another admin. Do
             // not expose those internal messages as student conversations.
-            ->filter(function ($message) use ($adminId) {
-                $otherUser = $message->sender_id == $adminId
+            ->filter(function ($message) use ($adminIds) {
+                $otherUser = in_array((int) $message->sender_id, $adminIds, true)
                     ? $message->receiver
                     : $message->sender;
 
                 return $otherUser && $this->isMessageRecipient($otherUser);
             })
-            ->groupBy(function($message) use ($adminId) {
-                return $message->sender_id == $adminId ? $message->receiver_id : $message->sender_id;
+            ->groupBy(function ($message) use ($adminIds) {
+                return in_array((int) $message->sender_id, $adminIds, true)
+                    ? $message->receiver_id
+                    : $message->sender_id;
             })
-            ->map(function($messages) use ($adminId) {
+            ->map(function ($messages) use ($adminIds) {
                 $latestMessage = $messages->first();
                 $latestMessage->setAttribute('conversation_unread', $messages->contains(
-                    fn (Message $message) => (int) $message->receiver_id === (int) $adminId && $message->read_at === null
+                    fn (Message $message) => in_array((int) $message->receiver_id, $adminIds, true)
+                        && $message->read_at === null
                 ));
 
                 return $latestMessage;
@@ -476,16 +479,16 @@ class AdminController extends Controller
             }
 
             Message::where('sender_id', $selectedStudentId)
-                ->where('receiver_id', $adminId)
+                ->whereIn('receiver_id', $adminIds)
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
 
-            $messages = Message::where(function($query) use ($adminId, $selectedStudentId) {
+            $messages = Message::where(function ($query) use ($adminIds, $selectedStudentId) {
                 $query->where('sender_id', $selectedStudentId)
-                      ->where('receiver_id', $adminId);
-            })->orWhere(function($query) use ($adminId, $selectedStudentId) {
-                $query->where('sender_id', $adminId)
-                      ->where('receiver_id', $selectedStudentId);
+                    ->whereIn('receiver_id', $adminIds);
+            })->orWhere(function ($query) use ($adminIds, $selectedStudentId) {
+                $query->whereIn('sender_id', $adminIds)
+                    ->where('receiver_id', $selectedStudentId);
             })->orderBy('created_at', 'asc')->get();
         }
 
@@ -1066,7 +1069,10 @@ class AdminController extends Controller
             'after_id' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $unreadQuery = Message::where('receiver_id', Auth::id())->whereNull('read_at');
+        $adminIds = $this->gadOfficeAdminIds();
+        $unreadQuery = Message::whereIn('receiver_id', $adminIds)
+            ->whereNotIn('sender_id', $adminIds)
+            ->whereNull('read_at');
         if (empty($validated['student_id'])) {
             $latestUnread = (clone $unreadQuery)->latest('id')->first();
 
@@ -1080,18 +1086,16 @@ class AdminController extends Controller
 
         $student = User::find($validated['student_id']);
         abort_unless($student && $this->isMessageRecipient($student), 404);
-        $messages = Message::where(function ($query) use ($student) {
-                $query->where(function ($query) use ($student) {
-                    $query->where('sender_id', Auth::id())->where('receiver_id', $student->id);
-                })->orWhere(function ($query) use ($student) {
-                    $query->where('sender_id', $student->id)->where('receiver_id', Auth::id());
-                });
+        $messages = Message::where(function ($query) use ($student, $adminIds) {
+                $query->whereIn('sender_id', $adminIds)->where('receiver_id', $student->id);
+            })->orWhere(function ($query) use ($student, $adminIds) {
+                $query->where('sender_id', $student->id)->whereIn('receiver_id', $adminIds);
             })
             ->orderBy('id')
             ->get();
 
         Message::where('sender_id', $student->id)
-            ->where('receiver_id', Auth::id())
+            ->whereIn('receiver_id', $adminIds)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
@@ -1113,6 +1117,18 @@ class AdminController extends Controller
     private function isMessageRecipient(User $user): bool
     {
         return strtolower(trim((string) $user->role)) !== 'admin' || $user->isGadCoordinator();
+    }
+
+    private function gadOfficeAdminIds(): array
+    {
+        $adminIds = User::query()
+            ->where('role', 'admin')
+            ->orderBy('id')
+            ->get()
+            ->reject(fn (User $user) => $user->isGadCoordinator())
+            ->modelKeys();
+
+        return array_map('intval', $adminIds);
     }
 
     /**

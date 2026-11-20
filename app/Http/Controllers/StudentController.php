@@ -413,22 +413,24 @@ class StudentController extends Controller
     {
         $this->authorizeGadOfficeMessaging();
         $userId = Auth::id();
-        $admin = $this->gadOfficeAdmin();
+        $admins = $this->gadOfficeAdmins();
+        $adminIds = array_map('intval', $admins->modelKeys());
+        $admin = $admins->first();
 
-        if ($admin) {
-            Message::where('sender_id', $admin->id)
+        if ($adminIds !== []) {
+            Message::whereIn('sender_id', $adminIds)
                 ->where('receiver_id', $userId)
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
         }
 
         // Get all messages between student and admin
-        $messages = Message::where(function($query) use ($userId, $admin) {
+        $messages = Message::where(function ($query) use ($userId, $adminIds) {
             $query->where('sender_id', $userId)
-                  ->where('receiver_id', $admin?->id);
-        })->orWhere(function($query) use ($userId, $admin) {
-            $query->where('sender_id', $admin?->id)
-                  ->where('receiver_id', $userId);
+                ->whereIn('receiver_id', $adminIds);
+        })->orWhere(function ($query) use ($userId, $adminIds) {
+            $query->whereIn('sender_id', $adminIds)
+                ->where('receiver_id', $userId);
         })->orderBy('created_at', 'asc')->get();
 
         $officeInfo = \Illuminate\Support\Facades\Cache::get('gad_office_info', [
@@ -584,7 +586,7 @@ class StudentController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        $admin = $this->gadOfficeAdmin();
+        $admin = $this->gadOfficeAdmins()->first();
 
         if (!$admin) {
             return response()->json(['error' => 'No admin available'], 404);
@@ -609,20 +611,18 @@ class StudentController extends Controller
     public function messageFeed(Request $request)
     {
         $this->authorizeGadOfficeMessaging();
-        $admin = $this->gadOfficeAdmin();
-        abort_unless($admin, 404, 'GAD Office is unavailable.');
-        $messages = Message::where(function ($query) use ($admin) {
-                $query->where(function ($query) use ($admin) {
-                    $query->where('sender_id', Auth::id())->where('receiver_id', $admin->id);
-                })->orWhere(function ($query) use ($admin) {
-                    $query->where('sender_id', $admin->id)->where('receiver_id', Auth::id());
-                });
+        $adminIds = array_map('intval', $this->gadOfficeAdmins()->modelKeys());
+        abort_unless($adminIds !== [], 404, 'GAD Office is unavailable.');
+        $messages = Message::where(function ($query) use ($adminIds) {
+                $query->where('sender_id', Auth::id())->whereIn('receiver_id', $adminIds);
+            })->orWhere(function ($query) use ($adminIds) {
+                $query->whereIn('sender_id', $adminIds)->where('receiver_id', Auth::id());
             })
             ->orderBy('id')
             ->get()
             ->values();
 
-        Message::where('sender_id', $admin->id)
+        Message::whereIn('sender_id', $adminIds)
             ->where('receiver_id', Auth::id())
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
@@ -642,17 +642,11 @@ class StudentController extends Controller
     public function notificationFeed()
     {
         $this->authorizeGadOfficeMessaging();
-        $admin = $this->gadOfficeAdmin();
         $unreadQuery = Message::query()
             ->where('receiver_id', Auth::id())
             ->whereNull('read_at')
-            ->whereNull('deleted_at');
-
-        if ($admin) {
-            $unreadQuery->where('sender_id', $admin->id);
-        } else {
-            $unreadQuery->whereRaw('1 = 0');
-        }
+            ->whereNull('deleted_at')
+            ->whereIn('sender_id', array_map('intval', $this->gadOfficeAdmins()->modelKeys()));
 
         $latestUnread = (clone $unreadQuery)->latest('id')->first();
         $latestCall = collect(Cache::get('urgent_calls', []))->first(
@@ -679,11 +673,11 @@ class StudentController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        $admin = $this->gadOfficeAdmin();
-        abort_unless($admin, 404, 'GAD Office is unavailable.');
+        $adminIds = array_map('intval', $this->gadOfficeAdmins()->modelKeys());
+        abort_unless($adminIds !== [], 404, 'GAD Office is unavailable.');
         $message = Message::findOrFail($id);
 
-        if ((int) $message->sender_id !== (int) Auth::id() || (int) $message->receiver_id !== (int) $admin->id) {
+        if ((int) $message->sender_id !== (int) Auth::id() || !in_array((int) $message->receiver_id, $adminIds, true)) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
@@ -701,11 +695,11 @@ class StudentController extends Controller
     public function destroyMessage(Request $request, $id)
     {
         $this->authorizeGadOfficeMessaging();
-        $admin = $this->gadOfficeAdmin();
-        abort_unless($admin, 404, 'GAD Office is unavailable.');
+        $adminIds = array_map('intval', $this->gadOfficeAdmins()->modelKeys());
+        abort_unless($adminIds !== [], 404, 'GAD Office is unavailable.');
         $message = Message::findOrFail($id);
 
-        if ((int) $message->sender_id !== (int) Auth::id() || (int) $message->receiver_id !== (int) $admin->id) {
+        if ((int) $message->sender_id !== (int) Auth::id() || !in_array((int) $message->receiver_id, $adminIds, true)) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
@@ -725,11 +719,14 @@ class StudentController extends Controller
         abort_unless($user && ($user->can('student-access') || $user->isGadCoordinator()), 403);
     }
 
-    private function gadOfficeAdmin(): ?User
+    private function gadOfficeAdmins(): \Illuminate\Database\Eloquent\Collection
     {
-        return User::where('role', 'admin')
+        return User::query()
+            ->where('role', 'admin')
+            ->orderBy('id')
             ->get()
-            ->first(fn (User $user) => !$user->isGadCoordinator());
+            ->reject(fn (User $user) => $user->isGadCoordinator())
+            ->values();
     }
 
     /**

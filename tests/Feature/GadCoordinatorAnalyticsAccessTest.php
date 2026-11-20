@@ -182,6 +182,12 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
         ]);
 
         $this->actingAs($gadAdmin)
+            ->get(route('admin.messages'))
+            ->assertOk()
+            ->assertSeeText('GAD Coordinator')
+            ->assertSee(route('admin.messages', ['student_id' => $coordinator->id]), false);
+
+        $this->actingAs($gadAdmin)
             ->get(route('admin.messages', ['student_id' => $coordinator->id]))
             ->assertOk()
             ->assertViewHas('selectedStudent', fn ($user) => $user->is($coordinator));
@@ -199,15 +205,72 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertJsonPath('messages.1.message', 'Reply from the GAD Administrator');
     }
 
+    public function test_gad_admins_share_coordinator_conversations(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'account_status' => 'active',
+        ]);
+        User::create([
+            'name' => 'First GAD Administrator',
+            'email' => 'gadadmin-first@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'admin',
+            'account_status' => 'active',
+        ]);
+        $signedInAdmin = User::create([
+            'name' => 'Second GAD Administrator',
+            'email' => 'gadadmin-second@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'admin',
+            'account_status' => 'active',
+        ]);
+
+        $this->actingAs($coordinator)
+            ->postJson(route('student.messages.store'), ['message' => 'Please contact me'])
+            ->assertOk();
+
+        $this->actingAs($signedInAdmin)
+            ->get(route('admin.messages'))
+            ->assertOk()
+            ->assertSeeText('GAD Coordinator')
+            ->assertSee(route('admin.messages', ['student_id' => $coordinator->id]), false);
+
+        $this->getJson(route('admin.messages.feed'))
+            ->assertOk()
+            ->assertJsonPath('unread_count', 1)
+            ->assertJsonPath('latest_unread_student_id', $coordinator->id);
+
+        $this->postJson(route('admin.messages.store'), [
+            'student_id' => $coordinator->id,
+            'message' => 'We received your message',
+        ])->assertOk();
+
+        $this->actingAs($coordinator)
+            ->getJson(route('student.messages.feed'))
+            ->assertOk()
+            ->assertJsonCount(2, 'messages')
+            ->assertJsonPath('messages.1.message', 'We received your message');
+    }
+
     public function test_gad_coordinator_is_excluded_from_admin_access_gate(): void
     {
-        $coordinator = new User(['role' => 'admin', 'account_type' => 'coordinator']);
-        $legacyCoordinator = new User([
+        $coordinator = new User();
+        $coordinator->fill(['role' => 'admin', 'account_type' => 'coordinator']);
+        $legacyCoordinator = new User();
+        $legacyCoordinator->fill([
             'role' => 'admin',
             'account_type' => 'admin',
             'email' => 'gadcoordinator@psu.edu.ph',
         ]);
-        $administrator = new User(['role' => 'admin', 'account_type' => 'admin']);
+        $administrator = new User();
+        $administrator->fill(['role' => 'admin', 'account_type' => 'admin']);
 
         $this->assertFalse(Gate::forUser($coordinator)->allows('admin-access'));
         $this->assertTrue(Gate::forUser($coordinator)->allows('gad-analytics-access'));

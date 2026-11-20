@@ -22,16 +22,18 @@ class ReportSubmissionTest extends TestCase
             $table->string('password');
             $table->string('role')->default('student');
             $table->string('cloak_alias')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->unsignedTinyInteger('age')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('department')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->json('personal_information')->nullable();
+            $table->json('student_information')->nullable();
             $table->timestamps();
         });
 
-        $user = User::create([
-            'name' => 'Test Student',
-            'email' => 'student@example.test',
-            'password' => 'password',
-            'role' => 'student',
-            'cloak_alias' => 'StudentTest',
-        ]);
+        $user = $this->completeStudent();
 
         $response = $this->actingAs($user)->get(route('student.report'));
 
@@ -64,6 +66,14 @@ class ReportSubmissionTest extends TestCase
             $table->string('password');
             $table->string('role')->default('student');
             $table->string('cloak_alias')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->unsignedTinyInteger('age')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('department')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->json('personal_information')->nullable();
+            $table->json('student_information')->nullable();
             $table->timestamps();
         });
 
@@ -82,13 +92,7 @@ class ReportSubmissionTest extends TestCase
             $table->timestamps();
         });
 
-        $user = User::create([
-            'name' => 'Test Student',
-            'email' => 'student@example.test',
-            'password' => 'password',
-            'role' => 'student',
-            'cloak_alias' => 'StudentTest',
-        ]);
+        $user = $this->completeStudent();
 
         DB::table('reports')->insert([
             'id' => 4,
@@ -137,6 +141,14 @@ class ReportSubmissionTest extends TestCase
             $table->string('password');
             $table->string('role')->default('student');
             $table->string('cloak_alias')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->unsignedTinyInteger('age')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('department')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->json('personal_information')->nullable();
+            $table->json('student_information')->nullable();
             $table->timestamps();
         });
 
@@ -158,13 +170,7 @@ class ReportSubmissionTest extends TestCase
             $table->timestamps();
         });
 
-        $user = User::create([
-            'name' => 'Test Student',
-            'email' => 'student@example.test',
-            'password' => 'password',
-            'role' => 'student',
-            'cloak_alias' => 'StudentTest',
-        ]);
+        $user = $this->completeStudent();
 
         $response = $this->actingAs($user)->post(route('reports.store'), [
             'nature' => 'Catcalling',
@@ -196,5 +202,43 @@ class ReportSubmissionTest extends TestCase
         $this->actingAs($user)
             ->get(route('reports.evidence.view', ['report' => $report->id, 'index' => 0]))
             ->assertOk();
+    }
+
+    private function completeStudent(): User
+    {
+        return User::create([
+            'name' => 'Test Student',
+            'first_name' => 'Test',
+            'last_name' => 'Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'cloak_alias' => 'StudentTest',
+            'phone_number' => '09123456789',
+            'age' => 21,
+            'gender' => 'Female',
+            'department' => 'BS Information Technology',
+            'personal_information' => [
+                'date_of_birth' => '2005-01-01',
+                'place_of_birth' => 'Dagupan City',
+                'sex' => 'Female',
+                'gender_identity' => 'Woman',
+                'citizenship' => 'Filipino',
+                'blood_type' => 'O+',
+                'height' => '160 cm',
+                'weight' => '50 kg',
+                'landline_number' => 'N/A',
+                'civil_status' => 'Single',
+                'current_address' => 'Dagupan City',
+                'home_address' => 'Dagupan City',
+                'religion' => 'N/A',
+            ],
+            'student_information' => [
+                'year_level' => '1st Year',
+                'school_type' => 'Public',
+                'last_school_attended' => 'Pangasinan State University',
+                'financing_sources' => ['Family'],
+            ],
+        ]);
     }
 }

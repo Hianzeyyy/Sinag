@@ -7,6 +7,34 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string|null $role
+ * @property string|null $account_type
+ * @property string|null $account_status
+ * @property string|null $department
+ * @property string|null $gender
+ * @property string|null $employee_category
+ * @property string|null $cloak_alias
+ * @property string|null $first_name
+ * @property string|null $middle_name
+ * @property string|null $last_name
+ * @property string|null $phone_number
+ * @property int|null $age
+ * @property array|null $personal_information
+ * @property array|null $family_background
+ * @property array|null $student_information
+ * @property array|null $employee_education
+ * @property array|null $civil_service_eligibility
+ * @property array|null $work_experience
+ * @property array|null $voluntary_work
+ * @property array|null $gad_training
+ * @property array|null $other_information
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;

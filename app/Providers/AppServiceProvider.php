@@ -54,12 +54,21 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
+            $gadAdminIds = User::query()
+                ->where('role', 'admin')
+                ->get()
+                ->reject(fn (User $user) => $user->isGadCoordinator())
+                ->modelKeys();
+
             $view->with('adminNotifications', [
                 'users' => User::where('account_status', 'pending')->count(),
                 'reports' => Report::whereNull('seen_at')->count(),
                 'suggestions' => Suggestion::where('status', 'Pending')->count(),
                 'appointments' => AppointmentRequest::where('status', 'pending')->count(),
-                'messages' => Message::where('receiver_id', auth()->id())->whereNull('read_at')->count(),
+                'messages' => Message::whereIn('receiver_id', $gadAdminIds)
+                    ->whereNotIn('sender_id', $gadAdminIds)
+                    ->whereNull('read_at')
+                    ->count(),
                 'password_resets' => PasswordResetRequest::where('status', 'pending')->count(),
                 'suggestion_reports' => SuggestionReport::where('status', 'pending')->count(),
             ]);

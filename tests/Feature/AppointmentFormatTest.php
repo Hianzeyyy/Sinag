@@ -173,7 +173,8 @@ class AppointmentFormatTest extends TestCase
             ->assertSee('id="gadFaqWidget"', false)
             ->assertSee('GAD Guide')
             ->assertSee('What is Republic Act 9262?')
-            ->assertSee(route('student.report'));
+            ->assertSee(route('personal-data.edit'))
+            ->assertDontSee(route('student.report'), false);
     }
 
     public function test_selected_appointment_format_is_saved(): void
