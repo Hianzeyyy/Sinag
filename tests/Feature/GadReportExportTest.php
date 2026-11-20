@@ -171,7 +171,7 @@ class GadReportExportTest extends TestCase
         }
     }
 
-    public function test_coordinator_exports_omit_registered_users_data(): void
+    public function test_coordinator_exports_omit_registered_users_and_student_information_data(): void
     {
         $coordinator = User::create([
             'name' => 'GAD Coordinator',
@@ -191,6 +191,18 @@ class GadReportExportTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        User::create([
+            'name' => 'Student Private Example',
+            'email' => 'student-private@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_type' => 'student',
+            'department' => 'Biology',
+            'personal_information' => ['sex' => 'Female'],
+            'student_information' => ['year_level' => 'Private Year Level'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $this->actingAs($coordinator);
         $response = app(ExportGADReportController::class)->export('excel', '30days');
@@ -202,9 +214,18 @@ class GadReportExportTest extends TestCase
             $workbookXml = $workbook->getFromName('xl/workbook.xml');
             $summarySheet = $workbook->getFromName('xl/worksheets/sheet1.xml');
             $this->assertStringNotContainsString('name="Users"', $workbookXml);
+            $this->assertStringNotContainsString('name="Student Information"', $workbookXml);
+            $this->assertStringContainsString('name="Faculty and Non-Teaching"', $workbookXml);
             $this->assertStringContainsString('Incident Reports', $workbookXml);
             $this->assertStringNotContainsString('New Registered Users', $summarySheet);
             $this->assertStringContainsString('Incidents Reported', $summarySheet);
+
+            $worksheetXml = '';
+            for ($sheetNumber = 1; $sheetNumber <= $workbook->numFiles; $sheetNumber++) {
+                $worksheetXml .= (string) $workbook->getFromName("xl/worksheets/sheet{$sheetNumber}.xml");
+            }
+            $this->assertStringNotContainsString('Student Private Example', $worksheetXml);
+            $this->assertStringNotContainsString('student-private@example.test', $worksheetXml);
         } finally {
             $workbook->close();
             @unlink($workbookPath);
@@ -222,6 +243,16 @@ class GadReportExportTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        User::create([
+            'name' => 'Student Private Example',
+            'email' => 'student-private@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_type' => 'student',
+            'student_information' => ['year_level' => 'Private Year Level'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $pdf = \Mockery::mock(\Barryvdh\DomPDF\PDF::class);
         $pdf->shouldReceive('setPaper')->once()->with('a4', 'portrait')->andReturnSelf();
@@ -233,6 +264,10 @@ class GadReportExportTest extends TestCase
 
                 $this->assertStringNotContainsString('Registered Users', $html);
                 $this->assertStringNotContainsString('New Registered Users', $html);
+                $this->assertStringNotContainsString('Student Information Sheets (', $html);
+                $this->assertStringNotContainsString('Student Private Example', $html);
+                $this->assertStringNotContainsString('student-private@example.test', $html);
+                $this->assertStringContainsString('Faculty and Non-Teaching Information Sheets', $html);
                 $this->assertStringContainsString('1. Incident Reports', $html);
 
                 return true;

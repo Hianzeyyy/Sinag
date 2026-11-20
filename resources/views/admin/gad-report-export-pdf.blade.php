@@ -209,7 +209,7 @@
     <div style="clear:both"></div>
     @endif
 
-    @if($includeReports)
+    @if($includeReports && $includeStudentInformation)
     <h2>{{ 5 + $sectionOffset }}. Student Information Sheets ({{ count($studentProfiles) }})</h2>
     @forelse($studentProfiles as $profile)
         <h3 class="profile-name">{{ $profile['user']->name }} ({{ $profile['user']->email }})</h3>
@@ -224,7 +224,9 @@
     @empty
         <p class="muted">No student information sheets were submitted.</p>
     @endforelse
+    @endif
 
+    @if($includeReports)
     <h2>{{ 6 + $sectionOffset }}. Faculty and Non-Teaching Information Sheets ({{ count($employeeProfiles) }})</h2>
     @forelse($employeeProfiles as $profile)
         <h3 class="profile-name">{{ $profile['user']->name }} ({{ $profile['user']->email }})</h3>
