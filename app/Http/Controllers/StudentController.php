@@ -162,17 +162,32 @@ class StudentController extends Controller
             }
         }
 
-        $pendingSatisfactionSurvey = $this->pendingSatisfactionSurvey($user_id, 'suggestion');
-        $surveyModal = $pendingSatisfactionSurvey
-            ?? (isset($pendingSuggestionSurveyIds[0])
-                ? ['subject' => 'suggestion', 'subject_id' => $pendingSuggestionSurveyIds[0]]
-                : null)
-            ?? (isset($pendingReportSurveyIds[0])
-                ? ['subject' => 'report', 'subject_id' => $pendingReportSurveyIds[0]]
-                : null);
-        $autoShowSatisfactionSurvey = $pendingSatisfactionSurvey !== null
-            || $pendingSuggestionSurveyIds !== []
-            || $pendingReportSurveyIds !== [];
+        $surveyCandidates = array_values(array_filter([
+            $this->pendingSatisfactionSurvey($user_id, 'suggestion'),
+            ...array_map(
+                fn ($id) => ['subject' => 'suggestion', 'subject_id' => $id],
+                $pendingSuggestionSurveyIds
+            ),
+            ...array_map(
+                fn ($id) => ['subject' => 'report', 'subject_id' => $id],
+                $pendingReportSurveyIds
+            ),
+        ]));
+        $surveyCandidates = collect($surveyCandidates)
+            ->unique(fn ($survey) => $survey['subject'] . ':' . $survey['subject_id'])
+            ->values()
+            ->all();
+
+        $autoSurvey = null;
+        foreach ($surveyCandidates as $candidate) {
+            if ($this->shouldAutoShowSatisfactionSurvey($user_id, $candidate)) {
+                $autoSurvey = $candidate;
+                break;
+            }
+        }
+
+        $surveyModal = $autoSurvey ?? ($surveyCandidates[0] ?? null);
+        $autoShowSatisfactionSurvey = $autoSurvey !== null;
 
         return view('student.vault', compact(
             'myReports',
@@ -238,12 +253,35 @@ class StudentController extends Controller
             ->values()
             ->all();
 
+        $pendingSatisfactionSurvey = $this->pendingSatisfactionSurvey(Auth::id(), 'suggestion');
+        $autoShowSatisfactionSurvey = $pendingSatisfactionSurvey
+            ? $this->shouldAutoShowSatisfactionSurvey(Auth::id(), $pendingSatisfactionSurvey)
+            : false;
+
         return view('student.boses', [
             'allSuggestions' => $allSuggestions,
             'categories' => $categories,
             'existingAliases' => $existingAliases,
-            'pendingSatisfactionSurvey' => $this->pendingSatisfactionSurvey(Auth::id(), 'suggestion'),
+            'pendingSatisfactionSurvey' => $pendingSatisfactionSurvey,
+            'autoShowSatisfactionSurvey' => $autoShowSatisfactionSurvey,
         ]);
+    }
+
+    private function shouldAutoShowSatisfactionSurvey(int $userId, array $survey): bool
+    {
+        $sessionKey = implode('.', [
+            'satisfaction_survey_prompted',
+            $userId,
+            $survey['subject'],
+            $survey['subject_id'],
+        ]);
+        if (session()->get($sessionKey, false)) {
+            return false;
+        }
+
+        session()->put($sessionKey, true);
+
+        return true;
     }
 
     private function pendingSatisfactionSurvey(int $userId, string $subject, ?int $subjectId = null): ?array

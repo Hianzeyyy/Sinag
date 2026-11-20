@@ -111,15 +111,41 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->get(route('student.boses'))
             ->assertOk()
             ->assertSee('id="customerSatisfactionModal"', false)
+            ->assertSee('data-auto-show="true"', false)
             ->assertSee('name="subject" value="suggestion"', false)
             ->assertSee('name="subject_id" value="' . $suggestionId . '"', false);
 
         $this->get(route('student.vault'))
             ->assertOk()
-            ->assertSee('data-auto-show="true"', false)
+            ->assertSee('data-auto-show="false"', false)
             ->assertSee('data-suggestion-survey-id="' . $suggestionId . '"', false)
             ->assertSee('title="Click to rate this suggestion"', false)
             ->assertSee('>Rate Survey</button>', false);
+
+        $secondSuggestionId = $this->createSuggestion($user, 'Approved', 'Please add a second awareness activity.');
+        $this->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('data-auto-show="true"', false)
+            ->assertSee('name="subject_id" value="' . $secondSuggestionId . '"', false);
+
+        $this->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('data-auto-show="false"', false);
+
+        foreach (range(1, 2) as $_) {
+            $this->post(route('customer-satisfaction.store'), [
+                'subject' => 'suggestion',
+                'subject_id' => $secondSuggestionId,
+                'rating' => 5,
+                'responses' => [4, 4, 4, 4, 4],
+            ])->assertRedirect();
+        }
+
+        $this->assertSame(1, DB::table('customer_satisfaction_surveys')
+            ->where('user_id', $user->id)
+            ->where('subject', 'suggestion')
+            ->where('subject_id', $secondSuggestionId)
+            ->count());
 
         DB::table('suggestions')->where('id', $suggestionId)->update(['status' => 'Rejected']);
 
@@ -197,6 +223,17 @@ class SuggestionPersonalDataGateTest extends TestCase
             ->assertSee('>Rate Survey</button>', false)
             ->assertSee('name="subject_id" value="' . $reportId . '"', false);
 
+        $this->get(route('student.vault'))
+            ->assertOk()
+            ->assertSee('data-auto-show="false"', false);
+
+        $this->post(route('customer-satisfaction.store'), [
+            'subject' => 'report',
+            'subject_id' => $reportId,
+            'rating' => 5,
+            'responses' => [4, 4, 4, 4, 4],
+        ])->assertRedirect();
+
         $this->post(route('customer-satisfaction.store'), [
             'subject' => 'report',
             'subject_id' => $reportId,
@@ -210,6 +247,15 @@ class SuggestionPersonalDataGateTest extends TestCase
             'subject_id' => $reportId,
             'rating' => 5,
         ]);
+        $this->assertSame(1, DB::table('customer_satisfaction_surveys')
+            ->where('user_id', $user->id)
+            ->where('subject', 'report')
+            ->where('subject_id', $reportId)
+            ->count());
+
+        $this->get(route('student.vault'))
+            ->assertOk()
+            ->assertDontSee('id="customerSatisfactionModal"', false);
     }
 
     public function test_satisfaction_survey_waits_until_a_submitted_report_is_resolved(): void

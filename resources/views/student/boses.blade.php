@@ -1006,6 +1006,7 @@
     @include('components.customer-satisfaction-modal', [
         'surveySubject' => $pendingSatisfactionSurvey['subject'],
         'surveySubjectId' => $pendingSatisfactionSurvey['subject_id'],
+        'autoShow' => $autoShowSatisfactionSurvey,
     ])
 @endif
 
