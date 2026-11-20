@@ -153,7 +153,7 @@
                                                 ][$report->status] ?? 'bg-dark';
                                             @endphp
                                             @if(in_array((int) $report->id, $pendingReportSurveyIds, true))
-                                                <button type="button" class="badge {{ $statusClass }} py-2 px-3 rounded-pill vault-status border-0" style="cursor:pointer; font-family:inherit;" title="Click to rate this report" aria-label="Open satisfaction survey for report {{ $report->incident_id }}" data-report-survey-id="{{ $report->id }}">{{ $report->status }}</button>
+                                                <button type="button" class="badge {{ $statusClass }} py-2 px-3 rounded-pill vault-status border-0" style="cursor:pointer; font-family:inherit;" title="Click to rate this report" aria-label="Open satisfaction survey for report {{ $report->incident_id }}" data-bs-toggle="modal" data-bs-target="#customerSatisfactionModal" data-report-survey-id="{{ $report->id }}">{{ $report->status }}</button>
                                             @else
                                                 <span class="badge {{ $statusClass }} py-2 px-3 rounded-pill vault-status">{{ $report->status }}</span>
                                             @endif
@@ -172,6 +172,9 @@
                                     @endphp
                                     <div class="d-flex gap-2">
                                         <button type="button" class="btn btn-light btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#{{ $modalId }}">View Details</button>
+                                        @if(in_array((int) $report->id, $pendingReportSurveyIds, true))
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold" style="color:#5b4b9b; border:1px solid #a594f9; background:#f3efff;" data-bs-toggle="modal" data-bs-target="#customerSatisfactionModal" data-report-survey-id="{{ $report->id }}">Rate Survey</button>
+                                        @endif
                                         @if($report->status == 'Pending')
                                             <button class="btn btn-sm rounded-pill px-3 fw-bold" style="color:#7658df; border:1px solid #a594f9; background:#f3efff;">Cancel Report</button>
                                         @endif
@@ -283,7 +286,10 @@
                                     <td><button type="button" class="btn btn-link p-0 text-start text-decoration-none" data-bs-toggle="modal" data-bs-target="#mySuggestionModal{{ $sugg->id }}"><span class="text-truncate d-inline-block" style="max-width: 250px;">{{ $sugg->message }}</span></button></td>
                                     <td>
                                         @if(in_array((int) $sugg->id, $pendingSuggestionSurveyIds, true))
-                                            <button type="button" class="btn btn-sm border-0 rounded-pill" style="background:#f3efff;color:#5b4b9b;" title="Click to rate this suggestion" aria-label="Open satisfaction survey for suggestion {{ $sugg->id }}" data-suggestion-survey-id="{{ $sugg->id }}">{{ $sugg->status ?? 'Shared' }}</button>
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <button type="button" class="btn btn-sm border-0 rounded-pill" style="background:#f3efff;color:#5b4b9b;" title="Click to rate this suggestion" aria-label="Open satisfaction survey for suggestion {{ $sugg->id }}" data-bs-toggle="modal" data-bs-target="#customerSatisfactionModal" data-suggestion-survey-id="{{ $sugg->id }}">{{ $sugg->status ?? 'Shared' }}</button>
+                                                <button type="button" class="btn btn-sm rounded-pill" style="color:#5b4b9b; border:1px solid #a594f9; background:#f3efff;" data-bs-toggle="modal" data-bs-target="#customerSatisfactionModal" data-suggestion-survey-id="{{ $sugg->id }}">Rate Survey</button>
+                                            </div>
                                         @else
                                             <button type="button" class="btn btn-sm border-0 rounded-pill" style="background:#f3efff;color:#5b4b9b;" data-bs-toggle="modal" data-bs-target="#mySuggestionModal{{ $sugg->id }}">{{ $sugg->status ?? 'Shared' }}</button>
                                         @endif
@@ -340,14 +346,17 @@
         document.querySelectorAll('[data-report-survey-id], [data-suggestion-survey-id]').forEach(function (button) {
             button.addEventListener('click', function () {
                 const surveyModal = document.getElementById('customerSatisfactionModal');
-                if (!window.bootstrap?.Modal || !surveyModal) return;
+                if (!surveyModal) return;
 
                 const isReportSurvey = button.hasAttribute('data-report-survey-id');
-                surveyModal.querySelector('[name="subject"]').value = isReportSurvey ? 'report' : 'suggestion';
-                surveyModal.querySelector('[name="subject_id"]').value = isReportSurvey
+                const subjectInput = surveyModal.querySelector('[name="subject"]');
+                const subjectIdInput = surveyModal.querySelector('[name="subject_id"]');
+                if (!subjectInput || !subjectIdInput) return;
+
+                subjectInput.value = isReportSurvey ? 'report' : 'suggestion';
+                subjectIdInput.value = isReportSurvey
                     ? button.dataset.reportSurveyId
                     : button.dataset.suggestionSurveyId;
-                bootstrap.Modal.getOrCreateInstance(surveyModal).show();
             });
         });
     });

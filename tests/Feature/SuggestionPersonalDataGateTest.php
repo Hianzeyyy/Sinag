@@ -118,7 +118,8 @@ class SuggestionPersonalDataGateTest extends TestCase
             ->assertOk()
             ->assertSee('data-auto-show="true"', false)
             ->assertSee('data-suggestion-survey-id="' . $suggestionId . '"', false)
-            ->assertSee('title="Click to rate this suggestion"', false);
+            ->assertSee('title="Click to rate this suggestion"', false)
+            ->assertSee('>Rate Survey</button>', false);
 
         DB::table('suggestions')->where('id', $suggestionId)->update(['status' => 'Rejected']);
 
@@ -193,6 +194,7 @@ class SuggestionPersonalDataGateTest extends TestCase
             ->assertSee('data-auto-show="true"', false)
             ->assertSee('data-report-survey-id="' . $reportId . '"', false)
             ->assertSee('title="Click to rate this report"', false)
+            ->assertSee('>Rate Survey</button>', false)
             ->assertSee('name="subject_id" value="' . $reportId . '"', false);
 
         $this->post(route('customer-satisfaction.store'), [
