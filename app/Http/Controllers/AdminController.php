@@ -32,9 +32,32 @@ class AdminController extends Controller
      */
     public function index()
     {
-        // Security Check
-        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
+        $user = Auth::user();
+        if (strtolower(trim((string) optional($user)->role)) !== 'admin') {
             return redirect()->route('home')->with('error', 'Unauthorized access.');
+        }
+
+        if ($user->isGadCoordinator()) {
+            $reportStatusCounts = Report::query()
+                ->selectRaw("COALESCE(status, 'Unspecified') as status, COUNT(*) as total")
+                ->groupBy('status')
+                ->orderBy('status')
+                ->get();
+            $reportNatureCounts = Report::query()
+                ->selectRaw("COALESCE(nature, 'Unspecified') as nature, COUNT(*) as total")
+                ->groupBy('nature')
+                ->orderByDesc('total')
+                ->orderBy('nature')
+                ->get();
+            $reportCountsByStatus = $reportStatusCounts->pluck('total', 'status');
+            $totalReports = (int) $reportStatusCounts->sum('total');
+
+            return view('admin.coordinator-dashboard', compact(
+                'reportStatusCounts',
+                'reportNatureCounts',
+                'reportCountsByStatus',
+                'totalReports'
+            ));
         }
 
         // 1. Dashboard Summary Data

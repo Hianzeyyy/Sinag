@@ -138,4 +138,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(CustomerSatisfactionSurvey::class);
     }
+
+    public function isGadCoordinator(): bool
+    {
+        return strtolower(trim((string) $this->role)) === 'admin'
+            && strtolower(trim((string) $this->account_type)) === 'coordinator';
+    }
 }
