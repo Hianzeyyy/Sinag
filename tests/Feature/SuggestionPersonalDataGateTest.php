@@ -180,6 +180,7 @@ class SuggestionPersonalDataGateTest extends TestCase
             ->assertSee('id="customerSatisfactionModal"', false)
             ->assertSee('data-auto-show="false"', false)
             ->assertSee('data-report-survey-id="' . $reportId . '"', false)
+            ->assertSee('Close these details to continue to the satisfaction survey.')
             ->assertSee('name="subject_id" value="' . $reportId . '"', false);
 
         $this->post(route('customer-satisfaction.store'), [
