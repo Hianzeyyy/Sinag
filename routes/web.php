@@ -50,20 +50,21 @@ Route::get('/users/{user}/profile-photo', [ProfileController::class, 'profilePho
 Route::middleware(['auth', 'account.active'])->group(function () {
     Route::get('/users', [UserDirectoryController::class, 'index'])->name('users.directory');
 
-    // The coordinator shares GAD analytics, messaging, and report exports, but not other admin tools.
+    // The coordinator shares GAD analytics and report exports, but not other admin tools.
     Route::prefix('admin')->name('admin.')->middleware('can:gad-analytics-access')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         Route::get('/gad-report/export/{format}/{period?}', [ExportGADReportController::class, 'export'])->name('gad-report.export');
+    });
+
+    // --- ADMIN ROUTES ---
+    Route::prefix('admin')->name('admin.')->middleware('can:admin-access')->group(function () {
         Route::get('/messages', [AdminController::class, 'messages'])->name('messages');
         Route::get('/messages/search-users', [AdminController::class, 'searchMessageUsers'])->name('messages.search-users');
         Route::post('/messages/store', [AdminController::class, 'storeMessage'])->name('messages.store');
         Route::get('/messages/feed', [AdminController::class, 'messageFeed'])->name('messages.feed');
         Route::post('/messages/{id}/update', [AdminController::class, 'updateMessage'])->name('messages.update');
         Route::delete('/messages/{id}', [AdminController::class, 'destroyMessage'])->name('messages.destroy');
-    });
 
-    // --- ADMIN ROUTES ---
-    Route::prefix('admin')->name('admin.')->middleware('can:admin-access')->group(function () {
         Route::get('/password-reset-requests', [PasswordResetRequestController::class, 'index'])->name('password-resets.index');
         Route::get('/password-reset-requests/{passwordResetRequest}', [PasswordResetRequestController::class, 'show'])->name('password-resets.show');
         Route::get('/password-reset-requests/{passwordResetRequest}/id-picture', [PasswordResetRequestController::class, 'idPicture'])->name('password-resets.id-picture');

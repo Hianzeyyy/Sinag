@@ -1943,7 +1943,7 @@
                         <a href="{{ route('student.boses') }}" class="nav-link-custom {{ Request::is('student/boses*') ? 'active' : '' }}">
                             <i class="bi bi-rss-fill"></i> Suggestions
                         </a>
-                        <a href="{{ route('admin.messages') }}" class="nav-link-custom {{ Request::is('admin/messages*') ? 'active' : '' }}">
+                        <a href="{{ route('student.messaging') }}" class="nav-link-custom {{ Request::is('student/messaging*') ? 'active' : '' }}">
                             <i class="bi bi-chat-dots-fill"></i> Messages
                         </a>
                         @else
@@ -2048,7 +2048,7 @@
                                     <i class="bi bi-rss-fill"></i>
                                     <span>Suggestions</span>
                                 </a>
-                                <a href="{{ route('admin.messages') }}" class="student-nav-link {{ Request::is('admin/messages*') ? 'active' : '' }}" aria-label="Messages" title="Messages">
+                                <a href="{{ route('student.messaging') }}" class="student-nav-link {{ Request::is('student/messaging*') ? 'active' : '' }}" aria-label="Messages" title="Messages">
                                     <i class="bi bi-chat-dots-fill"></i>
                                     <span>Messages</span>
                                 </a>
@@ -2237,7 +2237,7 @@
         })();
 
         @auth
-        @if(auth()->user()->role === 'admin')
+        @if(auth()->user()->role === 'admin' && !auth()->user()->isGadCoordinator())
         (function () {
             const notice = document.createElement('div');
             notice.setAttribute('role', 'status');
@@ -2306,7 +2306,7 @@
         })();
         @endif
 
-        @if(in_array(strtolower((string) auth()->user()->role), ['student', 'employee', 'security'], true))
+        @if(in_array(strtolower((string) auth()->user()->role), ['student', 'employee', 'security'], true) || auth()->user()->isGadCoordinator())
         (function () {
             const notice = document.createElement('div');
             notice.setAttribute('role', 'status');

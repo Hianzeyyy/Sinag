@@ -25,7 +25,15 @@ class StudentController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:student-access')->except('boses');
+        $this->middleware('can:student-access')->except([
+            'boses',
+            'messaging',
+            'storeMessage',
+            'messageFeed',
+            'notificationFeed',
+            'updateMessage',
+            'destroyMessage',
+        ]);
     }
 
     /**
@@ -403,10 +411,9 @@ class StudentController extends Controller
      */
     public function messaging()
     {
+        $this->authorizeGadOfficeMessaging();
         $userId = Auth::id();
-
-        // Get first admin (or use a specific admin if you prefer)
-        $admin = User::where('role', 'admin')->first();
+        $admin = $this->gadOfficeAdmin();
 
         if ($admin) {
             Message::where('sender_id', $admin->id)
@@ -568,15 +575,16 @@ class StudentController extends Controller
     }
 
     /**
-     * Store a message from student to admin
+     * Store a message from a student, employee, or coordinator to the GAD administrator.
      */
     public function storeMessage(Request $request)
     {
+        $this->authorizeGadOfficeMessaging();
         $request->validate([
             'message' => 'required|string|max:1000',
         ]);
 
-        $admin = User::where('role', 'admin')->first();
+        $admin = $this->gadOfficeAdmin();
 
         if (!$admin) {
             return response()->json(['error' => 'No admin available'], 404);
@@ -600,7 +608,8 @@ class StudentController extends Controller
 
     public function messageFeed(Request $request)
     {
-        $admin = User::where('role', 'admin')->first();
+        $this->authorizeGadOfficeMessaging();
+        $admin = $this->gadOfficeAdmin();
         abort_unless($admin, 404, 'GAD Office is unavailable.');
         $messages = Message::where(function ($query) use ($admin) {
                 $query->where(function ($query) use ($admin) {
@@ -632,7 +641,8 @@ class StudentController extends Controller
 
     public function notificationFeed()
     {
-        $admin = User::where('role', 'admin')->first();
+        $this->authorizeGadOfficeMessaging();
+        $admin = $this->gadOfficeAdmin();
         $unreadQuery = Message::query()
             ->where('receiver_id', Auth::id())
             ->whereNull('read_at')
@@ -664,11 +674,12 @@ class StudentController extends Controller
      */
     public function updateMessage(Request $request, $id)
     {
+        $this->authorizeGadOfficeMessaging();
         $request->validate([
             'message' => 'required|string|max:1000',
         ]);
 
-        $admin = User::where('role', 'admin')->first();
+        $admin = $this->gadOfficeAdmin();
         abort_unless($admin, 404, 'GAD Office is unavailable.');
         $message = Message::findOrFail($id);
 
@@ -689,7 +700,8 @@ class StudentController extends Controller
      */
     public function destroyMessage(Request $request, $id)
     {
-        $admin = User::where('role', 'admin')->first();
+        $this->authorizeGadOfficeMessaging();
+        $admin = $this->gadOfficeAdmin();
         abort_unless($admin, 404, 'GAD Office is unavailable.');
         $message = Message::findOrFail($id);
 
@@ -705,6 +717,19 @@ class StudentController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    private function authorizeGadOfficeMessaging(): void
+    {
+        $user = Auth::user();
+        abort_unless($user && ($user->can('student-access') || $user->isGadCoordinator()), 403);
+    }
+
+    private function gadOfficeAdmin(): ?User
+    {
+        return User::where('role', 'admin')
+            ->get()
+            ->first(fn (User $user) => !$user->isGadCoordinator());
     }
 
     /**

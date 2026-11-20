@@ -32,6 +32,32 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             $table->string('nature')->nullable();
             $table->string('status')->nullable();
             $table->string('priority')->nullable();
+            $table->timestamp('seen_at')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('suggestions', function (Blueprint $table): void {
+            $table->id();
+            $table->string('status')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('appointment_requests', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->string('status')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('password_reset_requests', function (Blueprint $table): void {
+            $table->id();
+            $table->string('status')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('suggestion_reports', function (Blueprint $table): void {
+            $table->id();
+            $table->string('status')->nullable();
             $table->timestamps();
         });
 
@@ -96,7 +122,8 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertSee('GAD Report Analytics')
             ->assertSee(route('student.boses'), false)
             ->assertSeeText('Suggestions')
-            ->assertSee(route('admin.messages'), false)
+            ->assertSee(route('student.messaging'), false)
+            ->assertDontSee(route('admin.messages'), false)
             ->assertSeeText('Messages')
             ->assertDontSeeText('Community Directory')
             ->assertSee('Total Reports')
@@ -125,32 +152,51 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             'account_type' => 'coordinator',
             'account_status' => 'active',
         ]);
-        $student = User::create([
-            'name' => 'Active Student',
-            'email' => 'active-student@example.test',
+        $gadAdmin = User::create([
+            'name' => 'GAD Administrator',
+            'email' => 'gadadmin@example.test',
             'password' => 'password',
-            'role' => 'student',
-            'account_type' => 'student',
+            'role' => 'admin',
+            'account_type' => 'admin',
             'account_status' => 'active',
         ]);
 
         $this->actingAs($coordinator)
-            ->get(route('admin.messages'))
+            ->get(route('student.messaging'))
             ->assertOk()
-            ->assertSeeText('Messages');
+            ->assertViewIs('student.messaging')
+            ->assertSeeText('GAD Office');
 
-        $this->postJson(route('admin.messages.store'), [
-            'student_id' => $student->id,
+        $this->get(route('admin.messages'))->assertForbidden();
+
+        $this->postJson(route('student.messages.store'), [
             'message' => 'Hello from the GAD Coordinator',
         ])->assertOk()
             ->assertJsonPath('message.message', 'Hello from the GAD Coordinator');
 
         $this->assertDatabaseHas('messages', [
             'sender_id' => $coordinator->id,
-            'receiver_id' => $student->id,
+            'receiver_id' => $gadAdmin->id,
             'message' => 'Hello from the GAD Coordinator',
-            'sender_type' => 'admin',
+            'sender_type' => 'student',
         ]);
+
+        $this->actingAs($gadAdmin)
+            ->get(route('admin.messages', ['student_id' => $coordinator->id]))
+            ->assertOk()
+            ->assertViewHas('selectedStudent', fn ($user) => $user->is($coordinator));
+
+        $this->postJson(route('admin.messages.store'), [
+            'student_id' => $coordinator->id,
+            'message' => 'Reply from the GAD Administrator',
+        ])->assertOk()
+            ->assertJsonPath('message.message', 'Reply from the GAD Administrator');
+
+        $this->actingAs($coordinator)
+            ->getJson(route('student.messages.feed'))
+            ->assertOk()
+            ->assertJsonCount(2, 'messages')
+            ->assertJsonPath('messages.1.message', 'Reply from the GAD Administrator');
     }
 
     public function test_gad_coordinator_is_excluded_from_admin_access_gate(): void

@@ -448,7 +448,7 @@ class AdminController extends Controller
                     ? $message->receiver
                     : $message->sender;
 
-                return $otherUser && strtolower((string) $otherUser->role) !== 'admin';
+                return $otherUser && $this->isMessageRecipient($otherUser);
             })
             ->groupBy(function($message) use ($adminId) {
                 return $message->sender_id == $adminId ? $message->receiver_id : $message->sender_id;
@@ -467,14 +467,11 @@ class AdminController extends Controller
         $selectedStudent = null;
 
         if ($selectedStudentId) {
-            // A conversation may only be opened with a non-admin account.
-            // This also prevents a crafted student_id from reading arbitrary
-            // admin-to-admin messages.
-            $selectedStudent = User::whereKey($selectedStudentId)
-                ->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")
-                ->first();
+            // Only users and GAD coordinators can be opened as conversations.
+            // This prevents a crafted student_id from exposing admin-to-admin messages.
+            $selectedStudent = User::find($selectedStudentId);
 
-            if (!$selectedStudent) {
+            if (!$selectedStudent || !$this->isMessageRecipient($selectedStudent)) {
                 abort(404);
             }
 
@@ -979,7 +976,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Store a message from admin to student
+     * Store a message from an admin to a user.
      */
     public function storeMessage(Request $request)
     {
@@ -992,11 +989,9 @@ class AdminController extends Controller
             'message'    => 'required|string|max:1000',
         ]);
 
-        $student = User::whereKey($request->student_id)
-            ->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")
-            ->first();
+        $student = User::find($request->student_id);
 
-        if (!$student) {
+        if (!$student || !$this->isMessageRecipient($student)) {
             return response()->json(['error' => 'Invalid message recipient'], 422);
         }
 
@@ -1024,7 +1019,8 @@ class AdminController extends Controller
 
         $message = Message::findOrFail($id);
         abort_unless((int) $message->sender_id === (int) Auth::id(), 403, 'You can only edit messages you sent.');
-        abort_unless(User::whereKey($message->receiver_id)->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")->exists(), 403, 'This is not a student conversation.');
+        $recipient = User::find($message->receiver_id);
+        abort_unless($recipient && $this->isMessageRecipient($recipient), 403, 'This is not a user conversation.');
         if (Schema::hasColumn('messages', 'deleted_at')) {
             abort_if($message->deleted_at, 409, 'Deleted messages cannot be edited.');
         }
@@ -1042,7 +1038,8 @@ class AdminController extends Controller
     {
         $message = Message::findOrFail($id);
         abort_unless((int) $message->sender_id === (int) Auth::id(), 403, 'You can only delete messages you sent.');
-        abort_unless(User::whereKey($message->receiver_id)->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")->exists(), 403, 'This is not a student conversation.');
+        $recipient = User::find($message->receiver_id);
+        abort_unless($recipient && $this->isMessageRecipient($recipient), 403, 'This is not a user conversation.');
 
         if (!Schema::hasColumn('messages', 'deleted_at')) {
             $message->delete();
@@ -1081,9 +1078,8 @@ class AdminController extends Controller
             ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
         }
 
-        $student = User::whereKey($validated['student_id'])
-            ->whereRaw("LOWER(COALESCE(role, '')) <> 'admin'")
-            ->firstOrFail();
+        $student = User::find($validated['student_id']);
+        abort_unless($student && $this->isMessageRecipient($student), 404);
         $messages = Message::where(function ($query) use ($student) {
                 $query->where(function ($query) use ($student) {
                     $query->where('sender_id', Auth::id())->where('receiver_id', $student->id);
@@ -1112,6 +1108,11 @@ class AdminController extends Controller
             'latest_unread_student_id' => (clone $unreadQuery)->latest('id')->value('sender_id'),
             'unread_student_ids' => (clone $unreadQuery)->distinct()->pluck('sender_id')->values(),
         ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+
+    private function isMessageRecipient(User $user): bool
+    {
+        return strtolower(trim((string) $user->role)) !== 'admin' || $user->isGadCoordinator();
     }
 
     /**
