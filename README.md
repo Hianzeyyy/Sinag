@@ -100,31 +100,63 @@ traffic to the new database. After import and before enabling writes, run
 `php artisan app:sync-postgres-sequences` from a shell connected to the new
 database to position generated IDs above imported records.
 
-## Render upload persistence
+## Uploaded media storage and backups
 
-Profile photos, registration verification images, uploaded replacement ID images,
-and password-reset ID images are stored under Laravel's `storage/app` directory.
-Render's container filesystem is temporary, so attach a persistent disk to the web
-service with the mount path:
+The local `public` and `local` disks remain the development defaults. For durable
+S3-compatible production storage, configure the following environment values on
+the web service (and keep credentials out of source control):
 
 ```text
-/var/www/html/storage/app
+USER_PUBLIC_MEDIA_DISK=public_s3
+USER_PRIVATE_MEDIA_DISK=private_s3
+MEDIA_BACKUP_DRIVER=s3
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_DEFAULT_REGION=...
+AWS_BUCKET=...
+AWS_ENDPOINT=...       # S3-compatible endpoint, when required
+AWS_URL=...            # Public bucket/CDN URL for public image attachments
+AWS_USE_PATH_STYLE_ENDPOINT=false
 ```
 
-Keep the default `PRIVATE_STORAGE_PATH` and `PUBLIC_STORAGE_PATH` values, or set
-them to `/var/www/html/storage/app/private` and
-`/var/www/html/storage/app/public` respectively. The container startup creates
-the required directories and the public storage link. Profile photos use the
-public disk; ID and verification images use the private disk and are served only
-to the image owner and administrators. After attaching the disk, users can
-re-upload a missing profile photo from **Change Profile** and a missing ID image
-from the **ID Verification** section of their profile.
+Public profile and suggestion images use `public_s3`; verification images, report
+evidence, and password-reset ID images use `private_s3`. Private images continue
+to be served through authorization-checked application routes. Existing files on
+the local disks remain readable when those disks are available; configure S3
+before switching uploads so new images are saved durably.
 
-Before attaching the disk, back up any uploads still present on the running
-instance; mounting over `storage/app` hides files in the container. Copy
-surviving uploads into the matching `private` or `public` subdirectory on the
-persistent disk. Files that disappeared from an earlier temporary instance
-cannot be recovered by attaching a disk.
+Keep the bucket private by default. If suggestion attachments need direct public
+URLs, configure a bucket policy or public custom domain limited to the
+`profile-photos/` and `suggestions/` prefixes; do not make verification,
+`evidence/`, or `password-reset-requests/` objects public.
+
+After setting the S3 environment variables, migrate existing local uploads with:
+
+```sh
+php artisan media:sync-images-to-storage
+```
+
+The command copies existing user images to the matching S3 public/private disk
+without overwriting files already there. It skips non-image attachments. Run it
+while the old local storage is still available.
+
+Create a manual ZIP archive containing uploaded images (including profile photos,
+verification images, suggestion images, and image evidence) with:
+
+```sh
+php artisan media:backup-images
+```
+
+The archive is stored privately under the `media-backups/` prefix in the
+configured S3-compatible bucket. PDF and other non-image report evidence is not
+included. The command is manual and does not run on a schedule.
+
+Render can alternatively use an attached persistent disk mounted at
+`/var/www/html/storage/app`; retain the default storage paths or set
+`PRIVATE_STORAGE_PATH=/var/www/html/storage/app/private` and
+`PUBLIC_STORAGE_PATH=/var/www/html/storage/app/public`. Before mounting over an
+existing storage directory, copy any surviving files out because mounting hides
+the container's prior files.
 # sinag-project
 
 ## Deployment history and testing

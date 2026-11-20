@@ -161,11 +161,13 @@ class AuthController extends Controller
         }
 
         $stored = [];
+        $privateDisk = config('filesystems.user_private_disk');
+        $publicDisk = config('filesystems.user_public_disk');
         try {
-            $selfie = $request->file('selfie_image')->store('verification/selfie', 'local');
-            $stored[] = ['local', $selfie];
-            $photo = $request->file('profile_photo')->store('profile-photos', 'public');
-            $stored[] = ['public', $photo];
+            $selfie = $request->file('selfie_image')->store('verification/selfie', $privateDisk);
+            $stored[] = [$privateDisk, $selfie];
+            $photo = $request->file('profile_photo')->store('profile-photos', $publicDisk);
+            $stored[] = [$publicDisk, $photo];
 
             DB::transaction(function () use ($data, $accountType, $cloakAlias, $photo, $selfie) {
                 CompatibleInsert::insert('users', [
@@ -238,7 +240,7 @@ class AuthController extends Controller
             ]);
         }
 
-        $path = $request->file('id_picture')->store('password-reset-requests', 'local');
+        $path = $request->file('id_picture')->store('password-reset-requests', config('filesystems.user_private_disk'));
         if (! is_string($path) || $path === '') {
             throw ValidationException::withMessages([
                 'id_picture' => ['The ID picture could not be saved. Please try again later.'],
@@ -417,10 +419,17 @@ class AuthController extends Controller
         ]);
 
         $user = $request->user();
-        if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
-            Storage::disk('public')->delete($user->profile_photo_path);
+        if ($user->profile_photo_path) {
+            foreach (array_unique(['public', config('filesystems.user_public_disk')]) as $diskName) {
+                Storage::disk($diskName)->delete($user->profile_photo_path);
+            }
         }
-        $user->update(['profile_photo_path' => $request->file('profile_photo')->store('profile-photos', 'public')]);
+        $user->update([
+            'profile_photo_path' => $request->file('profile_photo')->store(
+                'profile-photos',
+                config('filesystems.user_public_disk')
+            ),
+        ]);
 
         return response()->json(['user' => self::userPayload($user->fresh())]);
     }

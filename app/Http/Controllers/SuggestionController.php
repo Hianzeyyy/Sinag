@@ -79,7 +79,10 @@ class SuggestionController extends Controller
             return redirect()->back()->withInput()->with('error', 'Image attachments are temporarily unavailable. Please submit your suggestion without an image.');
         }
 
-        $imagePath = $request->file('image')?->store('suggestions', 'public');
+        $imagePath = $request->file('image')?->store(
+            'suggestions',
+            config('filesystems.user_public_disk')
+        );
         if ($request->hasFile('image') && !is_string($imagePath)) {
             throw new \RuntimeException('The suggestion image could not be saved.');
         }
@@ -142,7 +145,10 @@ class SuggestionController extends Controller
 
         $previousImagePath = $suggestion->image_path;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('suggestions', 'public');
+            $imagePath = $request->file('image')->store(
+                'suggestions',
+                config('filesystems.user_public_disk')
+            );
             if (!is_string($imagePath)) {
                 throw new \RuntimeException('The suggestion image could not be saved.');
             }
@@ -152,7 +158,9 @@ class SuggestionController extends Controller
 
         $suggestion->update($attributes);
         if ($request->hasFile('image') && $previousImagePath) {
-            Storage::disk('public')->delete($previousImagePath);
+            foreach (array_unique(['public', config('filesystems.user_public_disk')]) as $diskName) {
+                Storage::disk($diskName)->delete($previousImagePath);
+            }
         }
 
         return redirect()->back()->with('success', 'Ang iyong suggestion ay na-update na.');
@@ -177,7 +185,9 @@ class SuggestionController extends Controller
         // Delete the suggestion
         $suggestion->delete();
         if ($suggestion->image_path) {
-            Storage::disk('public')->delete($suggestion->image_path);
+            foreach (array_unique(['public', config('filesystems.user_public_disk')]) as $diskName) {
+                Storage::disk($diskName)->delete($suggestion->image_path);
+            }
         }
 
         return redirect()->back()->with('success', 'Ang iyong suggestion ay na-delete na.');

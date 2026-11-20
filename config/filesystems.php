@@ -14,6 +14,8 @@ return [
     */
 
     'default' => env('FILESYSTEM_DISK', 'local'),
+    'user_public_disk' => env('USER_PUBLIC_MEDIA_DISK', 'public'),
+    'user_private_disk' => env('USER_PRIVATE_MEDIA_DISK', 'local'),
 
     /*
     |--------------------------------------------------------------------------
@@ -56,8 +58,49 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
-            'report' => false,
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'public_s3' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'private_s3' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_BUCKET'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'media-backups' => [
+            'driver' => env('MEDIA_BACKUP_DRIVER', 's3'),
+            'root' => env('MEDIA_BACKUP_DRIVER', 's3') === 'local'
+                ? storage_path('app/private')
+                : env('MEDIA_BACKUP_ROOT', ''),
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => true,
+            'report' => true,
         ],
 
     ],

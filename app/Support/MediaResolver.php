@@ -5,6 +5,7 @@ namespace App\Support;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MediaResolver
 {
@@ -13,18 +14,8 @@ class MediaResolver
      */
     public static function resolvePath(?string $path): ?string
     {
-        if (blank($path)) {
-            return null;
-        }
-
-        $clean = ltrim(str_replace('\\', '/', trim($path)), '/');
-
-        if (preg_match('#(?:^|/)(?:storage/app/(?:public|private)|app/(?:public|private)|public/storage)/#i', $clean, $match, PREG_OFFSET_CAPTURE)) {
-            $clean = substr($clean, $match[0][1] + strlen($match[0][0]));
-        }
-
-        $segments = explode('/', $clean);
-        if ($clean === '' || in_array('', $segments, true) || in_array('.', $segments, true) || in_array('..', $segments, true)) {
+        $clean = self::normalizePath($path);
+        if ($clean === null) {
             return null;
         }
 
@@ -65,6 +56,101 @@ class MediaResolver
         }
 
         return null;
+    }
+
+    public static function exists(?string $path, array $diskNames = ['public', 'public_s3', 'local', 'private_s3']): bool
+    {
+        if (self::resolvePath($path) !== null) {
+            return true;
+        }
+
+        $clean = self::normalizePath($path);
+        if ($clean === null) {
+            return false;
+        }
+
+        foreach (self::configuredDiskNames($diskNames) as $diskName) {
+            if (Storage::disk($diskName)->exists($clean)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static function fileResponse(
+        ?string $path,
+        array $diskNames = ['public', 'public_s3', 'local', 'private_s3'],
+        array $headers = []
+    ): BinaryFileResponse|StreamedResponse|null {
+        $realPath = self::resolvePath($path);
+        if ($realPath !== null) {
+            return response()->file($realPath, $headers);
+        }
+
+        $clean = self::normalizePath($path);
+        if ($clean === null) {
+            return null;
+        }
+
+        foreach (self::configuredDiskNames($diskNames) as $diskName) {
+            $disk = Storage::disk($diskName);
+            if ($disk->exists($clean)) {
+                return $disk->response($clean, null, $headers);
+            }
+        }
+
+        return null;
+    }
+
+    public static function url(?string $path, array $diskNames = ['public', 'public_s3']): ?string
+    {
+        $clean = self::normalizePath($path);
+        if ($clean === null) {
+            return null;
+        }
+
+        foreach (self::configuredDiskNames($diskNames) as $diskName) {
+            $disk = Storage::disk($diskName);
+            if ($disk->exists($clean)) {
+                return $disk->url($clean);
+            }
+        }
+
+        return null;
+    }
+
+    private static function configuredDiskNames(array $diskNames): array
+    {
+        $configuredUserDisks = [
+            config('filesystems.user_public_disk'),
+            config('filesystems.user_private_disk'),
+        ];
+
+        return array_values(array_filter(
+            array_unique($diskNames),
+            fn (string $diskName) => !str_ends_with($diskName, '_s3')
+                || in_array($diskName, $configuredUserDisks, true)
+        ));
+    }
+
+    private static function normalizePath(?string $path): ?string
+    {
+        if (blank($path)) {
+            return null;
+        }
+
+        $clean = ltrim(str_replace('\\', '/', trim($path)), '/');
+
+        if (preg_match('#(?:^|/)(?:storage/app/(?:public|private)|app/(?:public|private)|public/storage)/#i', $clean, $match, PREG_OFFSET_CAPTURE)) {
+            $clean = substr($clean, $match[0][1] + strlen($match[0][0]));
+        }
+
+        $segments = explode('/', $clean);
+
+        return $clean === '' || in_array('', $segments, true) || in_array('.', $segments, true) || in_array('..', $segments, true)
+            ? null
+            : $clean;
     }
 
     /**
@@ -115,18 +201,14 @@ SVG;
     /**
      * Return a file response if the path exists, or an SVG response fallback.
      */
-    public static function fileOrFallback(?string $path, string $fallbackSvg, array $headers = []): Response|BinaryFileResponse
+    public static function fileOrFallback(?string $path, string $fallbackSvg, array $headers = []): Response|BinaryFileResponse|StreamedResponse
     {
-        $realPath = self::resolvePath($path);
+        $fileResponse = self::fileResponse($path, ['public', 'public_s3', 'local', 'private_s3'], array_merge([
+            'Cache-Control' => 'private, max-age=3600',
+        ], $headers));
 
-        if ($realPath !== null) {
-            $mime = mime_content_type($realPath) ?: 'image/jpeg';
-            $defaultHeaders = [
-                'Content-Type' => $mime,
-                'Cache-Control' => 'private, max-age=3600',
-            ];
-
-            return response()->file($realPath, array_merge($defaultHeaders, $headers));
+        if ($fileResponse !== null) {
+            return $fileResponse;
         }
 
         return response($fallbackSvg, 200, [

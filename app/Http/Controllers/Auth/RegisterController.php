@@ -105,18 +105,20 @@ class RegisterController extends Controller
         }
 
         $storedFiles = [];
+        $privateDisk = config('filesystems.user_private_disk');
+        $publicDisk = config('filesystems.user_public_disk');
 
         try {
-            $selfieImagePath = request()->file('selfie_image')->store('verification/selfie', 'local');
+            $selfieImagePath = request()->file('selfie_image')->store('verification/selfie', $privateDisk);
             if (!is_string($selfieImagePath)) {
                 throw new \RuntimeException('The verification image could not be saved.');
             }
-            $storedFiles[] = ['disk' => 'local', 'path' => $selfieImagePath];
-            $profilePhotoPath = request()->file('profile_photo')->store('profile-photos', 'public');
+            $storedFiles[] = ['disk' => $privateDisk, 'path' => $selfieImagePath];
+            $profilePhotoPath = request()->file('profile_photo')->store('profile-photos', $publicDisk);
             if (!is_string($profilePhotoPath)) {
                 throw new \RuntimeException('The profile photo could not be saved.');
             }
-            $storedFiles[] = ['disk' => 'public', 'path' => $profilePhotoPath];
+            $storedFiles[] = ['disk' => $publicDisk, 'path' => $profilePhotoPath];
         } catch (\Throwable $exception) {
             foreach ($storedFiles as $storedFile) {
                 Storage::disk($storedFile['disk'])->delete($storedFile['path']);

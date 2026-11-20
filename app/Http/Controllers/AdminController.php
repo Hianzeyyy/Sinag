@@ -409,8 +409,14 @@ class AdminController extends Controller
         $deletedUserEmail = $user->email;
 
         foreach (array_filter([$user->id_image_path, $user->selfie_image_path, $user->profile_photo_path]) as $path) {
-            Storage::disk('public')->delete($path);
-            Storage::disk('local')->delete($path);
+            foreach (array_unique([
+                'public',
+                'local',
+                config('filesystems.user_public_disk'),
+                config('filesystems.user_private_disk'),
+            ]) as $diskName) {
+                Storage::disk($diskName)->delete($path);
+            }
         }
 
         $this->revokeUserAccess($user);

@@ -108,7 +108,7 @@ class ReportController extends Controller
         $evidencePaths = [];
         if ($request->hasFile('evidence')) {
             foreach ($request->file('evidence') as $file) {
-                $path = $file->store('evidence', 'local');
+                $path = $file->store('evidence', config('filesystems.user_private_disk'));
                 if (!is_string($path)) {
                     throw new \RuntimeException('Incident evidence could not be stored.');
                 }
@@ -206,10 +206,14 @@ class ReportController extends Controller
 
         $path = $files[$index];
 
-        if (!Storage::disk('local')->exists($path)) {
-            abort(404);
-        }
+        $response = \App\Support\MediaResolver::fileResponse($path, [
+            'local',
+            config('filesystems.user_private_disk'),
+            'public',
+            config('filesystems.user_public_disk'),
+        ]);
+        abort_if($response === null, 404);
 
-        return Storage::disk('local')->response($path);
+        return $response;
     }
 }

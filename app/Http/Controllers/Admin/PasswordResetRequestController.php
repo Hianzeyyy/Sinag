@@ -27,15 +27,20 @@ class PasswordResetRequestController extends Controller
 
     public function idPicture(PasswordResetRequest $passwordResetRequest)
     {
-        foreach (['local', 'public'] as $diskName) {
+        foreach (array_unique([
+            'local',
+            'public',
+            config('filesystems.user_private_disk'),
+            config('filesystems.user_public_disk'),
+        ]) as $diskName) {
             $disk = Storage::disk($diskName);
 
             if ($disk->exists($passwordResetRequest->id_picture_path)) {
-                $response = response()->file($disk->path($passwordResetRequest->id_picture_path), [
+                $response = $disk->response($passwordResetRequest->id_picture_path, null, [
                     'Content-Disposition' => 'inline; filename="id-picture-' . $passwordResetRequest->getKey() . '"',
+                    'Cache-Control' => 'private, no-store',
                 ]);
                 $response->setPrivate();
-                $response->headers->set('Cache-Control', 'private, no-store');
 
                 return $response;
             }

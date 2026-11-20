@@ -16,7 +16,12 @@ class ProfileController extends Controller
         $verificationImagePath = $request->user()->id_image_path ?: $request->user()->selfie_image_path;
         $verificationImageAvailable = false;
 
-        $verificationImageAvailable = MediaResolver::resolvePath($verificationImagePath) !== null;
+        $verificationImageAvailable = MediaResolver::exists($verificationImagePath, [
+            'local',
+            config('filesystems.user_private_disk'),
+            'public',
+            config('filesystems.user_public_disk'),
+        ]);
 
         return view('profile.show', [
             'user' => $request->user(),
@@ -59,26 +64,30 @@ class ProfileController extends Controller
         $path = $user->id_image_path ?: $user->selfie_image_path;
         abort_if(blank($path), 404);
 
-        $realPath = MediaResolver::resolvePath($path);
-        if ($realPath !== null) {
-            $response = response()->file($realPath);
-            $response->setPrivate();
-            $response->headers->set('Cache-Control', 'private, no-store');
+        $response = MediaResolver::fileResponse($path, [
+            'local',
+            config('filesystems.user_private_disk'),
+            'public',
+            config('filesystems.user_public_disk'),
+        ], [
+            'Cache-Control' => 'private, no-store',
+        ]);
+        abort_if($response === null, 404);
+        $response->setPrivate();
 
-            return $response;
-        }
-
-        abort(404);
+        return $response;
     }
 
     public function profilePhoto(\App\Models\User $user)
     {
         $path = $this->normalizeProfilePhotoPath($user->profile_photo_path);
-        $realPath = MediaResolver::resolvePath($path);
-
-        if ($realPath !== null) {
-            $response = response()->file($realPath);
-        } else {
+        $response = MediaResolver::fileResponse($path, [
+            'public',
+            config('filesystems.user_public_disk'),
+            'local',
+            config('filesystems.user_private_disk'),
+        ]);
+        if ($response === null) {
             $response = response($this->defaultAvatarSvg($user->name, $user->role), 200, [
                 'Content-Type' => 'image/svg+xml',
             ]);
@@ -331,11 +340,16 @@ SVG;
 
         $user = $request->user();
 
-        if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
-            Storage::disk('public')->delete($user->profile_photo_path);
+        if ($user->profile_photo_path) {
+            foreach (array_unique(['public', config('filesystems.user_public_disk')]) as $diskName) {
+                Storage::disk($diskName)->delete($user->profile_photo_path);
+            }
         }
 
-        $path = $request->file('profile_photo')->store('profile-photos', 'public');
+        $path = $request->file('profile_photo')->store(
+            'profile-photos',
+            config('filesystems.user_public_disk')
+        );
 
         $user->update([
             'profile_photo_path' => $path,
@@ -352,7 +366,8 @@ SVG;
 
         $user = $request->user();
         $oldIdImagePath = $user->id_image_path;
-        $path = $request->file('verification_image')->store('verification/id', 'local');
+        $privateDisk = config('filesystems.user_private_disk');
+        $path = $request->file('verification_image')->store('verification/id', $privateDisk);
 
         if (!is_string($path)) {
             Log::error('Verification image upload failed', ['user_id' => $user->id]);
@@ -365,12 +380,17 @@ SVG;
         try {
             $user->update(['id_image_path' => $path]);
         } catch (\Throwable $exception) {
-            Storage::disk('local')->delete($path);
+            Storage::disk($privateDisk)->delete($path);
             throw $exception;
         }
 
         if ($oldIdImagePath && $oldIdImagePath !== $user->selfie_image_path) {
-            foreach (['local', 'public'] as $diskName) {
+            foreach (array_unique([
+                'local',
+                'public',
+                config('filesystems.user_private_disk'),
+                config('filesystems.user_public_disk'),
+            ]) as $diskName) {
                 Storage::disk($diskName)->delete($oldIdImagePath);
             }
         }

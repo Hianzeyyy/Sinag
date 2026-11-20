@@ -132,7 +132,7 @@ class ReportApiController extends Controller
 
         $paths = [];
         foreach ((array) $request->file('evidence', []) as $file) {
-            $paths[] = $file->store('evidence', 'public');
+            $paths[] = $file->store('evidence', config('filesystems.user_private_disk'));
         }
 
         do {
@@ -184,14 +184,15 @@ class ReportApiController extends Controller
         $files = $report->evidence_files;
         abort_unless(isset($files[$index]), 404);
 
-        $realPath = MediaResolver::resolvePath($files[$index]);
-        abort_if($realPath === null, 404);
-
-        $mime = mime_content_type($realPath) ?: 'application/octet-stream';
-        $response = response()->file($realPath, [
-            'Content-Type' => $mime,
+        $response = MediaResolver::fileResponse($files[$index], [
+            'local',
+            config('filesystems.user_private_disk'),
+            'public',
+            config('filesystems.user_public_disk'),
+        ], [
             'Cache-Control' => 'private, no-store',
         ]);
+        abort_if($response === null, 404);
         $response->setPrivate();
 
         return $response;

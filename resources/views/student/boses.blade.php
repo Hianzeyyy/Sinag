@@ -826,8 +826,8 @@
                                         @endif
                                     </p>
                                     @if($sugg->image_path)
-                                        <a href="{{ asset('storage/' . $sugg->image_path) }}" target="_blank" rel="noopener" class="suggestion-image-link">
-                                            <img src="{{ asset('storage/' . $sugg->image_path) }}" alt="Image attached to suggestion" class="img-fluid rounded-4 suggestion-attachment">
+                                        <a href="{{ \App\Support\MediaResolver::url($sugg->image_path, ['public', 'public_s3']) }}" target="_blank" rel="noopener" class="suggestion-image-link">
+                                            <img src="{{ \App\Support\MediaResolver::url($sugg->image_path, ['public', 'public_s3']) }}" alt="Image attached to suggestion" class="img-fluid rounded-4 suggestion-attachment">
                                         </a>
                                     @endif
                                     @if($sugg->admin_remarks)
@@ -940,7 +940,7 @@
                                                         <input type="file" name="image" class="form-control rounded-3" accept="image/jpeg,image/png,image/webp">
                                                         <div class="form-text">JPG, PNG, or WEBP up to 5 MB.</div>
                                                         @if($sugg->image_path)
-                                                            <img src="{{ asset('storage/' . $sugg->image_path) }}" alt="Current suggestion attachment" class="img-fluid rounded-3 mt-2" style="max-height:180px;">
+                                                            <img src="{{ \App\Support\MediaResolver::url($sugg->image_path, ['public', 'public_s3']) }}" alt="Current suggestion attachment" class="img-fluid rounded-3 mt-2" style="max-height:180px;">
                                                         @endif
                                                     </div>
                                                 </div>

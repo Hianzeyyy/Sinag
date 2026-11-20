@@ -50,7 +50,9 @@ class ImportLegacyMedia extends Command
                 if (blank($user->{$field})) {
                     continue;
                 }
-                $disk = $field === 'profile_photo_path' ? 'public' : 'local';
+                $disk = $field === 'profile_photo_path'
+                    ? config('filesystems.user_public_disk')
+                    : config('filesystems.user_private_disk');
                 $this->copyMedia($sourceRoot, $user->{$field}, $disk, $copied, $missing);
             }
         }
@@ -67,7 +69,7 @@ class ImportLegacyMedia extends Command
             && in_array('image_path', $source->getSchemaBuilder()->getColumnListing('suggestions'), true)) {
             foreach ($source->table('suggestions')->pluck('image_path') as $path) {
                 if (filled($path)) {
-                    $this->copyMedia($sourceRoot, $path, 'public', $copied, $missing);
+                    $this->copyMedia($sourceRoot, $path, config('filesystems.user_public_disk'), $copied, $missing);
                 }
             }
         }
