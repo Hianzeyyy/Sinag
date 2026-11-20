@@ -112,8 +112,14 @@ class SuggestionPersonalDataGateTest extends TestCase
 
         $this->get(route('student.boses'))
             ->assertOk()
-            ->assertSee('id="customerSatisfactionModal"', false)
-            ->assertSee('name="subject_id" value="' . $suggestionId . '"', false);
+            ->assertDontSee('id="customerSatisfactionModal"', false);
+
+        $this->post(route('customer-satisfaction.store'), [
+            'subject' => 'suggestion',
+            'subject_id' => $suggestionId,
+            'rating' => 5,
+            'responses' => [4, 4, 4, 4, 4],
+        ])->assertStatus(409);
     }
 
     public function test_satisfaction_survey_is_recorded_for_the_specific_report(): void
@@ -158,7 +164,22 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->actingAs($user)
             ->get(route('student.vault'))
             ->assertOk()
+            ->assertDontSee('id="customerSatisfactionModal"', false);
+
+        $this->post(route('customer-satisfaction.store'), [
+            'subject' => 'report',
+            'subject_id' => $reportId,
+            'rating' => 5,
+            'responses' => [4, 4, 4, 4, 4],
+        ])->assertStatus(409);
+
+        DB::table('reports')->where('id', $reportId)->update(['status' => 'Resolved']);
+
+        $this->get(route('student.vault'))
+            ->assertOk()
             ->assertSee('id="customerSatisfactionModal"', false)
+            ->assertSee('data-auto-show="false"', false)
+            ->assertSee('data-report-survey-id="' . $reportId . '"', false)
             ->assertSee('name="subject_id" value="' . $reportId . '"', false);
 
         $this->post(route('customer-satisfaction.store'), [
@@ -168,12 +189,6 @@ class SuggestionPersonalDataGateTest extends TestCase
             'responses' => [4, 4, 4, 4, 4],
         ])->assertRedirect();
 
-        DB::table('reports')->where('id', $reportId)->update(['status' => 'Resolved']);
-
-        $this->get(route('student.vault'))
-            ->assertOk()
-            ->assertDontSee('id="customerSatisfactionModal"', false);
-
         $this->assertDatabaseHas('customer_satisfaction_surveys', [
             'user_id' => $user->id,
             'subject' => 'report',
@@ -182,7 +197,7 @@ class SuggestionPersonalDataGateTest extends TestCase
         ]);
     }
 
-    public function test_satisfaction_survey_opens_after_a_report_is_submitted_and_accepts_pending_reports(): void
+    public function test_satisfaction_survey_waits_until_a_submitted_report_is_resolved(): void
     {
         $this->createUsersTable();
         $this->createSatisfactionSurveysTable();
@@ -203,6 +218,12 @@ class SuggestionPersonalDataGateTest extends TestCase
             $table->string('status');
             $table->timestamps();
         });
+        Schema::create('suggestions', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('status')->default('Pending');
+            $table->timestamps();
+        });
 
         $user = $this->makeCompletedStudent();
         $this->actingAs($user)
@@ -215,17 +236,31 @@ class SuggestionPersonalDataGateTest extends TestCase
                 'gender' => 'Female',
             ])
             ->assertRedirect(route('student.report'))
-            ->assertSessionHas('satisfaction_survey_report_id', 1);
+            ->assertSessionHas('report_case_id');
 
         $this->get(route('student.report'))
             ->assertOk()
+            ->assertDontSee('id="customerSatisfactionModal"', false);
+
+        $reportId = (int) DB::table('reports')->value('id');
+        DB::table('reports')->where('id', $reportId)->update(['status' => 'Resolved']);
+        $this->assertDatabaseHas('reports', [
+            'id' => $reportId,
+            'user_id' => $user->id,
+            'status' => 'Resolved',
+        ]);
+
+        $this->get(route('student.vault'))
+            ->assertOk()
             ->assertSee('id="customerSatisfactionModal"', false)
+            ->assertSee('data-auto-show="false"', false)
+            ->assertSee('data-report-survey-id="' . $reportId . '"', false)
             ->assertSee('name="subject" value="report"', false)
-            ->assertSee('name="subject_id" value="1"', false);
+            ->assertSee('name="subject_id" value="' . $reportId . '"', false);
 
         $this->post(route('customer-satisfaction.store'), [
             'subject' => 'report',
-            'subject_id' => 1,
+            'subject_id' => $reportId,
             'rating' => 5,
             'responses' => [4, 4, 4, 4, 4],
         ])->assertRedirect();
@@ -233,7 +268,7 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->assertDatabaseHas('customer_satisfaction_surveys', [
             'user_id' => $user->id,
             'subject' => 'report',
-            'subject_id' => 1,
+            'subject_id' => $reportId,
         ]);
     }
 

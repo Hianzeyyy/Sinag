@@ -59,6 +59,7 @@ class ReportApiController extends Controller
             $surveyPending = $surveyTableAvailable
                 && in_array('subject', $surveyColumns, true)
                 && in_array('subject_id', $surveyColumns, true)
+                && in_array(strtolower(trim((string) ($r->status ?? ''))), ['completed', 'resolved', 'closed'], true)
                 && !DB::table('customer_satisfaction_surveys')
                     ->where('user_id', $userId)
                     ->where('subject', 'report')

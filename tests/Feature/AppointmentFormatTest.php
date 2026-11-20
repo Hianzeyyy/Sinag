@@ -191,6 +191,69 @@ class AppointmentFormatTest extends TestCase
         ]);
     }
 
+    public function test_satisfaction_survey_opens_only_for_completed_online_appointments(): void
+    {
+        Schema::create('customer_satisfaction_surveys', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('subject', 20)->nullable();
+            $table->unsignedBigInteger('subject_id')->nullable();
+            $table->unsignedTinyInteger('rating');
+            $table->text('feedback')->nullable();
+            $table->json('responses')->nullable();
+            $table->timestamps();
+        });
+
+        $user = $this->student();
+        $onlineCompletedId = $this->createAppointment($user, 'completed');
+        $onlinePendingId = $this->createAppointment($user, 'pending');
+        $faceToFaceCompletedId = DB::table('appointment_requests')->insertGetId([
+            'user_id' => $user->id,
+            'full_name' => $user->name,
+            'student_id' => 'PSU-1001',
+            'purpose_of_visit' => 'Not specified',
+            'urgency_level' => 'Medium',
+            'scheduled_date' => now()->addDay()->toDateString(),
+            'scheduled_time' => '10:30',
+            'description' => 'Test appointment',
+            'format' => 'Face-to-Face',
+            'status' => 'completed',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('student.appointments'))
+            ->assertOk()
+            ->assertSee('id="customerSatisfactionModal"', false)
+            ->assertSee('name="subject" value="appointment"', false)
+            ->assertSee('name="subject_id" value="' . $onlineCompletedId . '"', false)
+            ->assertDontSee('name="subject_id" value="' . $onlinePendingId . '"', false)
+            ->assertDontSee('name="subject_id" value="' . $faceToFaceCompletedId . '"', false);
+
+        foreach ([$onlinePendingId, $faceToFaceCompletedId] as $unavailableId) {
+            $this->post(route('customer-satisfaction.store'), [
+                'subject' => 'appointment',
+                'subject_id' => $unavailableId,
+                'rating' => 5,
+                'responses' => [4, 4, 4, 4, 4],
+            ])->assertStatus(409);
+        }
+
+        $this->post(route('customer-satisfaction.store'), [
+            'subject' => 'appointment',
+            'subject_id' => $onlineCompletedId,
+            'rating' => 5,
+            'responses' => [4, 4, 4, 4, 4],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('customer_satisfaction_surveys', [
+            'user_id' => $user->id,
+            'subject' => 'appointment',
+            'subject_id' => $onlineCompletedId,
+        ]);
+    }
+
     public function test_student_can_cancel_pending_appointment(): void
     {
         $user = $this->student();

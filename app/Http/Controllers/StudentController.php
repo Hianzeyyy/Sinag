@@ -95,12 +95,7 @@ class StudentController extends Controller
                 ->with('personal_data_required', 'Complete your personal information before filing a report.');
         }
 
-        $reportId = session('satisfaction_survey_report_id');
-        $pendingSatisfactionSurvey = $reportId
-            ? $this->pendingSatisfactionSurvey(Auth::id(), 'report', (int) $reportId)
-            : null;
-
-        return view('student.report', compact('pendingSatisfactionSurvey'));
+        return view('student.report');
     }
 
     /**
@@ -119,10 +114,48 @@ class StudentController extends Controller
             ->paginate(15, ['*'], 'suggestions_page')
             ->withQueryString();
 
-        $pendingSatisfactionSurvey = $this->pendingSatisfactionSurvey($user_id, 'report')
-            ?? $this->pendingSatisfactionSurvey($user_id, 'suggestion');
+        $pendingReportSurveyIds = [];
+        if (Schema::hasTable('customer_satisfaction_surveys')
+            && Schema::hasColumn('customer_satisfaction_surveys', 'subject')
+            && Schema::hasColumn('customer_satisfaction_surveys', 'subject_id')) {
+            $resolvedReportIds = $myReports->getCollection()
+                ->filter(fn ($report) => in_array(
+                    strtolower(trim((string) $report->status)),
+                    ['completed', 'resolved', 'closed'],
+                    true
+                ))
+                ->pluck('id');
 
-        return view('student.vault', compact('myReports', 'mySuggestions', 'pendingSatisfactionSurvey'));
+            if ($resolvedReportIds->isNotEmpty()) {
+                $surveyedReportIds = DB::table('customer_satisfaction_surveys')
+                    ->where('user_id', $user_id)
+                    ->where('subject', 'report')
+                    ->whereIn('subject_id', $resolvedReportIds)
+                    ->pluck('subject_id')
+                    ->map(fn ($id) => (int) $id);
+
+                $pendingReportSurveyIds = $resolvedReportIds
+                    ->map(fn ($id) => (int) $id)
+                    ->diff($surveyedReportIds)
+                    ->values()
+                    ->all();
+            }
+        }
+
+        $pendingSatisfactionSurvey = $this->pendingSatisfactionSurvey($user_id, 'suggestion');
+        $surveyModal = $pendingSatisfactionSurvey
+            ?? (isset($pendingReportSurveyIds[0])
+                ? ['subject' => 'report', 'subject_id' => $pendingReportSurveyIds[0]]
+                : null);
+        $autoShowSatisfactionSurvey = $pendingSatisfactionSurvey !== null;
+
+        return view('student.vault', compact(
+            'myReports',
+            'mySuggestions',
+            'pendingReportSurveyIds',
+            'surveyModal',
+            'autoShowSatisfactionSurvey'
+        ));
     }
 
     /**
@@ -195,19 +228,21 @@ class StudentController extends Controller
             return null;
         }
 
-        [$table, $statuses] = match ($subject) {
-            'report' => ['reports', null],
-            'suggestion' => ['suggestions', ['approved', 'disapproved', 'rejected']],
+        [$table, $statuses, $onlineOnly] = match ($subject) {
+            'report' => ['reports', ['completed', 'resolved', 'closed'], false],
+            'suggestion' => ['suggestions', ['approved'], false],
+            'appointment' => ['appointment_requests', ['completed'], true],
             default => throw new \InvalidArgumentException('Unsupported satisfaction survey subject.'),
         };
 
         $query = DB::table($table)
             ->where('user_id', $userId)
             ->when($subjectId !== null, fn ($query) => $query->where('id', $subjectId))
-            ->when($statuses !== null, fn ($query) => $query->whereRaw(
+            ->whereRaw(
                 'LOWER(TRIM(status)) IN (' . implode(', ', array_fill(0, count($statuses), '?')) . ')',
                 $statuses
-            ))
+            )
+            ->when($onlineOnly, fn ($query) => $query->whereRaw('LOWER(TRIM(format)) = ?', ['online']))
             ->whereNotExists(function ($query) use ($table, $userId, $subject): void {
                 $query->selectRaw('1')
                     ->from('customer_satisfaction_surveys')
@@ -725,8 +760,9 @@ class StudentController extends Controller
             ->latest()
             ->paginate(15)
             ->withQueryString();
+        $pendingSatisfactionSurvey = $this->pendingSatisfactionSurvey(Auth::id(), 'appointment');
 
-        return view('student.appointments', compact('appointments'));
+        return view('student.appointments', compact('appointments', 'pendingSatisfactionSurvey'));
     }
 
 }

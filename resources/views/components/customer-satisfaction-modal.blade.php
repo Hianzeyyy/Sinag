@@ -1,4 +1,4 @@
-<div class="modal fade" id="customerSatisfactionModal" tabindex="-1" aria-labelledby="customerSatisfactionModalLabel" aria-hidden="true">
+<div class="modal fade" id="customerSatisfactionModal" data-auto-show="{{ isset($autoShow) ? ($autoShow ? 'true' : 'false') : 'true' }}" tabindex="-1" aria-labelledby="customerSatisfactionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow-lg">
             <div class="modal-header border-0">
@@ -27,7 +27,7 @@
                     </fieldset>
                     @php
                         $surveyQuestions = [
-                            'The report or suggestion submission process was easy to use.',
+                            'The report, suggestion, or online appointment process was easy to use.',
                             'The instructions and information were clear.',
                             'The system made me feel safe sharing my concern or feedback.',
                             'The system responded well to my needs.',
@@ -92,7 +92,7 @@
             labels.forEach((item, itemIndex) => item.classList.toggle('is-selected', selected >= 0 && itemIndex <= selected));
         });
         window.addEventListener('load', function () {
-            if (window.bootstrap?.Modal) {
+            if (window.bootstrap?.Modal && modal.dataset.autoShow !== 'false') {
                 bootstrap.Modal.getOrCreateInstance(modal).show();
             }
         }, { once: true });

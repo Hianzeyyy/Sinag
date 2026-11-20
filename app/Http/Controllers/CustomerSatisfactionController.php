@@ -21,7 +21,7 @@ class CustomerSatisfactionController extends Controller
         }
 
         $validated = $request->validate([
-            'subject' => ['required', 'in:report,suggestion'],
+            'subject' => ['required', 'in:report,suggestion,appointment'],
             'subject_id' => ['required', 'integer', 'min:1'],
             'rating' => ['required', 'integer', 'between:1,5'],
             'feedback' => ['nullable', 'string', 'max:2000'],
@@ -29,20 +29,26 @@ class CustomerSatisfactionController extends Controller
             'responses.*' => ['required', 'integer', 'between:1,4'],
         ]);
 
-        $table = $validated['subject'] === 'report' ? 'reports' : 'suggestions';
+        $table = match ($validated['subject']) {
+            'report' => 'reports',
+            'suggestion' => 'suggestions',
+            'appointment' => 'appointment_requests',
+        };
+        $columns = $validated['subject'] === 'appointment' ? ['status', 'format'] : ['status'];
         $item = DB::table($table)
             ->where('id', $validated['subject_id'])
             ->where('user_id', $request->user()->id)
-            ->first(['status']);
+            ->first($columns);
 
         abort_unless($item, 404);
-        if ($validated['subject'] === 'suggestion') {
-            abort_unless(
-                in_array(strtolower(trim((string) $item->status)), ['approved', 'disapproved', 'rejected'], true),
-                409,
-                'This item is not ready for a satisfaction survey.'
-            );
-        }
+        $status = strtolower(trim((string) $item->status));
+        $isAvailable = match ($validated['subject']) {
+            'report' => in_array($status, ['completed', 'resolved', 'closed'], true),
+            'suggestion' => $status === 'approved',
+            'appointment' => $status === 'completed'
+                && strtolower(trim((string) $item->format)) === 'online',
+        };
+        abort_unless($isAvailable, 409, 'This item is not ready for a satisfaction survey.');
 
         CustomerSatisfactionSurvey::firstOrCreate(
             [

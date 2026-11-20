@@ -167,7 +167,11 @@
                                         $modalId = 'reportModal-' . $report->id . '-' . uniqid();
                                     @endphp
                                     <div class="d-flex gap-2">
-                                        <button class="btn btn-light btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#{{ $modalId }}">View Details</button>
+                                        @if(in_array((int) $report->id, $pendingReportSurveyIds, true))
+                                            <button type="button" class="btn btn-light btn-sm rounded-pill px-3 fw-bold" data-report-survey-id="{{ $report->id }}" data-report-details-target="#{{ $modalId }}">View Details</button>
+                                        @else
+                                            <button type="button" class="btn btn-light btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#{{ $modalId }}">View Details</button>
+                                        @endif
                                         @if($report->status == 'Pending')
                                             <button class="btn btn-sm rounded-pill px-3 fw-bold" style="color:#7658df; border:1px solid #a594f9; background:#f3efff;">Cancel Report</button>
                                         @endif
@@ -317,10 +321,30 @@
     });
 </script>
 
-@if($pendingSatisfactionSurvey)
+@if($surveyModal)
     @include('components.customer-satisfaction-modal', [
-        'surveySubject' => $pendingSatisfactionSurvey['subject'],
-        'surveySubjectId' => $pendingSatisfactionSurvey['subject_id'],
+        'surveySubject' => $surveyModal['subject'],
+        'surveySubjectId' => $surveyModal['subject_id'],
+        'autoShow' => $autoShowSatisfactionSurvey,
     ])
 @endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('[data-report-survey-id]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const surveyModal = document.getElementById('customerSatisfactionModal');
+                const detailsModal = document.querySelector(button.dataset.reportDetailsTarget);
+                if (!window.bootstrap?.Modal || !surveyModal || !detailsModal) return;
+
+                surveyModal.querySelector('[name="subject"]').value = 'report';
+                surveyModal.querySelector('[name="subject_id"]').value = button.dataset.reportSurveyId;
+                surveyModal.addEventListener('hidden.bs.modal', function () {
+                    bootstrap.Modal.getOrCreateInstance(detailsModal).show();
+                }, { once: true });
+                bootstrap.Modal.getOrCreateInstance(surveyModal).show();
+            });
+        });
+    });
+</script>
 @endsection

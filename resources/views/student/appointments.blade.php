@@ -220,6 +220,13 @@ kl*--@extends('layouts.app')
     @endif
 </div>
 
+@if($pendingSatisfactionSurvey)
+    @include('components.customer-satisfaction-modal', [
+        'surveySubject' => $pendingSatisfactionSurvey['subject'],
+        'surveySubjectId' => $pendingSatisfactionSurvey['subject_id'],
+    ])
+@endif
+
 <style>
     .appointment-page {
         padding-bottom: max(1.5rem, env(safe-area-inset-bottom));

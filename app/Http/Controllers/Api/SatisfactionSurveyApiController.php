@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class SatisfactionSurveyApiController extends Controller
 {
-    private const SUBJECTS = ['report', 'suggestion'];
+    private const SUBJECTS = ['report', 'suggestion', 'appointment'];
 
     public function show(Request $request, string $subject, int $id): JsonResponse
     {
@@ -57,7 +57,11 @@ class SatisfactionSurveyApiController extends Controller
     private function assertSubjectBelongsToUser(Request $request, string $subject, int $id): void
     {
         abort_unless(in_array($subject, self::SUBJECTS, true), 404);
-        $table = $subject === 'report' ? 'reports' : 'suggestions';
+        $table = match ($subject) {
+            'report' => 'reports',
+            'suggestion' => 'suggestions',
+            'appointment' => 'appointment_requests',
+        };
         abort_unless(
             DB::table($table)->where('id', $id)->where('user_id', $request->user()->id)->exists(),
             404
@@ -66,14 +70,25 @@ class SatisfactionSurveyApiController extends Controller
 
     private function isAvailable(string $subject, int $id): bool
     {
-        if ($subject === 'report') {
-            return true;
+        $table = match ($subject) {
+            'report' => 'reports',
+            'suggestion' => 'suggestions',
+            'appointment' => 'appointment_requests',
+        };
+        $columns = $subject === 'appointment' ? ['status', 'format'] : ['status'];
+        $item = DB::table($table)->where('id', $id)->first($columns);
+        if (!$item) {
+            return false;
         }
 
-        $table = $subject === 'report' ? 'reports' : 'suggestions';
-        $status = strtolower(trim((string) DB::table($table)->where('id', $id)->value('status')));
+        $status = strtolower(trim((string) $item->status));
 
-        return in_array($status, ['approved', 'disapproved', 'rejected'], true);
+        return match ($subject) {
+            'report' => in_array($status, ['completed', 'resolved', 'closed'], true),
+            'suggestion' => $status === 'approved',
+            'appointment' => $status === 'completed'
+                && strtolower(trim((string) $item->format)) === 'online',
+        };
     }
 
     private function survey(int $userId, string $subject, int $subjectId): ?array

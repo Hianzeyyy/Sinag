@@ -274,13 +274,6 @@
     </div>
 </div>
 
-@if($pendingSatisfactionSurvey)
-    @include('components.customer-satisfaction-modal', [
-        'surveySubject' => $pendingSatisfactionSurvey['subject'],
-        'surveySubjectId' => $pendingSatisfactionSurvey['subject_id'],
-    ])
-@endif
-
 @if(session('success'))
 <script>
     window.addEventListener('load', function () {

@@ -33,7 +33,7 @@ class SuggestionApiController extends Controller
             $surveyPending = $s->user_id === $viewerId
                 && in_array(
                     strtolower(trim((string) $s->status)),
-                    ['approved', 'disapproved', 'rejected'],
+                    ['approved'],
                     true
                 )
                 && in_array('subject', $surveyColumns, true)

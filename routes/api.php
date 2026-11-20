@@ -40,8 +40,8 @@ Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
     Route::get('/reports', [ReportApiController::class, 'index']);
     Route::delete('/reports/{report}', [ReportApiController::class, 'destroy']);
     Route::get('/reports/{report}/evidence/{index}', [ReportApiController::class, 'evidence'])->whereNumber('index');
-    Route::get('/satisfaction/{subject}/{id}', [SatisfactionSurveyApiController::class, 'show'])->whereIn('subject', ['report', 'suggestion'])->whereNumber('id');
-    Route::post('/satisfaction/{subject}/{id}', [SatisfactionSurveyApiController::class, 'store'])->whereIn('subject', ['report', 'suggestion'])->whereNumber('id');
+    Route::get('/satisfaction/{subject}/{id}', [SatisfactionSurveyApiController::class, 'show'])->whereIn('subject', ['report', 'suggestion', 'appointment'])->whereNumber('id');
+    Route::post('/satisfaction/{subject}/{id}', [SatisfactionSurveyApiController::class, 'store'])->whereIn('subject', ['report', 'suggestion', 'appointment'])->whereNumber('id');
 
     // Suggestions wall (Boses)
     Route::get('/suggestions', [SuggestionApiController::class, 'index']);

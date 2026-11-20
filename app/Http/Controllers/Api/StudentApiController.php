@@ -51,6 +51,17 @@ class StudentApiController extends Controller
 
     private function appointmentPayload(AppointmentRequest $a): array
     {
+        $surveyPending = strtolower(trim((string) $a->status)) === 'completed'
+            && strtolower(trim((string) $a->format)) === 'online'
+            && Schema::hasTable('customer_satisfaction_surveys')
+            && Schema::hasColumn('customer_satisfaction_surveys', 'subject')
+            && Schema::hasColumn('customer_satisfaction_surveys', 'subject_id')
+            && !DB::table('customer_satisfaction_surveys')
+                ->where('user_id', $a->user_id)
+                ->where('subject', 'appointment')
+                ->where('subject_id', $a->id)
+                ->exists();
+
         return [
             'id' => $a->id,
             'full_name' => $a->full_name,
@@ -61,6 +72,7 @@ class StudentApiController extends Controller
             'description' => $a->description,
             'format' => $a->format,
             'status' => $a->status,
+            'satisfaction_survey_pending' => $surveyPending,
             'admin_notes' => $a->admin_notes,
             'cancellation_reason' => $a->cancellation_reason,
         ];
