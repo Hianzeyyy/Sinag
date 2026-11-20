@@ -184,7 +184,7 @@ class ReportController extends Controller
     private function safeFailureMessage(\Throwable $exception): string
     {
         $message = trim(preg_replace('/\s+/', ' ', $exception->getMessage()));
-        return $message !== '' ? 'Server details: ' . \Illuminate\Support\Str::limit($message, 240) : 'Please try again or contact the GAD office.';
+        return $message !== '' ? 'Server details: ' . Str::limit($message, 240) : 'Please try again or contact the GAD office.';
     }
 
     /**
