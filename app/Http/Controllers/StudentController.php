@@ -147,7 +147,7 @@ class StudentController extends Controller
             ?? (isset($pendingReportSurveyIds[0])
                 ? ['subject' => 'report', 'subject_id' => $pendingReportSurveyIds[0]]
                 : null);
-        $autoShowSatisfactionSurvey = $pendingSatisfactionSurvey !== null;
+        $autoShowSatisfactionSurvey = $pendingSatisfactionSurvey !== null || $pendingReportSurveyIds !== [];
 
         return view('student.vault', compact(
             'myReports',

@@ -178,7 +178,7 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->get(route('student.vault'))
             ->assertOk()
             ->assertSee('id="customerSatisfactionModal"', false)
-            ->assertSee('data-auto-show="false"', false)
+            ->assertSee('data-auto-show="true"', false)
             ->assertSee('data-report-survey-id="' . $reportId . '"', false)
             ->assertSee('title="Click to rate this report"', false)
             ->assertSee('name="subject_id" value="' . $reportId . '"', false);
@@ -254,7 +254,7 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->get(route('student.vault'))
             ->assertOk()
             ->assertSee('id="customerSatisfactionModal"', false)
-            ->assertSee('data-auto-show="false"', false)
+            ->assertSee('data-auto-show="true"', false)
             ->assertSee('data-report-survey-id="' . $reportId . '"', false)
             ->assertSee('name="subject" value="report"', false)
             ->assertSee('name="subject_id" value="' . $reportId . '"', false);
