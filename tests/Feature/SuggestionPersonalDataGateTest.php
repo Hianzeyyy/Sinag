@@ -91,6 +91,12 @@ class SuggestionPersonalDataGateTest extends TestCase
         $this->createUsersTable();
         $this->createSuggestionTables();
         $this->createSatisfactionSurveysTable();
+        Schema::create('reports', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('status')->default('Pending');
+            $table->timestamps();
+        });
 
         $user = $this->makeCompletedStudent();
         $suggestionId = $this->createSuggestion($user, 'Pending', 'Please add more GAD awareness activities.');
@@ -107,6 +113,12 @@ class SuggestionPersonalDataGateTest extends TestCase
             ->assertSee('id="customerSatisfactionModal"', false)
             ->assertSee('name="subject" value="suggestion"', false)
             ->assertSee('name="subject_id" value="' . $suggestionId . '"', false);
+
+        $this->get(route('student.vault'))
+            ->assertOk()
+            ->assertSee('data-auto-show="true"', false)
+            ->assertSee('data-suggestion-survey-id="' . $suggestionId . '"', false)
+            ->assertSee('title="Click to rate this suggestion"', false);
 
         DB::table('suggestions')->where('id', $suggestionId)->update(['status' => 'Rejected']);
 

@@ -115,6 +115,7 @@ class StudentController extends Controller
             ->withQueryString();
 
         $pendingReportSurveyIds = [];
+        $pendingSuggestionSurveyIds = [];
         if (Schema::hasTable('customer_satisfaction_surveys')
             && Schema::hasColumn('customer_satisfaction_surveys', 'subject')
             && Schema::hasColumn('customer_satisfaction_surveys', 'subject_id')) {
@@ -140,19 +141,44 @@ class StudentController extends Controller
                     ->values()
                     ->all();
             }
+
+            $approvedSuggestionIds = $mySuggestions->getCollection()
+                ->filter(fn ($suggestion) => strtolower(trim((string) $suggestion->status)) === 'approved')
+                ->pluck('id');
+
+            if ($approvedSuggestionIds->isNotEmpty()) {
+                $surveyedSuggestionIds = DB::table('customer_satisfaction_surveys')
+                    ->where('user_id', $user_id)
+                    ->where('subject', 'suggestion')
+                    ->whereIn('subject_id', $approvedSuggestionIds)
+                    ->pluck('subject_id')
+                    ->map(fn ($id) => (int) $id);
+
+                $pendingSuggestionSurveyIds = $approvedSuggestionIds
+                    ->map(fn ($id) => (int) $id)
+                    ->diff($surveyedSuggestionIds)
+                    ->values()
+                    ->all();
+            }
         }
 
         $pendingSatisfactionSurvey = $this->pendingSatisfactionSurvey($user_id, 'suggestion');
         $surveyModal = $pendingSatisfactionSurvey
+            ?? (isset($pendingSuggestionSurveyIds[0])
+                ? ['subject' => 'suggestion', 'subject_id' => $pendingSuggestionSurveyIds[0]]
+                : null)
             ?? (isset($pendingReportSurveyIds[0])
                 ? ['subject' => 'report', 'subject_id' => $pendingReportSurveyIds[0]]
                 : null);
-        $autoShowSatisfactionSurvey = $pendingSatisfactionSurvey !== null || $pendingReportSurveyIds !== [];
+        $autoShowSatisfactionSurvey = $pendingSatisfactionSurvey !== null
+            || $pendingSuggestionSurveyIds !== []
+            || $pendingReportSurveyIds !== [];
 
         return view('student.vault', compact(
             'myReports',
             'mySuggestions',
             'pendingReportSurveyIds',
+            'pendingSuggestionSurveyIds',
             'surveyModal',
             'autoShowSatisfactionSurvey'
         ));

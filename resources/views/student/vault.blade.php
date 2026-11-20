@@ -281,7 +281,13 @@
                             @foreach($mySuggestions as $sugg)
                                 <tr>
                                     <td><button type="button" class="btn btn-link p-0 text-start text-decoration-none" data-bs-toggle="modal" data-bs-target="#mySuggestionModal{{ $sugg->id }}"><span class="text-truncate d-inline-block" style="max-width: 250px;">{{ $sugg->message }}</span></button></td>
-                                    <td><button type="button" class="btn btn-sm border-0 rounded-pill" style="background:#f3efff;color:#5b4b9b;" data-bs-toggle="modal" data-bs-target="#mySuggestionModal{{ $sugg->id }}">{{ $sugg->status ?? 'Shared' }}</button></td>
+                                    <td>
+                                        @if(in_array((int) $sugg->id, $pendingSuggestionSurveyIds, true))
+                                            <button type="button" class="btn btn-sm border-0 rounded-pill" style="background:#f3efff;color:#5b4b9b;" title="Click to rate this suggestion" aria-label="Open satisfaction survey for suggestion {{ $sugg->id }}" data-suggestion-survey-id="{{ $sugg->id }}">{{ $sugg->status ?? 'Shared' }}</button>
+                                        @else
+                                            <button type="button" class="btn btn-sm border-0 rounded-pill" style="background:#f3efff;color:#5b4b9b;" data-bs-toggle="modal" data-bs-target="#mySuggestionModal{{ $sugg->id }}">{{ $sugg->status ?? 'Shared' }}</button>
+                                        @endif
+                                    </td>
                                     <td><i class="bi bi-arrow-up-circle-fill text-primary"></i> {{ $sugg->upvotes_count ?? 0 }}</td>
                                     <td>{{ $sugg->created_at->diffForHumans() }}</td>
                                 </tr>
@@ -331,13 +337,16 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('[data-report-survey-id]').forEach(function (button) {
+        document.querySelectorAll('[data-report-survey-id], [data-suggestion-survey-id]').forEach(function (button) {
             button.addEventListener('click', function () {
                 const surveyModal = document.getElementById('customerSatisfactionModal');
                 if (!window.bootstrap?.Modal || !surveyModal) return;
 
-                surveyModal.querySelector('[name="subject"]').value = 'report';
-                surveyModal.querySelector('[name="subject_id"]').value = button.dataset.reportSurveyId;
+                const isReportSurvey = button.hasAttribute('data-report-survey-id');
+                surveyModal.querySelector('[name="subject"]').value = isReportSurvey ? 'report' : 'suggestion';
+                surveyModal.querySelector('[name="subject_id"]').value = isReportSurvey
+                    ? button.dataset.reportSurveyId
+                    : button.dataset.suggestionSurveyId;
                 bootstrap.Modal.getOrCreateInstance(surveyModal).show();
             });
         });
