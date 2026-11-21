@@ -209,12 +209,15 @@ The migration `2026_11_20_000003_delete_configured_user` removes only the
 non-admin account whose email matches `USER_EMAIL_TO_DELETE`, including its
 database-cascaded records and associated uploaded media. Set this variable in
 the production environment before deploying, then remove it after the migration
-has run. The target email is intentionally not stored in the repository. The
-migration cannot be rolled back to restore deleted data.
+has run. If it is unset, the migration logs a warning and skips deletion so
+deployment can continue; because Laravel records the migration as run, it will
+not retry automatically if the variable is added later. The target email is
+intentionally not stored in the repository. The migration cannot be rolled
+back to restore deleted data.
 
-Render can alternatively use an attached persistent disk mounted at
-`/var/www/html/storage/app`; retain the default storage paths or set
-`PRIVATE_STORAGE_PATH=/var/www/html/storage/app/private` and
+Render can alternatively use an attached persistent disk as a source for legacy
+uploads mounted at `/var/www/html/storage/app`; retain the default storage paths
+or set `PRIVATE_STORAGE_PATH=/var/www/html/storage/app/private` and
 `PUBLIC_STORAGE_PATH=/var/www/html/storage/app/public`. Before mounting over an
 existing storage directory, copy any surviving files out because mounting hides
 the container's prior files.

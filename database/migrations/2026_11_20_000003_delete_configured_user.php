@@ -1,10 +1,11 @@
 <?php
 
 use App\Models\User;
+use App\Support\MediaResolver;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 
 return new class extends Migration
 {
@@ -17,7 +18,7 @@ return new class extends Migration
         $email = strtolower(trim((string) env('USER_EMAIL_TO_DELETE', '')));
         if ($email === '') {
             if (app()->environment('production')) {
-                throw new RuntimeException('Set USER_EMAIL_TO_DELETE before running the configured user deletion migration.');
+                Log::warning('Skipping configured user deletion because USER_EMAIL_TO_DELETE is not set.');
             }
 
             return;
@@ -76,14 +77,7 @@ return new class extends Migration
         }
 
         foreach (array_unique($mediaPaths) as $path) {
-            foreach (array_unique([
-                'public',
-                'local',
-                config('filesystems.user_public_disk'),
-                config('filesystems.user_private_disk'),
-            ]) as $diskName) {
-                Storage::disk($diskName)->delete($path);
-            }
+            MediaResolver::delete($path);
         }
 
         DB::transaction(function () use ($user): void {

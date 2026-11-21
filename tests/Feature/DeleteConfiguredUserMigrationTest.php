@@ -10,6 +10,36 @@ use Tests\TestCase;
 
 class DeleteConfiguredUserMigrationTest extends TestCase
 {
+    public function test_migration_skips_deletion_in_production_when_no_target_is_configured(): void
+    {
+        Schema::create('users', function (Blueprint $table): void {
+            $table->id();
+            $table->string('email')->unique();
+            $table->string('role');
+        });
+
+        $userId = DB::table('users')->insertGetId([
+            'email' => 'keep@example.test',
+            'role' => 'student',
+        ]);
+        $previousEmail = getenv('USER_EMAIL_TO_DELETE');
+        $previousEnvironment = app()->environment();
+        putenv('USER_EMAIL_TO_DELETE');
+        app()->detectEnvironment(fn () => 'production');
+
+        try {
+            $migration = require database_path('migrations/2026_11_20_000003_delete_configured_user.php');
+            $migration->up();
+        } finally {
+            $previousEmail === false
+                ? putenv('USER_EMAIL_TO_DELETE')
+                : putenv('USER_EMAIL_TO_DELETE='.$previousEmail);
+            app()->detectEnvironment(fn () => $previousEnvironment);
+        }
+
+        $this->assertDatabaseHas('users', ['id' => $userId]);
+    }
+
     public function test_migration_deletes_only_the_configured_non_admin_user_and_cascades_records(): void
     {
         Schema::create('users', function (Blueprint $table): void {
