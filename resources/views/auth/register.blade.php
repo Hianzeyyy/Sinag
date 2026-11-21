@@ -230,7 +230,7 @@
                                         <input type="text" class="form-control" name="first_name" value="{{ old('first_name') }}" required autocomplete="given-name">
                                     </div>
                                     <div class="col-md-4 mb-3 register-name-field">
-                                        <label class="form-label text-white small fw-bold text-uppercase">Middle Name <span class="text-muted">(optional)</span></label>
+                                        
                                         <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" autocomplete="additional-name">
                                     </div>
                                     <div class="col-md-4 mb-3 register-name-field">
