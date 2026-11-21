@@ -102,10 +102,39 @@ database to position generated IDs above imported records.
 
 ## Uploaded media storage and backups
 
-The local `public` and `local` disks remain the localhost defaults. Production
-defaults to the durable `public_s3` and `private_s3` disks, so configure the
-following values in Render's Environment Variables before deploying. Keep
-credentials out of source control:
+All new user-uploaded media is stored in Cloudinary, not on the application
+container. Set `CLOUDINARY_URL` in local `.env` and Render's Environment
+Variables; keep its value private and out of source control.
+
+Profile photos and suggestion attachments are public Cloudinary images.
+Registration ID/selfie photos, password-reset ID pictures, and report evidence
+use authenticated delivery and continue to be served through the application's
+authorized routes. The database stores a compact `cloudinary://` reference with
+the delivery type, resource type, and public ID; credentials are never stored in
+media records. Existing local and S3 paths continue to work until migrated.
+
+To migrate existing local or S3-backed files, first configure the source storage
+disks that contain them. Check that the files are readable without changing
+records:
+
+```sh
+php artisan media:migrate-to-cloudinary --dry-run
+```
+
+Then upload and update references:
+
+```sh
+php artisan media:migrate-to-cloudinary
+```
+
+The migration handles profile photos, registration verification images,
+password-reset ID pictures, suggestion attachments, and report evidence. It
+does not delete source files; verify that migrated media displays correctly
+before cleaning up old storage.
+
+The S3-compatible disks remain available for reading legacy files and storing
+manual ZIP backups. Configure these values in Render only when using those
+features; keep credentials out of source control:
 
 ```text
 USER_PUBLIC_MEDIA_DISK=public_s3
@@ -120,18 +149,12 @@ AWS_URL=...            # Public bucket/CDN URL for public image attachments
 AWS_USE_PATH_STYLE_ENDPOINT=false
 ```
 
-Public profile and suggestion images use `public_s3`; verification images, report
-evidence, and password-reset ID images use `private_s3`. Private images continue
-to be served through authorization-checked application routes. Set an appropriate
-public bucket policy or public custom domain limited to the `profile-photos/` and
-`suggestions/` prefixes; do not make verification, `evidence/`, or
-`password-reset-requests/` objects public.
-
 Set `DB_SSL_CA` to a readable CA bundle for local remote-TiDB connections. The
 Render Docker image installs system CA certificates and configures TiDB TLS
 verification automatically.
 
-After setting the S3 environment variables, migrate existing local uploads with:
+For legacy deployments that used the S3 sync command, existing local uploads can
+still be copied to the configured S3-compatible disks with:
 
 ```sh
 php artisan media:sync-images-to-storage
@@ -149,8 +172,9 @@ php artisan media:backup-images
 ```
 
 The archive is stored privately under the `media-backups/` prefix in the
-configured S3-compatible bucket. PDF and other non-image report evidence is not
-included. The command is manual and does not run on a schedule.
+configured S3-compatible bucket and can include Cloudinary-backed images. PDF
+and other non-image report evidence is not included. The command is manual and
+does not run on a schedule.
 
 ## One-time account removal migration
 

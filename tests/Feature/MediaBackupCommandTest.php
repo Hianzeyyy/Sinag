@@ -7,11 +7,14 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\FakesCloudinaryMedia;
 use Tests\TestCase;
 use ZipArchive;
 
 class MediaBackupCommandTest extends TestCase
 {
+    use FakesCloudinaryMedia;
+
     public function test_remote_public_images_are_resolvable_and_get_storage_urls(): void
     {
         Storage::fake('public');
@@ -121,5 +124,38 @@ class MediaBackupCommandTest extends TestCase
         $this->assertContains('public/profile-photos/profile.png', $entries);
         $this->assertContains('local/legacy-media/verification.jpg', $entries);
         $this->assertNotContains('local/evidence/report.pdf', $entries);
+    }
+
+    public function test_manual_backup_includes_cloudinary_backed_images(): void
+    {
+        $this->fakeCloudinaryMedia();
+        Schema::create('users', function (Blueprint $table): void {
+            $table->id();
+            $table->string('profile_photo_path')->nullable();
+        });
+        Storage::fake('public');
+        Storage::fake('local');
+        Storage::fake('media-backups');
+        config([
+            'filesystems.user_public_disk' => 'public',
+            'filesystems.user_private_disk' => 'local',
+        ]);
+        DB::table('users')->insert([
+            'profile_photo_path' => 'cloudinary://upload/image/sinag/profile-photos/test-photo',
+        ]);
+
+        $this->artisan('media:backup-images')->assertSuccessful();
+
+        $archivePath = Storage::disk('media-backups')->allFiles('media-backups')[0];
+        $archive = new ZipArchive();
+        $this->assertTrue($archive->open(Storage::disk('media-backups')->path($archivePath)));
+        try {
+            $this->assertSame(
+                'cloudinary/upload/sinag/profile-photos/test-photo',
+                $archive->getNameIndex(0)
+            );
+        } finally {
+            $archive->close();
+        }
     }
 }

@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\User;
+use App\Support\MediaResolver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -108,12 +108,7 @@ class ReportController extends Controller
         $evidencePaths = [];
         if ($request->hasFile('evidence')) {
             foreach ($request->file('evidence') as $file) {
-                $path = $file->store('evidence', config('filesystems.user_private_disk'));
-                if (!is_string($path)) {
-                    throw new \RuntimeException('Incident evidence could not be stored.');
-                }
-
-                $evidencePaths[] = $path;
+                $evidencePaths[] = MediaResolver::storeUploadedFile($file, 'reports/evidence', true);
             }
         }
 

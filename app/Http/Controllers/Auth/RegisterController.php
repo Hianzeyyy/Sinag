@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\CompatibleInsert;
+use App\Support\MediaResolver;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -105,23 +105,15 @@ class RegisterController extends Controller
         }
 
         $storedFiles = [];
-        $privateDisk = config('filesystems.user_private_disk');
-        $publicDisk = config('filesystems.user_public_disk');
 
         try {
-            $selfieImagePath = request()->file('selfie_image')->store('verification/selfie', $privateDisk);
-            if (!is_string($selfieImagePath)) {
-                throw new \RuntimeException('The verification image could not be saved.');
-            }
-            $storedFiles[] = ['disk' => $privateDisk, 'path' => $selfieImagePath];
-            $profilePhotoPath = request()->file('profile_photo')->store('profile-photos', $publicDisk);
-            if (!is_string($profilePhotoPath)) {
-                throw new \RuntimeException('The profile photo could not be saved.');
-            }
-            $storedFiles[] = ['disk' => $publicDisk, 'path' => $profilePhotoPath];
+            $selfieImagePath = MediaResolver::storeUploadedFile(request()->file('selfie_image'), 'verification/selfie', true);
+            $storedFiles[] = $selfieImagePath;
+            $profilePhotoPath = MediaResolver::storeUploadedFile(request()->file('profile_photo'), 'profile-photos', false);
+            $storedFiles[] = $profilePhotoPath;
         } catch (\Throwable $exception) {
             foreach ($storedFiles as $storedFile) {
-                Storage::disk($storedFile['disk'])->delete($storedFile['path']);
+                MediaResolver::delete($storedFile);
             }
 
             report($exception);
@@ -171,7 +163,7 @@ class RegisterController extends Controller
             });
         } catch (\Throwable $exception) {
             foreach ($storedFiles as $storedFile) {
-                Storage::disk($storedFile['disk'])->delete($storedFile['path']);
+                MediaResolver::delete($storedFile);
             }
 
             throw $exception;

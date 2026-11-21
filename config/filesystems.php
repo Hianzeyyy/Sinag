@@ -55,6 +55,14 @@ return [
             'report' => true,
         ],
 
+        'cloudinary' => [
+            'driver' => 'cloudinary',
+            'url' => env(
+                'CLOUDINARY_URL',
+                'cloudinary://'.env('CLOUDINARY_KEY').':'.env('CLOUDINARY_SECRET').'@'.env('CLOUDINARY_CLOUD_NAME')
+            ),
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

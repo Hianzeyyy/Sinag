@@ -3,14 +3,15 @@
 namespace App\Support;
 
 use Aws\Exception\AwsException;
-use Illuminate\Http\Response;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\UnableToCheckExistence;
+use League\Flysystem\UnableToDeleteFile;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\Response;
 
 class MediaResolver
 {
@@ -21,6 +22,10 @@ class MediaResolver
      */
     public static function resolvePath(?string $path): ?string
     {
+        if (CloudinaryMedia::hasReferenceScheme($path)) {
+            return null;
+        }
+
         $clean = self::normalizePath($path);
         if ($clean === null) {
             return null;
@@ -67,6 +72,10 @@ class MediaResolver
 
     public static function exists(?string $path, array $diskNames = ['public', 'public_s3', 'local', 'private_s3']): bool
     {
+        if (CloudinaryMedia::hasReferenceScheme($path)) {
+            return CloudinaryMedia::parseReference($path) !== null && CloudinaryMedia::isConfigured();
+        }
+
         if (self::resolvePath($path) !== null) {
             return true;
         }
@@ -93,7 +102,15 @@ class MediaResolver
         ?string $path,
         array $diskNames = ['public', 'public_s3', 'local', 'private_s3'],
         array $headers = []
-    ): BinaryFileResponse|StreamedResponse|null {
+    ): ?Response {
+        if (CloudinaryMedia::hasReferenceScheme($path)) {
+            if (CloudinaryMedia::parseReference($path) === null || !CloudinaryMedia::isConfigured()) {
+                return null;
+            }
+
+            return app(CloudinaryMedia::class)->fileResponse($path, $headers);
+        }
+
         $realPath = self::resolvePath($path);
         if ($realPath !== null) {
             return response()->file($realPath, $headers);
@@ -120,6 +137,14 @@ class MediaResolver
 
     public static function url(?string $path, array $diskNames = ['public', 'public_s3']): ?string
     {
+        if (CloudinaryMedia::hasReferenceScheme($path)) {
+            if (CloudinaryMedia::parseReference($path) === null || !CloudinaryMedia::isConfigured()) {
+                return null;
+            }
+
+            return app(CloudinaryMedia::class)->publicUrl($path);
+        }
+
         $clean = self::normalizePath($path);
         if ($clean === null) {
             return null;
@@ -137,6 +162,77 @@ class MediaResolver
         }
 
         return null;
+    }
+
+    public static function storeUploadedFile(UploadedFile $file, string $folder, bool $private): string
+    {
+        if (!CloudinaryMedia::isConfigured()) {
+            throw new RuntimeException('Cloudinary media storage is not configured.');
+        }
+
+        return app(CloudinaryMedia::class)->storeUploadedFile($file, $folder, $private);
+    }
+
+    public static function delete(?string $path, array $diskNames = ['public', 'public_s3', 'local', 'private_s3']): void
+    {
+        if (blank($path)) {
+            return;
+        }
+
+        if (CloudinaryMedia::hasReferenceScheme($path)) {
+            if (CloudinaryMedia::parseReference($path) === null || !CloudinaryMedia::isConfigured()) {
+                throw new RuntimeException('The Cloudinary media reference is invalid or Cloudinary is not configured.');
+            }
+
+            app(CloudinaryMedia::class)->delete($path);
+
+            return;
+        }
+
+        $clean = self::normalizePath($path);
+        if ($clean === null) {
+            return;
+        }
+
+        foreach (self::configuredDiskNames($diskNames) as $diskName) {
+            try {
+                Storage::disk($diskName)->delete($clean);
+            } catch (UnableToDeleteFile|AwsException $exception) {
+                self::logStorageFailure($diskName, $clean, $exception);
+            }
+        }
+    }
+
+    public static function contents(?string $path, array $diskNames = ['public', 'public_s3', 'local', 'private_s3']): ?string
+    {
+        if (blank($path) || CloudinaryMedia::hasReferenceScheme($path)) {
+            return null;
+        }
+
+        $clean = self::normalizePath($path);
+        if ($clean === null) {
+            return null;
+        }
+
+        foreach (self::configuredDiskNames($diskNames) as $diskName) {
+            try {
+                $disk = Storage::disk($diskName);
+                if ($disk->exists($clean)) {
+                    return $disk->get($clean);
+                }
+            } catch (UnableToCheckExistence|UnableToReadFile|AwsException $exception) {
+                self::logStorageFailure($diskName, $clean, $exception);
+            }
+        }
+
+        $realPath = self::resolvePath($path);
+        if ($realPath === null) {
+            return null;
+        }
+
+        $contents = file_get_contents($realPath);
+
+        return $contents === false ? null : $contents;
     }
 
     private static function configuredDiskNames(array $diskNames): array
@@ -248,7 +344,7 @@ SVG;
     /**
      * Return a file response if the path exists, or an SVG response fallback.
      */
-    public static function fileOrFallback(?string $path, string $fallbackSvg, array $headers = []): Response|BinaryFileResponse|StreamedResponse
+    public static function fileOrFallback(?string $path, string $fallbackSvg, array $headers = []): Response
     {
         $fileResponse = self::fileResponse($path, ['public', 'public_s3', 'local', 'private_s3'], array_merge([
             'Cache-Control' => 'private, max-age=3600',

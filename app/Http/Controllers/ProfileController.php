@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Support\CloudinaryMedia;
 use App\Support\MediaResolver;
 
 class ProfileController extends Controller
@@ -103,6 +103,10 @@ class ProfileController extends Controller
     {
         if (blank($path)) {
             return null;
+        }
+
+        if (CloudinaryMedia::hasReferenceScheme($path)) {
+            return CloudinaryMedia::parseReference($path) !== null ? $path : null;
         }
 
         $path = ltrim(str_replace('\\', '/', trim($path)), '/');
@@ -339,21 +343,16 @@ SVG;
         ]);
 
         $user = $request->user();
-
-        if ($user->profile_photo_path) {
-            foreach (array_unique(['public', config('filesystems.user_public_disk')]) as $diskName) {
-                Storage::disk($diskName)->delete($user->profile_photo_path);
-            }
-        }
-
-        $path = $request->file('profile_photo')->store(
-            'profile-photos',
-            config('filesystems.user_public_disk')
-        );
+        $oldPhotoPath = $user->profile_photo_path;
+        $path = MediaResolver::storeUploadedFile($request->file('profile_photo'), 'profile-photos', false);
 
         $user->update([
             'profile_photo_path' => $path,
         ]);
+
+        if ($oldPhotoPath && $oldPhotoPath !== $path) {
+            MediaResolver::delete($oldPhotoPath, ['public', 'local', config('filesystems.user_public_disk')]);
+        }
 
         return back()->with('status', 'Profile photo updated.');
     }
@@ -366,33 +365,17 @@ SVG;
 
         $user = $request->user();
         $oldIdImagePath = $user->id_image_path;
-        $privateDisk = config('filesystems.user_private_disk');
-        $path = $request->file('verification_image')->store('verification/id', $privateDisk);
-
-        if (!is_string($path)) {
-            Log::error('Verification image upload failed', ['user_id' => $user->id]);
-
-            return back()->withErrors([
-                'verification_image' => 'The ID image could not be saved. Please try again.',
-            ]);
-        }
+        $path = MediaResolver::storeUploadedFile($request->file('verification_image'), 'verification/id', true);
 
         try {
             $user->update(['id_image_path' => $path]);
         } catch (\Throwable $exception) {
-            Storage::disk($privateDisk)->delete($path);
+            MediaResolver::delete($path);
             throw $exception;
         }
 
         if ($oldIdImagePath && $oldIdImagePath !== $user->selfie_image_path) {
-            foreach (array_unique([
-                'local',
-                'public',
-                config('filesystems.user_private_disk'),
-                config('filesystems.user_public_disk'),
-            ]) as $diskName) {
-                Storage::disk($diskName)->delete($oldIdImagePath);
-            }
+            MediaResolver::delete($oldIdImagePath);
         }
 
         return back()->with('status', 'ID verification image updated.');

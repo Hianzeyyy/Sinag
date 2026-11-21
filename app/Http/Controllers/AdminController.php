@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Report;
 use App\Models\Suggestion;
@@ -431,7 +430,7 @@ class AdminController extends Controller
         $verificationImagePath = $user->id_image_path ?: $user->selfie_image_path;
         $verificationImageAvailable = false;
 
-        $verificationImageAvailable = \App\Support\MediaResolver::resolvePath($verificationImagePath) !== null;
+        $verificationImageAvailable = \App\Support\MediaResolver::exists($verificationImagePath);
 
         return view('profile.show', compact('user', 'verificationImageAvailable'));
     }
@@ -450,15 +449,8 @@ class AdminController extends Controller
         $deletedUserId = $user->id;
         $deletedUserEmail = $user->email;
 
-        foreach (array_filter([$user->id_image_path, $user->selfie_image_path, $user->profile_photo_path]) as $path) {
-            foreach (array_unique([
-                'public',
-                'local',
-                config('filesystems.user_public_disk'),
-                config('filesystems.user_private_disk'),
-            ]) as $diskName) {
-                Storage::disk($diskName)->delete($path);
-            }
+        foreach (array_unique(array_filter([$user->id_image_path, $user->selfie_image_path, $user->profile_photo_path])) as $path) {
+            \App\Support\MediaResolver::delete($path);
         }
 
         $this->revokeUserAccess($user);

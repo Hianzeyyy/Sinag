@@ -7,12 +7,17 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\FakesCloudinaryMedia;
 use Tests\TestCase;
 
 class RegistrationNameTest extends TestCase
 {
+    use FakesCloudinaryMedia;
+
     public function test_registration_stores_first_middle_and_last_name_and_composes_the_display_name(): void
     {
+        $this->fakeCloudinaryMedia();
+
         Schema::create('users', function (Blueprint $table): void {
             $table->unsignedBigInteger('id')->primary();
             $table->string('name');

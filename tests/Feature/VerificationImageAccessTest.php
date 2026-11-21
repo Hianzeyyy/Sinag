@@ -3,16 +3,40 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\MediaResolver;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\UploadedFile;
+use Tests\Concerns\FakesCloudinaryMedia;
 use Tests\TestCase;
 
 class VerificationImageAccessTest extends TestCase
 {
+    use FakesCloudinaryMedia;
+
+    public function test_cloudinary_private_delivery_errors_are_not_reported_as_missing_files(): void
+    {
+        $this->fakeCloudinaryMedia(false);
+        Http::fake([
+            'https://res.cloudinary.com/*' => Http::response('unavailable', 503),
+        ]);
+
+        $response = MediaResolver::fileResponse(
+            'cloudinary://authenticated/image/sinag/verification/id/test-image'
+        );
+
+        $this->assertNotNull($response);
+        $this->assertSame(502, $response->getStatusCode());
+        $this->assertStringContainsString('private', $response->headers->get('Cache-Control'));
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+    }
+
     public function test_verification_image_is_available_to_owner_and_admin_only(): void
     {
+        $this->fakeCloudinaryMedia();
+
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
@@ -99,7 +123,7 @@ class VerificationImageAccessTest extends TestCase
 
         $student->refresh();
         $this->assertNotEmpty($student->profile_photo_path);
-        $this->assertTrue(Storage::disk('public')->exists($student->profile_photo_path));
+        $this->assertStringStartsWith('cloudinary://upload/image/sinag/profile-photos/', $student->profile_photo_path);
 
         $this->actingAs($student)
             ->post(route('profile.verification-image.update'), [
@@ -109,11 +133,19 @@ class VerificationImageAccessTest extends TestCase
 
         $student->refresh();
         $this->assertNotEmpty($student->id_image_path);
-        $this->assertTrue(Storage::disk('local')->exists($student->id_image_path));
-        $this->assertFalse(Storage::disk('public')->exists($student->id_image_path));
+        $this->assertStringStartsWith('cloudinary://authenticated/image/sinag/verification/id/', $student->id_image_path);
+
+        $this->actingAs($otherStudent)
+            ->get(route('profile.verification-image', $student))
+            ->assertForbidden();
 
         $this->actingAs($admin)
             ->get(route('profile.verification-image', $student))
             ->assertOk();
+
+        $publicPhotoResponse = $this->actingAs($otherStudent)
+            ->get(route('profile.photo', $student))
+            ->assertRedirect();
+        $this->assertStringContainsString('/image/upload/', $publicPhotoResponse->headers->get('Location'));
     }
 }

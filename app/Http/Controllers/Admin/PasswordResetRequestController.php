@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PasswordResetRequest;
+use App\Support\MediaResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PasswordResetRequestController extends Controller
@@ -27,23 +27,18 @@ class PasswordResetRequestController extends Controller
 
     public function idPicture(PasswordResetRequest $passwordResetRequest)
     {
-        foreach (array_unique([
-            'local',
-            'public',
-            config('filesystems.user_private_disk'),
-            config('filesystems.user_public_disk'),
-        ]) as $diskName) {
-            $disk = Storage::disk($diskName);
+        $response = MediaResolver::fileResponse(
+            $passwordResetRequest->id_picture_path,
+            ['local', 'public', 'public_s3', 'private_s3'],
+            [
+                'Content-Disposition' => 'inline; filename="id-picture-'.$passwordResetRequest->getKey().'"',
+                'Cache-Control' => 'private, no-store',
+            ]
+        );
+        if ($response !== null) {
+            $response->setPrivate();
 
-            if ($disk->exists($passwordResetRequest->id_picture_path)) {
-                $response = $disk->response($passwordResetRequest->id_picture_path, null, [
-                    'Content-Disposition' => 'inline; filename="id-picture-' . $passwordResetRequest->getKey() . '"',
-                    'Cache-Control' => 'private, no-store',
-                ]);
-                $response->setPrivate();
-
-                return $response;
-            }
+            return $response;
         }
 
         abort(404);

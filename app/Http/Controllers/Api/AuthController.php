@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\PasswordResetRequest;
 use App\Support\CompatibleInsert;
+use App\Support\MediaResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -161,16 +161,14 @@ class AuthController extends Controller
         }
 
         $stored = [];
-        $privateDisk = config('filesystems.user_private_disk');
-        $publicDisk = config('filesystems.user_public_disk');
         try {
-            $selfie = $request->file('selfie_image')->store('verification/selfie', $privateDisk);
-            $stored[] = [$privateDisk, $selfie];
-            $photo = $request->file('profile_photo')->store('profile-photos', $publicDisk);
-            $stored[] = [$publicDisk, $photo];
+            $selfie = MediaResolver::storeUploadedFile($request->file('selfie_image'), 'verification/selfie', true);
+            $stored[] = $selfie;
+            $photo = MediaResolver::storeUploadedFile($request->file('profile_photo'), 'profile-photos', false);
+            $stored[] = $photo;
 
             DB::transaction(function () use ($data, $accountType, $cloakAlias, $photo, $selfie) {
-                CompatibleInsert::insert('users', [
+                $userData = [
                     'name' => trim($data['name']),
                     'email' => strtolower(trim($data['email'])),
                     'age' => $data['age'],
@@ -187,11 +185,16 @@ class AuthController extends Controller
                     'account_status' => 'pending',
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+                if (Schema::hasColumn('users', 'id_image_path')) {
+                    $userData['id_image_path'] = $selfie;
+                }
+
+                CompatibleInsert::insert('users', $userData);
             });
         } catch (\Throwable $e) {
-            foreach ($stored as [$disk, $path]) {
-                Storage::disk($disk)->delete($path);
+            foreach ($stored as $path) {
+                MediaResolver::delete($path);
             }
             report($e);
             throw ValidationException::withMessages([
@@ -240,27 +243,27 @@ class AuthController extends Controller
             ]);
         }
 
-        $path = $request->file('id_picture')->store('password-reset-requests', config('filesystems.user_private_disk'));
-        if (! is_string($path) || $path === '') {
-            throw ValidationException::withMessages([
-                'id_picture' => ['The ID picture could not be saved. Please try again later.'],
-            ]);
-        }
+        $path = MediaResolver::storeUploadedFile($request->file('id_picture'), 'password-reset-requests', true);
 
         $reference = 'PRR-'.Str::upper(Str::random(10));
-        CompatibleInsert::insert('password_reset_requests', [
-            'user_id' => $user->id,
-            'reference_number' => $reference,
-            'email' => $user->email,
-            'name' => $data['name'],
-            'student_employee_id' => $data['student_employee_id'],
-            'department' => $data['department'] ?? null,
-            'id_picture_path' => $path,
-            'reason' => $data['reason'] ?? null,
-            'status' => 'pending',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        try {
+            CompatibleInsert::insert('password_reset_requests', [
+                'user_id' => $user->id,
+                'reference_number' => $reference,
+                'email' => $user->email,
+                'name' => $data['name'],
+                'student_employee_id' => $data['student_employee_id'],
+                'department' => $data['department'] ?? null,
+                'id_picture_path' => $path,
+                'reason' => $data['reason'] ?? null,
+                'status' => 'pending',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } catch (\Throwable $exception) {
+            MediaResolver::delete($path);
+            throw $exception;
+        }
 
         return response()->json([
             'message' => 'Password reset request submitted.',
@@ -419,17 +422,14 @@ class AuthController extends Controller
         ]);
 
         $user = $request->user();
-        if ($user->profile_photo_path) {
-            foreach (array_unique(['public', config('filesystems.user_public_disk')]) as $diskName) {
-                Storage::disk($diskName)->delete($user->profile_photo_path);
-            }
-        }
+        $oldPhotoPath = $user->profile_photo_path;
+        $newPhotoPath = MediaResolver::storeUploadedFile($request->file('profile_photo'), 'profile-photos', false);
         $user->update([
-            'profile_photo_path' => $request->file('profile_photo')->store(
-                'profile-photos',
-                config('filesystems.user_public_disk')
-            ),
+            'profile_photo_path' => $newPhotoPath,
         ]);
+        if ($oldPhotoPath && $oldPhotoPath !== $newPhotoPath) {
+            MediaResolver::delete($oldPhotoPath, ['public', 'local', config('filesystems.user_public_disk')]);
+        }
 
         return response()->json(['user' => self::userPayload($user->fresh())]);
     }

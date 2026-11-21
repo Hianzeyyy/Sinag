@@ -142,6 +142,41 @@ class MediaBackup
         array &$temporaryFiles,
         array &$added
     ): void {
+        if (CloudinaryMedia::hasReferenceScheme($path)) {
+            $asset = CloudinaryMedia::parseReference($path);
+            if ($asset === null || $asset['resource_type'] !== 'image') {
+                return;
+            }
+
+            $archiveName = 'cloudinary/'.$asset['delivery_type'].'/'.$asset['public_id'];
+            if (isset($added[$archiveName])) {
+                return;
+            }
+
+            $contents = app(CloudinaryMedia::class)->downloadContents($path);
+            if ($contents === null) {
+                throw new MediaBackupException('Cloudinary image could not be downloaded for the media backup.');
+            }
+
+            $temporaryFile = tempnam(sys_get_temp_dir(), 'sinag-image-');
+            if ($temporaryFile === false) {
+                throw new MediaBackupException('A temporary image file for the backup could not be created.');
+            }
+            $temporaryFiles[] = $temporaryFile;
+
+            if (file_put_contents($temporaryFile, $contents) !== strlen($contents)) {
+                throw new MediaBackupException('Cloudinary image could not be written to the backup archive.');
+            }
+
+            if (!$zip->addFile($temporaryFile, $archiveName)) {
+                throw new MediaBackupException("Cloudinary image could not be added to the archive: {$archiveName}");
+            }
+
+            $added[$archiveName] = true;
+
+            return;
+        }
+
         $path = $this->normalizePath($path);
         if ($path === '') {
             return;

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Suggestion;
+use App\Support\MediaResolver;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use App\Support\ContentModeration;
@@ -79,13 +79,9 @@ class SuggestionController extends Controller
             return redirect()->back()->withInput()->with('error', 'Image attachments are temporarily unavailable. Please submit your suggestion without an image.');
         }
 
-        $imagePath = $request->file('image')?->store(
-            'suggestions',
-            config('filesystems.user_public_disk')
-        );
-        if ($request->hasFile('image') && !is_string($imagePath)) {
-            throw new \RuntimeException('The suggestion image could not be saved.');
-        }
+        $imagePath = $request->hasFile('image')
+            ? MediaResolver::storeUploadedFile($request->file('image'), 'suggestions', false)
+            : null;
 
         $suggestionData = [
             'user_id' => Auth::id(),
@@ -145,22 +141,13 @@ class SuggestionController extends Controller
 
         $previousImagePath = $suggestion->image_path;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store(
-                'suggestions',
-                config('filesystems.user_public_disk')
-            );
-            if (!is_string($imagePath)) {
-                throw new \RuntimeException('The suggestion image could not be saved.');
-            }
-
+            $imagePath = MediaResolver::storeUploadedFile($request->file('image'), 'suggestions', false);
             $attributes['image_path'] = $imagePath;
         }
 
         $suggestion->update($attributes);
         if ($request->hasFile('image') && $previousImagePath) {
-            foreach (array_unique(['public', config('filesystems.user_public_disk')]) as $diskName) {
-                Storage::disk($diskName)->delete($previousImagePath);
-            }
+            MediaResolver::delete($previousImagePath, ['public', 'local', config('filesystems.user_public_disk')]);
         }
 
         return redirect()->back()->with('success', 'Ang iyong suggestion ay na-update na.');
@@ -185,9 +172,7 @@ class SuggestionController extends Controller
         // Delete the suggestion
         $suggestion->delete();
         if ($suggestion->image_path) {
-            foreach (array_unique(['public', config('filesystems.user_public_disk')]) as $diskName) {
-                Storage::disk($diskName)->delete($suggestion->image_path);
-            }
+            MediaResolver::delete($suggestion->image_path, ['public', 'local', config('filesystems.user_public_disk')]);
         }
 
         return redirect()->back()->with('success', 'Ang iyong suggestion ay na-delete na.');

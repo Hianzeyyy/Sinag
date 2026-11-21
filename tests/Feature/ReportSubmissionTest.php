@@ -9,10 +9,13 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\FakesCloudinaryMedia;
 use Tests\TestCase;
 
 class ReportSubmissionTest extends TestCase
 {
+    use FakesCloudinaryMedia;
+
     public function test_report_page_keeps_the_hotline_and_submit_action_after_the_form(): void
     {
         Schema::create('users', function (Blueprint $table): void {
@@ -131,6 +134,7 @@ class ReportSubmissionTest extends TestCase
 
     public function test_report_submission_succeeds_with_current_metadata_columns(): void
     {
+        $this->fakeCloudinaryMedia();
         Storage::fake('local');
         Storage::fake('public');
 
@@ -197,8 +201,7 @@ class ReportSubmissionTest extends TestCase
         $report = Report::where('user_id', $user->id)->firstOrFail();
         $evidencePath = $report->evidence_files[0];
 
-        Storage::disk('local')->assertExists($evidencePath);
-        Storage::disk('public')->assertMissing($evidencePath);
+        $this->assertStringStartsWith('cloudinary://authenticated/image/sinag/reports/evidence/', $evidencePath);
         $this->actingAs($user)
             ->get(route('reports.evidence.view', ['report' => $report->id, 'index' => 0]))
             ->assertOk();

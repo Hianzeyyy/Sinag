@@ -10,13 +10,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\FakesCloudinaryMedia;
 use Tests\TestCase;
 
 class ForgotPasswordRequestTest extends TestCase
 {
+    use FakesCloudinaryMedia;
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->fakeCloudinaryMedia();
 
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
@@ -83,7 +87,10 @@ class ForgotPasswordRequestTest extends TestCase
         ]);
 
         $request = DB::table('password_reset_requests')->first();
-        $this->assertTrue(Storage::disk('local')->exists($request->id_picture_path));
+        $this->assertStringStartsWith(
+            'cloudinary://authenticated/image/sinag/password-reset-requests/',
+            $request->id_picture_path
+        );
     }
 
     public function test_password_reset_request_matches_email_without_case_sensitivity(): void

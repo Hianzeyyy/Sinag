@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PasswordResetRequest;
 use App\Models\User;
 use App\Support\CompatibleInsert;
+use App\Support\MediaResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -45,13 +46,9 @@ class ForgotPasswordController extends Controller
         }
 
         $path = null;
-        $privateDisk = config('filesystems.user_private_disk');
         $reference = 'PRR-'.Str::upper(Str::random(10));
         try {
-            $path = $request->file('id_picture')->store('password-reset-requests', $privateDisk);
-            if (! is_string($path) || $path === '') {
-                throw new \RuntimeException('The password reset ID picture could not be stored.');
-            }
+            $path = MediaResolver::storeUploadedFile($request->file('id_picture'), 'password-reset-requests', true);
 
             $resetRequestId = DB::transaction(function () use ($user, $validated, $reference, $path) {
                 return CompatibleInsert::insert('password_reset_requests', [
@@ -70,7 +67,7 @@ class ForgotPasswordController extends Controller
             });
         } catch (Throwable $exception) {
             if (is_string($path) && $path !== '') {
-                \Illuminate\Support\Facades\Storage::disk($privateDisk)->delete($path);
+                MediaResolver::delete($path);
             }
             Log::error('Password reset request submission failed', [
                 'email' => $validated['email'],

@@ -93,6 +93,9 @@
                             <span class="text-muted small">{{ $suggestion->created_at->format('M d, Y h:i A') }}</span>
                         </div>
                         <div class="p-3 rounded-3 border bg-light" style="white-space:pre-wrap;">{{ $suggestion->message }}</div>
+                        @if($imageUrl = \App\Support\MediaResolver::url($suggestion->image_path, ['public', 'public_s3']))
+                            <img src="{{ $imageUrl }}" alt="Suggestion attachment" class="img-fluid rounded-3 mt-3" style="max-height:24rem;">
+                        @endif
                         @if($suggestion->admin_remarks)
                             <div class="alert alert-light border mt-3 mb-0"><strong>Previous review comment:</strong> {{ $suggestion->admin_remarks }}</div>
                         @endif

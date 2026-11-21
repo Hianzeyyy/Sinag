@@ -9,7 +9,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 use App\Support\MediaResolver;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -132,7 +131,7 @@ class ReportApiController extends Controller
 
         $paths = [];
         foreach ((array) $request->file('evidence', []) as $file) {
-            $paths[] = $file->store('evidence', config('filesystems.user_private_disk'));
+            $paths[] = MediaResolver::storeUploadedFile($file, 'reports/evidence', true);
         }
 
         do {

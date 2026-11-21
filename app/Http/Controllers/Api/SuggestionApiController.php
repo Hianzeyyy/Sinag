@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Suggestion;
 use App\Models\SuggestionComment;
 use App\Support\ContentModeration;
+use App\Support\MediaResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +52,7 @@ class SuggestionApiController extends Controller
             'profile_photo_url' => $s->user
                 ? url("users/{$s->user->id}/profile-photo")
                 : null,
+            'image_url' => MediaResolver::url($s->image_path, ['public', 'public_s3']),
             'category' => $s->category,
             'message' => $s->message,
             'status' => $s->status,

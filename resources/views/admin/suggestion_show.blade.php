@@ -37,6 +37,9 @@
                     <div class="p-4 rounded-4 border bg-light" style="white-space: pre-wrap; line-height:1.8; color:#1f2937;">
                         {{ $suggestion->message }}
                     </div>
+                    @if($imageUrl = \App\Support\MediaResolver::url($suggestion->image_path, ['public', 'public_s3']))
+                        <img src="{{ $imageUrl }}" alt="Suggestion attachment" class="img-fluid rounded-4 mt-3" style="max-height:32rem;">
+                    @endif
                 </div>
             </div>
         </div>

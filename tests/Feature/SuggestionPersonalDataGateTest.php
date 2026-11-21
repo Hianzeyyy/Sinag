@@ -3,13 +3,18 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\MediaResolver;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Http\UploadedFile;
+use Tests\Concerns\FakesCloudinaryMedia;
 use Tests\TestCase;
 
 class SuggestionPersonalDataGateTest extends TestCase
 {
+    use FakesCloudinaryMedia;
+
     public function test_students_and_employees_cannot_access_reports_until_personal_data_is_complete(): void
     {
         $this->createUsersTable();
@@ -670,6 +675,33 @@ class SuggestionPersonalDataGateTest extends TestCase
             'category' => 'GAD Programs and Services',
             'message' => 'Please add more GAD awareness activities.',
         ]);
+    }
+
+    public function test_suggestion_attachments_are_stored_as_public_cloudinary_images(): void
+    {
+        $this->fakeCloudinaryMedia();
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $user = $this->makeCompletedStudent([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('student.boses'))
+            ->post(route('suggestions.store'), [
+                'category' => 'GAD Programs and Services',
+                'message' => 'Please add more GAD awareness activities.',
+                'image' => UploadedFile::fake()->image('suggestion.png'),
+            ])
+            ->assertRedirect(route('student.boses'))
+            ->assertSessionHas('success');
+
+        $path = DB::table('suggestions')->value('image_path');
+        $this->assertStringStartsWith('cloudinary://upload/image/sinag/suggestions/', $path);
+        $this->assertNotNull(MediaResolver::url($path, ['public', 'public_s3']));
     }
 
     public function test_users_can_post_suggestions_containing_words_that_include_a_moderated_substring(): void
