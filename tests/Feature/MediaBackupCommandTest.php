@@ -16,7 +16,13 @@ class MediaBackupCommandTest extends TestCase
     {
         Storage::fake('public');
         Storage::fake('public_s3');
-        config(['filesystems.user_public_disk' => 'public_s3']);
+        config([
+            'filesystems.user_public_disk' => 'public_s3',
+            'filesystems.disks.public_s3.bucket' => 'test-bucket',
+            'filesystems.disks.public_s3.region' => 'us-east-1',
+            'filesystems.disks.public_s3.key' => 'test-key',
+            'filesystems.disks.public_s3.secret' => 'test-secret',
+        ]);
 
         Storage::disk('public_s3')->put(
             'profile-photos/profile.png',
@@ -26,6 +32,21 @@ class MediaBackupCommandTest extends TestCase
         $this->assertTrue(MediaResolver::exists('profile-photos/profile.png', ['public', 'public_s3']));
         $this->assertNotNull(MediaResolver::fileResponse('profile-photos/profile.png', ['public', 'public_s3']));
         $this->assertNotNull(MediaResolver::url('profile-photos/profile.png', ['public', 'public_s3']));
+    }
+
+    public function test_unconfigured_s3_media_disks_are_skipped(): void
+    {
+        config([
+            'filesystems.user_public_disk' => 'public_s3',
+            'filesystems.disks.public_s3.bucket' => null,
+            'filesystems.disks.public_s3.region' => null,
+            'filesystems.disks.public_s3.key' => null,
+            'filesystems.disks.public_s3.secret' => null,
+        ]);
+
+        $this->assertFalse(MediaResolver::exists('profile-photos/missing.png', ['public_s3']));
+        $this->assertNull(MediaResolver::fileResponse('profile-photos/missing.png', ['public_s3']));
+        $this->assertNull(MediaResolver::url('profile-photos/missing.png', ['public_s3']));
     }
 
     public function test_sync_command_moves_existing_images_to_the_configured_s3_disks(): void

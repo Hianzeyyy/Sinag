@@ -230,7 +230,6 @@
                                         <input type="text" class="form-control" name="first_name" value="{{ old('first_name') }}" required autocomplete="given-name">
                                     </div>
                                     <div class="col-md-4 mb-3 register-name-field">
-                                        
                                         <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" autocomplete="additional-name">
                                     </div>
                                     <div class="col-md-4 mb-3 register-name-field">
@@ -293,14 +292,14 @@
                                         <label class="form-label text-white small fw-bold text-uppercase">Photo of your Student ID</label>
                                         <input type="file" class="form-control" name="selfie_image" accept="image/*" required>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Password</label>
                                         <div class="input-group">
                                             <input type="password" class="form-control" name="password" id="registerPassword" autocomplete="new-password" required>
                                             <button type="button" class="btn password-toggle" data-password-target="registerPassword" aria-label="Show password"><i class="bi bi-eye"></i></button>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 mb-4">
+                                    <div class="col-6 mb-4">
                                         <label class="form-label text-white small fw-bold text-uppercase">Confirm Password</label>
                                         <div class="input-group">
                                             <input type="password" class="form-control" name="password_confirmation" id="registerPasswordConfirmation" autocomplete="new-password" required>

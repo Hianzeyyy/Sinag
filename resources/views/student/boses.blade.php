@@ -400,7 +400,7 @@
         margin: 0;
         font-size: 1rem;
         line-height: 1.55;
-        text-align: justify;
+        text-align: left;
         white-space: pre-wrap;
         overflow-wrap: anywhere;
     }

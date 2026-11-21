@@ -2,13 +2,20 @@
 
 namespace App\Support;
 
+use Aws\Exception\AwsException;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\UnableToCheckExistence;
+use League\Flysystem\UnableToReadFile;
+use League\Flysystem\UnableToRetrieveMetadata;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MediaResolver
 {
+    private static array $unconfiguredDiskWarnings = [];
+
     /**
      * Resolve a stored relative path across public and private disks.
      */
@@ -70,8 +77,12 @@ class MediaResolver
         }
 
         foreach (self::configuredDiskNames($diskNames) as $diskName) {
-            if (Storage::disk($diskName)->exists($clean)) {
-                return true;
+            try {
+                if (Storage::disk($diskName)->exists($clean)) {
+                    return true;
+                }
+            } catch (UnableToCheckExistence|AwsException $exception) {
+                self::logStorageFailure($diskName, $clean, $exception);
             }
         }
 
@@ -94,9 +105,13 @@ class MediaResolver
         }
 
         foreach (self::configuredDiskNames($diskNames) as $diskName) {
-            $disk = Storage::disk($diskName);
-            if ($disk->exists($clean)) {
-                return $disk->response($clean, null, $headers);
+            try {
+                $disk = Storage::disk($diskName);
+                if ($disk->exists($clean)) {
+                    return $disk->response($clean, null, $headers);
+                }
+            } catch (UnableToCheckExistence|UnableToReadFile|AwsException $exception) {
+                self::logStorageFailure($diskName, $clean, $exception);
             }
         }
 
@@ -111,9 +126,13 @@ class MediaResolver
         }
 
         foreach (self::configuredDiskNames($diskNames) as $diskName) {
-            $disk = Storage::disk($diskName);
-            if ($disk->exists($clean)) {
-                return $disk->url($clean);
+            try {
+                $disk = Storage::disk($diskName);
+                if ($disk->exists($clean)) {
+                    return $disk->url($clean);
+                }
+            } catch (UnableToCheckExistence|UnableToRetrieveMetadata|AwsException $exception) {
+                self::logStorageFailure($diskName, $clean, $exception);
             }
         }
 
@@ -127,11 +146,39 @@ class MediaResolver
             config('filesystems.user_private_disk'),
         ];
 
-        return array_values(array_filter(
-            array_unique($diskNames),
-            fn (string $diskName) => !str_ends_with($diskName, '_s3')
-                || in_array($diskName, $configuredUserDisks, true)
-        ));
+        return array_values(array_filter(array_unique($diskNames), function (string $diskName) use ($configuredUserDisks): bool {
+            if (!str_ends_with($diskName, '_s3')) {
+                return true;
+            }
+
+            if (!in_array($diskName, $configuredUserDisks, true)) {
+                return false;
+            }
+
+            $diskConfig = config("filesystems.disks.{$diskName}", []);
+            $configured = filled($diskConfig['bucket'] ?? null)
+                && filled($diskConfig['region'] ?? null)
+                && filled($diskConfig['key'] ?? null)
+                && filled($diskConfig['secret'] ?? null);
+
+            if (!$configured && !isset(self::$unconfiguredDiskWarnings[$diskName])) {
+                self::$unconfiguredDiskWarnings[$diskName] = true;
+                Log::warning('Skipping media disk because its S3 configuration is incomplete.', [
+                    'disk' => $diskName,
+                ]);
+            }
+
+            return $configured;
+        }));
+    }
+
+    private static function logStorageFailure(string $diskName, string $path, \Throwable $exception): void
+    {
+        Log::warning('Unable to access stored media; trying the next configured disk.', [
+            'disk' => $diskName,
+            'path' => $path,
+            'exception' => $exception::class,
+        ]);
     }
 
     private static function normalizePath(?string $path): ?string
