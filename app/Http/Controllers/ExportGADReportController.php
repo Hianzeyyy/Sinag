@@ -405,9 +405,11 @@ class ExportGADReportController extends Controller
                 $contentTypes .= '<Override PartName="/xl/worksheets/sheet' . $sheetNumber . '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
                 $workbookSheets .= '<sheet name="' . $escapedName . '" sheetId="' . $sheetNumber . '" r:id="rId' . $sheetNumber . '"/>';
                 $workbookRelationships .= '<Relationship Id="rId' . $sheetNumber . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' . $sheetNumber . '.xml"/>';
-                $zip->addFromString('xl/worksheets/sheet' . $sheetNumber . '.xml', $this->makeWorksheetXml($sheets[$sheetName]));
+                $zip->addFromString('xl/worksheets/sheet' . $sheetNumber . '.xml', $this->makeWorksheetXml($sheets[$sheetName], $sheetName));
             }
 
+            $stylesRelationshipId = count($sheetNames) + 1;
+            $contentTypes .= '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>';
             $contentTypes .= '</Types>';
             $zip->addFromString('[Content_Types].xml', $contentTypes);
             $zip->addFromString('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
@@ -420,7 +422,9 @@ class ExportGADReportController extends Controller
             $zip->addFromString('xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
                 . '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
                 . $workbookRelationships
+                . '<Relationship Id="rId' . $stylesRelationshipId . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
                 . '</Relationships>');
+            $zip->addFromString('xl/styles.xml', $this->makeStylesXml());
 
             if (!$zip->close()) {
                 throw new \RuntimeException('Could not finish the Excel workbook.');
@@ -1641,7 +1645,7 @@ class ExportGADReportController extends Controller
         return is_scalar($value) ? (string) $value : '';
     }
 
-    private function makeWorksheetXml(array $rows): string
+    private function makeWorksheetXml(array $rows, string $sheetName): string
     {
         $xmlRows = '';
         foreach ($rows as $rowIndex => $row) {
@@ -1649,14 +1653,112 @@ class ExportGADReportController extends Controller
             foreach (array_values($row) as $columnIndex => $value) {
                 $cellReference = $this->excelColumnName($columnIndex + 1) . ($rowIndex + 1);
                 $text = $this->escapeXml($value);
-                $cells .= '<c r="' . $cellReference . '" t="inlineStr"><is><t xml:space="preserve">' . $text . '</t></is></c>';
+                $styleIndex = $this->worksheetCellStyle($sheetName, $rowIndex, $columnIndex);
+                $styleAttribute = $styleIndex > 0 ? ' s="' . $styleIndex . '"' : '';
+                if (is_int($value) || is_float($value)) {
+                    $number = is_float($value) ? sprintf('%.15g', $value) : (string) $value;
+                    $cells .= '<c r="' . $cellReference . '"' . $styleAttribute . '><v>' . $number . '</v></c>';
+                } else {
+                    $cells .= '<c r="' . $cellReference . '"' . $styleAttribute . ' t="inlineStr"><is><t xml:space="preserve">' . $text . '</t></is></c>';
+                }
             }
-            $xmlRows .= '<row r="' . ($rowIndex + 1) . '">' . $cells . '</row>';
+            $rowHeight = $this->worksheetRowHeight($sheetName, $rowIndex);
+            $xmlRows .= '<row r="' . ($rowIndex + 1) . '"' . $rowHeight . '>' . $cells . '</row>';
         }
+
+        $columnCount = max(1, ...array_map('count', $rows));
+        $columnWidths = '';
+        for ($columnIndex = 0; $columnIndex < $columnCount; $columnIndex++) {
+            $maxLength = 0;
+            foreach ($rows as $row) {
+                $text = preg_replace('/\s+/', ' ', (string) ($row[$columnIndex] ?? ''));
+                $maxLength = max($maxLength, mb_strlen($text));
+            }
+            $width = min(52, max(12, round($maxLength * 0.9 + 2, 2)));
+            $columnNumber = $columnIndex + 1;
+            $columnWidths .= '<col min="' . $columnNumber . '" max="' . $columnNumber . '" width="' . number_format($width, 2, '.', '') . '" customWidth="1"/>';
+        }
+
+        $lastColumn = $this->excelColumnName($columnCount);
+        $lastRow = max(1, count($rows));
+        $freezeRows = $sheetName === 'Summary' ? 8 : 1;
+        $pane = '<pane ySplit="' . $freezeRows . '" topLeftCell="A' . ($freezeRows + 1) . '" activePane="bottomLeft" state="frozen"/>';
+        $mergeCells = $sheetName === 'Summary'
+            ? '<mergeCells count="2"><mergeCell ref="A1:B1"/><mergeCell ref="A2:B2"/></mergeCells>'
+            : '';
 
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             . '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-            . '<sheetData>' . $xmlRows . '</sheetData></worksheet>';
+            . '<dimension ref="A1:' . $lastColumn . $lastRow . '"/>'
+            . '<sheetViews><sheetView workbookViewId="0" showGridLines="0">' . $pane . '</sheetView></sheetViews>'
+            . '<sheetFormatPr defaultRowHeight="19"/>'
+            . '<cols>' . $columnWidths . '</cols>'
+            . '<sheetData>' . $xmlRows . '</sheetData>'
+            . $mergeCells
+            . '</worksheet>';
+    }
+
+    private function worksheetCellStyle(string $sheetName, int $rowIndex, int $columnIndex): int
+    {
+        if ($sheetName === 'Summary') {
+            return match ($rowIndex + 1) {
+                1 => 1,
+                2 => 2,
+                8 => 3,
+                default => $rowIndex >= 2 && $rowIndex <= 5 ? ($columnIndex === 0 ? 4 : 5) : 0,
+            };
+        }
+
+        return $rowIndex === 0 ? 3 : 6;
+    }
+
+    private function worksheetRowHeight(string $sheetName, int $rowIndex): string
+    {
+        if ($sheetName === 'Summary') {
+            return match ($rowIndex + 1) {
+                1 => ' ht="30" customHeight="1"',
+                2 => ' ht="23" customHeight="1"',
+                8 => ' ht="24" customHeight="1"',
+                default => '',
+            };
+        }
+
+        return $rowIndex === 0 ? ' ht="24" customHeight="1"' : '';
+    }
+
+    private function makeStylesXml(): string
+    {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            . '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            . '<fonts count="5">'
+            . '<font><sz val="11"/><name val="Aptos"/></font>'
+            . '<font><b/><sz val="16"/><color rgb="FFFFFFFF"/><name val="Aptos Display"/></font>'
+            . '<font><b/><sz val="12"/><color rgb="FF5B4B9B"/><name val="Aptos"/></font>'
+            . '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Aptos"/></font>'
+            . '<font><b/><sz val="11"/><color rgb="FF5B4B9B"/><name val="Aptos"/></font>'
+            . '</fonts>'
+            . '<fills count="4">'
+            . '<fill><patternFill patternType="none"/></fill>'
+            . '<fill><patternFill patternType="gray125"/></fill>'
+            . '<fill><patternFill patternType="solid"><fgColor rgb="FF6D55D9"/><bgColor indexed="64"/></patternFill></fill>'
+            . '<fill><patternFill patternType="solid"><fgColor rgb="FFEDE9FE"/><bgColor indexed="64"/></patternFill></fill>'
+            . '</fills>'
+            . '<borders count="2">'
+            . '<border><left/><right/><top/><bottom/><diagonal/></border>'
+            . '<border><left/><right/><top/><bottom style="hair"><color rgb="FFD6D3E5"/></bottom><diagonal/></border>'
+            . '</borders>'
+            . '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+            . '<cellXfs count="7">'
+            . '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
+            . '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+            . '<xf numFmtId="0" fontId="2" fillId="3" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+            . '<xf numFmtId="0" fontId="3" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
+            . '<xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+            . '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+            . '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
+            . '</cellXfs>'
+            . '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+            . '</styleSheet>';
     }
 
     private function excelColumnName(int $number): string

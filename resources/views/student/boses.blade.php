@@ -826,9 +826,14 @@
                                         @endif
                                     </p>
                                     @if($sugg->image_path)
-                                        <a href="{{ \App\Support\MediaResolver::url($sugg->image_path, ['public', 'public_s3']) }}" target="_blank" rel="noopener" class="suggestion-image-link">
-                                            <img src="{{ \App\Support\MediaResolver::url($sugg->image_path, ['public', 'public_s3']) }}" alt="Image attached to suggestion" class="img-fluid rounded-4 suggestion-attachment">
-                                        </a>
+                                        @php($suggestionImageUrl = \App\Support\MediaResolver::url($sugg->image_path, ['public', 'public_s3']))
+                                        @if($suggestionImageUrl)
+                                            <a href="{{ $suggestionImageUrl }}" target="_blank" rel="noopener" class="suggestion-image-link">
+                                                <img src="{{ $suggestionImageUrl }}" alt="Image attached to suggestion" class="img-fluid rounded-4 suggestion-attachment">
+                                            </a>
+                                        @else
+                                            <p class="small text-muted mb-0" role="status">This image is no longer available.</p>
+                                        @endif
                                     @endif
                                     @if($sugg->admin_remarks)
                                         <div class="p-3 rounded-3 w-100" style="background:#f3efff;color:#5b4b9b;">
@@ -1210,6 +1215,7 @@
             };
             button.addEventListener('click', toggleSuggestionText);
             button.closest('[data-suggestion-card]')?.querySelector('.suggestion-message')?.addEventListener('click', function (event) {
+                if (event.target === button) return;
                 if (!button.closest('[data-suggestion-card]')?.querySelector('[data-suggestion-full]')) return;
                 event.stopPropagation();
                 toggleSuggestionText();

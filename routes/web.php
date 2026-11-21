@@ -86,6 +86,7 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::post('/gad-schedules/{id}/status', [AdminController::class, 'updateGadScheduleStatus'])->name('gad-schedules.status');
         Route::get('/urgent-calls', [AdminController::class, 'urgentCalls'])->name('urgent.calls');
         Route::get('/urgent-calls/feed', [AdminController::class, 'urgentCallsFeed'])->name('urgent.calls.feed');
+        Route::post('/urgent-calls/{studentId}/start', [AdminController::class, 'startUrgentCall'])->whereNumber('studentId')->name('urgent.calls.start');
         Route::post('/urgent-calls/{callId}/join', [AdminController::class, 'joinUrgentCall'])->name('urgent.calls.join');
         Route::post('/urgent-calls/{callId}/end', [AdminController::class, 'endUrgentCall'])->name('urgent.calls.end');
         Route::post('/users/{id}/approve', [AdminController::class, 'approveUser'])->name('users.approve');
@@ -144,6 +145,7 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         // Urgent video/voice call (placeholder Zoom-like page)
         Route::get('/urgent', [StudentController::class, 'urgentCall'])->name('urgent');
         Route::post('/urgent/notify', [StudentController::class, 'urgentNotify'])->name('urgent.notify');
+        Route::post('/urgent/{callId}/join', [StudentController::class, 'joinUrgentCall'])->name('urgent.join');
         Route::get('/urgent/{callId}/status', [StudentController::class, 'urgentCallStatus'])->name('urgent.status');
         Route::post('/urgent/{callId}/end', [StudentController::class, 'endUrgentCall'])->name('urgent.end');
         // Event pages for carousel items

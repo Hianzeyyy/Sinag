@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Notifications\AccountStatusNotification;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -405,9 +406,75 @@ class AppointmentFormatTest extends TestCase
             ->assertJsonPath('status', 'ended');
     }
 
-    public function test_user_notification_feed_includes_unread_messages_and_call_status(): void
+    public function test_admin_can_start_a_video_call_for_a_student(): void
+    {
+        Cache::forget('urgent_calls');
+        $student = $this->student();
+        $admin = User::create([
+            'name' => 'Test Admin',
+            'email' => 'admin@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.urgent.calls.start', $student->id));
+        $call = Cache::get('urgent_calls')[0];
+
+        $response->assertRedirect(route('admin.urgent.calls', ['call_id' => $call['id']]));
+        $this->assertSame('admin', $call['initiated_by']);
+        $this->assertSame($student->id, $call['student_id']);
+        $this->assertSame('waiting', $call['status']);
+    }
+
+    public function test_student_can_accept_only_an_admin_initiated_call_for_their_account(): void
     {
         $student = $this->student();
+        $otherStudent = User::create([
+            'name' => 'Other Student',
+            'email' => 'other-student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+        ]);
+        Cache::put('urgent_calls', [[
+            'id' => 'incoming-admin-call',
+            'room' => 'sinag-urgent-incoming',
+            'status' => 'waiting',
+            'initiated_by' => 'admin',
+            'student_id' => $student->id,
+            'student_name' => $student->name,
+        ]], now()->addHour());
+
+        $this->actingAs($student)
+            ->get(route('student.urgent', ['call_id' => 'incoming-admin-call']))
+            ->assertOk()
+            ->assertSee('const incomingCallId = "incoming-admin-call";', false);
+
+        $this->actingAs($otherStudent)
+            ->postJson(route('student.urgent.join', 'incoming-admin-call'))
+            ->assertNotFound();
+
+        $this->actingAs($student)
+            ->postJson(route('student.urgent.join', 'incoming-admin-call'))
+            ->assertOk()
+            ->assertJsonPath('status', 'joined')
+            ->assertJsonPath('room', 'sinag-urgent-incoming');
+
+        $this->assertSame('joined', Cache::get('urgent_calls')[0]['status']);
+    }
+
+    public function test_user_notification_feed_includes_unread_messages_and_call_status(): void
+    {
+        Schema::create('notifications', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->morphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
+        });
+        $student = $this->student();
+        $student->notify(new AccountStatusNotification('approved'));
         $admin = User::create([
             'name' => 'Test Admin',
             'email' => 'admin@example.test',
@@ -424,6 +491,7 @@ class AppointmentFormatTest extends TestCase
         Cache::put('urgent_calls', [[
             'id' => 'call-notification-test',
             'status' => 'waiting',
+            'initiated_by' => 'admin',
             'student_id' => $student->id,
         ]], now()->addHour());
 
@@ -433,7 +501,11 @@ class AppointmentFormatTest extends TestCase
             ->assertJsonPath('unread_count', 1)
             ->assertJsonPath('latest_unread_id', $messageId)
             ->assertJsonPath('latest_call.id', 'call-notification-test')
-            ->assertJsonPath('latest_call.status', 'waiting');
+            ->assertJsonPath('latest_call.initiated_by', 'admin')
+            ->assertJsonPath('latest_call.status', 'waiting')
+            ->assertJsonPath('app_notification.message', 'Your SINAG account has been approved. You can now sign in.');
+
+        $this->assertNotNull(DB::table('notifications')->value('read_at'));
     }
 
     private function student(): User

@@ -102,9 +102,10 @@ database to position generated IDs above imported records.
 
 ## Uploaded media storage and backups
 
-The local `public` and `local` disks remain the development defaults. For durable
-S3-compatible production storage, configure the following environment values on
-the web service (and keep credentials out of source control):
+The local `public` and `local` disks remain the localhost defaults. Production
+defaults to the durable `public_s3` and `private_s3` disks, so configure the
+following values in Render's Environment Variables before deploying. Keep
+credentials out of source control:
 
 ```text
 USER_PUBLIC_MEDIA_DISK=public_s3
@@ -121,14 +122,14 @@ AWS_USE_PATH_STYLE_ENDPOINT=false
 
 Public profile and suggestion images use `public_s3`; verification images, report
 evidence, and password-reset ID images use `private_s3`. Private images continue
-to be served through authorization-checked application routes. Existing files on
-the local disks remain readable when those disks are available; configure S3
-before switching uploads so new images are saved durably.
+to be served through authorization-checked application routes. Set an appropriate
+public bucket policy or public custom domain limited to the `profile-photos/` and
+`suggestions/` prefixes; do not make verification, `evidence/`, or
+`password-reset-requests/` objects public.
 
-Keep the bucket private by default. If suggestion attachments need direct public
-URLs, configure a bucket policy or public custom domain limited to the
-`profile-photos/` and `suggestions/` prefixes; do not make verification,
-`evidence/`, or `password-reset-requests/` objects public.
+Set `DB_SSL_CA` to a readable CA bundle for local remote-TiDB connections. The
+Render Docker image installs system CA certificates and configures TiDB TLS
+verification automatically.
 
 After setting the S3 environment variables, migrate existing local uploads with:
 

@@ -668,8 +668,14 @@
                                 <div class="msg-email">{{ $selectedStudent->email }}</div>
                             </div>
                         </div>
-                        <div>
+                        <div class="d-flex align-items-center gap-2 ms-auto">
                             <span class="dept-badge">{{ $selectedStudent->department ?? 'N/A' }}</span>
+                            <form action="{{ route('admin.urgent.calls.start', $selectedStudent->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill text-nowrap">
+                                    <i class="bi bi-camera-video-fill me-1"></i>Video call
+                                </button>
+                            </form>
                         </div>
                     </div>
 

@@ -34,7 +34,15 @@ class CustomerSatisfactionController extends Controller
             'suggestion' => 'suggestions',
             'appointment' => 'appointment_requests',
         };
-        $columns = $validated['subject'] === 'appointment' ? ['status', 'format'] : ['status'];
+        if ($validated['subject'] === 'report' && ! Schema::hasColumn('reports', 'resolution_notice_sent_at')) {
+            return back()->with('error', 'Report resolution notices are not available yet. Please run the latest database migrations and try again.');
+        }
+
+        $columns = match ($validated['subject']) {
+            'report' => ['status', 'resolution_notice_sent_at'],
+            'appointment' => ['status', 'format'],
+            default => ['status'],
+        };
         $item = DB::table($table)
             ->where('id', $validated['subject_id'])
             ->where('user_id', $request->user()->id)
@@ -43,7 +51,8 @@ class CustomerSatisfactionController extends Controller
         abort_unless($item, 404);
         $status = strtolower(trim((string) $item->status));
         $isAvailable = match ($validated['subject']) {
-            'report' => in_array($status, ['completed', 'resolved', 'closed'], true),
+            'report' => in_array($status, ['completed', 'resolved', 'closed'], true)
+                && $item->resolution_notice_sent_at !== null,
             'suggestion' => $status === 'approved',
             'appointment' => $status === 'completed'
                 && strtolower(trim((string) $item->format)) === 'online',

@@ -14,8 +14,14 @@ return [
     */
 
     'default' => env('FILESYSTEM_DISK', 'local'),
-    'user_public_disk' => env('USER_PUBLIC_MEDIA_DISK', 'public'),
-    'user_private_disk' => env('USER_PRIVATE_MEDIA_DISK', 'local'),
+    'user_public_disk' => env(
+        'USER_PUBLIC_MEDIA_DISK',
+        env('APP_ENV', 'local') === 'production' ? 'public_s3' : 'public'
+    ),
+    'user_private_disk' => env(
+        'USER_PRIVATE_MEDIA_DISK',
+        env('APP_ENV', 'local') === 'production' ? 'private_s3' : 'local'
+    ),
 
     /*
     |--------------------------------------------------------------------------

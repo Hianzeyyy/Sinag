@@ -212,6 +212,7 @@ class SuggestionPersonalDataGateTest extends TestCase
             $table->string('priority')->nullable();
             $table->string('status')->default('Pending');
             $table->boolean('is_anonymous')->default(true);
+            $table->timestamp('resolution_notice_sent_at')->nullable();
             $table->timestamps();
         });
         Schema::create('suggestions', function (Blueprint $table): void {
@@ -247,6 +248,24 @@ class SuggestionPersonalDataGateTest extends TestCase
         ])->assertStatus(409);
 
         DB::table('reports')->where('id', $reportId)->update(['status' => 'Resolved']);
+        $this->getJson('/api/satisfaction/report/'.$reportId)
+            ->assertOk()
+            ->assertJsonPath('available', false);
+        $this->get(route('student.vault'))
+            ->assertOk()
+            ->assertDontSee('id="customerSatisfactionModal"', false);
+
+        $this->post(route('customer-satisfaction.store'), [
+            'subject' => 'report',
+            'subject_id' => $reportId,
+            'rating' => 5,
+            'responses' => [4, 4, 4, 4, 4],
+        ])->assertStatus(409);
+
+        DB::table('reports')->where('id', $reportId)->update(['resolution_notice_sent_at' => now()]);
+        $this->getJson('/api/satisfaction/report/'.$reportId)
+            ->assertOk()
+            ->assertJsonPath('available', true);
 
         $this->get(route('student.vault'))
             ->assertOk()
@@ -311,6 +330,7 @@ class SuggestionPersonalDataGateTest extends TestCase
             $table->json('evidence')->nullable();
             $table->string('priority');
             $table->string('status');
+            $table->timestamp('resolution_notice_sent_at')->nullable();
             $table->timestamps();
         });
         Schema::create('suggestions', function (Blueprint $table): void {
@@ -345,6 +365,20 @@ class SuggestionPersonalDataGateTest extends TestCase
             'status' => 'Resolved',
         ]);
 
+        $this->get(route('student.vault'))
+            ->assertOk()
+            ->assertDontSee('id="customerSatisfactionModal"', false);
+
+        $this->post(route('customer-satisfaction.store'), [
+            'subject' => 'report',
+            'subject_id' => $reportId,
+            'rating' => 5,
+            'responses' => [4, 4, 4, 4, 4],
+        ])->assertStatus(409);
+
+        DB::table('reports')->where('id', $reportId)->update([
+            'resolution_notice_sent_at' => now(),
+        ]);
         $this->get(route('student.vault'))
             ->assertOk()
             ->assertSee('id="customerSatisfactionModal"', false)

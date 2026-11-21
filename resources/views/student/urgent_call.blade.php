@@ -109,6 +109,7 @@
 <script>
     let activeCallId = null;
     let callStatusTimer = null;
+    const incomingCallId = @json($incomingCallId);
 
     function roomToJitsiUrl(room) {
         const safeRoom = encodeURIComponent(room || 'sinag-urgent-room');
@@ -141,6 +142,36 @@
             if (data.status === 'ended') resetCall('The GAD Office ended the call. You can start another call if you still need help.');
         } catch (error) {
             console.error('Unable to check urgent call status:', error);
+        }
+    }
+
+    async function joinIncomingCall(callId) {
+        const status = document.getElementById('callStatus');
+        const joinButton = document.getElementById('joinCall');
+        joinButton.disabled = true;
+        status.textContent = 'Connecting to the GAD Office call…';
+        try {
+            const response = await fetch(`{{ url('/student/urgent') }}/${encodeURIComponent(callId)}/join`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) throw new Error(`Unable to join the call (${response.status}).`);
+            const data = await response.json();
+            if (!data.room) throw new Error('The call room is no longer available.');
+            activeCallId = callId;
+            localStorage.setItem('sinag.urgent-call-state', JSON.stringify({ id: activeCallId, status: 'joined' }));
+            document.getElementById('videoFallback').style.display = 'none';
+            document.getElementById('jitsiFrame').src = roomToJitsiUrl(data.room);
+            document.getElementById('jitsiContainer').style.display = 'block';
+            status.textContent = 'Connected to the GAD Office call. Allow microphone and camera access in the call window.';
+            joinButton.innerHTML = '<i class="bi bi-camera-video-fill"></i> Connected';
+            callStatusTimer = window.setInterval(checkCallStatus, 5000);
+        } catch (error) {
+            status.textContent = error.message;
+            joinButton.disabled = false;
         }
     }
 
@@ -194,6 +225,8 @@
         }
         resetCall('You left the call. Join again whenever you need GAD support.');
     });
+
+    if (incomingCallId) joinIncomingCall(String(incomingCallId));
 </script>
 
 @endsection

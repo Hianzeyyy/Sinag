@@ -15,11 +15,14 @@ RUN npm run build
 FROM php:8.4-apache
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+ENV APP_ENV=production
+ENV DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt
 
 # Install PHP extensions
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
+    ca-certificates \
     libzip-dev \
     libpng-dev \
     libonig-dev \

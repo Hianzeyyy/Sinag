@@ -112,8 +112,15 @@ class GadReportExportTest extends TestCase
             $this->assertStringContainsString('Student Information', $workbook->getFromName('xl/workbook.xml'));
             $this->assertStringContainsString('Faculty and Non-Teaching', $workbook->getFromName('xl/workbook.xml'));
             $this->assertStringContainsString('GAD Training Summary', $workbook->getFromName('xl/workbook.xml'));
+            $this->assertStringContainsString('Target="styles.xml"', $workbook->getFromName('xl/_rels/workbook.xml.rels'));
+            $this->assertStringContainsString('FF6D55D9', $workbook->getFromName('xl/styles.xml'));
             $studentSheet = $workbook->getFromName('xl/worksheets/sheet5.xml');
             $employeeSheet = $workbook->getFromName('xl/worksheets/sheet6.xml');
+            $summarySheet = $workbook->getFromName('xl/worksheets/sheet1.xml');
+            $this->assertStringContainsString('<cols><col ', $summarySheet);
+            $this->assertStringContainsString('s="1"', $summarySheet);
+            $this->assertStringContainsString('<pane ySplit="8"', $summarySheet);
+            $this->assertMatchesRegularExpression('/<c r="B9"><v>\d+<\/v><\/c>/', $summarySheet);
             $this->assertStringContainsString('Student Example', $studentSheet);
             $this->assertStringContainsString('Year level', $studentSheet);
             $this->assertStringContainsString('Second Year', $studentSheet);
@@ -392,8 +399,10 @@ class GadReportExportTest extends TestCase
             $tableRows = [];
             foreach ($xpath->query('//xlsx:sheetData/xlsx:row') as $sheetRow) {
                 $values = [];
-                foreach ($xpath->query('./xlsx:c/xlsx:is/xlsx:t', $sheetRow) as $cell) {
-                    $values[] = $cell->textContent;
+                foreach ($xpath->query('./xlsx:c', $sheetRow) as $cell) {
+                    $text = $xpath->query('./xlsx:is/xlsx:t', $cell)->item(0);
+                    $number = $xpath->query('./xlsx:v', $cell)->item(0);
+                    $values[] = $text?->textContent ?? $number?->textContent ?? '';
                 }
                 if (in_array($values[0] ?? '', ['School of Nursing', 'College of Media Arts', 'UNIVERSITY TOTAL'], true)) {
                     $tableRows[$values[0]] = $values;

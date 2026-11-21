@@ -20,7 +20,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
                 <div>
                     <h4 class="fw-bold mb-1" style="color:#8f72f5;">Urgent Call Monitor</h4>
-                    <div class="text-muted small">Incoming student urgent calls appear here automatically.</div>
+                    <div class="text-muted small">Student requests and admin-initiated calls appear here automatically.</div>
                 </div>
                 <span id="callCount" class="badge rounded-pill" style="background:#A594F9;">0 active</span>
             </div>
@@ -50,6 +50,7 @@
     let activeCallId = null;
     let lastIds = new Set();
     let initialFeedLoaded = false;
+    const initialCallId = @json(request()->query('call_id'));
 
     function roomToJitsiUrl(room) {
         const safeRoom = encodeURIComponent(room || 'sinag-urgent-room');
@@ -101,7 +102,9 @@
             activeCallId = null;
             endCallButton.hidden = true;
             document.getElementById('callJoinStatus').textContent = 'Call ended. The student has been notified.';
-            loadFeed();
+            loadFeed().then(function () {
+                if (initialCallId) joinCall(String(initialCallId));
+            });
         } catch (error) {
             document.getElementById('callJoinStatus').textContent = error.message;
         } finally {

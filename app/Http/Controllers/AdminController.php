@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 use App\Mail\AccountStatusMail;
+use App\Mail\ReportResolvedMail;
+use App\Notifications\AccountStatusNotification;
+use App\Notifications\ReportResolvedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -188,12 +191,50 @@ class AdminController extends Controller
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
-        $report = Report::findOrFail($id);
-
-        $report->update([
-            'status'   => $request->status,
-            'priority' => $request->priority ?? $report->priority
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:Pending,Under Review,Resolved'],
+            'priority' => ['nullable', 'string', 'in:Low,Medium,High'],
         ]);
+
+        $shouldSendResolutionNotice = false;
+        \DB::transaction(function () use ($id, $validated, &$shouldSendResolutionNotice): void {
+            $report = Report::whereKey($id)->lockForUpdate()->firstOrFail();
+            $report->update([
+                'status' => $validated['status'],
+                'priority' => $validated['priority'] ?? $report->priority,
+            ]);
+
+            if (strtolower($report->status) === 'resolved' && ! $report->resolution_notice_sent_at) {
+                $report->user->notify(new ReportResolvedNotification(
+                    (int) $report->getKey(),
+                    $report->incident_id,
+                ));
+                $report->update(['resolution_notice_sent_at' => now()]);
+                $shouldSendResolutionNotice = true;
+            }
+        });
+
+        if ($shouldSendResolutionNotice) {
+            $report = Report::with('user')->findOrFail($id);
+
+            try {
+                Mail::to($report->user->email)->send(new ReportResolvedMail($report->incident_id));
+            } catch (\Throwable $exception) {
+                Log::error('SINAG report resolution email failed', [
+                    'report_id' => $report->getKey(),
+                    'user_id' => $report->user_id,
+                    'admin_id' => Auth::id(),
+                    'exception' => $exception::class,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                return back()->with('warning', "Report #{$report->incident_id} was resolved and the in-app notice was sent, but the email could not be sent. The survey is now available in the user's Evidence Vault.");
+            }
+
+            return back()->with('success', "Report #{$report->incident_id} was resolved and the user was notified by email and in-app.");
+        }
+
+        $report = Report::findOrFail($id);
 
         return back()->with('success', "Report #{$report->incident_id} updated successfully.");
     }
@@ -848,6 +889,43 @@ class AdminController extends Controller
         return view('admin.urgent_calls');
     }
 
+    public function startUrgentCall(int $studentId)
+    {
+        if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
+            return redirect()->route('home');
+        }
+
+        $student = User::findOrFail($studentId);
+        abort_unless($this->isMessageRecipient($student), 404);
+
+        $calls = Cache::get('urgent_calls', []);
+        $activeCall = collect($calls)->first(
+            fn ($call) => (int) ($call['student_id'] ?? 0) === $student->id
+                && ($call['status'] ?? null) !== 'ended'
+        );
+        if ($activeCall) {
+            return redirect()->route('admin.urgent.calls', ['call_id' => $activeCall['id']])
+                ->with('warning', 'There is already an active call with this user.');
+        }
+
+        $callId = (string) \Illuminate\Support\Str::uuid();
+        array_unshift($calls, [
+            'id' => $callId,
+            'room' => 'sinag-urgent-' . \Illuminate\Support\Str::uuid(),
+            'status' => 'waiting',
+            'initiated_by' => 'admin',
+            'admin_id' => Auth::id(),
+            'admin_name' => Auth::user()->name,
+            'student_id' => $student->id,
+            'student_name' => $student->name,
+            'created_at' => now()->toDateTimeString(),
+        ]);
+        Cache::put('urgent_calls', array_slice($calls, 0, 50), now()->addHours(6));
+
+        return redirect()->route('admin.urgent.calls', ['call_id' => $callId])
+            ->with('success', "Calling {$student->name}. The call room is ready.");
+    }
+
     /**
      * JSON feed for pending/joined urgent calls
      */
@@ -935,7 +1013,10 @@ class AdminController extends Controller
         ]);
         $user = User::findOrFail($id);
 
-        $this->updateAccountStatus($user, 'active');
+        \DB::transaction(function () use ($user, $validated): void {
+            $this->updateAccountStatus($user, 'active');
+            $user->notify(new AccountStatusNotification('approved', $validated['approval_note'] ?? null));
+        });
 
         \Log::info('SINAG account approved', ['user_id' => $user->id, 'admin_id' => Auth::id()]);
 
@@ -953,10 +1034,10 @@ class AdminController extends Controller
                 'message' => $exception->getMessage(),
             ]);
 
-            return redirect('/admin/users')->with('warning', 'Account approved, but the notification email could not be sent. Check the mail configuration and contact the user.');
+            return redirect('/admin/users')->with('warning', 'Account approved and an in-app notice was sent, but the notification email could not be sent. Check the mail configuration and contact the user.');
         }
 
-        return redirect('/admin/users')->with('success', 'User account approved successfully and the user was notified by email.');
+        return redirect('/admin/users')->with('success', 'User account approved successfully and the user was notified by email and in-app.');
     }
 
     /**
@@ -973,8 +1054,11 @@ class AdminController extends Controller
         ]);
         $reason = $validated['rejection_reason'] ?? null;
 
-        $this->updateAccountStatus($user, 'rejected', $reason);
-        $this->revokeUserAccess($user);
+        \DB::transaction(function () use ($user, $reason): void {
+            $this->updateAccountStatus($user, 'rejected', $reason);
+            $this->revokeUserAccess($user);
+            $user->notify(new AccountStatusNotification('rejected', $reason));
+        });
 
         try {
             Mail::to($user->email)->send(new AccountStatusMail(
@@ -990,10 +1074,10 @@ class AdminController extends Controller
                 'message' => $exception->getMessage(),
             ]);
 
-            return back()->with('warning', 'Account rejected, but the notification email could not be sent. Check the mail configuration and contact the user.');
+            return back()->with('warning', 'Account rejected and an in-app notice was recorded, but the notification email could not be sent. Check the mail configuration and contact the user.');
         }
 
-        return back()->with('success', "User {$user->name} has been rejected and notified by email.");
+        return back()->with('success', "User {$user->name} has been rejected and notified by email and in-app.");
     }
 
     private function updateAccountStatus(User $user, string $status, ?string $reason = null): void

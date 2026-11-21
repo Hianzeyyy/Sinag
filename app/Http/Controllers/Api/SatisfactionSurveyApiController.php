@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class SatisfactionSurveyApiController extends Controller
 {
@@ -70,12 +71,20 @@ class SatisfactionSurveyApiController extends Controller
 
     private function isAvailable(string $subject, int $id): bool
     {
+        if ($subject === 'report' && ! Schema::hasColumn('reports', 'resolution_notice_sent_at')) {
+            return false;
+        }
+
         $table = match ($subject) {
             'report' => 'reports',
             'suggestion' => 'suggestions',
             'appointment' => 'appointment_requests',
         };
-        $columns = $subject === 'appointment' ? ['status', 'format'] : ['status'];
+        $columns = match ($subject) {
+            'report' => ['status', 'resolution_notice_sent_at'],
+            'appointment' => ['status', 'format'],
+            default => ['status'],
+        };
         $item = DB::table($table)->where('id', $id)->first($columns);
         if (!$item) {
             return false;
@@ -84,7 +93,8 @@ class SatisfactionSurveyApiController extends Controller
         $status = strtolower(trim((string) $item->status));
 
         return match ($subject) {
-            'report' => in_array($status, ['completed', 'resolved', 'closed'], true),
+            'report' => in_array($status, ['completed', 'resolved', 'closed'], true)
+                && $item->resolution_notice_sent_at !== null,
             'suggestion' => $status === 'approved',
             'appointment' => $status === 'completed'
                 && strtolower(trim((string) $item->format)) === 'online',

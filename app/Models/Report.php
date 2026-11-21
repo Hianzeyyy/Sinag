@@ -23,6 +23,7 @@ class Report extends Model
         'priority',
         'status',
         'seen_at',
+        'resolution_notice_sent_at',
         'evidence', // Idinagdag para sa file uploads
     ];
 
@@ -32,6 +33,7 @@ class Report extends Model
     protected $casts = [
         'incident_date' => 'date',
         'seen_at' => 'datetime',
+        'resolution_notice_sent_at' => 'datetime',
         'evidence' => 'array', // Ginagawang array ang JSON string mula sa DB
     ];
 

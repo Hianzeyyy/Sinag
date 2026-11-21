@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use App\Notifications\AccountStatusNotification;
+use App\Notifications\ReportResolvedNotification;
 use App\Models\Announcement;
 use App\Models\Report;
 use App\Models\Suggestion;
@@ -128,13 +130,15 @@ class StudentController extends Controller
         if (Schema::hasTable('customer_satisfaction_surveys')
             && Schema::hasColumn('customer_satisfaction_surveys', 'subject')
             && Schema::hasColumn('customer_satisfaction_surveys', 'subject_id')) {
-            $resolvedReportIds = $myReports->getCollection()
-                ->filter(fn ($report) => in_array(
-                    strtolower(trim((string) $report->status)),
-                    ['completed', 'resolved', 'closed'],
-                    true
-                ))
-                ->pluck('id');
+            $resolvedReportIds = Schema::hasColumn('reports', 'resolution_notice_sent_at')
+                ? $myReports->getCollection()
+                    ->filter(fn ($report) => in_array(
+                        strtolower(trim((string) $report->status)),
+                        ['completed', 'resolved', 'closed'],
+                        true
+                    ) && $report->resolution_notice_sent_at !== null)
+                    ->pluck('id')
+                : collect();
 
             if ($resolvedReportIds->isNotEmpty()) {
                 $surveyedReportIds = DB::table('customer_satisfaction_surveys')
@@ -448,9 +452,11 @@ class StudentController extends Controller
     /**
      * Urgent call placeholder (Zoom-like page)
      */
-    public function urgentCall()
+    public function urgentCall(Request $request)
     {
-        return view('student.urgent_call');
+        return view('student.urgent_call', [
+            'incomingCallId' => $request->query('call_id'),
+        ]);
     }
 
     /**
@@ -471,6 +477,7 @@ class StudentController extends Controller
             'id' => $callId,
             'room' => $room,
             'status' => 'waiting',
+            'initiated_by' => 'student',
             'student_id' => Auth::id(),
             'student_name' => Auth::user()->name,
             'created_at' => now()->toDateTimeString(),
@@ -485,6 +492,31 @@ class StudentController extends Controller
             'call_id' => $callId,
             'room' => $room,
         ]);
+    }
+
+    public function joinUrgentCall(string $callId)
+    {
+        $calls = Cache::get('urgent_calls', []);
+        $room = null;
+
+        foreach ($calls as &$call) {
+            if (($call['id'] ?? null) === $callId
+                && (int) ($call['student_id'] ?? 0) === (int) Auth::id()
+                && ($call['initiated_by'] ?? null) === 'admin'
+                && ($call['status'] ?? null) !== 'ended') {
+                $call['status'] = 'joined';
+                $call['accepted_at'] = now()->toDateTimeString();
+                $call['accepted_by'] = Auth::user()->name;
+                $room = $call['room'] ?? null;
+                break;
+            }
+        }
+        unset($call);
+
+        abort_unless($room, 404, 'Call not found or it has ended.');
+        Cache::put('urgent_calls', $calls, now()->addHours(6));
+
+        return response()->json(['status' => 'joined', 'room' => $room]);
     }
 
     public function endUrgentCall(string $callId)
@@ -654,13 +686,35 @@ class StudentController extends Controller
         $latestCall = collect(Cache::get('urgent_calls', []))->first(
             fn ($call) => (int) ($call['student_id'] ?? 0) === (int) Auth::id()
         );
+        $appNotification = null;
+        if (Schema::hasTable('notifications')) {
+            $notification = Auth::user()->unreadNotifications()
+                ->whereIn('type', [
+                    AccountStatusNotification::class,
+                    ReportResolvedNotification::class,
+                ])
+                ->oldest('created_at')
+                ->first();
+
+            if ($notification) {
+                $appNotification = [
+                    'id' => $notification->id,
+                    'message' => data_get($notification->data, 'message'),
+                    'url' => data_get($notification->data, 'url'),
+                ];
+                $notification->markAsRead();
+            }
+        }
 
         return response()->json([
             'unread_count' => $unreadQuery->count(),
             'latest_unread_id' => $latestUnread?->id,
+            'app_notification' => $appNotification,
             'latest_call' => $latestCall ? [
                 'id' => $latestCall['id'] ?? null,
                 'status' => $latestCall['status'] ?? 'waiting',
+                'initiated_by' => $latestCall['initiated_by'] ?? 'student',
+                'accepted' => ! empty($latestCall['accepted_at']),
             ] : null,
         ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }

@@ -40,6 +40,12 @@
         border: 1px solid rgba(148, 163, 184, 0.32) !important;
     }
 
+    .register-name-field .form-label {
+        display: flex;
+        min-height: 2.8rem;
+        align-items: flex-end;
+    }
+
     .register-card input[type="file"] {
         overflow: hidden;
         text-overflow: ellipsis;
@@ -218,24 +224,24 @@
                             <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" id="registerForm">
                                 @csrf
                                 <div class="row">
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-4 mb-3 register-name-field">
                                         <label class="form-label text-white small fw-bold text-uppercase">First Name</label>
                                         <input type="text" class="form-control" name="first_name" value="{{ old('first_name') }}" required autocomplete="given-name">
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-4 mb-3 register-name-field">
                                         <label class="form-label text-white small fw-bold text-uppercase">Middle Name <span class="text-muted">(optional)</span></label>
                                         <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" autocomplete="additional-name">
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-4 mb-3 register-name-field">
                                         <label class="form-label text-white small fw-bold text-uppercase">Last Name</label>
                                         <input type="text" class="form-control" name="last_name" value="{{ old('last_name') }}" required autocomplete="family-name">
                                     </div>
-                                    <div class="col-md-12 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Institutional Email</label>
                                         <input type="email" class="form-control" name="email" value="{{ old('email') }}" required placeholder="username@psu.edu.ph">
                                         <div id="emailHelp" class="form-text text-white-50">Students and employees must use their institutional email addresses.</div>
                                     </div>
-                                    <div class="col-md-12 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Contact Number</label>
                                         <input type="tel" class="form-control" name="phone_number" value="{{ old('phone_number') }}" inputmode="numeric" pattern="09[0-9]{9}" minlength="11" maxlength="11" required placeholder="e.g. 09123456789" title="Enter an 11-digit Philippine mobile number starting with 09">
                                         <div class="form-text"></div>
@@ -243,7 +249,7 @@
                                             <div class="text-warning small mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <div class="col-md-12 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Account Type</label>
                                         <select class="form-select" name="account_type" id="accountType" required>
                                             <option value="" disabled {{ old('account_type') ? '' : 'selected' }}>Choose account type</option>
@@ -251,11 +257,11 @@
                                             <option value="employee" {{ old('account_type') === 'employee' ? 'selected' : '' }}>Employee</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Age</label>
                                         <input type="number" class="form-control" name="age" value="{{ old('age') }}" min="1" max="120" required>
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Gender</label>
                                         <select class="form-select" name="gender" required>
                                             <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Choose gender</option>
@@ -264,13 +270,13 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Department / Course</label>
                                         <select class="form-select" name="department" id="department" required data-old-department="{{ old('department') }}">
                                             <option value="" disabled {{ old('department') ? '' : 'selected' }}>Choose Program or department</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-12 mb-3 d-none" id="employeeCategoryField">
+                                    <div class="col-md-6 mb-3 d-none" id="employeeCategoryField">
                                         <label class="form-label text-white small fw-bold text-uppercase">Employee Category</label>
                                         <select class="form-select" name="employee_category" id="employeeCategory">
                                             <option value="" disabled {{ old('employee_category') ? '' : 'selected' }}>Choose employee category</option>
@@ -278,11 +284,11 @@
                                             <option value="non_teaching" {{ old('employee_category') === 'non_teaching' ? 'selected' : '' }}>Non-teaching</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-12 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Profile Picture</label>
                                         <input type="file" class="form-control" name="profile_photo" accept="image/*" required>
                                     </div>
-                                    <div class="col-md-12 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Photo of your Student ID</label>
                                         <input type="file" class="form-control" name="selfie_image" accept="image/*" required>
                                     </div>

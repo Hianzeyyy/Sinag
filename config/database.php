@@ -18,25 +18,16 @@ $databaseConnection = in_array($configuredConnection, $supportedConnections, tru
     ? $configuredConnection
     : ($urlDriver ?? 'mysql');
 
+$urlHost = parse_url((string) $databaseUrl, PHP_URL_HOST);
+$urlPort = parse_url((string) $databaseUrl, PHP_URL_PORT);
 $databaseHost = trim((string) env('DB_HOST', ''));
-$databasePort = (string) env('DB_PORT', '3306');
+$databaseHost = $databaseHost !== '' ? $databaseHost : (string) ($urlHost ?? '');
+$configuredPort = trim((string) env('DB_PORT', ''));
+$defaultPort = str_ends_with(strtolower($databaseHost), '.tidbcloud.com') ? '4000' : '3306';
+$databasePort = (string) ($urlPort ?? ($configuredPort !== '' ? $configuredPort : $defaultPort));
 $databaseName = trim((string) env('DB_DATABASE', ''));
 $databaseName = $databaseName !== '' ? $databaseName : 'sinag_db';
-$configuredDatabaseCa = trim((string) env('DB_SSL_CA', env('MYSQL_ATTR_SSL_CA', '')));
-$databaseCa = $configuredDatabaseCa !== ''
-    ? $configuredDatabaseCa
-    : '/etc/ssl/certs/ca-certificates.crt';
-$databaseSslOptions = [];
-if (extension_loaded('pdo_mysql')) {
-    $databaseSslOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = filter_var(
-        env('DB_SSL_VERIFY_SERVER_CERT', true),
-        FILTER_VALIDATE_BOOL
-    );
 
-    if ($databaseCa !== '' && is_readable($databaseCa)) {
-        $databaseSslOptions[PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA] = $databaseCa;
-    }
-}
 if (env('APP_ENV', 'production') === 'production'
     && $databaseConnection === 'mysql'
     && $urlDriver === null
@@ -47,6 +38,35 @@ if (env('APP_ENV', 'production') === 'production'
     )) {
     $databaseHost = 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com';
     $databasePort = '4000';
+}
+
+$configuredDatabaseCa = trim((string) env('DB_SSL_CA', env('MYSQL_ATTR_SSL_CA', '')));
+$databaseCa = $configuredDatabaseCa !== ''
+    ? $configuredDatabaseCa
+    : '/etc/ssl/certs/ca-certificates.crt';
+$usesTiDb = $databaseConnection === 'mysql'
+    && (str_ends_with(strtolower($databaseHost), '.tidbcloud.com') || $databasePort === '4000');
+$databaseCaIsReadable = $databaseCa !== '' && is_readable($databaseCa);
+if ($usesTiDb && ! extension_loaded('pdo_mysql')) {
+    throw new \RuntimeException('TiDB Cloud requires the PDO MySQL extension.');
+}
+if ($usesTiDb && ! $databaseCaIsReadable) {
+    throw new \RuntimeException('TiDB Cloud requires a readable TLS CA bundle. Set DB_SSL_CA to its path.');
+}
+
+$databaseSslOptions = [];
+if (extension_loaded('pdo_mysql')) {
+    $sslVerifyAttribute = PHP_VERSION_ID >= 80500
+        ? Mysql::ATTR_SSL_VERIFY_SERVER_CERT
+        : PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT;
+    $databaseSslOptions[$sslVerifyAttribute] = $usesTiDb
+        ? true
+        : filter_var(env('DB_SSL_VERIFY_SERVER_CERT', true), FILTER_VALIDATE_BOOL);
+
+    if ($databaseCaIsReadable) {
+        $sslCaAttribute = PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA;
+        $databaseSslOptions[$sslCaAttribute] = $databaseCa;
+    }
 }
 
 return [

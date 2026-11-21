@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Mail\AccountStatusMail;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -42,6 +43,7 @@ class AdminAccountNotificationTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'account_status' => 'active']);
+        $this->assertAccountNotice($user, 'approved', 'Welcome to SINAG');
         Mail::assertSent(AccountStatusMail::class, fn (AccountStatusMail $mail): bool =>
             $mail->hasTo($user->email)
             && $mail->userName === $user->name
@@ -53,6 +55,7 @@ class AdminAccountNotificationTest extends TestCase
 
     public function test_approval_succeeds_when_optional_audit_columns_are_missing(): void
     {
+        $this->createNotificationsTable();
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
@@ -72,6 +75,7 @@ class AdminAccountNotificationTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'account_status' => 'active']);
+        $this->assertAccountNotice($user, 'approved', null);
         Mail::assertSent(AccountStatusMail::class, fn (AccountStatusMail $mail): bool =>
             $mail->hasTo($user->email) && $mail->status === 'approved'
         );
@@ -94,6 +98,7 @@ class AdminAccountNotificationTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'account_status' => 'rejected']);
+        $this->assertAccountNotice($user, 'rejected', 'Verification failed');
         Mail::assertSent(AccountStatusMail::class, fn (AccountStatusMail $mail): bool =>
             $mail->hasTo($user->email)
             && $mail->userName === $user->name
@@ -118,9 +123,10 @@ class AdminAccountNotificationTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.users.approve', $user->id))
-            ->assertSessionHas('warning', 'Account approved, but the notification email could not be sent. Check the mail configuration and contact the user.');
+            ->assertSessionHas('warning', 'Account approved and an in-app notice was sent, but the notification email could not be sent. Check the mail configuration and contact the user.');
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'account_status' => 'active']);
+        $this->assertAccountNotice($user, 'approved', null);
         Log::shouldHaveReceived('error')->once()->with(
             'SINAG account approval email failed',
             \Mockery::on(fn (array $context): bool => $context['user_id'] === $user->id
@@ -143,13 +149,14 @@ class AdminAccountNotificationTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.users.reject', $user->id), ['rejection_reason' => 'Verification failed'])
-            ->assertSessionHas('warning', 'Account rejected, but the notification email could not be sent. Check the mail configuration and contact the user.');
+            ->assertSessionHas('warning', 'Account rejected and an in-app notice was recorded, but the notification email could not be sent. Check the mail configuration and contact the user.');
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
             'account_status' => 'rejected',
             'rejection_reason' => 'Verification failed',
         ]);
+        $this->assertAccountNotice($user, 'rejected', 'Verification failed');
         Log::shouldHaveReceived('error')->once()->with(
             'SINAG account rejection email failed',
             \Mockery::on(fn (array $context): bool => $context['user_id'] === $user->id
@@ -159,6 +166,7 @@ class AdminAccountNotificationTest extends TestCase
 
     private function createAccountSchema(): void
     {
+        $this->createNotificationsTable();
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
@@ -182,6 +190,35 @@ class AdminAccountNotificationTest extends TestCase
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
+    }
+
+    private function createNotificationsTable(): void
+    {
+        Schema::create('notifications', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->morphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    private function assertAccountNotice(User $user, string $status, ?string $remarks): void
+    {
+        $notification = DB::table('notifications')
+            ->where('notifiable_type', User::class)
+            ->where('notifiable_id', $user->id)
+            ->first();
+
+        $this->assertNotNull($notification);
+        $this->assertSame(
+            ['kind' => 'account_status', 'status' => $status, 'message' => $status === 'approved'
+                ? 'Your SINAG account has been approved. You can now sign in.'
+                : 'Your SINAG account registration was rejected. '.($remarks ?: 'Please contact the GAD Office for assistance.'),
+                'remarks' => $remarks, 'url' => $status === 'approved' ? route('home') : route('login')],
+            json_decode($notification->data, true),
+        );
     }
 
     private function createUser(string $name, string $email, string $role, string $status): User

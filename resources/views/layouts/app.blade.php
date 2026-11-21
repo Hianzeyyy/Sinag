@@ -2285,7 +2285,9 @@
                     const response = await fetch('{{ route('admin.urgent.calls.feed') }}', { headers: { 'Accept': 'application/json' } });
                     if (!response.ok) throw new Error('Urgent-call notification check failed (' + response.status + ').');
                     const data = await response.json();
-                    const calls = (data.calls || []).filter(function (call) { return call.status !== 'ended'; });
+                    const calls = (data.calls || []).filter(function (call) {
+                        return call.status !== 'ended' && call.initiated_by !== 'admin';
+                    });
                     const ids = new Set(calls.map(function (call) { return call.id; }));
                     const recent = calls.some(function (call) { return Date.now() - Date.parse(call.created_at) < 5 * 60 * 1000; });
                     if ((currentCallIds && calls.some(function (call) { return !currentCallIds.has(call.id); })) || (currentCallIds === null && recent)) {
@@ -2336,21 +2338,32 @@
                     const response = await fetch('{{ route('student.notifications.feed') }}', { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
                     if (!response.ok) return;
                     const data = await response.json();
-                    const messageId = Number(data.latest_unread_id || 0);
-                    if (messageId > lastMessageId) {
-                        notifyUser('New message from the GAD Office.', '{{ route('student.messaging') }}');
-                        lastMessageId = messageId;
-                        localStorage.setItem('sinag.last-notified-message-id', String(lastMessageId));
-                    }
+                    if (data.app_notification?.message) {
+                        notifyUser(data.app_notification.message, data.app_notification.url || '{{ route('home') }}');
+                    } else {
+                        const messageId = Number(data.latest_unread_id || 0);
+                        if (messageId > lastMessageId) {
+                            notifyUser('New message from the GAD Office.', '{{ route('student.messaging') }}');
+                            lastMessageId = messageId;
+                            localStorage.setItem('sinag.last-notified-message-id', String(lastMessageId));
+                        }
 
-                    const call = data.latest_call;
-                    if (call && call.id && call.status === 'joined'
-                        && lastCallState && lastCallState.id === call.id && lastCallState.status !== 'joined') {
-                        notifyUser('The GAD Office joined your urgent call.', '{{ route('student.urgent') }}');
-                    }
-                    if (call?.id) {
-                        lastCallState = { id: call.id, status: call.status };
-                        localStorage.setItem('sinag.urgent-call-state', JSON.stringify(lastCallState));
+                        const call = data.latest_call;
+                        const adminCallIsWaiting = call?.initiated_by === 'admin'
+                            && !call.accepted && call.status !== 'ended';
+                        if (adminCallIsWaiting
+                            && (!lastCallState || lastCallState.id !== call.id || lastCallState.status === 'ended')) {
+                            notifyUser('The GAD Office is calling.', '{{ route('student.urgent') }}?call_id=' + encodeURIComponent(call.id));
+                        }
+                        if (call && call.id && call.status === 'joined'
+                            && call.initiated_by !== 'admin'
+                            && lastCallState && lastCallState.id === call.id && lastCallState.status !== 'joined') {
+                            notifyUser('The GAD Office joined your urgent call.', '{{ route('student.urgent') }}');
+                        }
+                        if (call?.id) {
+                            lastCallState = { id: call.id, status: call.status };
+                            localStorage.setItem('sinag.urgent-call-state', JSON.stringify(lastCallState));
+                        }
                     }
                 } catch (error) {
                     console.error('Unable to check user notifications:', error);
