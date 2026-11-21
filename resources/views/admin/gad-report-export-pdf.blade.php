@@ -72,9 +72,9 @@
                 <td><div class="number">{{ $data['total_reports'] }}</div><div class="label">Incidents Reported</div></td>
             @endif
         </tr>
-        @if($includeReports && $includeFeedback)
+        @if($includeFeedback)
             <tr>
-                <td colspan="3"><div class="number">{{ $data['total_suggestions'] }}</div><div class="label">Suggestions Submitted</div></td>
+                <td colspan="{{ $includeReports ? 3 : 1 }}"><div class="number">{{ $data['total_suggestions'] }}</div><div class="label">Suggestions Submitted</div></td>
             </tr>
         @endif
         @if($includeFeedback)
@@ -133,8 +133,7 @@
     @endif
 
     @if($includeFeedback)
-    @if($includeReports)
-    <h2>{{ 3 + $sectionOffset }}. Suggestions &amp; Community Feedback ({{ $suggestions->count() }})</h2>
+    <h2>{{ $includeReports ? 3 + $sectionOffset : 1 }}. Suggestions &amp; Community Feedback ({{ $suggestions->count() }})</h2>
     <table class="report-table">
         <thead><tr><th>ID</th><th>Submitted By</th><th>Category</th><th>Message</th><th>Upvotes</th><th>Date</th></tr></thead>
         <tbody>
@@ -152,9 +151,7 @@
             @endforelse
         </tbody>
     </table>
-    @endif
-
-    <h2>{{ ($includeReports ? 4 : 3) + $sectionOffset }}. Customer Satisfaction Survey ({{ $satisfactionSurveys->count() }})</h2>
+    <h2>{{ $includeReports ? 4 + $sectionOffset : 2 }}. Customer Satisfaction Survey ({{ $satisfactionSurveys->count() }})</h2>
     <table class="report-table">
         <thead><tr><th>Respondent</th><th>Rating</th><th>Survey Responses</th><th>Feedback</th><th>Date</th></tr></thead>
         <tbody>
@@ -172,7 +169,7 @@
         </tbody>
     </table>
 
-    <h2>{{ ($includeReports ? 5 : 4) + $sectionOffset }}. Survey Findings</h2>
+    <h2>{{ $includeReports ? 5 + $sectionOffset : 3 }}. Survey Findings</h2>
     <table class="report-table">
         <thead><tr><th>Question</th><th>Responses</th><th>Average</th><th>Favorable</th><th>Finding</th></tr></thead>
         <tbody>

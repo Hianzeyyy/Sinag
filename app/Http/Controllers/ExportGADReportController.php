@@ -232,9 +232,7 @@ class ExportGADReportController extends Controller
             $summaryRows[] = ['Incidents Reported', $data['total_reports']];
         }
         if ($includeFeedback) {
-            if ($includeReports) {
-                $summaryRows[] = ['Suggestions Submitted', $data['total_suggestions']];
-            }
+            $summaryRows[] = ['Suggestions Submitted', $data['total_suggestions']];
             $summaryRows[] = ['Customer Satisfaction Responses', $data['total_satisfaction_surveys']];
             $summaryRows[] = ['Average System Rating', $data['average_satisfaction'] ?: 'N/A'];
         }
@@ -257,7 +255,7 @@ class ExportGADReportController extends Controller
             ]];
         }
 
-        if ($includeReports && $includeFeedback) {
+        if ($includeFeedback) {
             $sheets['Suggestions'] = [[
                 'Suggestion ID', 'Submitted By', 'Category', 'Message', 'Upvotes', 'Status', 'Submitted',
             ]];
@@ -357,7 +355,7 @@ class ExportGADReportController extends Controller
             ];
         }
 
-        foreach ($includeReports && $includeFeedback ? $suggestions : [] as $suggestion) {
+        foreach ($includeFeedback ? $suggestions : [] as $suggestion) {
             $sheets['Suggestions'][] = [
                 $suggestion->id,
                 $suggestion->is_anonymous ? 'Anonymous' : (optional($suggestion->user)->name ?? 'Unknown'),

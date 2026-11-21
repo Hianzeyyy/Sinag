@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\ExportGADReportController;
+use App\Models\Suggestion;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -232,9 +233,12 @@ class GadReportExportTest extends TestCase
             $this->assertSame(true, $workbook->open($workbookPath));
             $workbookXml = $workbook->getFromName('xl/workbook.xml');
             $summarySheet = $workbook->getFromName('xl/worksheets/sheet1.xml');
+            $styles = $workbook->getFromName('xl/styles.xml');
             $this->assertStringNotContainsString('name="Users"', $workbookXml);
             $this->assertStringNotContainsString('name="Student Information"', $workbookXml);
             $this->assertStringNotContainsString('name="Faculty and Non-Teaching"', $workbookXml);
+            $this->assertStringContainsString('FF6D55D9', $styles);
+            $this->assertStringContainsString('fillId="2"', $styles);
             $this->assertStringContainsString('Incident Reports', $workbookXml);
             $this->assertStringNotContainsString('Sex-Disaggregated Data', $workbookXml);
             $this->assertStringNotContainsString('Incident Analytics', $workbookXml);
@@ -473,9 +477,53 @@ class GadReportExportTest extends TestCase
         }
     }
 
+    public function test_gad_admin_and_coordinator_excel_exports_use_the_same_color_theme(): void
+    {
+        $loadStyles = function (string $name, string $email, string $accountType): string {
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => 'password',
+                'role' => 'admin',
+                'account_type' => $accountType,
+            ]);
+
+            $this->actingAs($user);
+            $response = app(ExportGADReportController::class)->export('excel', '30days');
+            $workbookPath = $response->getFile()->getPathname();
+            $workbook = new ZipArchive;
+
+            try {
+                $this->assertSame(true, $workbook->open($workbookPath));
+
+                return (string) $workbook->getFromName('xl/styles.xml');
+            } finally {
+                $workbook->close();
+                @unlink($workbookPath);
+            }
+        };
+
+        $coordinatorStyles = $loadStyles('GAD Coordinator', 'gadcoordinator@example.test', 'coordinator');
+        $adminStyles = $loadStyles('GAD Administrator', 'gadadmin@example.test', 'admin');
+
+        $this->assertSame($adminStyles, $coordinatorStyles);
+    }
+
     public function test_feedback_only_export_excludes_report_and_profile_sheets(): void
     {
         request()->merge(['include_feedback' => '1']);
+        $user = User::create([
+            'name' => 'Suggestion Author',
+            'email' => 'suggestion-author@example.test',
+            'password' => 'password',
+        ]);
+        Suggestion::create([
+            'user_id' => $user->id,
+            'category' => 'GAD Programs and Services',
+            'message' => 'Feedback suggestion included in the export.',
+            'is_anonymous' => true,
+            'status' => 'Approved',
+        ]);
 
         $response = app(ExportGADReportController::class)->export('excel', '30days');
         $workbookPath = $response->getFile()->getPathname();
@@ -486,15 +534,52 @@ class GadReportExportTest extends TestCase
             $workbookXml = $workbook->getFromName('xl/workbook.xml');
             $this->assertStringContainsString('Customer Satisfaction', $workbookXml);
             $this->assertStringContainsString('Survey Findings', $workbookXml);
-            $this->assertStringNotContainsString('name="Suggestions"', $workbookXml);
+            $this->assertStringContainsString('name="Suggestions"', $workbookXml);
             $this->assertStringNotContainsString('Incident Reports', $workbookXml);
             $this->assertStringNotContainsString('Student Information', $workbookXml);
             $this->assertStringNotContainsString('Faculty and Non-Teaching', $workbookXml);
             $this->assertStringNotContainsString('Users', $workbookXml);
+            $suggestionsSheet = $workbook->getFromName('xl/worksheets/sheet2.xml');
+            $this->assertStringContainsString('Feedback suggestion included in the export.', $suggestionsSheet);
+            $this->assertStringContainsString('Suggestions Submitted', $workbook->getFromName('xl/worksheets/sheet1.xml'));
         } finally {
             $workbook->close();
             @unlink($workbookPath);
         }
+    }
+
+    public function test_feedback_only_pdf_includes_suggestions(): void
+    {
+        request()->merge(['include_feedback' => '1']);
+        $user = User::create([
+            'name' => 'Suggestion Author',
+            'email' => 'suggestion-author@example.test',
+            'password' => 'password',
+        ]);
+        Suggestion::create([
+            'user_id' => $user->id,
+            'category' => 'GAD Programs and Services',
+            'message' => 'Feedback suggestion included in the PDF.',
+            'is_anonymous' => true,
+            'status' => 'Approved',
+        ]);
+
+        $pdf = \Mockery::mock(\Barryvdh\DomPDF\PDF::class);
+        $pdf->shouldReceive('setPaper')->once()->with('a4', 'portrait')->andReturnSelf();
+        $pdf->shouldReceive('download')->once()->andReturn(response('PDF'));
+        Pdf::shouldReceive('loadView')
+            ->once()
+            ->withArgs(function (string $viewName, array $viewData): bool {
+                $html = view($viewName, $viewData)->render();
+                $this->assertStringContainsString('1. Suggestions &amp; Community Feedback', $html);
+                $this->assertStringContainsString('Feedback suggestion included in the PDF.', $html);
+                $this->assertStringContainsString('2. Customer Satisfaction Survey', $html);
+
+                return true;
+            })
+            ->andReturn($pdf);
+
+        app(ExportGADReportController::class)->export('pdf', '30days');
     }
 
     public function test_calendar_report_periods_cover_quarters_midyear_and_full_year(): void
