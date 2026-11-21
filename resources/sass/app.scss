@@ -6,3 +6,9 @@
 
 // Bootstrap
 @import 'bootstrap/scss/bootstrap';
+
+@media (min-width: 1200px) {
+    html {
+        font-size: 111.111%;
+    }
+}

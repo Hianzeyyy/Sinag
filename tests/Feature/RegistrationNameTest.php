@@ -70,8 +70,8 @@ class RegistrationNameTest extends TestCase
             'age' => 20,
             'gender' => 'Female',
             'department' => 'BS Information Technology (BSIT)',
-            'profile_photo' => UploadedFile::fake()->image('profile.png'),
-            'selfie_image' => UploadedFile::fake()->image('student-id.png'),
+            'profile_photo' => UploadedFile::fake()->image('profile.png')->size(6 * 1024),
+            'selfie_image' => UploadedFile::fake()->image('student-id.png')->size(6 * 1024),
             'password' => 'strong-password',
             'password_confirmation' => 'strong-password',
         ]);

@@ -682,11 +682,13 @@
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small fw-bold text-uppercase">Profile Picture</label>
-                                        <input type="file" class="form-control" name="profile_photo" accept="image/*" required>
+                                        <input type="file" class="form-control" name="profile_photo" accept="image/jpeg,image/png,image/webp" required>
+                                        <div class="form-text">JPG, PNG, or WEBP up to 10 MB.</div>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small fw-bold text-uppercase">Photo of your Student ID</label>
-                                        <input type="file" class="form-control" name="selfie_image" accept="image/*" required>
+                                        <input type="file" class="form-control" name="selfie_image" accept="image/jpeg,image/png,image/webp" required>
+                                        <div class="form-text">JPG, PNG, or WEBP up to 10 MB.</div>
                                     </div>
                                     <div class="col-12 col-sm-6">
                                         <label class="form-label small fw-bold text-uppercase">Password</label>

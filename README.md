@@ -100,6 +100,33 @@ traffic to the new database. After import and before enabling writes, run
 `php artisan app:sync-postgres-sequences` from a shell connected to the new
 database to position generated IDs above imported records.
 
+## Registration status email notifications
+
+When an administrator changes a user's registration status to approved or
+rejected, SINAG sends an email to the user's institutional address. Repeating
+the same decision does not send another email. Email delivery failures are
+logged and shown to the administrator without undoing the saved status.
+
+For Gmail SMTP, enable 2-Step Verification and create a Google App Password.
+Set the following in local `.env` and Render's Environment Variables; use the
+Gmail address as both `MAIL_USERNAME` and `MAIL_FROM_ADDRESS`, and never commit
+the App Password:
+
+```text
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-gmail-address@gmail.com
+MAIL_PASSWORD=your-google-app-password
+MAIL_FROM_ADDRESS=your-gmail-address@gmail.com
+MAIL_FROM_NAME="SINAG - PSU GAD"
+```
+
+After changing local mail settings, clear Laravel's cached configuration with
+`php artisan config:clear`. Render reads its environment variables on the next
+deployment.
+
 ## Uploaded media storage and backups
 
 All new user-uploaded media is stored in Cloudinary, not on the application

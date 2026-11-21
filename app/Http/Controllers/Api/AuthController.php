@@ -139,9 +139,9 @@ class AuthController extends Controller
             'age' => ['required', 'integer', 'min:1', 'max:120'],
             'gender' => ['required', 'in:Male,Female,Prefer not to say'],
             'department' => ['required', 'string', 'max:255'],
-            'profile_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'profile_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'selfie_image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'selfie_image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ])->after(function ($validator) use ($data) {
             $prefix = (string) str($data['email'] ?? '')->before('@');
             $type = $data['account_type'] ?? null;
@@ -198,7 +198,7 @@ class AuthController extends Controller
             }
             report($e);
             throw ValidationException::withMessages([
-                'profile_photo' => ['The photos could not be uploaded. Please try smaller JPG, PNG, or WEBP images.'],
+                'profile_photo' => ['The photos could not be uploaded. Please use JPG, PNG, or WEBP images up to 10 MB each.'],
             ]);
         }
 

@@ -1005,10 +1005,19 @@ class AdminController extends Controller
         ]);
         $user = User::findOrFail($id);
 
-        \DB::transaction(function () use ($user, $validated): void {
-            $this->updateAccountStatus($user, 'active');
+        $statusChanged = \DB::transaction(function () use ($user, $validated): bool {
+            if (! $this->updateAccountStatus($user, 'active')) {
+                return false;
+            }
+
             $user->notify(new AccountStatusNotification('approved', $validated['approval_note'] ?? null));
+
+            return true;
         });
+
+        if (! $statusChanged) {
+            return redirect('/admin/users')->with('success', 'This account is already approved; no duplicate notification was sent.');
+        }
 
         \Log::info('SINAG account approved', ['user_id' => $user->id, 'admin_id' => Auth::id()]);
 
@@ -1046,11 +1055,20 @@ class AdminController extends Controller
         ]);
         $reason = $validated['rejection_reason'] ?? null;
 
-        \DB::transaction(function () use ($user, $reason): void {
-            $this->updateAccountStatus($user, 'rejected', $reason);
+        $statusChanged = \DB::transaction(function () use ($user, $reason): bool {
+            if (! $this->updateAccountStatus($user, 'rejected', $reason)) {
+                return false;
+            }
+
             $this->revokeUserAccess($user);
             $user->notify(new AccountStatusNotification('rejected', $reason));
+
+            return true;
         });
+
+        if (! $statusChanged) {
+            return back()->with('success', 'This account is already rejected; no duplicate notification was sent.');
+        }
 
         try {
             Mail::to($user->email)->send(new AccountStatusMail(
@@ -1072,7 +1090,7 @@ class AdminController extends Controller
         return back()->with('success', "User {$user->name} has been rejected and notified by email and in-app.");
     }
 
-    private function updateAccountStatus(User $user, string $status, ?string $reason = null): void
+    private function updateAccountStatus(User $user, string $status, ?string $reason = null): bool
     {
         $updates = [
             'account_status' => $status,
@@ -1090,7 +1108,20 @@ class AdminController extends Controller
             }
         }
 
-        \DB::table('users')->where('id', $user->id)->update($updates);
+        $query = \DB::table('users')->where('id', $user->id);
+        $query->where(function ($query) use ($status): void {
+            if ($status === 'active') {
+                $query->whereNull('account_status')
+                    ->orWhereNotIn('account_status', ['active', 'approved']);
+
+                return;
+            }
+
+            $query->whereNull('account_status')
+                ->orWhere('account_status', '!=', $status);
+        });
+
+        return $query->update($updates) > 0;
     }
 
     /**

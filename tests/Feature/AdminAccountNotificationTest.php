@@ -81,6 +81,25 @@ class AdminAccountNotificationTest extends TestCase
         );
     }
 
+    public function test_approving_an_already_approved_account_does_not_send_duplicate_notifications(): void
+    {
+        $this->createAccountSchema();
+        $admin = $this->createUser('GAD Admin', 'admin@example.test', 'admin', 'active');
+        $user = $this->createUser('Student User', 'student@example.test', 'student', 'approved');
+        Mail::fake();
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.approve', $user->id))
+            ->assertSessionHas('success', 'This account is already approved; no duplicate notification was sent.');
+
+        Mail::assertNothingSent();
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+        ]);
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'account_status' => 'approved']);
+    }
+
     public function test_rejecting_an_account_emails_the_institutional_address(): void
     {
         $this->createAccountSchema();
@@ -108,6 +127,25 @@ class AdminAccountNotificationTest extends TestCase
         );
     }
 
+    public function test_rejecting_an_already_rejected_account_does_not_send_duplicate_notifications(): void
+    {
+        $this->createAccountSchema();
+        $admin = $this->createUser('GAD Admin', 'admin@example.test', 'admin', 'active');
+        $user = $this->createUser('Student User', 'student@example.test', 'student', 'rejected');
+        Mail::fake();
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.reject', $user->id), ['rejection_reason' => 'Verification failed'])
+            ->assertSessionHas('success', 'This account is already rejected; no duplicate notification was sent.');
+
+        Mail::assertNothingSent();
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+        ]);
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'account_status' => 'rejected']);
+    }
+
     public function test_email_failure_does_not_reverse_approval_and_warns_the_admin(): void
     {
         $this->createAccountSchema();
@@ -117,7 +155,7 @@ class AdminAccountNotificationTest extends TestCase
         $mailer->shouldReceive('send')
             ->once()
             ->with(\Mockery::type(AccountStatusMail::class))
-            ->andThrow(new \RuntimeException('Resend delivery failed'));
+            ->andThrow(new \RuntimeException('SMTP delivery failed'));
         Mail::shouldReceive('to')->once()->with($user->email)->andReturn($mailer);
         Log::spy();
 
@@ -143,7 +181,7 @@ class AdminAccountNotificationTest extends TestCase
         $mailer->shouldReceive('send')
             ->once()
             ->with(\Mockery::type(AccountStatusMail::class))
-            ->andThrow(new \RuntimeException('Resend delivery failed'));
+            ->andThrow(new \RuntimeException('SMTP delivery failed'));
         Mail::shouldReceive('to')->once()->with($user->email)->andReturn($mailer);
         Log::spy();
 
