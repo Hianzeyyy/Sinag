@@ -444,6 +444,35 @@ class GadReportExportTest extends TestCase
         $this->assertStringStartsWith('%PDF-', $response->getContent());
     }
 
+    public function test_coordinator_and_gad_admin_can_download_pdf_and_excel_reports(): void
+    {
+        foreach ([
+            ['GAD Coordinator', 'gadcoordinator@example.test', 'coordinator'],
+            ['GAD Administrator', 'gadadmin@example.test', 'admin'],
+        ] as [$name, $email, $accountType]) {
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => 'password',
+                'role' => 'admin',
+                'account_type' => $accountType,
+            ]);
+
+            $response = $this->actingAs($user)
+                ->get(route('admin.gad-report.export', ['format' => 'pdf', 'period' => '30days']))
+                ->assertOk()
+                ->assertHeader('content-type', 'application/pdf');
+            $this->assertStringContainsString('.pdf', $response->headers->get('content-disposition'));
+
+            $excelResponse = $this->get(route('admin.gad-report.export', ['format' => 'excel', 'period' => '30days']))
+                ->assertOk()
+                ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            $this->assertStringContainsString('.xlsx', $excelResponse->headers->get('content-disposition'));
+
+            $this->get('/admin/gad-report/export/csv/30days')->assertNotFound();
+        }
+    }
+
     public function test_feedback_only_export_excludes_report_and_profile_sheets(): void
     {
         request()->merge(['include_feedback' => '1']);

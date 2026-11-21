@@ -122,6 +122,8 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
                 && (int) $counts->get('Resolved') === 2)
             ->assertViewMissing('registeredUserSummary')
             ->assertSee('GAD Report Analytics')
+            ->assertSeeText('Export PDF')
+            ->assertSeeText('Export Excel')
             ->assertSee(route('student.boses'), false)
             ->assertSeeText('Suggestions')
             ->assertSee(route('student.messaging'), false)

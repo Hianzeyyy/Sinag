@@ -513,7 +513,7 @@
             <div class="modal-header border-0">
                 <div>
                     <h2 class="modal-title h5 fw-bold mb-1" id="exportGadFormatModalLabel">Choose file format</h2>
-                    <p class="small text-muted mb-0">Select PDF or Excel before choosing the date range.</p>
+                    <p class="small text-muted mb-0">Choose report sections, a format, and a date range.</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -536,8 +536,9 @@
                     <label for="exportGadReportFormat" class="form-label fw-semibold">File format</label>
                     <select id="exportGadReportFormat" class="form-select">
                         <option value="pdf">PDF</option>
-                        <option value="excel">Excel (.xlsx)</option>
+                        <option value="excel">Excel workbook (.xlsx)</option>
                     </select>
+                    <div class="form-text">The Excel workbook includes a formatted summary and detailed report sheets.</div>
                 </div>
                 <div class="modal-body pt-0 d-none" id="exportGadPeriodStep" aria-hidden="true">
                     <label for="exportGadReportPeriod" class="form-label fw-semibold">Date range</label>

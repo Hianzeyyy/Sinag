@@ -53,7 +53,9 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     // The coordinator shares GAD analytics and report exports, but not other admin tools.
     Route::prefix('admin')->name('admin.')->middleware('can:gad-analytics-access')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
-        Route::get('/gad-report/export/{format}/{period?}', [ExportGADReportController::class, 'export'])->name('gad-report.export');
+        Route::get('/gad-report/export/{format}/{period?}', [ExportGADReportController::class, 'export'])
+            ->where('format', 'pdf|excel')
+            ->name('gad-report.export');
     });
 
     // --- ADMIN ROUTES ---
