@@ -670,6 +670,9 @@
         @if(session('error'))
             <div class="alert alert-danger border-0 shadow-sm" role="alert">{{ session('error') }}</div>
         @endif
+        @if($surveyLookupFailed ?? false)
+            <div class="alert alert-warning border-0 shadow-sm" role="status">The satisfaction survey is temporarily unavailable. You can still browse and use Community Suggestions.</div>
+        @endif
         @if($errors->any())
             <div class="alert alert-danger border-0 shadow-sm" role="alert">
                 <div class="fw-bold mb-1">The suggestion could not be posted:</div>

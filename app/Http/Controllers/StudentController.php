@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Notifications\AccountStatusNotification;
@@ -271,7 +273,18 @@ class StudentController extends Controller
             ->values()
             ->all();
 
-        $pendingSatisfactionSurvey = $this->pendingSatisfactionSurvey(Auth::id(), 'suggestion');
+        $surveyLookupFailed = false;
+        try {
+            $pendingSatisfactionSurvey = $this->pendingSatisfactionSurvey(Auth::id(), 'suggestion');
+        } catch (QueryException $exception) {
+            Log::warning('Suggestion satisfaction survey lookup failed.', [
+                'user_id' => Auth::id(),
+                'exception' => $exception,
+            ]);
+            $pendingSatisfactionSurvey = null;
+            $surveyLookupFailed = true;
+        }
+
         $autoShowSatisfactionSurvey = $pendingSatisfactionSurvey
             ? $this->shouldAutoShowSatisfactionSurvey(Auth::id(), $pendingSatisfactionSurvey)
             : false;
@@ -282,6 +295,7 @@ class StudentController extends Controller
             'existingAliases' => $existingAliases,
             'pendingSatisfactionSurvey' => $pendingSatisfactionSurvey,
             'autoShowSatisfactionSurvey' => $autoShowSatisfactionSurvey,
+            'surveyLookupFailed' => $surveyLookupFailed,
         ]);
     }
 

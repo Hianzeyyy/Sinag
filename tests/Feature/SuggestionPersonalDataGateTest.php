@@ -195,6 +195,35 @@ class SuggestionPersonalDataGateTest extends TestCase
         ])->assertStatus(409);
     }
 
+    public function test_suggestion_survey_lookup_failure_does_not_block_the_suggestions_page(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+        $this->createSatisfactionSurveysTable();
+
+        $user = $this->makeCompletedStudent();
+        $this->createSuggestion($user, 'Approved', 'Community suggestions remain available.');
+
+        $database = \Mockery::mock(DB::getFacadeRoot())->makePartial();
+        $database->shouldReceive('table')
+            ->once()
+            ->with('suggestions')
+            ->andThrow(new \Illuminate\Database\QueryException(
+                'mysql',
+                'select * from suggestions',
+                [],
+                new \RuntimeException('Survey lookup failed'),
+            ));
+        DB::swap($database);
+
+        $this->actingAs($user)
+            ->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('Community suggestions remain available.')
+            ->assertSee('The satisfaction survey is temporarily unavailable.')
+            ->assertDontSee('id="customerSatisfactionModal"', false);
+    }
+
     public function test_satisfaction_survey_is_recorded_for_the_specific_report(): void
     {
         $this->createUsersTable();
