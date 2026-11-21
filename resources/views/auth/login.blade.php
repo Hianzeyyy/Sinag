@@ -346,6 +346,11 @@
     }
     .auth-toggle:hover, .auth-toggle:focus-visible { background: #5b43b2; color: #fff; transform: translateY(-2px); }
     .register-fields { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .register-name-field .form-label {
+        display: block;
+        height: 3rem;
+        line-height: 1.25;
+    }
     .register-submit {
         display: inline-flex;
         width: auto !important;

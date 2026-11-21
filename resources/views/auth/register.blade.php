@@ -42,7 +42,8 @@
 
     .register-name-field .form-label {
         display: flex;
-        min-height: 2.8rem;
+        height: 3rem;
+        line-height: 1.25;
         align-items: flex-end;
     }
 
