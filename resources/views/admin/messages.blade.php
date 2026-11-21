@@ -586,6 +586,10 @@
 
 <div class="messages-page" data-has-conversation="{{ $selectedStudent ? 'true' : 'false' }}">
     <div class="container-fluid">
+        @if($messageWarning)
+            <div class="alert alert-warning mb-3" role="status">{{ $messageWarning }}</div>
+        @endif
+
         <div class="messaging-layout">
 
             {{-- Left: Conversations List --}}

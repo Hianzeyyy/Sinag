@@ -298,6 +298,35 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertDontSee('data-message-id="' . $deletedMessage->id . '"');
     }
 
+    public function test_unavailable_message_recipient_returns_to_conversation_list_instead_of_404(): void
+    {
+        $admin = User::create([
+            'name' => 'GAD Administrator',
+            'email' => 'gadadmin@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'admin',
+            'account_status' => 'active',
+        ]);
+        $otherAdmin = User::create([
+            'name' => 'Private Administrator',
+            'email' => 'private-admin@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'admin',
+            'account_status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.messages', ['student_id' => $otherAdmin->id]))
+            ->assertOk()
+            ->assertViewIs('admin.messages')
+            ->assertViewHas('selectedStudent', null)
+            ->assertViewHas('selectedStudentId', null)
+            ->assertSeeText('This conversation is no longer available.')
+            ->assertDontSeeText('Private Administrator');
+    }
+
     public function test_gad_coordinator_is_excluded_from_admin_access_gate(): void
     {
         $coordinator = new User();

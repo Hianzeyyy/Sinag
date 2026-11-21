@@ -446,6 +446,7 @@ class AdminController extends Controller
 
         $messages = collect();
         $selectedStudent = null;
+        $messageWarning = null;
 
         if ($selectedStudentId) {
             // Only users and GAD coordinators can be opened as conversations.
@@ -453,18 +454,20 @@ class AdminController extends Controller
             $selectedStudent = User::find($selectedStudentId);
 
             if (!$selectedStudent || !$this->isMessageRecipient($selectedStudent)) {
-                abort(404);
+                $selectedStudent = null;
+                $selectedStudentId = null;
+                $messageWarning = 'This conversation is no longer available.';
+            } else {
+                Message::where('sender_id', $selectedStudentId)
+                    ->whereIn('receiver_id', $adminIds)
+                    ->whereNull('read_at')
+                    ->update(['read_at' => now()]);
+
+                $messages = $this->messagesForConversation($selectedStudent, $adminIds);
             }
-
-            Message::where('sender_id', $selectedStudentId)
-                ->whereIn('receiver_id', $adminIds)
-                ->whereNull('read_at')
-                ->update(['read_at' => now()]);
-
-            $messages = $this->messagesForConversation($selectedStudent, $adminIds);
         }
 
-        return view('admin.messages', compact('conversations', 'messages', 'selectedStudent', 'selectedStudentId'));
+        return view('admin.messages', compact('conversations', 'messages', 'selectedStudent', 'selectedStudentId', 'messageWarning'));
     }
 
     private function buildAdminConversations(array $adminIds): \Illuminate\Support\Collection
