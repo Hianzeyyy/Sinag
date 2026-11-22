@@ -389,7 +389,7 @@
                     <tr>
                         <th>Level</th>
                         <th>Name of School</th>
-                        <th>Degree / Course / Certification</th>
+                        <th>Degree / Course / Certification (College only)</th>
                         <th>From</th>
                         <th>To</th>
                     </tr>
@@ -399,7 +399,7 @@
                         <tr>
                             <td><strong>{{ $level }}</strong></td>
                             <td>{{ $employeeEducation[$index]['school'] ?? 'N/A' }}</td>
-                            <td>{{ $employeeEducation[$index]['degree'] ?? 'N/A' }}</td>
+                            <td>{{ $level === 'College' ? ($employeeEducation[$index]['degree'] ?? 'N/A') : 'N/A' }}</td>
                             <td>{{ $employeeEducation[$index]['from'] ?? 'N/A' }}</td>
                             <td>{{ $employeeEducation[$index]['to'] ?? 'N/A' }}</td>
                         </tr>

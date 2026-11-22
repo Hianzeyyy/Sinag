@@ -221,7 +221,7 @@
                 return {
                     level: row.dataset.level,
                     school: valueOf(row, '[data-school]'),
-                    degree: valueOf(row, '[data-degree]'),
+                    degree: row.dataset.level === 'College' ? valueOf(row, '[data-degree]') : '',
                     from: valueOf(row, '[data-from]'),
                     to: valueOf(row, '[data-to]')
                 };
@@ -557,10 +557,8 @@
                                         <div class="col-md-4"><label class="pd-label">Name of School</label><input type="text" class="form-control pd-input" data-school value="{{ $educationRow['school'] ?? '' }}"></div>
                                         @if($level === 'College')
                                             <div class="col-md-4"><label class="pd-label">Degree / Course / Certification</label><input type="text" class="form-control pd-input" data-degree value="{{ $educationRow['degree'] ?? '' }}"></div>
-                                        @else
-                                            <div class="col-md-4"><label class="pd-label">Other / Notes</label><input type="text" class="form-control pd-input" data-degree value="{{ $educationRow['degree'] ?? '' }}" placeholder="Optional"></div>
                                         @endif
-                                        <div class="col-md-2"><label class="pd-label">From</label><input type="text" class="form-control pd-input" data-from value="{{ $educationRow['from'] ?? '' }}"></div>
+                                        <div class="{{ $level === 'College' ? 'col-md-2' : 'col-md-4' }}"><label class="pd-label">From</label><input type="text" class="form-control pd-input" data-from value="{{ $educationRow['from'] ?? '' }}"></div>
                                         <div class="col-md-2"><label class="pd-label">To</label><input type="text" class="form-control pd-input" data-to value="{{ $educationRow['to'] ?? '' }}"></div>
                                     </div>
                                 </div>

@@ -189,6 +189,6 @@ class LoginController extends Controller
             Cookie::queue(Cookie::forget('remembered_email'));
         }
 
-        return redirect()->route('splash');
+        return redirect()->route('login');
     }
 }

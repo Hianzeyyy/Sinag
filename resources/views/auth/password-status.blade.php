@@ -45,6 +45,10 @@
             @if (!isset($resetRequest))
                 <form method="POST" action="{{ route('password.status.check') }}">
                     @csrf
+                    <div class="alert request-status-alert mb-3">
+                        <strong>Copy your reference number</strong>
+                        <div class="small mt-1">Enter the same reference number and your registered PSU email or student/employee ID below.</div>
+                    </div>
                     <label class="form-label fw-bold" for="reference_number">Reference number</label>
                     <input id="reference_number" name="reference_number" class="form-control mb-3" value="{{ old('reference_number', $refNumber) }}" required>
                     <label class="form-label fw-bold" for="email_or_id">Registered email or student/employee ID</label>

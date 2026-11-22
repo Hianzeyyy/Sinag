@@ -389,7 +389,7 @@ class AdminController extends Controller
         $users = $usersQuery
             ->orderByDesc('created_at')
             ->orderByDesc('id')
-            ->paginate(30)
+            ->paginate(20)
             ->withQueryString();
         $filteredUserCount = (clone $usersQuery)->reorder()->count();
         $userCounts = $baseQuery

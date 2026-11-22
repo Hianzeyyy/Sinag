@@ -6,6 +6,11 @@
     .reset-shell { max-width: 760px; margin: 2rem auto; }
     .reset-card { border: 0; border-radius: 1.25rem; box-shadow: 0 18px 45px rgba(76, 29, 149, .14); }
     .reset-card .card-header { background: linear-gradient(135deg, #8f72f5, #c4b5fd); color: #fff; border: 0; }
+    .request-status-alert {
+        border: 1px solid #d8cdfc;
+        color: #5b4b9b;
+        background: #f3efff;
+    }
 </style>
 <div class="container reset-shell">
     <div class="card reset-card overflow-hidden">
@@ -14,6 +19,10 @@
             <p class="mb-0">An administrator will verify your identity before you create a new password.</p>
         </div>
         <div class="card-body p-4 p-lg-5">
+            <div class="alert request-status-alert mb-4">
+                <strong>Keep the reference number after submitting.</strong>
+                <div class="small mt-1">Copy and save the reference number. You will need it together with your registered email or student/employee ID to check approval.</div>
+            </div>
             @if (isset($errors) && $errors->any())
                 <div class="alert alert-danger"><ul class="mb-0">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
             @endif
