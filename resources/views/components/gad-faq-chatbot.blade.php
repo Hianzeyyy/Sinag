@@ -113,27 +113,27 @@
     .gad-faq-badge-heart {
         filter: drop-shadow(0 3px 2px rgba(67, 43, 143, .38));
         transform-origin: 50px 50px;
-        animation: gadFaqHeart30s 30s ease-in-out infinite;
+        animation: gadFaqHeart30s 20s ease-in-out infinite;
     }
     .gad-faq-badge-star {
         filter: drop-shadow(0 1.5px 1px rgba(92,55,171,.28));
         transform-origin: center;
-        animation: gadFaqStar30s 30s ease-in-out infinite;
+        animation: gadFaqStar30s 20s ease-in-out infinite;
     }
     .gad-faq-badge-star-small {
         opacity: .75;
     }
     @keyframes gadFaqHeart30s {
-        0%, 92%, 100% { transform: scale(1); }
-        94% { transform: scale(1.38); }
-        96% { transform: scale(.94); }
-        98% { transform: scale(1.28); }
+        0%, 88%, 100% { transform: scale(1); }
+        91% { transform: scale(1.38); }
+        94% { transform: scale(.94); }
+        97% { transform: scale(1.28); }
     }
     @keyframes gadFaqStar30s {
-        0%, 92%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        94% { transform: scale(1.55) rotate(12deg); opacity: 1; }
-        96% { transform: scale(.85) rotate(-8deg); opacity: .75; }
-        98% { transform: scale(1.35) rotate(6deg); opacity: 1; }
+        0%, 88%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        91% { transform: scale(1.55) rotate(12deg); opacity: 1; }
+        94% { transform: scale(.85) rotate(-8deg); opacity: .75; }
+        97% { transform: scale(1.35) rotate(6deg); opacity: 1; }
     }
 
     .gad-faq-widget.gad-faq-wiggle .gad-faq-launcher {

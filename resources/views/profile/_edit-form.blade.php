@@ -235,7 +235,8 @@
                 rating: valueOf(civilRow, '[data-rating]'),
                 exam_date: valueOf(civilRow, '[data-exam-date]'),
                 exam_place: valueOf(civilRow, '[data-exam-place]'),
-                license_num: valueOf(civilRow, '[data-license-num]')
+                license_num: valueOf(civilRow, '[data-license-num]'),
+                release_date: valueOf(civilRow, '[data-release-date]')
             }] : [];
             const workRow = form.querySelector('[data-work-row]');
             const work = workRow ? [{
@@ -243,14 +244,19 @@
                 department: valueOf(workRow, '[data-department]'),
                 from: valueOf(workRow, '[data-from]'),
                 to: valueOf(workRow, '[data-to]'),
-                appointment_status: valueOf(workRow, '[data-appointment-status]')
+                appointment_status: valueOf(workRow, '[data-appointment-status]'),
+                salary: valueOf(workRow, '[data-salary]'),
+                grade_step: valueOf(workRow, '[data-grade-step]'),
+                govt_service: valueOf(workRow, '[data-govt-service]')
             }] : [];
             const voluntaryRow = form.querySelector('[data-voluntary-row]');
             const voluntary = voluntaryRow ? [{
                 org_name: valueOf(voluntaryRow, '[data-org-name]'),
                 org_address: valueOf(voluntaryRow, '[data-org-address]'),
                 hours: valueOf(voluntaryRow, '[data-hours]'),
-                position: valueOf(voluntaryRow, '[data-position]')
+                position: valueOf(voluntaryRow, '[data-position]'),
+                from: valueOf(voluntaryRow, '[data-from]'),
+                to: valueOf(voluntaryRow, '[data-to]')
             }] : [];
             const gadRow = form.querySelector('[data-gad-row]');
             const gad = gadRow ? [{
@@ -270,6 +276,22 @@
             setJson('workExperienceJson', work.filter(function (row) { return Object.values(row).some(Boolean); }));
             setJson('voluntaryWorkJson', voluntary.filter(function (row) { return Object.values(row).some(Boolean); }));
             setJson('gadTrainingJson', gad.filter(function (row) { return Object.values(row).some(Boolean); }));
+        });
+
+        form.querySelectorAll('input[data-digits], input[data-digits-only]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = input.value.replace(/[^0-9]/g, '');
+            });
+        });
+        form.querySelectorAll('[data-license-num]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = input.value.replace(/[^0-9]/g, '');
+            });
+        });
+        form.querySelectorAll('[data-hours]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = input.value.replace(/[^0-9.]/g, '');
+            });
         });
     });
     </script>
@@ -434,8 +456,8 @@
                     <div><label class="pd-label">Gender Identity <span class="text-danger">*</span></label><input type="text" name="personal_information[gender_identity]" value="{{ old('personal_information.gender_identity', $personal['gender_identity'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Citizenship <span class="text-danger">*</span></label><input type="text" name="personal_information[citizenship]" value="{{ old('personal_information.citizenship', $personal['citizenship'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Blood Type <span class="text-danger">*</span></label><select name="personal_information[blood_type]" class="form-select pd-select" required><option value="">Select blood type</option>@foreach(['A+','A-','B+','B-','AB+','AB-','O+','O-','Unknown'] as $option)<option value="{{ $option }}" {{ old('personal_information.blood_type', $personal['blood_type'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>
-                    <div><label class="pd-label">Height(cm) <span class="text-danger">*</span></label><input type="number" step="0.1" min="0" max="500" name="personal_information[height]" value="{{ old('personal_information.height', $personal['height'] ?? '') }}" class="form-control pd-input" required></div>
-                    <div><label class="pd-label">Weight <span class="text-danger">*</span></label><input type="number" step="0.1" min="0" max="500" name="personal_information[weight]" value="{{ old('personal_information.weight', $personal['weight'] ?? '') }}" class="form-control pd-input" required></div>
+                    <div><label class="pd-label">Height(cm) <span class="text-danger">*</span></label><input type="number" step="0.1" min="0" max="500" name="personal_information[height]" value="{{ old('personal_information.height', $personal['height'] ?? '') }}" class="form-control pd-input" inputmode="decimal" required></div>
+                    <div><label class="pd-label">Weight <span class="text-danger">*</span></label><input type="number" step="0.1" min="0" max="500" name="personal_information[weight]" value="{{ old('personal_information.weight', $personal['weight'] ?? '') }}" class="form-control pd-input" inputmode="decimal" required></div>
                     <div><label class="pd-label">Landline Number <span class="text-danger">*</span></label><input type="text" name="personal_information[landline_number]" value="{{ old('personal_information.landline_number', $personal['landline_number'] ?? '') }}" class="form-control pd-input" required></div>
                     <div><label class="pd-label">Civil Status <span class="text-danger">*</span></label><select name="personal_information[civil_status]" class="form-select pd-select" required><option value="">Select status</option>@foreach(['Single','Married','Separated','Widowed','Prefer not to say'] as $option)<option value="{{ $option }}" {{ old('personal_information.civil_status', $personal['civil_status'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>
                     <div style="grid-column: 1 / -1;"><label class="pd-label">Current Address <span class="text-danger">*</span></label><textarea name="personal_information[current_address]" class="form-control pd-textarea" required>{{ old('personal_information.current_address', $personal['current_address'] ?? '') }}</textarea></div>
@@ -454,16 +476,16 @@
                     <div><label class="pd-label">Spouse Occupation</label><input type="text" name="family_background[spouse_occupation]" value="{{ old('family_background.spouse_occupation', $family['spouse_occupation'] ?? '') }}" class="form-control pd-input"></div>
                     <div><label class="pd-label">Father's Name</label><input type="text" name="family_background[father_name]" value="{{ old('family_background.father_name', $family['father_name'] ?? '') }}" class="form-control pd-input"></div>
                     <div><label class="pd-label">Father Occupation</label><input type="text" name="family_background[father_occupation]" value="{{ old('family_background.father_occupation', $family['father_occupation'] ?? '') }}" class="form-control pd-input"></div>
-                    <div><label class="pd-label">Father Age</label><input type="text" name="family_background[father_age]" value="{{ old('family_background.father_age', $family['father_age'] ?? '') }}" class="form-control pd-input"></div>
+                    <div><label class="pd-label">Father Age</label><input type="number" min="1" max="120" name="family_background[father_age]" value="{{ old('family_background.father_age', $family['father_age'] ?? '') }}" class="form-control pd-input" inputmode="numeric"></div>
                     <div><label class="pd-label">Mother's Name</label><input type="text" name="family_background[mother_name]" value="{{ old('family_background.mother_name', $family['mother_name'] ?? '') }}" class="form-control pd-input"></div>
                     <div><label class="pd-label">Mother Occupation</label><input type="text" name="family_background[mother_occupation]" value="{{ old('family_background.mother_occupation', $family['mother_occupation'] ?? '') }}" class="form-control pd-input"></div>
-                    <div><label class="pd-label">Mother Age</label><input type="text" name="family_background[mother_age]" value="{{ old('family_background.mother_age', $family['mother_age'] ?? '') }}" class="form-control pd-input"></div>
-                    <div><label class="pd-label">Children Total</label><input type="text" name="family_background[children_total]" value="{{ old('family_background.children_total', $family['children_total'] ?? '') }}" class="form-control pd-input"></div>
-                    <div><label class="pd-label">Children Boys</label><input type="text" name="family_background[children_boys]" value="{{ old('family_background.children_boys', $family['children_boys'] ?? '') }}" class="form-control pd-input"></div>
-                    <div><label class="pd-label">Children Girls</label><input type="text" name="family_background[children_girls]" value="{{ old('family_background.children_girls', $family['children_girls'] ?? '') }}" class="form-control pd-input"></div>
-                    <div><label class="pd-label">Brothers Count</label><input type="text" name="family_background[brothers_count]" value="{{ old('family_background.brothers_count', $family['brothers_count'] ?? '') }}" class="form-control pd-input"></div>
-                    <div><label class="pd-label">Sisters Count</label><input type="text" name="family_background[sisters_count]" value="{{ old('family_background.sisters_count', $family['sisters_count'] ?? '') }}" class="form-control pd-input"></div>
-                    <div><label class="pd-label">Monthly Income</label><input type="text" name="family_background[monthly_income]" value="{{ old('family_background.monthly_income', $family['monthly_income'] ?? '') }}" class="form-control pd-input"></div>
+                    <div><label class="pd-label">Mother Age</label><input type="number" min="1" max="120" name="family_background[mother_age]" value="{{ old('family_background.mother_age', $family['mother_age'] ?? '') }}" class="form-control pd-input" inputmode="numeric"></div>
+                    <div><label class="pd-label">Children Total</label><input type="number" min="0" max="100" name="family_background[children_total]" value="{{ old('family_background.children_total', $family['children_total'] ?? '') }}" class="form-control pd-input" inputmode="numeric"></div>
+                    <div><label class="pd-label">Children Boys</label><input type="number" min="0" max="100" name="family_background[children_boys]" value="{{ old('family_background.children_boys', $family['children_boys'] ?? '') }}" class="form-control pd-input" inputmode="numeric"></div>
+                    <div><label class="pd-label">Children Girls</label><input type="number" min="0" max="100" name="family_background[children_girls]" value="{{ old('family_background.children_girls', $family['children_girls'] ?? '') }}" class="form-control pd-input" inputmode="numeric"></div>
+                    <div><label class="pd-label">Brothers Count</label><input type="number" min="0" max="100" name="family_background[brothers_count]" value="{{ old('family_background.brothers_count', $family['brothers_count'] ?? '') }}" class="form-control pd-input" inputmode="numeric"></div>
+                    <div><label class="pd-label">Sisters Count</label><input type="number" min="0" max="100" name="family_background[sisters_count]" value="{{ old('family_background.sisters_count', $family['sisters_count'] ?? '') }}" class="form-control pd-input" inputmode="numeric"></div>
+                    <div><label class="pd-label">Monthly Income</label><input type="number" min="0" step="1" name="family_background[monthly_income]" value="{{ old('family_background.monthly_income', $family['monthly_income'] ?? '') }}" class="form-control pd-input" inputmode="numeric"></div>
                     <div><label class="pd-label">Family Type</label><select name="family_background[family_type]" class="form-select pd-select"><option value="">Select</option>@foreach(['Nuclear','Extended','Single-parent','Blended','Other','Prefer not to say'] as $option)<option value="{{ $option }}" {{ old('family_background.family_type', $family['family_type'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>
                     <div><label class="pd-label">Family Type Other</label><input type="text" name="family_background[family_type_other]" value="{{ old('family_background.family_type_other', $family['family_type_other'] ?? '') }}" class="form-control pd-input"></div>
                     <div><label class="pd-label">Home Ownership Type</label><select name="family_background[home_ownership_type]" class="form-select pd-select"><option value="">Select</option>@foreach(['Owned','Rented','Living with relatives','Government housing','Other','Prefer not to say'] as $option)<option value="{{ $option }}" {{ old('family_background.home_ownership_type', $family['home_ownership_type'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>
@@ -533,7 +555,7 @@
                                     <div class="fw-bold small mb-2">{{ $level }}</div>
                                     <div class="row g-2">
                                         <div class="col-md-4"><label class="pd-label">Name of School</label><input type="text" class="form-control pd-input" data-school value="{{ $educationRow['school'] ?? '' }}"></div>
-                                        <div class="col-md-4"><label class="pd-label">Degree / Course</label><input type="text" class="form-control pd-input" data-degree value="{{ $educationRow['degree'] ?? '' }}"></div>
+                                        <div class="col-md-4"><label class="pd-label">Degree / Course / Certification</label><input type="text" class="form-control pd-input" data-degree value="{{ $educationRow['degree'] ?? '' }}"></div>
                                         <div class="col-md-2"><label class="pd-label">From</label><input type="text" class="form-control pd-input" data-from value="{{ $educationRow['from'] ?? '' }}"></div>
                                         <div class="col-md-2"><label class="pd-label">To</label><input type="text" class="form-control pd-input" data-to value="{{ $educationRow['to'] ?? '' }}"></div>
                                     </div>
@@ -544,10 +566,11 @@
                             <label class="pd-label">Civil Service Eligibility</label>
                             <div class="row g-2">
                                 <div class="col-md-4"><label class="pd-label">Career Service / RA 1080</label><input type="text" class="form-control pd-input" data-career value="{{ $civilServiceRow['career'] ?? '' }}"></div>
-                                <div class="col-md-2"><label class="pd-label">Rating</label><input type="text" class="form-control pd-input" data-rating value="{{ $civilServiceRow['rating'] ?? '' }}"></div>
-                                <div class="col-md-2"><label class="pd-label">Exam Date</label><input type="text" class="form-control pd-input" data-exam-date value="{{ $civilServiceRow['exam_date'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Rating</label><input type="number" step="0.01" min="0" max="100" class="form-control pd-input" data-rating value="{{ $civilServiceRow['rating'] ?? '' }}" inputmode="decimal"></div>
+                                <div class="col-md-2"><label class="pd-label">Exam Date</label><input type="date" class="form-control pd-input" data-exam-date value="{{ $civilServiceRow['exam_date'] ?? '' }}"></div>
                                 <div class="col-md-2"><label class="pd-label">Exam Place</label><input type="text" class="form-control pd-input" data-exam-place value="{{ $civilServiceRow['exam_place'] ?? '' }}"></div>
-                                <div class="col-md-2"><label class="pd-label">License No.</label><input type="text" class="form-control pd-input" data-license-num value="{{ $civilServiceRow['license_num'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">License No.</label><input type="text" class="form-control pd-input" data-license-num value="{{ $civilServiceRow['license_num'] ?? '' }}" inputmode="numeric"></div>
+                                <div class="col-md-2"><label class="pd-label">Release Date</label><input type="date" class="form-control pd-input" data-release-date value="{{ $civilServiceRow['release_date'] ?? '' }}"></div>
                             </div>
                         </div>
                         <div style="grid-column:1/-1" data-work-row>
@@ -555,9 +578,12 @@
                             <div class="row g-2">
                                 <div class="col-md-3"><label class="pd-label">Position / Title</label><input type="text" class="form-control pd-input" data-position value="{{ $workExperienceRow['position'] ?? '' }}"></div>
                                 <div class="col-md-3"><label class="pd-label">Department / Office</label><input type="text" class="form-control pd-input" data-department value="{{ $workExperienceRow['department'] ?? '' }}"></div>
-                                <div class="col-md-2"><label class="pd-label">From</label><input type="text" class="form-control pd-input" data-from value="{{ $workExperienceRow['from'] ?? '' }}"></div>
-                                <div class="col-md-2"><label class="pd-label">To</label><input type="text" class="form-control pd-input" data-to value="{{ $workExperienceRow['to'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">From</label><input type="date" class="form-control pd-input" data-from value="{{ $workExperienceRow['from'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">To</label><input type="date" class="form-control pd-input" data-to value="{{ $workExperienceRow['to'] ?? '' }}"></div>
                                 <div class="col-md-2"><label class="pd-label">Status</label><input type="text" class="form-control pd-input" data-appointment-status value="{{ $workExperienceRow['appointment_status'] ?? '' }}"></div>
+                                <div class="col-md-3"><label class="pd-label">Monthly Salary</label><input type="number" min="0" step="1" class="form-control pd-input" data-salary value="{{ $workExperienceRow['salary'] ?? '' }}" inputmode="numeric"></div>
+                                <div class="col-md-3"><label class="pd-label">Salary Grade / Step</label><input type="text" class="form-control pd-input" data-grade-step value="{{ $workExperienceRow['grade_step'] ?? '' }}"></div>
+                                <div class="col-md-3"><label class="pd-label">Government Service</label><select class="form-select pd-select" data-govt-service><option value="">Select</option>@foreach(['Yes','No'] as $option)<option value="{{ $option }}" {{ ($workExperienceRow['govt_service'] ?? '') === $option ? 'selected' : '' }}>{{ $option }}</option>@endforeach</select></div>
                             </div>
                         </div>
                         <div style="grid-column:1/-1" data-voluntary-row>
@@ -565,17 +591,19 @@
                             <div class="row g-2">
                                 <div class="col-md-4"><label class="pd-label">Organization</label><input type="text" class="form-control pd-input" data-org-name value="{{ $voluntaryWorkRow['org_name'] ?? '' }}"></div>
                                 <div class="col-md-4"><label class="pd-label">Address</label><input type="text" class="form-control pd-input" data-org-address value="{{ $voluntaryWorkRow['org_address'] ?? '' }}"></div>
-                                <div class="col-md-2"><label class="pd-label">Hours</label><input type="text" class="form-control pd-input" data-hours value="{{ $voluntaryWorkRow['hours'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Hours</label><input type="number" min="0" max="10000" class="form-control pd-input" data-hours value="{{ $voluntaryWorkRow['hours'] ?? '' }}" inputmode="numeric"></div>
                                 <div class="col-md-2"><label class="pd-label">Position / Work</label><input type="text" class="form-control pd-input" data-position value="{{ $voluntaryWorkRow['position'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">From</label><input type="date" class="form-control pd-input" data-from value="{{ $voluntaryWorkRow['from'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">To</label><input type="date" class="form-control pd-input" data-to value="{{ $voluntaryWorkRow['to'] ?? '' }}"></div>
                             </div>
                         </div>
                         <div style="grid-column:1/-1" data-gad-row>
                             <label class="pd-label">GAD Training / Seminar</label>
                             <div class="row g-2">
                                 <div class="col-md-4"><label class="pd-label">Title</label><input type="text" class="form-control pd-input" data-title value="{{ $gadTrainingRow['title'] ?? '' }}"></div>
-                                <div class="col-md-2"><label class="pd-label">From</label><input type="text" class="form-control pd-input" data-from value="{{ $gadTrainingRow['from'] ?? '' }}"></div>
-                                <div class="col-md-2"><label class="pd-label">To</label><input type="text" class="form-control pd-input" data-to value="{{ $gadTrainingRow['to'] ?? '' }}"></div>
-                                <div class="col-md-2"><label class="pd-label">Hours</label><input type="text" class="form-control pd-input" data-hours value="{{ $gadTrainingRow['hours'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">From</label><input type="date" class="form-control pd-input" data-from value="{{ $gadTrainingRow['from'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">To</label><input type="date" class="form-control pd-input" data-to value="{{ $gadTrainingRow['to'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Hours</label><input type="number" min="0" max="10000" class="form-control pd-input" data-hours value="{{ $gadTrainingRow['hours'] ?? '' }}" inputmode="numeric"></div>
                                 <div class="col-md-2"><label class="pd-label">Conducted By</label><input type="text" class="form-control pd-input" data-conducted-by value="{{ $gadTrainingRow['conducted_by'] ?? '' }}"></div>
                             </div>
                         </div>

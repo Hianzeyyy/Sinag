@@ -389,7 +389,7 @@
                     <tr>
                         <th>Level</th>
                         <th>Name of School</th>
-                        <th>Degree / Course</th>
+                        <th>Degree / Course / Certification</th>
                         <th>From</th>
                         <th>To</th>
                     </tr>

@@ -14,7 +14,7 @@
             <a href="{{ route('student.gad-schedule') }}" class="btn btn-lg fw-semibold btn-outline-secondary" style="border-radius: 0.75rem;">
                 <i class="bi bi-calendar3 me-1"></i> GAD Office Hours
             </a>
-            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none; border-radius: 0.75rem;">
+            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold appointment-primary-action" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none; border-radius: 0.75rem;">
                 <i class="bi bi-plus-circle"></i> New Appointment
             </a>
         </div>
@@ -39,7 +39,7 @@
             </div>
             <h5 class="text-muted">No Appointments Yet</h5>
             <p class="text-muted mb-4">You haven't submitted any appointment requests yet.</p>
-            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold appointment-action-button" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none;">
+            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold appointment-primary-action appointment-action-button" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none;">
                 <i class="bi bi-calendar-plus"></i> Schedule Your First Appointment
             </a>
         </div>
@@ -253,6 +253,15 @@
         border-color: #d94b87;
         color: #fff;
         background: #d94b87;
+    }
+    .appointment-primary-action {
+        transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+    .appointment-primary-action:hover,
+    .appointment-primary-action:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(143, 114, 245, .28);
+        filter: brightness(.98);
     }
 
     @media (max-width: 991.98px) {
