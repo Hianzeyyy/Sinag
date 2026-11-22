@@ -906,7 +906,11 @@ class StudentController extends Controller
     {
         $appointment = AppointmentRequest::where('user_id', Auth::id())->findOrFail($id);
 
-        abort_unless(in_array($appointment->status, ['cancelled', 'rejected'], true), 403, 'Only cancelled or rejected appointments can be deleted.');
+        abort_unless(
+            in_array(strtolower(trim((string) $appointment->status)), ['completed', 'cancelled', 'rejected'], true),
+            403,
+            'Only completed, cancelled, or rejected appointments can be deleted.'
+        );
 
         $appointment->delete();
 

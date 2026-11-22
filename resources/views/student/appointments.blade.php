@@ -173,11 +173,13 @@
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-outline-secondary w-100 rounded-3 fw-semibold">Cancel Appointment</button>
                                         </form>
-                                    @elseif (in_array($appointment->status, ['rejected', 'cancelled']))
+                                    @elseif (in_array(strtolower(trim((string) $appointment->status)), ['completed', 'rejected', 'cancelled']))
                                         <div class="mt-auto pt-3">
-                                            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-sm btn-outline-secondary w-100 rounded-3 fw-semibold">
-                                                <i class="bi bi-plus-circle"></i> Schedule Another
-                                            </a>
+                                            @if (in_array(strtolower(trim((string) $appointment->status)), ['rejected', 'cancelled']))
+                                                <a href="{{ route('student.schedule-appointment') }}" class="btn btn-sm btn-outline-secondary w-100 rounded-3 fw-semibold">
+                                                    <i class="bi bi-plus-circle"></i> Schedule Another
+                                                </a>
+                                            @endif
                                             <form method="POST" action="{{ route('student.appointments.delete', $appointment->id) }}" class="mt-2" onsubmit="return confirm('Permanently delete this appointment record?');">
                                                 @csrf
                                                 @method('DELETE')

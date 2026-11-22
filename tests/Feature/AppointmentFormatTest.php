@@ -173,7 +173,7 @@ class AppointmentFormatTest extends TestCase
         $response->assertOk()
             ->assertSee('id="gadFaqWidget"', false)
             ->assertSee('GAD Guide')
-            ->assertSee('What is Republic Act 9262?')
+            ->assertSee('Paano ko ba kanselahin o baguhin ang appointment?')
             ->assertSee(route('personal-data.edit'))
             ->assertDontSee(route('student.report'), false);
     }
@@ -288,9 +288,10 @@ class AppointmentFormatTest extends TestCase
             ->assertSee('You cancelled this appointment.');
     }
 
-    public function test_student_can_delete_only_cancelled_or_rejected_appointments(): void
+    public function test_student_can_delete_completed_cancelled_or_rejected_appointments(): void
     {
         $user = $this->student();
+        $completedId = $this->createAppointment($user, 'completed');
         $cancelledId = $this->createAppointment($user, 'cancelled');
         $rejectedId = $this->createAppointment($user, 'rejected');
         $pendingId = $this->createAppointment($user, 'pending');
@@ -299,7 +300,14 @@ class AppointmentFormatTest extends TestCase
             ->get(route('student.appointments'))
             ->assertOk()
             ->assertSee('You cancelled this appointment.')
-            ->assertSee('The GAD Office rejected this appointment request.');
+            ->assertSee('The GAD Office rejected this appointment request.')
+            ->assertSee('Your concern has been reviewed by the GAD Office.');
+
+        $this->actingAs($user)
+            ->delete(route('student.appointments.delete', $completedId))
+            ->assertRedirect(route('student.appointments'))
+            ->assertSessionHas('success', 'Appointment record deleted.');
+        $this->assertDatabaseMissing('appointment_requests', ['id' => $completedId]);
 
         $this->actingAs($user)
             ->delete(route('student.appointments.delete', $cancelledId))

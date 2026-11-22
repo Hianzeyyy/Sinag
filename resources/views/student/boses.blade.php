@@ -1285,7 +1285,8 @@
                 button.textContent = expanded ? 'See more' : 'See less';
             };
             button.addEventListener('click', toggleSuggestionText);
-            paragraph?.addEventListener('click', function (event) {
+            const suggestionParagraph = button.closest('[data-suggestion-card]')?.querySelector('.suggestion-message');
+            suggestionParagraph?.addEventListener('click', function (event) {
                 if (!button.closest('[data-suggestion-card]')?.querySelector('[data-suggestion-full]')) return;
                 event.stopPropagation();
                 toggleSuggestionText();
@@ -1313,7 +1314,7 @@
                 }
             };
 
-            commentToggle.addEventListener('pointerup', function (event) {
+            commentToggle.addEventListener('click', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 setCommentsOpen(commentToggle.getAttribute('aria-expanded') !== 'true');
