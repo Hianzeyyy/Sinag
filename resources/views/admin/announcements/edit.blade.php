@@ -9,7 +9,7 @@
     <div class="card border-0 rounded-4 shadow-lg announcement-card">
         <div class="card-body p-4 p-lg-5">
     @if ($errors->any())
-        <div class="alert alert-danger border-0 rounded-4">
+        <div class="sinag-persistent-notice alert alert-danger border-0 rounded-4">
             <ul class="mb-0">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>

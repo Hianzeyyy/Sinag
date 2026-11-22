@@ -701,22 +701,22 @@
 <div class="container-fluid boses-page py-3 py-lg-4">
     <div class="boses-shell">
         @if(session('personal_data_completed'))
-            <div class="alert border-0 shadow-sm" role="status" style="background:#f3efff;color:#5b4b9b;"><i class="bi bi-check-circle-fill me-2"></i>Personal data completed. You can now access Community Suggestions.</div>
+            <div class="sinag-persistent-notice alert border-0 shadow-sm" role="status" style="background:#f3efff;color:#5b4b9b;"><i class="bi bi-check-circle-fill me-2"></i>Personal data completed. You can now access Community Suggestions.</div>
         @endif
         @if(session('status'))
-            <div class="alert border-0 shadow-sm" role="status" style="background:#f1eaff;color:#4c2a9d;">{{ session('status') }}</div>
+            <div class="sinag-persistent-notice alert border-0 shadow-sm" role="status" style="background:#f1eaff;color:#4c2a9d;">{{ session('status') }}</div>
         @endif
         @if(session('success'))
-            <div class="alert border-0 shadow-sm" role="status" style="background:#f1eaff;color:#4c2a9d;"><i class="bi bi-check-circle-fill me-2" style="color:#8f72f5;"></i>{{ session('success') }}</div>
+            <div class="sinag-persistent-notice alert border-0 shadow-sm" role="status" style="background:#f1eaff;color:#4c2a9d;"><i class="bi bi-check-circle-fill me-2" style="color:#8f72f5;"></i>{{ session('success') }}</div>
         @endif
         @if(session('error'))
-            <div class="alert alert-danger border-0 shadow-sm" role="alert">{{ session('error') }}</div>
+            <div class="sinag-persistent-notice alert alert-danger border-0 shadow-sm" role="alert">{{ session('error') }}</div>
         @endif
         @if($surveyLookupFailed ?? false)
-            <div class="alert alert-warning border-0 shadow-sm" role="status">The satisfaction survey is temporarily unavailable. You can still browse and use Community Suggestions.</div>
+            <div class="sinag-persistent-notice alert alert-warning border-0 shadow-sm" role="status">The satisfaction survey is temporarily unavailable. You can still browse and use Community Suggestions.</div>
         @endif
         @if($errors->any())
-            <div class="alert alert-danger border-0 shadow-sm" role="alert">
+            <div class="sinag-persistent-notice alert alert-danger border-0 shadow-sm" role="alert">
                 <div class="fw-bold mb-1">The suggestion could not be posted:</div>
                 <ul class="mb-0 ps-3">
                     @foreach($errors->all() as $error)
@@ -1102,7 +1102,7 @@
                         </div>
                     </div>
                     @if($errors->any() || session('error'))
-                        <div class="alert alert-danger border-0 mt-3 mb-0" role="alert">
+                        <div class="sinag-persistent-notice alert alert-danger border-0 mt-3 mb-0" role="alert">
                             @if(session('error'))
                                 {{ session('error') }}
                             @else

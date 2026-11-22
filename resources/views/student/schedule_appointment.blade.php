@@ -13,7 +13,7 @@
             </div>
 
             @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show rounded-4" role="status">
+                <div class="sinag-persistent-notice alert alert-success alert-dismissible fade show rounded-4" role="status">
                     <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>

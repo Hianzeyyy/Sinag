@@ -221,6 +221,18 @@
             text-align: center;
         }
 
+        .sinag-persistent-notice:not(.d-none) {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .sinag-persistent-notice.d-flex:not(.d-none) {
+            display: flex !important;
+        }
+
         .modal-backdrop.show {
             opacity: .35;
         }

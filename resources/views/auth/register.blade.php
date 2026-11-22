@@ -166,7 +166,7 @@
 </style>
 
 @if($errors->any())
-    <div class="alert alert-warning shadow-lg border-0 mx-auto mt-3" style="max-width: min(92vw, 620px);">
+    <div class="sinag-persistent-notice alert alert-warning shadow-lg border-0 mx-auto mt-3" style="max-width: min(92vw, 620px);">
         <strong>Registration could not be completed.</strong>
         <ul class="mb-0 ps-3">
             @foreach($errors->all() as $error)

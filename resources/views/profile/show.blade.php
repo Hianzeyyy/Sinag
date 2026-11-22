@@ -220,7 +220,7 @@
 <div class="profile-page">
     <div class="profile-shell">
         @if(session('status'))
-            <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4">{{ session('status') }}</div>
+            <div class="sinag-persistent-notice alert alert-success border-0 shadow-sm rounded-4 mb-4">{{ session('status') }}</div>
         @endif
 
         <div class="profile-hero mb-4">

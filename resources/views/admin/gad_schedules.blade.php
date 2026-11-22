@@ -398,7 +398,7 @@
 <div class="gad-page">
 
     @if(session('success'))
-        <div class="alert alert-success">
+        <div class="sinag-persistent-notice alert alert-success">
             <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
         </div>
     @endif

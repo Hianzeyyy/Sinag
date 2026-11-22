@@ -14,7 +14,7 @@
     </div>
 
     @if(session('success'))
-        <div class="alert border-0 rounded-4 shadow-sm d-flex align-items-center" style="background:#ecfdf5; color:#065f46;">
+        <div class="sinag-persistent-notice alert border-0 rounded-4 shadow-sm d-flex align-items-center" style="background:#ecfdf5; color:#065f46;">
             <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
         </div>
     @endif

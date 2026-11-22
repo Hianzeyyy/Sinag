@@ -206,7 +206,7 @@
 </style>
 
 @if(session('personal_data_required'))
-    <div class="alert border-0 shadow-sm rounded-4 mx-auto mb-4" role="status" style="max-width:1100px;background:#f3efff;color:#5b4b9b;">
+    <div class="sinag-persistent-notice alert border-0 shadow-sm rounded-4 mx-auto mb-4" role="status" style="max-width:1100px;background:#f3efff;color:#5b4b9b;">
         <i class="bi bi-person-vcard-fill me-2"></i>{{ session('personal_data_required') }}
     </div>
 @endif
@@ -303,13 +303,13 @@
 </script>
 
 @if(session('status'))
-    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4" role="status" aria-live="polite">
+    <div class="sinag-persistent-notice alert alert-success border-0 shadow-sm rounded-4 mb-4" role="status" aria-live="polite">
         <i class="bi bi-check-circle-fill me-2"></i>{{ session('status') }}
     </div>
 @endif
 
 @if($errors->any())
-    <div class="alert alert-warning border-0 shadow-sm rounded-4 mb-4" role="alert">
+    <div class="sinag-persistent-notice alert alert-warning border-0 shadow-sm rounded-4 mb-4" role="alert">
         <div class="fw-bold mb-1"><i class="bi bi-exclamation-circle me-1"></i> Please check the highlighted information.</div>
         <ul class="mb-0 ps-3">
             @foreach($errors->all() as $error)

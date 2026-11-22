@@ -160,13 +160,13 @@
     </form>
 
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="sinag-persistent-notice alert alert-success">{{ session('success') }}</div>
     @endif
     @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
+        <div class="sinag-persistent-notice alert alert-danger">{{ session('error') }}</div>
     @endif
     @if(session('warning'))
-        <div class="alert alert-warning" role="alert">{{ session('warning') }}</div>
+        <div class="sinag-persistent-notice alert alert-warning" role="alert">{{ session('warning') }}</div>
     @endif
 
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">

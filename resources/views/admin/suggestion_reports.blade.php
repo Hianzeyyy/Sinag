@@ -6,7 +6,7 @@
         <div><div class="text-uppercase text-muted small">Participatory Suggestions</div><h1 class="h3 fw-bold mb-0">Reported Posts and Comments</h1></div>
         <a href="{{ route('admin.suggestions') }}" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-arrow-left me-1"></i>Back to Suggestions</a>
     </div>
-    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+    @if(session('success'))<div class="sinag-persistent-notice alert alert-success">{{ session('success') }}</div>@endif
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="table-responsive"><table class="table align-middle mb-0"><thead class="table-light"><tr><th>Type</th><th>Reported content</th><th>Reason</th><th>Reported by</th><th>Status</th><th class="text-end">Actions</th></tr></thead><tbody>
         @forelse($reports as $report)

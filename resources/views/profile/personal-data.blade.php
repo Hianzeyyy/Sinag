@@ -214,7 +214,7 @@
 
 <div class="pd-page">
     @if($errors->any())
-        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4">
+        <div class="sinag-persistent-notice alert alert-danger border-0 shadow-sm rounded-4 mb-4">
             <div class="fw-bold mb-2">Please fix the following:</div>
             <ul class="mb-0 ps-3">
                 @foreach($errors->all() as $error)
@@ -225,7 +225,7 @@
     @endif
 
     @if(session('status'))
-        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4">{{ session('status') }}</div>
+        <div class="sinag-persistent-notice alert alert-success border-0 shadow-sm rounded-4 mb-4">{{ session('status') }}</div>
     @endif
 
     <div class="pd-hero mb-4">

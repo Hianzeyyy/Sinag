@@ -14,7 +14,7 @@
     </div>
 
     @if (session('success'))
-        <div class="alert alert-dismissible fade show" role="alert" style="background: #f3efff; border: 1px solid #d8cdfc; color: #5b4b9b;">
+        <div class="sinag-persistent-notice alert alert-dismissible fade show" role="alert" style="background: #f3efff; border: 1px solid #d8cdfc; color: #5b4b9b;">
             <i class="bi bi-check-circle"></i> {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>

@@ -83,7 +83,7 @@
             </div>
 
             @if(session('success'))
-                <div id="reportSuccessAlert" class="alert border-0 shadow-sm mb-4" style="background:#f1eaff; color:#4c2a9d; border-radius:14px; border-left:6px solid #8f72f5 !important;">
+                <div id="reportSuccessAlert" class="sinag-persistent-notice alert border-0 shadow-sm mb-4" style="background:#f1eaff; color:#4c2a9d; border-radius:14px; border-left:6px solid #8f72f5 !important;">
                     <div class="d-flex align-items-start gap-2">
                         <i class="bi bi-check-circle-fill mt-1" style="color:#8f72f5;"></i>
                         <div>
@@ -103,7 +103,7 @@
             @endif
 
             @if($errors->any())
-                <div class="alert border-0 shadow-sm mb-4" style="background:#fef2f2; color:#991b1b; border-radius:14px; border-left:6px solid #ef4444 !important;">
+                <div class="sinag-persistent-notice alert border-0 shadow-sm mb-4" style="background:#fef2f2; color:#991b1b; border-radius:14px; border-left:6px solid #ef4444 !important;">
                     <div class="d-flex align-items-start gap-2">
                         <i class="bi bi-exclamation-triangle-fill mt-1"></i>
                         <div>

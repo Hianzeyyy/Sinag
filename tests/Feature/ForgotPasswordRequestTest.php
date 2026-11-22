@@ -65,6 +65,23 @@ class ForgotPasswordRequestTest extends TestCase
             ->assertSeeText('Copy and save the reference number.');
     }
 
+    public function test_login_status_notice_is_outside_the_sliding_auth_panes(): void
+    {
+        $response = $this->withSession(['status' => 'Your account has been updated.'])
+            ->get(route('login'))
+            ->assertOk()
+            ->assertSee('class="sinag-persistent-notice login-alert alert border-0 mb-3"', false)
+            ->assertSeeText('Your account has been updated.');
+
+        $content = $response->getContent();
+        $noticePosition = strpos($content, 'Your account has been updated.');
+        $cardPosition = strpos($content, '<div class="card login-card');
+
+        $this->assertNotFalse($noticePosition);
+        $this->assertNotFalse($cardPosition);
+        $this->assertLessThan($cardPosition, $noticePosition);
+    }
+
     public function test_password_reset_request_saves_the_private_id_picture_and_reference(): void
     {
         User::create([

@@ -118,7 +118,7 @@
         const currentIds = new Set(calls.map(c => c.id));
         if (initialFeedLoaded && calls.some(c => !lastIds.has(c.id))) {
             const notification = document.createElement('div');
-            notification.className = 'alert alert-warning shadow d-flex align-items-start justify-content-between gap-3';
+            notification.className = 'sinag-persistent-notice alert alert-warning shadow d-flex align-items-start justify-content-between gap-3';
             notification.style.cssText = 'position:fixed;top:max(1rem,env(safe-area-inset-top));right:max(1rem,env(safe-area-inset-right));z-index:1105;width:min(24rem,calc(100vw - 2rem));box-sizing:border-box';
             notification.setAttribute('role', 'status');
             const message = document.createElement('span');

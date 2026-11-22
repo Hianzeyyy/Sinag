@@ -29,7 +29,7 @@
                 $refNumber = request('reference') ?? session('reference') ?? ($reference ?? null);
             @endphp
             @if (session('success') || $refNumber)
-                <div class="alert request-status-alert">
+                <div class="sinag-persistent-notice alert request-status-alert">
                     <div>{{ session('success') ?? 'Request submitted. Keep your reference number to check its status.' }}</div>
                     @if ($refNumber)
                         <div class="mt-2">Your reference number is:</div>
@@ -41,11 +41,11 @@
                     @endif
                 </div>
             @endif
-            @if (isset($errors) && $errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
+            @if (isset($errors) && $errors->any())<div class="sinag-persistent-notice alert alert-danger">{{ $errors->first() }}</div>@endif
             @if (!isset($resetRequest))
                 <form method="POST" action="{{ route('password.status.check') }}">
                     @csrf
-                    <div class="alert request-status-alert mb-3">
+                    <div class="sinag-persistent-notice alert request-status-alert mb-3">
                         <strong>Copy your reference number</strong>
                         <div class="small mt-1">Enter the same reference number and your registered PSU email or student/employee ID below.</div>
                     </div>
@@ -58,14 +58,14 @@
             @else
                 <div class="border rounded-3 p-3 mb-3 bg-light"><div class="small text-muted">Reference number</div><div class="h5 fw-bold mb-0">{{ $resetRequest->reference_number }}</div></div>
                 @if ($resetRequest->status === 'approved')
-                    <div class="alert request-status-alert">Your password reset request has been approved. The admin does not provide a password. You may now create your own new password.</div>
+                    <div class="sinag-persistent-notice alert request-status-alert">Your password reset request has been approved. The admin does not provide a password. You may now create your own new password.</div>
                     <a class="btn request-status-button w-100 fw-bold" href="{{ route('password.reset.form', [$resetRequest, $token]) }}"><i class="bi bi-key me-2"></i>Create New Password</a>
                 @elseif ($resetRequest->status === 'rejected')
-                    <div class="alert alert-danger"><strong>Request rejected.</strong>@if($resetRequest->admin_remarks)<div class="mt-1">{{ $resetRequest->admin_remarks }}</div>@endif</div>
+                    <div class="sinag-persistent-notice alert alert-danger"><strong>Request rejected.</strong>@if($resetRequest->admin_remarks)<div class="mt-1">{{ $resetRequest->admin_remarks }}</div>@endif</div>
                 @elseif ($resetRequest->status === 'completed')
-                    <div class="alert alert-info">This password reset request has already been completed.</div>
+                    <div class="sinag-persistent-notice alert alert-info">This password reset request has already been completed.</div>
                 @else
-                    <div class="alert alert-warning">Your request is pending administrator verification.</div>
+                    <div class="sinag-persistent-notice alert alert-warning">Your request is pending administrator verification.</div>
                 @endif
                 <a class="btn btn-outline-secondary w-100 mt-2" href="{{ route('password.status.form') }}">Check another request</a>
             @endif

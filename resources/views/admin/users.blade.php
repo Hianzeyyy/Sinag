@@ -77,7 +77,7 @@
     </div>
 
     @if($pendingCount > 0)
-        <div class="alert border-0 rounded-4 shadow-sm mb-3" style="background:#fffbeb; color:#92400e; border-left:5px solid #f59e0b;">
+        <div class="sinag-persistent-notice alert border-0 rounded-4 shadow-sm mb-3" style="background:#fffbeb; color:#92400e; border-left:5px solid #f59e0b;">
             <i class="bi bi-bell-fill me-1"></i>
             You have <strong>{{ $pendingCount }}</strong> pending registration{{ $pendingCount > 1 ? 's' : '' }} waiting for review.
         </div>
@@ -135,17 +135,17 @@
     </form>
 
     @if(session('success'))
-        <div class="alert border-0 rounded-4 shadow-sm mb-3" style="background:#f3efff; color:#5b4b9b; border-left:5px solid #8f72f5;">
+        <div class="sinag-persistent-notice alert border-0 rounded-4 shadow-sm mb-3" style="background:#f3efff; color:#5b4b9b; border-left:5px solid #8f72f5;">
             <i class="bi bi-check-circle-fill me-1"></i> {{ session('success') }}
         </div>
     @endif
     @if(session('error'))
-        <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-3">
+        <div class="sinag-persistent-notice alert alert-danger border-0 rounded-4 shadow-sm mb-3">
             <i class="bi bi-exclamation-circle-fill me-1"></i> {{ session('error') }}
         </div>
     @endif
     @if(session('warning'))
-        <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-3" role="alert">
+        <div class="sinag-persistent-notice alert alert-warning border-0 rounded-4 shadow-sm mb-3" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ session('warning') }}
         </div>
     @endif

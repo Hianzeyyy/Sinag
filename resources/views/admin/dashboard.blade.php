@@ -301,7 +301,7 @@
 <div class="container-fluid admin-dashboard-page">
     <div class="admin-dashboard-wrap">
         @if(session('success'))
-            <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between p-3" role="alert" style="background: #eefdf3; color: #166534;">
+            <div class="sinag-persistent-notice alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between p-3" role="alert" style="background: #eefdf3; color: #166534;">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-check-circle-fill text-success fs-5"></i>
                     <span class="fw-medium">{{ session('success') }}</span>

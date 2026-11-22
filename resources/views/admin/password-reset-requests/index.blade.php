@@ -6,7 +6,7 @@
         <div><h1 class="h3 fw-bold mb-1">Password Reset Requests</h1><p class="text-muted mb-0">Review identity evidence before approving a password reset.</p></div>
         <span class="badge password-reset-pending-count">{{ $requests->where('status', 'pending')->count() }} pending on this page</span>
     </div>
-    @if (session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+    @if (session('success'))<div class="sinag-persistent-notice alert alert-success">{{ session('success') }}</div>@endif
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden password-reset-card">
         <div class="table-responsive password-reset-table-wrap"><table class="table align-middle mb-0 password-reset-table"><thead><tr><th>Requester</th><th>Reference</th><th>ID number</th><th>Status</th><th>Submitted</th><th class="text-end">Action</th></tr></thead><tbody>
         @forelse ($requests as $item)

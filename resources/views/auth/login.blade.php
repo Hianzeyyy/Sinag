@@ -623,22 +623,20 @@
 <div class="login-page d-flex align-items-center justify-content-center">
 
     <div class="login-shell">
+        @if(session('status'))
+            <div class="sinag-persistent-notice login-alert alert border-0 mb-3">
+                <i class="bi bi-check-circle-fill me-1"></i> {{ session('status') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="sinag-persistent-notice login-alert alert border-0 mb-3">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ session('error') }}
+            </div>
+        @endif
         <div class="card login-card border-0 rounded-4 overflow-hidden">
                         <div class="login-form-panel">
-                            @if(session('status'))
-                                <div class="login-alert alert border-0 mb-3">
-                                    <i class="bi bi-check-circle-fill me-1"></i> {{ session('status') }}
-                                </div>
-                            @endif
-
-                            @if(session('error'))
-                                <div class="login-alert alert border-0 mb-3">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ session('error') }}
-                                </div>
-                            @endif
-
                             @if($errors->any() && !session('password_reset_url'))
-                                <div class="alert alert-warning py-2 mb-3" role="alert">
+                                <div class="sinag-persistent-notice alert alert-warning py-2 mb-3" role="alert">
                                     <ul class="mb-0 small">
                                         @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
                                     </ul>

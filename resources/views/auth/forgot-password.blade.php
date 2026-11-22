@@ -33,7 +33,7 @@
                 <div class="small mt-1">Copy and save the reference number. You will need it together with your registered email or student/employee ID to check approval.</div>
             </div>
             @if (isset($errors) && $errors->any())
-                <div class="alert alert-danger"><ul class="mb-0">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+                <div class="sinag-persistent-notice alert alert-danger"><ul class="mb-0">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
             @endif
             <form id="passwordRequestForm" method="POST" action="{{ route('password.code.request') }}" enctype="multipart/form-data">
                 @csrf
