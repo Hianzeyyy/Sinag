@@ -215,6 +215,14 @@
             <div class="toast-body">{{ session('status') }}</div>
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll('input[name="phone_number"]').forEach(function (phoneInput) {
+            phoneInput.addEventListener('input', function () {
+                phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '').slice(0, 11);
+            });
+        });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const toastElement = document.getElementById('personalDataToast');
@@ -287,7 +295,7 @@
                     </div>
                     <div>
                         <label class="pd-label">Phone Number <span class="text-danger">*</span></label>
-                        <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number ?? '') }}" class="form-control pd-input" placeholder="e.g. 09123456789" inputmode="numeric" pattern="[0-9]*" required>
+                        <input type="tel" name="phone_number" value="{{ old('phone_number', $user->phone_number ?? '') }}" class="form-control pd-input" placeholder="e.g. 09123456789" inputmode="numeric" pattern="09[0-9]{9}" minlength="11" maxlength="11" required>
                     </div>
                     <div>
                         <label class="pd-label">Age <span class="text-danger">*</span></label>

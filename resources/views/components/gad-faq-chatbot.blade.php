@@ -181,6 +181,10 @@
             { question: 'How can I check my report status?', terms: ['report status', 'check my report', 'track report', 'report update'], answer: 'Open your Evidence Vault to review the current status and updates for your submitted report. Include the incident ID if you message the GAD Office about it.', links: [{ label: 'Open Evidence Vault', href: pageLinks.reportStatus }, { label: 'Message the GAD Office', href: pageLinks.messages }] },
             { question: 'How do I book an appointment?', terms: ['book an appointment', 'schedule an appointment', 'request an appointment', 'appointment schedule'], answer: 'Open Schedule, choose an available date and time, select Face-to-Face or Online, and submit your concern. The request remains pending until the GAD Office reviews it. You can follow updates under My Appointments.', links: [{ label: 'Schedule an appointment', href: pageLinks.schedule }, { label: 'My Appointments', href: pageLinks.appointments }] },
             { question: 'How can I cancel or edit an appointment?', terms: ['cancel an appointment', 'cancel appointment', 'cancel my appointment', 'edit appointment', 'change appointment', 'reschedule appointment'], answer: 'Open My Appointments. You can edit or cancel a pending request there. For an approved or completed request, message the GAD Office so staff can help with the change.', links: [{ label: 'Open My Appointments', href: pageLinks.appointments }, { label: 'Message the GAD Office', href: pageLinks.messages }] },
+            { question: 'Paano ko ba kanselahin o baguhin ang appointment?', terms: ['paano cancel', 'paano kanselahin', 'kanselahin ang appointment', 'cancel ko', 'mag cancel', 'magkansela', 'pwedeng i-cancel', 'i-cancel', 'baguhin ang appointment', 'reschedule'], answer: 'Buksan ang My Appointments at piliin ang pending na appointment na gusto mong baguhin o kanselahin. I-click ang edit o cancel, pagkatapos ay isumite ang pag-update. Kung approved o completed na ang appointment, makipag-ugnayan sa GAD Office sa Messages upang matulungan ka.', links: [{ label: 'Buksan ang My Appointments', href: pageLinks.appointments }, { label: 'Makipag-ugnayan sa GAD Office', href: pageLinks.messages }] },
+            { question: 'Paano ako mag-file ng report?', terms: ['paano mag report', 'mag file ng report', 'i-report', 'ireport', 'paano magsumbong', 'ano ang gagawin sa harassment'], answer: 'Pumunta sa File a Report, piliin ang uri ng insidente, ilagay ang petsa, lugar, at malinaw na kuwento ng nangyari, at mag-upload ng evidence kung mayroon. Pagkatapos isumite, buksan ang Evidence Vault/Report Status para makita ang update. Para sa agarang panganib, tawagan muna ang campus security o emergency services.', links: [{ label: 'Buksan ang File a Report', href: pageLinks.report }, { label: 'Tingnan ang Report Status', href: pageLinks.reportStatus }] },
+            { question: 'Paano mag-book ng appointment?', terms: ['paano mag appointment', 'paano magpa-appointment', 'mag book', 'schedule appointment', 'petsa at oras'], answer: 'Buksan ang Schedule Appointment, pumili ng available na petsa at oras, piliin ang Face-to-Face o Online, at isumite ang iyong concern. Magiging pending ang request hanggang ma-review ito ng GAD Office. Makikita mo ang resulta sa My Appointments.', links: [{ label: 'Mag-book ng appointment', href: pageLinks.schedule }, { label: 'Tingnan ang My Appointments', href: pageLinks.appointments }] },
+            { question: 'Paano makipag-usap sa GAD Office?', terms: ['makipag usap', 'makipag-usap', 'message sa gad', 'magmessage', 'kontakin', 'kontak', 'tawagan'], answer: 'Buksan ang Messages at magpadala ng private message sa GAD Office. Kung tungkol ito sa report o appointment, isama ang incident ID o appointment date upang mas mabilis matukoy ang iyong concern.', links: [{ label: 'Buksan ang Messages', href: pageLinks.messages }] },
             { question: 'How do I message the GAD Office?', terms: ['message the gad office', 'contact the gad office', 'talk to someone', 'personal support', 'send a message'], answer: 'Open Messages to contact the GAD Office directly. Include an appointment date or report ID when your message concerns an existing request. Messages are not an emergency service; if you are in immediate danger, contact campus security or local emergency services.', links: [{ label: 'Open Messages', href: pageLinks.messages }] },
             { question: 'How do I submit a suggestion?', terms: ['submit a suggestion', 'post a suggestion', 'share an idea', 'suggestion'], answer: 'Open Suggestions, choose a category, write your suggestion, and submit it for review. You can choose whether to post anonymously. Approved suggestions appear in the community feed.', links: [{ label: 'Open Suggestions', href: pageLinks.suggestions }] },
             { question: 'How is my information handled?', terms: ['privacy', 'confidential', 'personal information', 'my data'], answer: 'Share only the information needed for your request. Report anonymity is controlled when you submit the report, and case-specific privacy questions should be discussed directly with the GAD Office.', links: [{ label: 'Message the GAD Office', href: pageLinks.messages }] },
@@ -215,17 +219,44 @@
         }
 
         function ask(text) {
-            const normalized = text.toLocaleLowerCase().trim();
+            const normalizeFaqText = function (value) {
+                return value.toLocaleLowerCase()
+                    .normalize('NFKC')
+                    .replace(/[^a-z0-9\s-]/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            };
+            const normalized = normalizeFaqText(text);
             if (!normalized) return;
             addMessage(text, 'question');
             const match = faqs
                 .map(function (faq) {
-                    const terms = [faq.question.toLocaleLowerCase()].concat(faq.terms);
+                    const terms = [normalizeFaqText(faq.question)].concat(faq.terms.map(normalizeFaqText));
+                    let score = terms.reduce(function (best, term) {
+                        return normalized.includes(term) ? Math.max(best, term.length) : best;
+                    }, 0);
+
+                    if (/(cancel|kansela|kanselahin|cancel ko|i-cancel|reschedule|baguhin)/.test(normalized)
+                        && /(appointment|schedule|petsa|oras)/.test(normalized)
+                        && (faq.question === 'How can I cancel or edit an appointment?'
+                            || faq.question === 'Paano ko ba kanselahin o baguhin ang appointment?')) {
+                        score = 100;
+                    }
+                    if (/paano.*(report|magsumbong)|file.*report|i-report|ireport/.test(normalized)
+                        && (faq.question === 'How do I file a report?' || faq.question === 'Paano ako mag-file ng report?')) {
+                        score = 100;
+                    }
+                    if (/paano.*(appointment|schedule)|magpa-appointment|mag book/.test(normalized)
+                        && (faq.question === 'How do I book an appointment?' || faq.question === 'Paano mag-book ng appointment?')) {
+                        score = 100;
+                    }
+                    if (/((makipag.*usap)|(magmessage)|(contact)|(kontak)|(message)).*(gad|office)|(gad|office).*(message|contact|office)/.test(normalized)
+                        && (faq.question === 'How do I message the GAD Office?' || faq.question === 'Paano makipag-usap sa GAD Office?')) {
+                        score = 100;
+                    }
                     return {
                         faq: faq,
-                        score: terms.reduce(function (best, term) {
-                            return normalized.includes(term) ? Math.max(best, term.length) : best;
-                        }, 0)
+                        score: score
                     };
                 })
                 .filter(function (candidate) { return candidate.score > 0; })

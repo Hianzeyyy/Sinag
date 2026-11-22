@@ -449,6 +449,18 @@
         border-radius: 999px;
         font-weight: 800;
         min-height: 2.6rem;
+        position: relative;
+        z-index: 3;
+        cursor: pointer;
+        pointer-events: auto;
+    }
+    [data-comments-panel] {
+        position: relative;
+        z-index: 2;
+    }
+    [data-comment-form] {
+        position: relative;
+        z-index: 3;
     }
 
     .upvote-btn {
@@ -488,6 +500,9 @@
     .kebab-btn {
         width: 2.6rem;
         height: 2.6rem;
+        position: relative;
+        z-index: 4;
+        cursor: pointer;
         border-radius: 999px;
         display: inline-flex;
         align-items: center;
@@ -1114,7 +1129,14 @@
                     menu?.classList.remove('show');
                     trigger.setAttribute('aria-expanded', 'false');
                 }
+            });
+        });
 
+        document.querySelectorAll('.edit-comment-modal, .edit-suggestion-modal').forEach(function (modalElement) {
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                document.querySelectorAll('.modal.show').forEach(function (openModal) {
+                    openModal.removeAttribute('style');
+                });
             });
         });
     });
@@ -1280,7 +1302,11 @@
                 toggleComments();
             });
 
-            commentToggle.addEventListener('click', toggleComments);
+            commentToggle.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleComments();
+            });
         });
 
         upvoteForms.forEach(function (form) {

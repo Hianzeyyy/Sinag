@@ -402,6 +402,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.querySelectorAll('input[name="phone_number"]').forEach(function (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '').slice(0, 11);
+        });
+    });
+</script>
+
 @if(false)
 {{-- Legacy profile styles below are retained for reference but must not render outside the page section.
 /* ── STAT CHIPS ─────────────────────────── */
@@ -760,7 +769,7 @@
                     </div>
                     <div class="sp-field">
                         <label>Phone Number</label>
-                        <input type="text" name="phone_number" value="{{ $user->phone_number }}" placeholder="09XXXXXXXXX">
+                        <input type="tel" name="phone_number" value="{{ $user->phone_number }}" placeholder="09XXXXXXXXX" inputmode="numeric" pattern="09[0-9]{9}" minlength="11" maxlength="11">
                     </div>
                     <div class="sp-field full">
                         <label>Course / Department</label>
