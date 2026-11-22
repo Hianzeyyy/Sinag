@@ -46,14 +46,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 3.35rem;
-        height: 3.35rem;
+        width: 3.8rem;
+        height: 3.8rem;
         padding: 0;
-        border: 1px solid rgba(255,255,255,.75);
+        border: 0;
         border-radius: 50%;
         color: #fff;
-        background: linear-gradient(135deg, #8f72f5, #b99cff 65%, #ed8aba);
-        box-shadow: 0 12px 30px rgba(76, 29, 149, .28);
+        background: #a594f9;
+        box-shadow: 0 10px 24px rgba(76, 29, 149, .22);
         cursor: grab;
         touch-action: none;
         transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
@@ -70,12 +70,12 @@
     .gad-faq-launcher-icon {
         position: relative;
         display: grid;
-        width: 2.45rem;
-        height: 2.45rem;
+        width: 100%;
+        height: 100%;
         place-items: center;
         border-radius: 50%;
-        background: rgba(255,255,255,.22);
-        font-size: 1.05rem;
+        background: transparent;
+        font-size: 1.7rem;
     }
     .gad-faq-launcher-icon > .bi-heart-fill {
         display: block;
@@ -84,19 +84,19 @@
     }
     .gad-faq-launcher-stars {
         position: absolute;
-        top: -.15rem;
-        right: -.12rem;
+        top: .55rem;
+        right: .55rem;
         color: #fff4a8;
-        font-size: .9rem;
+        font-size: .72rem;
         filter: drop-shadow(0 2px 4px rgba(92,55,171,.22));
     }
     .gad-faq-launcher-label,
     .gad-faq-launcher-grip { display: none; }
     @keyframes gadFaqHeart30s {
         0%, 92%, 100% { transform: scale(1); }
-        94% { transform: scale(1.16); }
-        96% { transform: scale(.98); }
-        98% { transform: scale(1.1); }
+        94% { transform: scale(1.55); }
+        96% { transform: scale(.92); }
+        98% { transform: scale(1.38); }
     }
 
     .gad-faq-widget.gad-faq-wiggle .gad-faq-launcher {
@@ -161,8 +161,8 @@
 
     @media (max-width: 575.98px) {
         .gad-faq-widget { right: .65rem; bottom: max(.65rem, env(safe-area-inset-bottom)); }
-        .gad-faq-launcher { width: 3.1rem; height: 3.1rem; }
-        .gad-faq-launcher-icon { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
+        .gad-faq-launcher { width: 3.45rem; height: 3.45rem; }
+        .gad-faq-launcher-icon { width: 100%; height: 100%; font-size: 1.45rem; }
         .gad-faq-panel { width: min(21rem, calc(100vw - 1rem)); height: min(68dvh, 31rem); min-height: min(15rem, calc(100dvh - 2rem)); border-radius: 1rem; }
         .gad-faq-open-below .gad-faq-panel { transform-origin: top right; }
         .gad-faq-messages { padding: .75rem; }
