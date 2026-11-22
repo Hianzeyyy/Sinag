@@ -275,7 +275,6 @@
     }
     .auth-pane {
         position: relative;
-        grid-area: 1 / 1;
         width: 100%;
         height: auto;
         min-height: 0;
@@ -300,9 +299,9 @@
         border-color: #8f72f5;
         box-shadow: 0 0 0 .2rem rgba(143, 114, 245, .16);
     }
-    .sign-in-pane { z-index: 2; transform: translateX(0) scale(1); }
-    .sign-up-pane { display: none; left: 0; z-index: 1; transform: translateX(3%) scale(.985); opacity: 0; filter: blur(5px); }
-    .auth-stage.right-panel-active .sign-in-pane { display: block; z-index: 1; transform: translateX(-8%) scale(.94); opacity: 0; visibility: hidden; filter: blur(5px); pointer-events: none; }
+    .sign-in-pane { grid-column: 1; grid-row: 1; z-index: 2; transform: translateX(0) scale(1); }
+    .sign-up-pane { grid-column: 2; grid-row: 1; display: none; z-index: 1; transform: translateX(3%) scale(.985); opacity: 0; filter: blur(5px); }
+    .auth-stage.right-panel-active .sign-in-pane { display: none; z-index: 1; transform: translateX(-8%) scale(.94); opacity: 0; visibility: hidden; filter: blur(5px); pointer-events: none; }
     .auth-stage.right-panel-active .sign-up-pane { display: block; z-index: 3; transform: translateX(0) scale(1); opacity: 1; filter: blur(0); animation: authSignUpEnter .72s cubic-bezier(.2,.75,.25,1) both; }
     @keyframes authSignUpEnter {
         0% { opacity: 0; transform: translateX(7%) scale(.97); filter: blur(7px); }
@@ -525,6 +524,10 @@
     @media (min-width: 1200px) {
         .login-page { padding-block: 1.5rem; }
         .login-page.signup-active { align-items: flex-start !important; padding-block: 1rem 2rem; }
+        .auth-stage.right-panel-active .sign-up-pane {
+            grid-column: 2;
+            grid-row: 1;
+        }
     }
 
     .login-page.auth-card-centered { align-items: center !important; }
