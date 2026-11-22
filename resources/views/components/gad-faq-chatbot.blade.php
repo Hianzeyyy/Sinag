@@ -22,23 +22,23 @@
         <div class="gad-faq-footnote"><i class="bi bi-shield-heart"></i> FAQ guide only · For personal support, message the GAD Office.</div>
     </section>
     <button type="button" class="gad-faq-launcher" id="gadFaqLauncher" aria-label="Open GAD FAQ assistant" aria-expanded="false" title="GAD Guide — drag to move">
-        <svg class="gad-faq-launcher-badge" viewBox="0 0 100 100" aria-hidden="true">
+        <svg class="gad-faq-launcher-badge" viewBox="0 0 100 112" aria-hidden="true">
             <defs>
                 <filter id="gadFaqBadgeShadow" x="-30%" y="-30%" width="160%" height="160%">
                     <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#5b43b2" flood-opacity=".28"></feDropShadow>
                 </filter>
                 <linearGradient id="gadFaqHeartFill" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#c7b8ff"></stop>
-                    <stop offset="55%" stop-color="#8f72f5"></stop>
-                    <stop offset="100%" stop-color="#6546c7"></stop>
+                    <stop offset="0%" stop-color="#d9d0ff"></stop>
+                    <stop offset="55%" stop-color="#967af3"></stop>
+                    <stop offset="100%" stop-color="#6648c5"></stop>
                 </linearGradient>
             </defs>
-            <circle cx="50" cy="50" r="34" fill="#ffffff" filter="url(#gadFaqBadgeShadow)"></circle>
-            <text class="gad-faq-badge-top" x="50" y="20" text-anchor="middle">GAD</text>
-            <path class="gad-faq-badge-heart" d="M50 67 C44 61 32 53 32 44 C32 37 37 33 43 33 C47 33 49 35 50 39 C51 35 53 33 57 33 C63 33 68 37 68 44 C68 53 56 61 50 67 Z" fill="url(#gadFaqHeartFill)"></path>
-            <text class="gad-faq-badge-bottom" x="50" y="83" text-anchor="middle">Guide</text>
-            <path class="gad-faq-badge-star" d="M70 18 L72 23 L77 25 L72 27 L70 32 L68 27 L63 25 L68 23 Z" fill="#ffdf6c"></path>
-            <path class="gad-faq-badge-star gad-faq-badge-star-small" d="M24 29 L25.5 32 L29 33.5 L25.5 35 L24 38 L22.5 35 L19 33.5 L22.5 32 Z" fill="#c8b9ff"></path>
+            <text class="gad-faq-badge-top" x="50" y="10" text-anchor="middle">GAD</text>
+            <path d="M18 23 C18 15 24 10 32 10 H68 C76 10 82 16 82 24 V49 C82 57 76 63 68 63 H43 L30 73 L33 63 H32 C24 63 18 57 18 49 Z" fill="#ffffff" filter="url(#gadFaqBadgeShadow)"></path>
+            <path class="gad-faq-badge-heart" d="M50 54 C44 49 34 42 34 34 C34 28 38 24 44 24 C47 24 49 26 50 29 C51 26 53 24 56 24 C62 24 66 28 66 34 C66 42 56 49 50 54 Z" fill="url(#gadFaqHeartFill)"></path>
+            <text class="gad-faq-badge-bottom" x="50" y="108" text-anchor="middle">Guide</text>
+            <path class="gad-faq-badge-star" d="M70 16 L72 21 L77 23 L72 25 L70 30 L68 25 L63 23 L68 21 Z" fill="#ffdf6c"></path>
+            <path class="gad-faq-badge-star gad-faq-badge-star-small" d="M24 25 L25.5 28 L29 29.5 L25.5 31 L24 34 L22.5 31 L19 29.5 L22.5 28 Z" fill="#c8b9ff"></path>
         </svg>
     </button>
 </aside>
@@ -60,8 +60,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 4.1rem;
-        height: 4.1rem;
+        width: 4.9rem;
+        height: 5.5rem;
         padding: 0;
         border: 0;
         border-radius: 50%;
@@ -76,7 +76,7 @@
     .gad-faq-launcher:hover,
     .gad-faq-launcher:focus-visible {
         transform: translateY(-4px) scale(1.04);
-        box-shadow: 0 16px 34px rgba(76, 29, 149, .36);
+        box-shadow: none;
         filter: saturate(1.1);
     }
 
@@ -91,13 +91,13 @@
     .gad-faq-badge-bottom {
         fill: #5b43b2;
         font-family: 'Nunito', sans-serif;
-        font-size: 8.5px;
+        font-size: 11px;
         font-weight: 900;
-        letter-spacing: 1.2px;
+        letter-spacing: 1.5px;
     }
     .gad-faq-badge-bottom {
-        font-size: 7.5px;
-        letter-spacing: .8px;
+        font-size: 10px;
+        letter-spacing: 1px;
     }
     .gad-faq-badge-heart {
         filter: drop-shadow(0 3px 2px rgba(67, 43, 143, .38));
@@ -179,7 +179,7 @@
 
     @media (max-width: 575.98px) {
         .gad-faq-widget { right: .65rem; bottom: max(.65rem, env(safe-area-inset-bottom)); }
-        .gad-faq-launcher { width: 3.7rem; height: 3.7rem; }
+        .gad-faq-launcher { width: 4.45rem; height: 5rem; }
         .gad-faq-panel { width: min(21rem, calc(100vw - 1rem)); height: min(68dvh, 31rem); min-height: min(15rem, calc(100dvh - 2rem)); border-radius: 1rem; }
         .gad-faq-open-below .gad-faq-panel { transform-origin: top right; }
         .gad-faq-messages { padding: .75rem; }
