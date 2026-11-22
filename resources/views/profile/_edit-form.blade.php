@@ -286,7 +286,8 @@
                     </div>
                     <div>
                         <label class="pd-label">Email</label>
-                        <input type="email" name="email" value="{{ old('email', $user->email ?? '') }}" class="form-control pd-input" required>
+                        <input type="email" value="{{ $user->email ?? '' }}" class="form-control pd-input bg-light" readonly aria-label="Institutional email cannot be changed">
+                        <small class="text-muted">Institutional email cannot be changed.</small>
                     </div>
                     <div>
                         <label class="pd-label">Last Name <span class="text-danger">*</span></label>
@@ -410,8 +411,8 @@
                             <option value="0" {{ old('student_information.gad_training_attended', isset($student['gad_training_attended']) && $student['gad_training_attended'] === false ? '0' : '') === '0' ? 'selected' : '' }}>No</option>
                         </select>
                     </div>
-                    @endunless
                     <div style="grid-column: 1 / -1;"><label class="pd-label">GAD Training Details</label><textarea name="student_information[gad_training_details]" class="form-control pd-textarea">{{ old('student_information.gad_training_details', $student['gad_training_details'] ?? '') }}</textarea></div>
+                    @endunless
                 </div>
             </div>
 

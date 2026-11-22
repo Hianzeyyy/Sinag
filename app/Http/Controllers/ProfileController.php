@@ -165,7 +165,6 @@ SVG;
         $isEmployee = strtolower((string) ($user->account_type ?? $user->role)) === 'employee';
 
         $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'last_name' => ['required', 'string', 'max:255'],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
@@ -245,7 +244,6 @@ SVG;
 
         $user->update([
             'name' => $name,
-            'email' => $validated['email'],
             'last_name' => $validated['last_name'] ?? null,
             'first_name' => $validated['first_name'] ?? null,
             'middle_name' => $validated['middle_name'] ?? null,

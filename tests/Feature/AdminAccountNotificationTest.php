@@ -161,7 +161,7 @@ class AdminAccountNotificationTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.users.approve', $user->id))
-            ->assertSessionHas('warning', 'Account approved and an in-app notice was sent, but the notification email could not be sent. Check the mail configuration and contact the user.');
+            ->assertSessionHas('success', 'Account approved.');
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'account_status' => 'active']);
         $this->assertAccountNotice($user, 'approved', null);
@@ -187,7 +187,7 @@ class AdminAccountNotificationTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.users.reject', $user->id), ['rejection_reason' => 'Verification failed'])
-            ->assertSessionHas('warning', 'Account rejected and an in-app notice was recorded, but the notification email could not be sent. Check the mail configuration and contact the user.');
+            ->assertSessionHas('success', 'Account rejected.');
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,

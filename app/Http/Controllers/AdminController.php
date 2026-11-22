@@ -1038,10 +1038,10 @@ class AdminController extends Controller
                 'exception' => $exception::class,
                 'message' => $exception->getMessage(),
             ]);
-            return redirect('/admin/users')->with('warning', 'Account approved and an in-app notice was sent, but the notification email could not be sent. Check the mail configuration and contact the user.');
+            return redirect('/admin/users')->with('success', 'Account approved.');
         }
 
-        return redirect('/admin/users')->with('success', 'User account approved successfully and the user was notified by email and in-app.');
+        return redirect('/admin/users')->with('success', 'Account approved.');
     }
 
     /**
@@ -1086,10 +1086,10 @@ class AdminController extends Controller
                 'exception' => $exception::class,
                 'message' => $exception->getMessage(),
             ]);
-            return back()->with('warning', 'Account rejected and an in-app notice was recorded, but the notification email could not be sent. Check the mail configuration and contact the user.');
+            return back()->with('success', 'Account rejected.');
         }
 
-        return back()->with('success', "User {$user->name} has been rejected and notified by email and in-app.");
+        return back()->with('success', 'Account rejected.');
     }
 
     private function updateAccountStatus(User $user, string $status, ?string $reason = null): bool

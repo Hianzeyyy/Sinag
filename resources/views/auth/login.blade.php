@@ -282,8 +282,9 @@
         padding: clamp(1.5rem, 3vw, 2.75rem);
         color: #25213e;
         background: #fff;
-        transition: transform .6s ease, opacity .35s ease, visibility .35s ease;
+        transition: transform .72s cubic-bezier(.2,.75,.25,1), opacity .38s ease, visibility .38s ease, filter .38s ease;
         overflow: visible;
+        will-change: transform, opacity;
     }
     .auth-pane .text-white { color: #302b4c !important; }
     .auth-pane .text-white-50 { color: #6f6a83 !important; }
@@ -299,10 +300,15 @@
         border-color: #8f72f5;
         box-shadow: 0 0 0 .2rem rgba(143, 114, 245, .16);
     }
-    .sign-in-pane { z-index: 2; }
-    .sign-up-pane { display: none; left: 0; z-index: 1; transform: translateX(100%); }
-    .auth-stage.right-panel-active .sign-in-pane { display: none; z-index: 1; transform: translateX(100%); }
-    .auth-stage.right-panel-active .sign-up-pane { display: block; z-index: 3; transform: translateX(100%); }
+    .sign-in-pane { z-index: 2; transform: translateX(0) scale(1); }
+    .sign-up-pane { display: none; left: 0; z-index: 1; transform: translateX(3%) scale(.985); opacity: 0; filter: blur(5px); }
+    .auth-stage.right-panel-active .sign-in-pane { display: block; z-index: 1; transform: translateX(-8%) scale(.94); opacity: 0; visibility: hidden; filter: blur(5px); pointer-events: none; }
+    .auth-stage.right-panel-active .sign-up-pane { display: block; z-index: 3; transform: translateX(0) scale(1); opacity: 1; filter: blur(0); animation: authSignUpEnter .72s cubic-bezier(.2,.75,.25,1) both; }
+    @keyframes authSignUpEnter {
+        0% { opacity: 0; transform: translateX(7%) scale(.97); filter: blur(7px); }
+        55% { opacity: 1; transform: translateX(-1%) scale(1.012); filter: blur(0); }
+        100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+    }
     .auth-overlay {
         position: absolute;
         inset: 0 0 0 auto;
@@ -315,7 +321,8 @@
         text-align: center;
         color: #302653;
         background: linear-gradient(145deg, #f1edff, #e6e0ff 58%, #d6cdff);
-        transition: transform .6s ease;
+        transition: transform .72s cubic-bezier(.2,.75,.25,1), border-radius .72s ease, box-shadow .72s ease;
+        box-shadow: -14px 0 35px rgba(75,58,139,.06);
     }
     .auth-overlay-copy { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; transition: opacity .25s ease, transform .6s ease; }
     .auth-overlay-left { opacity: 0; visibility: hidden; transform: translateX(-15%); }
@@ -436,6 +443,14 @@
         gap: .5rem;
         align-items: end;
     }
+    .register-account-row {
+        grid-column: 1 / -1 !important;
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(7.5rem, .65fr) minmax(8.5rem, .9fr);
+        gap: .5rem;
+        align-items: end;
+    }
+    .register-account-row > div { min-width: 0; }
     .register-detail-row > div {
         min-width: 0;
     }
@@ -521,6 +536,8 @@
         .register-password-row { grid-template-columns: 1fr; }
         .register-upload-row { grid-template-columns: 1fr; }
         .register-detail-row { grid-template-columns: 1fr; }
+        .register-account-row { grid-template-columns: 1fr 1fr; }
+        .register-account-row > div:last-child { grid-column: 1 / -1; }
         .register-upload-field { min-height: auto; }
         .register-upload-field .form-label { min-height: 0; }
     }
@@ -706,26 +723,28 @@
                                         <label class="form-label small fw-bold text-uppercase">Contact Number</label>
                                         <input type="tel" class="form-control" name="phone_number" value="{{ old('phone_number') }}" inputmode="numeric" pattern="09[0-9]{9}" minlength="11" maxlength="11" required placeholder="e.g. 09123456789" title="Enter an 11-digit Philippine mobile number starting with 09">
                                     </div>
-                                    <div class="col-12 col-sm-6">
-                                        <label class="form-label small fw-bold text-uppercase">Account Type</label>
-                                        <select class="form-select" name="account_type" id="accountType" required>
-                                            <option value="" disabled {{ old('account_type') ? '' : 'selected' }}>Choose type</option>
-                                            <option value="student" {{ old('account_type') === 'student' ? 'selected' : '' }}>Student</option>
-                                            <option value="employee" {{ old('account_type') === 'employee' ? 'selected' : '' }}>Employee</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-6 col-sm-3">
-                                        <label class="form-label small fw-bold text-uppercase">Age</label>
-                                        <input type="number" class="form-control" name="age" value="{{ old('age') }}" min="1" max="120" required>
-                                    </div>
-                                    <div class="col-6 col-sm-3">
-                                        <label class="form-label small fw-bold text-uppercase">Gender</label>
-                                        <select class="form-select" name="gender" required>
-                                            <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Choose</option>
-                                            @foreach(['Male', 'Female', 'Prefer not to say'] as $option)
-                                                <option value="{{ $option }}" {{ old('gender') === $option ? 'selected' : '' }}>{{ $option }}</option>
-                                            @endforeach
-                                        </select>
+                                    <div class="col-12 register-account-row">
+                                        <div>
+                                            <label class="form-label small fw-bold text-uppercase">Account Type</label>
+                                            <select class="form-select" name="account_type" id="accountType" required>
+                                                <option value="" disabled {{ old('account_type') ? '' : 'selected' }}>Choose type</option>
+                                                <option value="student" {{ old('account_type') === 'student' ? 'selected' : '' }}>Student</option>
+                                                <option value="employee" {{ old('account_type') === 'employee' ? 'selected' : '' }}>Employee</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-bold text-uppercase">Age</label>
+                                            <input type="number" class="form-control" name="age" value="{{ old('age') }}" min="1" max="120" required>
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-bold text-uppercase">Gender</label>
+                                            <select class="form-select" name="gender" required>
+                                                <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Choose</option>
+                                                @foreach(['Male', 'Female', 'Prefer not to say'] as $option)
+                                                    <option value="{{ $option }}" {{ old('gender') === $option ? 'selected' : '' }}>{{ $option }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="col-12 register-detail-row">
                                         <div>

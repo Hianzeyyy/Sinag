@@ -345,6 +345,7 @@
         </div>
     </div>
 
+    @unless($isEmployee)
     <div class="pd-card p-4 mb-4">
         <div class="pd-section-title">Student Information</div>
         <div class="pd-grid">
@@ -377,6 +378,7 @@
             <div class="pd-item" style="grid-column: 1 / -1;"><div class="pd-label">GAD Training Details</div><div class="pd-value">{{ $student['gad_training_details'] ?? 'N/A' }}</div></div>
         </div>
     </div>
+    @endunless
 
     @if(($user->account_type ?? 'student') === 'employee')
     <div class="pd-card p-4 mb-4">

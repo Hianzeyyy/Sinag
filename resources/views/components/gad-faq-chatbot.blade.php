@@ -22,9 +22,10 @@
         <div class="gad-faq-footnote"><i class="bi bi-shield-heart"></i> FAQ guide only · For personal support, message the GAD Office.</div>
     </section>
     <button type="button" class="gad-faq-launcher" id="gadFaqLauncher" aria-label="Open GAD FAQ assistant" aria-expanded="false" title="GAD Guide — drag to move">
-        <span class="gad-faq-launcher-icon" aria-hidden="true"><i class="bi bi-chat-heart-fill"></i></span>
-        <span class="gad-faq-launcher-label">GAD Guide</span>
-        <span class="gad-faq-launcher-grip" aria-hidden="true"><i class="bi bi-arrows-move"></i></span>
+        <span class="gad-faq-launcher-icon" aria-hidden="true">
+            <i class="bi bi-heart-fill"></i>
+            <i class="bi bi-stars gad-faq-launcher-stars"></i>
+        </span>
     </button>
 </aside>
 
@@ -44,14 +45,15 @@
         position: relative;
         display: flex;
         align-items: center;
-        gap: .45rem;
-        padding: .4rem .65rem .4rem .4rem;
+        justify-content: center;
+        width: 4.75rem;
+        height: 4.75rem;
+        padding: 0;
         border: 1px solid rgba(255,255,255,.75);
-        border-radius: 999px;
+        border-radius: 50%;
         color: #fff;
         background: linear-gradient(135deg, #8f72f5, #b99cff 65%, #ed8aba);
         box-shadow: 0 12px 30px rgba(76, 29, 149, .28);
-        font-weight: 900;
         cursor: grab;
         touch-action: none;
         transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
@@ -65,9 +67,33 @@
     }
 
     .gad-faq-launcher:active { cursor: grabbing; }
-    .gad-faq-launcher-icon { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: 50%; background: rgba(255,255,255,.22); font-size: 1.05rem; }
-    .gad-faq-launcher-label { white-space: nowrap; }
-    .gad-faq-launcher-grip { display: grid; width: 1.25rem; height: 1.25rem; place-items: center; border-radius: 50%; background: rgba(255,255,255,.17); font-size: .68rem; }
+    .gad-faq-launcher-icon {
+        position: relative;
+        display: grid;
+        width: 3.15rem;
+        height: 3.15rem;
+        place-items: center;
+        border-radius: 50%;
+        background: rgba(255,255,255,.22);
+        font-size: 1.45rem;
+        animation: gadFaqHeart30s 30s ease-in-out infinite;
+    }
+    .gad-faq-launcher-stars {
+        position: absolute;
+        top: -.15rem;
+        right: -.12rem;
+        color: #fff4a8;
+        font-size: .9rem;
+        filter: drop-shadow(0 2px 4px rgba(92,55,171,.22));
+    }
+    .gad-faq-launcher-label,
+    .gad-faq-launcher-grip { display: none; }
+    @keyframes gadFaqHeart30s {
+        0%, 92%, 100% { transform: scale(1); }
+        94% { transform: scale(1.22); }
+        96% { transform: scale(.96); }
+        98% { transform: scale(1.12); }
+    }
 
     .gad-faq-widget.gad-faq-wiggle .gad-faq-launcher {
         animation: gadFaqNudge .75s ease-in-out;
@@ -131,9 +157,8 @@
 
     @media (max-width: 575.98px) {
         .gad-faq-widget { right: .65rem; bottom: max(.65rem, env(safe-area-inset-bottom)); }
-        .gad-faq-launcher { gap: .35rem; padding: .32rem .5rem .32rem .32rem; font-size: .82rem; }
-        .gad-faq-launcher-icon { width: 1.95rem; height: 1.95rem; font-size: .95rem; }
-        .gad-faq-launcher-grip { width: 1.1rem; height: 1.1rem; font-size: .62rem; }
+        .gad-faq-launcher { width: 4.25rem; height: 4.25rem; }
+        .gad-faq-launcher-icon { width: 2.85rem; height: 2.85rem; font-size: 1.25rem; }
         .gad-faq-panel { width: min(21rem, calc(100vw - 1rem)); height: min(68dvh, 31rem); min-height: min(15rem, calc(100dvh - 2rem)); border-radius: 1rem; }
         .gad-faq-open-below .gad-faq-panel { transform-origin: top right; }
         .gad-faq-messages { padding: .75rem; }
