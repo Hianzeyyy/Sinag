@@ -171,21 +171,32 @@
     .login-input-icon { padding-inline: clamp(0.85rem, 3vw, 1.5rem); }
     .login-input { min-width: 0; font-size: 1rem !important; }
     .login-password-hidden { -webkit-text-security: disc; }
-    .login-password-toggle {
-        position: absolute;
-        right: .55rem;
-        top: 50%;
-        bottom: auto;
-        z-index: 4;
-        width: 2.25rem;
-        height: 2.25rem;
-        display: inline-flex;
-        align-items: center;
+    .login-password-eye {
+        width: clamp(3.25rem, 12vw, 4.25rem);
+        min-width: clamp(3.25rem, 12vw, 4.25rem);
         justify-content: center;
-        transform: translateY(-50%) !important;
-        margin: 0 !important;
-        background: transparent !important;
-        box-shadow: none !important;
+        border: 0 !important;
+        border-radius: 0 12px 12px 0 !important;
+        color: #6b7280 !important;
+        background: #fff !important;
+        cursor: pointer;
+        transition: color .18s ease, background .18s ease;
+    }
+    .login-password-eye:hover,
+    .login-password-eye:focus-visible {
+        color: #5b43b2 !important;
+        background: #f8f7ff !important;
+    }
+    .login-password-eye:focus-visible {
+        outline: 3px solid rgba(143, 114, 245, .28);
+        outline-offset: -3px;
+    }
+    .login-password-input {
+        border-radius: 0 !important;
+        padding-right: .75rem !important;
+    }
+    .login-password-toggle {
+        display: inline-flex;
     }
     .login-actions { min-width: 0; }
     .login-actions > * { min-height: 52px; min-width: 0; }
@@ -629,10 +640,10 @@
                                             <span class="login-input-icon input-group-text border-0">
                                                 <i class="bi bi-key fs-5"></i>
                                             </span>
-                                              <input id="password" type="password" class="login-input form-control form-control-lg border-0 py-3 pe-5"
+                                              <input id="password" type="password" class="login-input login-password-input form-control form-control-lg border-0 py-3"
                                                   name="login_password" required autocomplete="new-password" style="font-size: 1rem;">
                                               <input type="hidden" name="password" id="passwordValue">
-                                            <button class="btn p-0 bg-transparent border-0 text-secondary login-password-toggle" type="button" id="togglePassword"
+                                            <button class="login-password-eye input-group-text login-password-toggle" type="button" id="togglePassword"
                                                     title="Toggle password visibility" aria-label="Toggle password visibility">
                                                 <i class="bi bi-eye-slash fs-5" id="eyeIcon" style="opacity: 0.9; transition: opacity 0.2s ease, transform 0.2s ease;"></i>
                                             </button>
