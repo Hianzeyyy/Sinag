@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Support\CloudinaryMedia;
+use App\Support\MediaResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
-use App\Support\CloudinaryMedia;
-use App\Support\MediaResolver;
 
 class ProfileController extends Controller
 {
@@ -49,12 +49,12 @@ class ProfileController extends Controller
         abort_unless($request->user()->role === 'admin', 403);
 
         return view('profile.personal-data', [
-            'user' => \App\Models\User::findOrFail($id),
+            'user' => User::findOrFail($id),
             'adminViewer' => true,
         ]);
     }
 
-    public function verificationImage(Request $request, \App\Models\User $user)
+    public function verificationImage(Request $request, User $user)
     {
         abort_unless(
             $request->user()->role === 'admin' || $request->user()->is($user),
@@ -95,7 +95,7 @@ class ProfileController extends Controller
         return redirect()->route('profile.show')->with('status', 'Profile information updated.');
     }
 
-    public function profilePhoto(\App\Models\User $user)
+    public function profilePhoto(User $user)
     {
         $path = $this->normalizeProfilePhotoPath($user->profile_photo_path);
         $response = MediaResolver::fileResponse($path, [
@@ -162,7 +162,7 @@ SVG;
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $isEmployee = strtolower((string) ($user->account_type ?? $user->role)) === 'employee';
+        $isEmployee = strtolower(trim((string) ($user->account_type ?? $user->role))) === 'employee';
 
         $validated = $request->validate([
             'last_name' => ['required', 'string', 'max:255'],
@@ -212,12 +212,12 @@ SVG;
             'family_background.residential_home_type' => ['nullable', 'string', 'max:100'],
             'family_background.residential_home_other' => ['nullable', 'string', 'max:255'],
             'student_information' => [$isEmployee ? 'nullable' : 'required', 'array'],
-            'student_information.year_level' => [Rule::requiredIf(!$isEmployee), 'nullable', 'string', 'max:100'],
-            'student_information.school_type' => [Rule::requiredIf(!$isEmployee), 'nullable', 'string', 'max:100'],
-            'student_information.last_school_attended' => [Rule::requiredIf(!$isEmployee), 'nullable', 'string', 'max:255'],
+            'student_information.year_level' => [Rule::requiredIf(! $isEmployee), 'nullable', 'string', 'max:100'],
+            'student_information.school_type' => [Rule::requiredIf(! $isEmployee), 'nullable', 'string', 'max:100'],
+            'student_information.last_school_attended' => [Rule::requiredIf(! $isEmployee), 'nullable', 'string', 'max:255'],
             'student_information.achievement_other_rank' => ['nullable', 'string', 'max:255'],
             'student_information.achievements_text' => ['nullable', 'string', 'max:1000'],
-            'student_information.financing_sources_text' => [Rule::requiredIf(!$isEmployee), 'nullable', 'string', 'max:1000'],
+            'student_information.financing_sources_text' => [Rule::requiredIf(! $isEmployee), 'nullable', 'string', 'max:1000'],
             'student_information.financing_other_work' => ['nullable', 'string', 'max:255'],
             'student_information.gad_training_attended' => ['nullable', 'in:0,1'],
             'student_information.gad_training_details' => ['nullable', 'string', 'max:1000'],
@@ -230,6 +230,46 @@ SVG;
             'work_experience_json' => ['nullable', 'string', 'max:5000'],
             'voluntary_work_json' => ['nullable', 'string', 'max:5000'],
             'gad_training_json' => ['nullable', 'string', 'max:5000'],
+            'employee_education' => ['nullable', 'array', 'max:4'],
+            'employee_education.*' => ['array:level,school,degree,from,to'],
+            'employee_education.*.level' => ['required', Rule::in(['Elementary', 'High School', 'Vocational/Trade Course', 'College'])],
+            'employee_education.*.school' => ['nullable', 'string', 'max:255'],
+            'employee_education.*.degree' => ['nullable', 'string', 'max:255'],
+            'employee_education.*.from' => ['nullable', 'string', 'max:100'],
+            'employee_education.*.to' => ['nullable', 'string', 'max:100'],
+            'civil_service_eligibility' => ['nullable', 'array', 'max:1'],
+            'civil_service_eligibility.*' => ['array:career,rating,exam_date,exam_place,license_num,release_date'],
+            'civil_service_eligibility.*.career' => ['nullable', 'string', 'max:255'],
+            'civil_service_eligibility.*.rating' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'civil_service_eligibility.*.exam_date' => ['nullable', 'date'],
+            'civil_service_eligibility.*.exam_place' => ['nullable', 'string', 'max:255'],
+            'civil_service_eligibility.*.license_num' => ['nullable', 'string', 'max:255'],
+            'civil_service_eligibility.*.release_date' => ['nullable', 'date'],
+            'work_experience' => ['nullable', 'array', 'max:1'],
+            'work_experience.*' => ['array:position,department,from,to,appointment_status,salary,grade_step,govt_service'],
+            'work_experience.*.position' => ['nullable', 'string', 'max:255'],
+            'work_experience.*.department' => ['nullable', 'string', 'max:255'],
+            'work_experience.*.from' => ['nullable', 'date'],
+            'work_experience.*.to' => ['nullable', 'date'],
+            'work_experience.*.appointment_status' => ['nullable', 'string', 'max:100'],
+            'work_experience.*.salary' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
+            'work_experience.*.grade_step' => ['nullable', 'string', 'max:100'],
+            'work_experience.*.govt_service' => ['nullable', Rule::in(['Yes', 'No'])],
+            'voluntary_work' => ['nullable', 'array', 'max:1'],
+            'voluntary_work.*' => ['array:org_name,org_address,hours,position,from,to'],
+            'voluntary_work.*.org_name' => ['nullable', 'string', 'max:255'],
+            'voluntary_work.*.org_address' => ['nullable', 'string', 'max:500'],
+            'voluntary_work.*.hours' => ['nullable', 'numeric', 'min:0', 'max:10000'],
+            'voluntary_work.*.position' => ['nullable', 'string', 'max:255'],
+            'voluntary_work.*.from' => ['nullable', 'date'],
+            'voluntary_work.*.to' => ['nullable', 'date'],
+            'gad_training' => ['nullable', 'array', 'max:1'],
+            'gad_training.*' => ['array:title,from,to,hours,conducted_by'],
+            'gad_training.*.title' => ['nullable', 'string', 'max:255'],
+            'gad_training.*.from' => ['nullable', 'date'],
+            'gad_training.*.to' => ['nullable', 'date'],
+            'gad_training.*.hours' => ['nullable', 'numeric', 'min:0', 'max:10000'],
+            'gad_training.*.conducted_by' => ['nullable', 'string', 'max:255'],
         ]);
 
         $personalInformation = $validated['personal_information'] ?? [];
@@ -308,11 +348,27 @@ SVG;
                 'emp_distinctions' => $otherInformation['emp_distinctions'] ?? null,
                 'emp_membership' => $otherInformation['emp_membership'] ?? null,
             ],
-            'employee_education' => $this->parseEmployeeRecord($request->input('employee_education_json')),
-            'civil_service_eligibility' => $this->parseEmployeeRecord($request->input('civil_service_eligibility_json')),
-            'work_experience' => $this->parseEmployeeRecord($request->input('work_experience_json')),
-            'voluntary_work' => $this->parseEmployeeRecord($request->input('voluntary_work_json')),
-            'gad_training' => $this->parseEmployeeRecord($request->input('gad_training_json')),
+            'employee_education' => $this->normalizeEmployeeRecordRows(
+                $validated['employee_education'] ?? $this->parseEmployeeRecord($request->input('employee_education_json')),
+                ['level', 'school', 'degree', 'from', 'to'],
+                ['level']
+            ),
+            'civil_service_eligibility' => $this->normalizeEmployeeRecordRows(
+                $validated['civil_service_eligibility'] ?? $this->parseEmployeeRecord($request->input('civil_service_eligibility_json')),
+                ['career', 'rating', 'exam_date', 'exam_place', 'license_num', 'release_date']
+            ),
+            'work_experience' => $this->normalizeEmployeeRecordRows(
+                $validated['work_experience'] ?? $this->parseEmployeeRecord($request->input('work_experience_json')),
+                ['position', 'department', 'from', 'to', 'appointment_status', 'salary', 'grade_step', 'govt_service']
+            ),
+            'voluntary_work' => $this->normalizeEmployeeRecordRows(
+                $validated['voluntary_work'] ?? $this->parseEmployeeRecord($request->input('voluntary_work_json')),
+                ['org_name', 'org_address', 'hours', 'position', 'from', 'to']
+            ),
+            'gad_training' => $this->normalizeEmployeeRecordRows(
+                $validated['gad_training'] ?? $this->parseEmployeeRecord($request->input('gad_training_json')),
+                ['title', 'from', 'to', 'hours', 'conducted_by']
+            ),
         ]);
 
         if ($request->boolean('return_to_suggestions')) {
@@ -321,12 +377,10 @@ SVG;
             }
 
             return redirect()->route('personal-data.edit', ['return_to_suggestions' => 1])
-                ->with('status', 'Profile updated. Complete the remaining required personal data to access suggestions.');
+                ->with('status', 'Your personal data was saved. Complete the remaining required fields to access suggestions.');
         }
 
-        return redirect()->route('personal-data.show')->with('status', $user->hasCompletedPersonalData()
-            ? 'Personal information complete. Suggestions, Schedule, and the other features are now available.'
-            : 'Profile information updated.');
+        return redirect()->route('personal-data.show')->with('status', 'Personal data saved successfully.');
     }
 
     private function parseCommaSeparatedList(?string $value): array
@@ -349,6 +403,38 @@ SVG;
         $decoded = json_decode($value, true);
 
         return is_array($decoded) ? $decoded : ['text' => trim($value)];
+    }
+
+    private function normalizeEmployeeRecordRows(?array $rows, array $fields, array $ignoredForPresence = []): array
+    {
+        $normalizedRows = [];
+        $contentFields = array_diff($fields, $ignoredForPresence);
+
+        foreach ($rows ?? [] as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $normalized = [];
+            foreach ($fields as $field) {
+                $value = $row[$field] ?? null;
+                if (is_string($value)) {
+                    $value = trim($value);
+                    $value = $value === '' ? null : $value;
+                }
+                $normalized[$field] = $value;
+            }
+
+            foreach ($contentFields as $field) {
+                if ($normalized[$field] !== null) {
+                    $normalizedRows[] = $normalized;
+
+                    continue 2;
+                }
+            }
+        }
+
+        return array_values($normalizedRows);
     }
 
     public function updatePhoto(Request $request): RedirectResponse

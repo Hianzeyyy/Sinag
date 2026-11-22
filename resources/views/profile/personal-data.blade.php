@@ -2,21 +2,28 @@
 
 @section('content')
 @php
-    $isEmployee = ($user->account_type ?? $user->role) === 'employee';
+    $isEmployee = strtolower(trim((string) ($user->account_type ?? $user->role))) === 'employee';
     $personal = $user->personal_information ?? [];
     $family = $user->family_background ?? [];
     $student = $user->student_information ?? [];
     $employeeEducation = $user->employee_education ?? [];
+    $educationLevels = ['Elementary', 'High School', 'Vocational/Trade Course', 'College'];
+    $employeeEducationByLevel = [];
+    foreach ($employeeEducation as $index => $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+
+        $level = $row['level'] ?? ($educationLevels[$index] ?? null);
+        if ($level !== null) {
+            $employeeEducationByLevel[strtolower(trim((string) $level))] = $row;
+        }
+    }
     $civilService = $user->civil_service_eligibility ?? [];
     $workExperience = $user->work_experience ?? [];
     $voluntaryWork = $user->voluntary_work ?? [];
     $gadTraining = $user->gad_training ?? [];
     $otherInformation = $user->other_information ?? [];
-    $employeeEducationJson = data_get($employeeEducation, 'text', is_array($employeeEducation) ? json_encode($employeeEducation, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $employeeEducation);
-    $civilServiceJson = data_get($civilService, 'text', is_array($civilService) ? json_encode($civilService, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $civilService);
-    $workExperienceJson = data_get($workExperience, 'text', is_array($workExperience) ? json_encode($workExperience, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $workExperience);
-    $voluntaryWorkJson = data_get($voluntaryWork, 'text', is_array($voluntaryWork) ? json_encode($voluntaryWork, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $voluntaryWork);
-    $gadTrainingJson = data_get($gadTraining, 'text', is_array($gadTraining) ? json_encode($gadTraining, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $gadTraining);
     $personalDisabilities = implode(', ', $personal['disabilities'] ?? []);
     $studentAchievements = implode(', ', $student['achievements'] ?? []);
     $studentFinancingSources = implode(', ', $student['financing_sources'] ?? []);
@@ -380,7 +387,7 @@
     </div>
     @endunless
 
-    @if(($user->account_type ?? 'student') === 'employee')
+    @if($isEmployee)
     <div class="pd-card p-4 mb-4">
         <div class="pd-section-title">Employee Education</div>
         <div class="pd-table-wrap">
@@ -395,13 +402,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach(['Elementary','High School','Vocational/Trade Course','College'] as $index => $level)
+                    @foreach($educationLevels as $level)
+                        @php($educationRow = $employeeEducationByLevel[strtolower($level)] ?? [])
                         <tr>
                             <td><strong>{{ $level }}</strong></td>
-                            <td>{{ $employeeEducation[$index]['school'] ?? 'N/A' }}</td>
-                            <td>{{ $level === 'College' ? ($employeeEducation[$index]['degree'] ?? 'N/A') : 'N/A' }}</td>
-                            <td>{{ $employeeEducation[$index]['from'] ?? 'N/A' }}</td>
-                            <td>{{ $employeeEducation[$index]['to'] ?? 'N/A' }}</td>
+                            <td>{{ filled($educationRow['school'] ?? null) ? $educationRow['school'] : 'N/A' }}</td>
+                            <td>{{ $level === 'College' && filled($educationRow['degree'] ?? null) ? $educationRow['degree'] : 'N/A' }}</td>
+                            <td>{{ filled($educationRow['from'] ?? null) ? $educationRow['from'] : 'N/A' }}</td>
+                            <td>{{ filled($educationRow['to'] ?? null) ? $educationRow['to'] : 'N/A' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
