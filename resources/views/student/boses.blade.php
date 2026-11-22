@@ -453,6 +453,22 @@
         z-index: 3;
         cursor: pointer;
         pointer-events: auto;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .suggestion-comment-trigger {
+        min-width: 8.5rem;
+        border: 1px solid #dde1eb;
+        background: #fff;
+        color: #334155;
+    }
+    .suggestion-comment-trigger:hover,
+    .suggestion-comment-trigger:focus-visible,
+    .suggestion-comment-trigger[aria-expanded="true"] {
+        border-color: #c9bffc;
+        background: #f3efff;
+        color: #5b4b9b;
+        box-shadow: 0 4px 12px rgba(143, 114, 245, .12);
     }
     [data-comments-panel] {
         position: relative;
@@ -873,7 +889,7 @@
                                     @endif
 
                                     <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mt-2 pt-2" style="border-top:1px solid rgba(124,58,237,0.08);">
-                                        <button type="button" class="btn btn-light action-btn px-3" data-comment-toggle aria-expanded="false" aria-controls="suggestion-comments-{{ $sugg->id }}">
+                                        <button type="button" class="btn action-btn suggestion-comment-trigger px-3" id="commentToggle{{ $sugg->id }}" data-comment-toggle aria-expanded="false" aria-controls="suggestion-comments-{{ $sugg->id }}" data-comments-form="comment-form-{{ $sugg->id }}">
                                             <i class="bi bi-chat-dots me-2"></i>{{ $sugg->comments->count() }} comments
                                         </button>
                                     </div>
@@ -928,7 +944,7 @@
                                         @endforelse
                                     </div>
 
-                                    <form action="{{ route('suggestions.comment', $sugg->id) }}" method="POST" class="comment-form mt-4 d-none" data-comment-form>
+                                    <form action="{{ route('suggestions.comment', $sugg->id) }}" method="POST" id="comment-form-{{ $sugg->id }}" class="comment-form mt-4 d-none" data-comment-form>
                                         @csrf
                                         <div class="input-group">
                                             <input type="text" id="comment-input-{{ $sugg->id }}" name="comment" class="form-control rounded-start-pill" data-moderated-input placeholder="Write a comment..." required>
@@ -1276,36 +1292,37 @@
             });
         });
 
-        document.querySelectorAll('[data-suggestion-card]').forEach(function (card) {
+        document.querySelectorAll('[data-comment-toggle]').forEach(function (commentToggle) {
+            const card = commentToggle.closest('[data-suggestion-card]');
+            if (!card) return;
             const commentsPanel = card.querySelector('[data-comments-panel]');
-            const commentToggle = card.querySelector('[data-comment-toggle]');
-            const commentForm = card.querySelector('[data-comment-form]');
-            if (!commentsPanel || !commentToggle) return;
+            const commentForm = commentToggle.dataset.commentsForm
+                ? document.getElementById(commentToggle.dataset.commentsForm)
+                : card.querySelector('[data-comment-form]');
+            if (!commentsPanel) return;
 
-            const toggleComments = function () {
-                const expanded = commentToggle.getAttribute('aria-expanded') === 'true';
-                commentsPanel.classList.toggle('d-none', expanded);
-                commentForm?.classList.toggle('d-none', expanded);
-                commentToggle.setAttribute('aria-expanded', String(!expanded));
-                commentsPanel.setAttribute('aria-hidden', String(expanded));
+            const setCommentsOpen = function (open) {
+                commentsPanel.classList.toggle('d-none', !open);
+                commentForm?.classList.toggle('d-none', !open);
+                commentToggle.setAttribute('aria-expanded', String(open));
+                commentsPanel.setAttribute('aria-hidden', String(!open));
+                if (open) {
+                    window.requestAnimationFrame(function () {
+                        commentsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    });
+                }
             };
 
-            card.addEventListener('click', function (event) {
-                if (!(event.target instanceof Element)) return;
-                if (event.target.closest('button, a, input, textarea, select, form, [data-comments-panel]')) return;
-                toggleComments();
-            });
-
-            card.addEventListener('keydown', function (event) {
-                if (event.target !== card || !['Enter', ' '].includes(event.key)) return;
-                event.preventDefault();
-                toggleComments();
-            });
-
-            commentToggle.addEventListener('click', function (event) {
+            commentToggle.addEventListener('pointerup', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
-                toggleComments();
+                setCommentsOpen(commentToggle.getAttribute('aria-expanded') !== 'true');
+            });
+            commentToggle.addEventListener('keydown', function (event) {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                event.stopPropagation();
+                setCommentsOpen(commentToggle.getAttribute('aria-expanded') !== 'true');
             });
         });
 

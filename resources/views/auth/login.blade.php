@@ -424,6 +424,16 @@
         flex-direction: column;
         align-self: stretch;
     }
+    .register-upload-row {
+        grid-column: 1 / -1 !important;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+    }
+    .register-upload-row .register-upload-field {
+        min-width: 0;
+        height: 100%;
+    }
     .register-upload-field .form-label {
         min-height: 2.8rem;
         margin-bottom: .25rem;
@@ -488,6 +498,7 @@
         .register-fields > .col-12:not(.register-name-field),
         .register-fields > .register-name-field { grid-column: span 6; }
         .register-password-row { grid-template-columns: 1fr; }
+        .register-upload-row { grid-template-columns: 1fr; }
         .register-upload-field { min-height: auto; }
         .register-upload-field .form-label { min-height: 0; }
     }
@@ -708,15 +719,17 @@
                                             <option value="non_teaching" {{ old('employee_category') === 'non_teaching' ? 'selected' : '' }}>Non-teaching</option>
                                         </select>
                                     </div>
-                                    <div class="col-12 register-upload-field">
-                                        <label class="form-label small fw-bold text-uppercase">Profile Picture</label>
-                                        <input type="file" class="form-control" name="profile_photo" accept="image/jpeg,image/png,image/webp" required>
-                                        <div class="form-text">JPG, PNG, or WEBP up to 10 MB.</div>
-                                    </div>
-                                    <div class="col-12 register-upload-field">
-                                        <label class="form-label small fw-bold text-uppercase">Photo of your Student ID</label>
-                                        <input type="file" class="form-control" name="selfie_image" accept="image/jpeg,image/png,image/webp" required>
-                                        <div class="form-text">JPG, PNG, or WEBP up to 10 MB.</div>
+                                    <div class="col-12 register-upload-row">
+                                        <div class="register-upload-field">
+                                            <label class="form-label small fw-bold text-uppercase">Profile Picture</label>
+                                            <input type="file" class="form-control" name="profile_photo" accept="image/jpeg,image/png,image/webp" required>
+                                            <div class="form-text">JPG, PNG, or WEBP up to 10 MB.</div>
+                                        </div>
+                                        <div class="register-upload-field">
+                                            <label class="form-label small fw-bold text-uppercase">Photo of your Student ID</label>
+                                            <input type="file" class="form-control" name="selfie_image" accept="image/jpeg,image/png,image/webp" required>
+                                            <div class="form-text">JPG, PNG, or WEBP up to 10 MB.</div>
+                                        </div>
                                     </div>
                                     <div class="col-12 register-password-row">
                                         <div>

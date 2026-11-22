@@ -123,6 +123,9 @@ class RegistrationNameTest extends TestCase
             ->assertSee('name="last_name"', false)
             ->assertSee('pattern="09[0-9]{9}"', false)
             ->assertSee('maxlength="11"', false)
-            ->assertSee('Middle Name <span class="text-muted">(optional)</span>', false);
+            ->assertSee('Middle Name <span class="text-muted">(optional)</span>', false)
+            ->assertSee('register-upload-row', false)
+            ->assertSee('name="profile_photo"', false)
+            ->assertSee('name="selfie_image"', false);
     }
 }
