@@ -66,6 +66,7 @@ class ReportController extends Controller
             'incident_date' => 'required|date|before_or_equal:today',
             'description' => 'required|string|min:5',
             'location' => 'required|string|max:255',
+            'is_anonymous' => ['nullable', 'boolean'],
             'evidence.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx|max:10240',
         ];
 
@@ -88,6 +89,7 @@ class ReportController extends Controller
             : $request->nature;
 
         $user = $request->user();
+        $isAnonymous = $request->boolean('is_anonymous');
         if (!$user) {
             return redirect()->route('login');
         }
@@ -121,6 +123,7 @@ class ReportController extends Controller
             'user_id'       => $user->id,
             'incident_id'   => $incidentId,
             'cloak_alias'   => $cloakAlias,
+            'is_anonymous'  => $isAnonymous,
             'nature'        => $finalNature,
             'incident_date' => $request->incident_date,
             'location'      => $request->location,

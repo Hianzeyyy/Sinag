@@ -250,7 +250,7 @@ class ExportGADReportController extends Controller
 
         if ($includeReports) {
             $sheets['Incident Reports'] = [[
-                'Incident ID', 'Reporter Alias', 'Nature', 'Location', 'Incident Date',
+                'Incident ID', 'Reported By', 'Nature', 'Location', 'Incident Date',
                 'Incident Time', 'Priority', 'Status', 'Filed Date',
             ]];
         }
@@ -344,7 +344,7 @@ class ExportGADReportController extends Controller
         foreach ($includeReports ? $reports : [] as $report) {
             $sheets['Incident Reports'][] = [
                 $report->incident_id,
-                $report->cloak_alias ?? 'Anonymous',
+                $report->reporter_display_name,
                 $report->nature,
                 $report->location ?? 'N/A',
                 optional($report->incident_date)->format('Y-m-d') ?: 'N/A',

@@ -168,33 +168,23 @@
         const pageLinks = {
             report: @json(route('student.report')),
             reportStatus: @json(route('student.vault')),
+            suggestions: @json(route('student.boses')),
             schedule: @json(route('student.schedule-appointment')),
             appointments: @json(route('student.appointments')),
             messages: @json(route('student.messaging')),
             wellness: @json(route('student.wellness')),
-            ra9262: @json(route('student.reference', 'ra9262')),
-            ra8353: @json(route('student.reference', 'ra8353')),
-            ra9208: @json(route('student.reference', 'ra9208')),
-            ra9710: @json(route('student.reference', 'ra9710')),
-            hivaids: @json(route('student.reference', 'hivaids')),
-            antiHarassment: @json(route('student.reference', 'antisexualharassmentpolicy')),
             dashboard: @json(route('student.dashboard'))
         };
         const faqs = [
             { question: 'What is GAD and what does the office do?', terms: ['what is gad', 'gad office', 'gender and development', 'gad services'], answer: 'Gender and Development (GAD) works to promote gender equality, dignity, inclusion, and safe spaces. The campus GAD Office can receive concerns, guide students and employees to support, and share awareness and policy information. This FAQ is general information, not legal advice.', links: [{ label: 'Open GAD references', href: pageLinks.wellness }] },
-            { question: 'How do I file a report?', terms: ['report', 'complaint', 'file', 'harassment report'], answer: 'To submit a concern, open File a Report, complete the incident details, and submit. Keep your report description factual and include only information relevant to the incident. After submission, open Report Status to review updates. If you are in immediate danger, contact campus security or local emergency services first.', links: [{ label: 'Go to File a Report', href: pageLinks.report }, { label: 'Check Report Status', href: pageLinks.reportStatus }] },
-            { question: 'How do I book an appointment?', terms: ['appointment', 'schedule', 'book', 'face to face', 'online meeting'], answer: 'Open Schedule, choose a date and time, select Face-to-Face or Online, then submit your concern. The request stays pending until reviewed by the GAD Office. You can see its status, edit a pending request, or cancel it under My Appointments.', links: [{ label: 'Schedule an appointment', href: pageLinks.schedule }, { label: 'My Appointments', href: pageLinks.appointments }] },
-            { question: 'How can I contact the GAD Office?', terms: ['contact', 'message', 'talk', 'support', 'help'], answer: 'Use Messages to send a private message to the GAD Office. Include your appointment or report reference if your question is about an existing submission. Messages are not an emergency service; for immediate danger, contact campus security or local emergency services.', links: [{ label: 'Message the GAD Office', href: pageLinks.messages }] },
-            { question: 'What is Republic Act 9262?', terms: ['ra 9262', 'ra9262', 'vawc', 'violence against women', 'violence against women and children'], answer: 'Republic Act 9262, or the Anti-Violence Against Women and Their Children Act, provides protections and remedies for covered acts of physical, sexual, psychological, and economic abuse in specified intimate or family relationships. A qualified support provider or lawyer can explain how the law applies to an individual situation.', links: [{ label: 'Read the RA 9262 reference', href: pageLinks.ra9262 }] },
-            { question: 'What is Republic Act 8353?', terms: ['ra 8353', 'ra8353', 'anti rape law', 'rape law'], answer: 'Republic Act 8353, the Anti-Rape Law of 1997, amended the legal treatment and definition of rape in the Philippines. This is a brief educational summary and not legal advice. Survivors may choose to seek confidential support from the GAD Office or an appropriate professional.', links: [{ label: 'Read the RA 8353 reference', href: pageLinks.ra8353 }] },
-            { question: 'What is Republic Act 9208?', terms: ['ra 9208', 'ra9208', 'anti trafficking', 'human trafficking'], answer: 'Republic Act 9208, as amended, is the Anti-Trafficking in Persons law. It addresses trafficking offenses and provides a framework for prevention, victim protection, and prosecution. Contact qualified authorities or support services for help with a specific situation.', links: [{ label: 'Read the RA 9208 reference', href: pageLinks.ra9208 }] },
-            { question: 'What is Republic Act 9710?', terms: ['ra 9710', 'ra9710', 'magna carta of women'], answer: 'Republic Act 9710, the Magna Carta of Women, affirms women’s human rights and promotes substantive equality and non-discrimination. It guides institutions in supporting women’s rights and access to services.', links: [{ label: 'Read the RA 9710 reference', href: pageLinks.ra9710 }] },
-            { question: 'What is the Safe Spaces Act (RA 11313)?', terms: ['ra 11313', 'ra11313', 'safe spaces act', 'bawal bastos'], answer: 'Republic Act 11313, the Safe Spaces Act, addresses gender-based sexual harassment in public spaces, online spaces, workplaces, and educational or training institutions. The SINAG References section has campus-accessible GAD information; use File a Report if you need to submit a concern.', links: [{ label: 'Browse GAD references', href: pageLinks.wellness }, { label: 'File a report', href: pageLinks.report }] },
-            { question: 'Where can I read about sexual harassment policy?', terms: ['sexual harassment policy', 'anti sexual harassment', 'harassment policy'], answer: 'The SINAG reference page summarizes the institutional anti-sexual-harassment policy, expected respectful conduct, reporting routes, and support options. Consult the official university policy for authoritative and current rules.', links: [{ label: 'Read the policy reference', href: pageLinks.antiHarassment }] },
-            { question: 'Where can I learn about HIV/AIDS?', terms: ['hiv', 'aids', 'hiv/aids'], answer: 'The SINAG reference shares basic, stigma-free information about prevention, care, and support. For personal medical guidance, consult a qualified healthcare provider or appropriate campus health service.', links: [{ label: 'Read the HIV/AIDS reference', href: pageLinks.hivaids }] },
-            { question: 'How is my information handled?', terms: ['privacy', 'private', 'confidential', 'data'], answer: 'Share only details needed to request assistance or submit a report. SINAG limits access to signed-in account areas, but this chatbot is a general FAQ and cannot assess confidentiality for a specific case. Contact the GAD Office directly for case-specific privacy questions.', links: [{ label: 'Message the GAD Office', href: pageLinks.messages }] },
-            { question: 'Can I edit or cancel an appointment?', terms: ['edit appointment', 'cancel appointment', 'change appointment'], answer: 'A pending appointment can be edited or cancelled from My Appointments. After you cancel, the record is marked as cancelled; cancelled or rejected records can be deleted from your list. For approved or completed requests, contact the GAD Office.', links: [{ label: 'Open My Appointments', href: pageLinks.appointments }] },
-            { question: 'What can I do in SINAG?', terms: ['sinag', 'system', 'platform', 'how to use'], answer: 'SINAG brings GAD resources and campus workflows together: submit a report, review report status, request an appointment, message the GAD Office, read announcements, and send suggestions. Choose a page below to get started.', links: [{ label: 'File a Report', href: pageLinks.report }, { label: 'Schedule', href: pageLinks.schedule }, { label: 'GAD References', href: pageLinks.wellness }, { label: 'Dashboard', href: pageLinks.dashboard }] }
+            { question: 'How do I file a report?', terms: ['file a report', 'submit a report', 'report an incident', 'report a concern'], answer: 'Open File a Report, complete the incident details, and submit. Keep the description factual and include only information relevant to the incident. You can review updates in your Evidence Vault. If you are in immediate danger, contact campus security or local emergency services first.', links: [{ label: 'Go to File a Report', href: pageLinks.report }, { label: 'Open Evidence Vault', href: pageLinks.reportStatus }] },
+            { question: 'How can I check my report status?', terms: ['report status', 'check my report', 'track report', 'report update'], answer: 'Open your Evidence Vault to review the current status and updates for your submitted report. Include the incident ID if you message the GAD Office about it.', links: [{ label: 'Open Evidence Vault', href: pageLinks.reportStatus }, { label: 'Message the GAD Office', href: pageLinks.messages }] },
+            { question: 'How do I book an appointment?', terms: ['book an appointment', 'schedule an appointment', 'request an appointment', 'appointment schedule'], answer: 'Open Schedule, choose an available date and time, select Face-to-Face or Online, and submit your concern. The request remains pending until the GAD Office reviews it. You can follow updates under My Appointments.', links: [{ label: 'Schedule an appointment', href: pageLinks.schedule }, { label: 'My Appointments', href: pageLinks.appointments }] },
+            { question: 'How can I cancel or edit an appointment?', terms: ['cancel an appointment', 'cancel appointment', 'cancel my appointment', 'edit appointment', 'change appointment', 'reschedule appointment'], answer: 'Open My Appointments. You can edit or cancel a pending request there. For an approved or completed request, message the GAD Office so staff can help with the change.', links: [{ label: 'Open My Appointments', href: pageLinks.appointments }, { label: 'Message the GAD Office', href: pageLinks.messages }] },
+            { question: 'How do I message the GAD Office?', terms: ['message the gad office', 'contact the gad office', 'talk to someone', 'personal support', 'send a message'], answer: 'Open Messages to contact the GAD Office directly. Include an appointment date or report ID when your message concerns an existing request. Messages are not an emergency service; if you are in immediate danger, contact campus security or local emergency services.', links: [{ label: 'Open Messages', href: pageLinks.messages }] },
+            { question: 'How do I submit a suggestion?', terms: ['submit a suggestion', 'post a suggestion', 'share an idea', 'suggestion'], answer: 'Open Suggestions, choose a category, write your suggestion, and submit it for review. You can choose whether to post anonymously. Approved suggestions appear in the community feed.', links: [{ label: 'Open Suggestions', href: pageLinks.suggestions }] },
+            { question: 'How is my information handled?', terms: ['privacy', 'confidential', 'personal information', 'my data'], answer: 'Share only the information needed for your request. Report anonymity is controlled when you submit the report, and case-specific privacy questions should be discussed directly with the GAD Office.', links: [{ label: 'Message the GAD Office', href: pageLinks.messages }] },
+            { question: 'What can I do in SINAG?', terms: ['sinag features', 'what can i do', 'how to use sinag', 'system features'], answer: 'SINAG connects GAD resources with campus workflows: submit reports and suggestions, review request status, schedule appointments, and message the GAD Office. Choose a page below to get started.', links: [{ label: 'File a Report', href: pageLinks.report }, { label: 'Schedule', href: pageLinks.schedule }, { label: 'GAD References', href: pageLinks.wellness }, { label: 'Messages', href: pageLinks.messages }] }
         ];
 
         faqs.forEach(function (faq) {
@@ -228,11 +218,19 @@
             const normalized = text.toLocaleLowerCase().trim();
             if (!normalized) return;
             addMessage(text, 'question');
-            const match = faqs.find(function (faq) {
-                return normalized === faq.question.toLocaleLowerCase()
-                    || faq.terms.some(function (term) { return normalized.includes(term); });
-            });
-            addMessage(match ? match.answer : 'I can answer FAQs only about GAD and SINAG. Ask about filing a report, appointments, messages, privacy, or a reference such as RA 9262, RA 8353, RA 9208, RA 9710, or RA 11313.', 'answer', match ? match.links : null);
+            const match = faqs
+                .map(function (faq) {
+                    const terms = [faq.question.toLocaleLowerCase()].concat(faq.terms);
+                    return {
+                        faq: faq,
+                        score: terms.reduce(function (best, term) {
+                            return normalized.includes(term) ? Math.max(best, term.length) : best;
+                        }, 0)
+                    };
+                })
+                .filter(function (candidate) { return candidate.score > 0; })
+                .sort(function (first, second) { return second.score - first.score; })[0]?.faq;
+            addMessage(match ? match.answer : 'I could not match that to a SINAG FAQ. For a person-to-person answer, open Messages to contact the GAD Office.', 'answer', match ? match.links : [{ label: 'Message the GAD Office', href: pageLinks.messages }]);
             input.value = '';
         }
 

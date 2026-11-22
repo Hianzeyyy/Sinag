@@ -107,25 +107,40 @@ rejected, SINAG sends an email to the user's institutional address. Repeating
 the same decision does not send another email. Email delivery failures are
 logged and shown to the administrator without undoing the saved status.
 
-For Gmail SMTP, enable 2-Step Verification and create a Google App Password.
-Set the following in local `.env` and Render's Environment Variables; use the
-Gmail address as both `MAIL_USERNAME` and `MAIL_FROM_ADDRESS`, and never commit
-the App Password:
+The `psu.edu.ph` MX records point to Google Workspace. The deployed `.env`
+currently selects Resend, so Gmail SMTP is not active there. To send from the
+institutional mailbox, use the same authorized `@psu.edu.ph` account for
+`MAIL_USERNAME` and `MAIL_FROM_ADDRESS` and configure the app's mailer as:
+
+Email notification is possible only if SINAG is given a workspace mailbox and
+approved credentials, and the deployment environment is changed to SMTP.
+Without the PSU mailbox account, Google App Password or approved SMTP relay,
+the app cannot authenticate or send as `@psu.edu.ph`. Knowing that the domain
+uses Google Workspace is not itself a usable credential. The sender address
+cannot be set independently of the authenticated mailbox.
 
 ```text
 MAIL_MAILER=smtp
 MAIL_SCHEME=smtp
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=your-gmail-address@gmail.com
-MAIL_PASSWORD=your-google-app-password
-MAIL_FROM_ADDRESS=your-gmail-address@gmail.com
+MAIL_USERNAME=your.name@psu.edu.ph
+MAIL_PASSWORD=your-google-workspace-app-password
+MAIL_FROM_ADDRESS=your.name@psu.edu.ph
 MAIL_FROM_NAME="SINAG - PSU GAD"
 ```
+
+Google Workspace requires authenticated SMTP. Confirm with the PSU email
+administrator that the mailbox permits SMTP submission and whether an app
+password is permitted; otherwise use the university's approved SMTP relay or
+OAuth configuration. Never commit SMTP credentials. Google documents the
+available Gmail SMTP host, ports, and authentication requirements at
+https://knowledge.workspace.google.com/admin/gmail/send-email-from-a-printer-scanner-or-app.
 
 After changing local mail settings, clear Laravel's cached configuration with
 `php artisan config:clear`. Render reads its environment variables on the next
 deployment.
+
 
 ## Uploaded media storage and backups
 

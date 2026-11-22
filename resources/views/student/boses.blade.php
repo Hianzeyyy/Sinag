@@ -2,6 +2,16 @@
 
 @section('content')
 <style>
+    .modal.edit-comment-modal,
+    .modal.edit-suggestion-modal {
+        z-index: 1060;
+    }
+    .modal.edit-comment-modal .modal-dialog,
+    .modal.edit-suggestion-modal .modal-dialog {
+        z-index: 1061;
+    }
+    .modal-backdrop { z-index: 1050; }
+
     .boses-page {
         --accent: #A594F9;
         --accent-deep: #8f72f5;
@@ -356,7 +366,7 @@
         display: flex;
         min-width: 0;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
         gap: .25rem;
         padding: .65rem 1rem .9rem;
     }
@@ -401,9 +411,10 @@
         font-size: 1rem;
         line-height: 1.55;
         text-align: left;
-        white-space: pre-wrap;
+        white-space: pre-line;
         overflow-wrap: anywhere;
     }
+    .suggestion-expand { align-self: flex-start; margin: .15rem 0 0 !important; }
 
     .meta-badge {
         display: inline-flex;
@@ -821,13 +832,15 @@
                                 </div>
 
                                 <div class="suggestion-body">
-                                    <p class="suggestion-message" data-suggestion-post>
-                                        <span data-suggestion-preview>{{ $suggestionPreview }}</span>
+                                    <div class="suggestion-message" data-suggestion-post>
+                                        <span data-suggestion-preview>{{ trim($suggestionPreview) }}</span>
                                         @if($hasMoreSuggestionText)
-                                            <span class="d-none" data-suggestion-full>{{ $sugg->message }}</span>
-                                            <button type="button" class="btn btn-link suggestion-expand" data-suggestion-expand aria-expanded="false">See more</button>
+                                            <span class="d-none" data-suggestion-full>{{ trim($sugg->message) }}</span>
                                         @endif
-                                    </p>
+                                    </div>
+                                    @if($hasMoreSuggestionText)
+                                        <button type="button" class="btn btn-link suggestion-expand" data-suggestion-expand aria-expanded="false">See more</button>
+                                    @endif
                                     @if($sugg->image_path)
                                         @php($suggestionImageUrl = \App\Support\MediaResolver::url($sugg->image_path, ['public', 'public_s3']))
                                         @if($suggestionImageUrl)
@@ -913,7 +926,7 @@
                                 </div>
                             </article>
 
-                            <div class="modal fade" id="editSuggestionModal{{ $sugg->id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal fade edit-suggestion-modal" id="editSuggestionModal{{ $sugg->id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
                                     <div class="modal-content border-0 shadow-lg">
                                         <div class="modal-header border-0 p-4 pb-0">
@@ -965,7 +978,7 @@
                             </div>
 
                             @foreach($sugg->comments as $comment)
-                                <div class="modal fade" id="editCommentModal{{ $comment->id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal fade edit-comment-modal" id="editCommentModal{{ $comment->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                                         <div class="modal-content border-0 shadow-lg">
                                             <div class="modal-header border-0 p-4 pb-0">
@@ -1088,6 +1101,23 @@
 @endunless
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.edit-comment-modal, .edit-suggestion-modal').forEach(function (modalElement) {
+            document.body.appendChild(modalElement);
+        });
+
+        document.querySelectorAll('[data-bs-target^="#editCommentModal"], [data-bs-target^="#editSuggestionModal"]').forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                const dropdown = trigger.closest('.dropdown');
+                if (dropdown) {
+                    const menu = dropdown.querySelector('.dropdown-menu');
+                    menu?.classList.remove('show');
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+
+            });
+        });
+    });
     document.addEventListener('DOMContentLoaded', function () {
         @if($errors->any() || session('error'))
             document.querySelector('[data-bs-target="#suggestionModal"]')?.click();
@@ -1217,8 +1247,7 @@
                 button.textContent = expanded ? 'See more' : 'See less';
             };
             button.addEventListener('click', toggleSuggestionText);
-            button.closest('[data-suggestion-card]')?.querySelector('.suggestion-message')?.addEventListener('click', function (event) {
-                if (event.target === button) return;
+            paragraph?.addEventListener('click', function (event) {
                 if (!button.closest('[data-suggestion-card]')?.querySelector('[data-suggestion-full]')) return;
                 event.stopPropagation();
                 toggleSuggestionText();

@@ -634,7 +634,7 @@
         <thead>
             <tr>
                 <th style="width: 12%;">Incident ID</th>
-                <th style="width: 14%;">Reporter Alias</th>
+                <th style="width: 14%;">Reported By</th>
                 <th style="width: 20%;">Nature</th>
                 <th style="width: 22%;">Location</th>
                 <th style="width: 12%;">Priority</th>
@@ -650,7 +650,7 @@
                 @endphp
                 <tr>
                     <td><strong>{{ $r->incident_id }}</strong></td>
-                    <td>{{ $r->cloak_alias ?? 'Anonymous' }}</td>
+                    <td>{{ $r->reporter_display_name }}</td>
                     <td>{{ $r->nature }}</td>
                     <td>{{ $r->location ?? 'N/A' }}</td>
                     <td>

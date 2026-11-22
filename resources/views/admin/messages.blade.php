@@ -36,6 +36,20 @@
     .messages-page[data-has-conversation="true"] .right-panel { width: min(100%, 1040px); height: min(72dvh, 52rem); margin-inline: auto; }
     .messages-page[data-has-conversation="false"] .left-panel { height: min(72dvh, 52rem); }
     .message-back-link { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; }
+    .admin-video-call {
+        border: 0 !important;
+        color: #fff !important;
+        background: linear-gradient(135deg, #8f72f5, #6d55d9) !important;
+        box-shadow: 0 5px 14px rgba(109, 85, 217, .2);
+        font-weight: 800;
+    }
+    .admin-video-call:hover,
+    .admin-video-call:focus-visible {
+        color: #fff !important;
+        background: linear-gradient(135deg, #8063e8, #5b43c4) !important;
+        box-shadow: 0 8px 18px rgba(109, 85, 217, .28);
+    }
+    .admin-video-call:focus-visible { outline: 3px solid #d8cdfc; outline-offset: 2px; }
 
     .messages-page > .container-fluid { width: min(100%, 1320px); margin-inline: auto; padding-inline: clamp(.25rem, 2vw, 1.5rem); }
     .messages-page[data-has-conversation="false"] { display: flex; align-items: center; }
@@ -672,7 +686,7 @@
                             <span class="dept-badge">{{ $selectedStudent->department ?? 'N/A' }}</span>
                             <form action="{{ route('admin.urgent.calls.start', $selectedStudent->id) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill text-nowrap">
+                                <button type="submit" class="btn btn-sm admin-video-call rounded-pill text-nowrap">
                                     <i class="bi bi-camera-video-fill me-1"></i>Video call
                                 </button>
                             </form>

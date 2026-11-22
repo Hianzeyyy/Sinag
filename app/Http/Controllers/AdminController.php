@@ -193,6 +193,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:Pending,Under Review,Resolved'],
             'priority' => ['nullable', 'string', 'in:Low,Medium,High'],
+            'admin_comment' => ['nullable', 'string', 'max:4000'],
         ]);
 
         $shouldSendResolutionNotice = false;
@@ -201,6 +202,9 @@ class AdminController extends Controller
             $report->update([
                 'status' => $validated['status'],
                 'priority' => $validated['priority'] ?? $report->priority,
+                'admin_comment' => isset($validated['admin_comment'])
+                    ? trim($validated['admin_comment'])
+                    : $report->admin_comment,
             ]);
 
             if (strtolower($report->status) === 'resolved' && ! $report->resolution_notice_sent_at) {
@@ -1034,7 +1038,6 @@ class AdminController extends Controller
                 'exception' => $exception::class,
                 'message' => $exception->getMessage(),
             ]);
-
             return redirect('/admin/users')->with('warning', 'Account approved and an in-app notice was sent, but the notification email could not be sent. Check the mail configuration and contact the user.');
         }
 
@@ -1083,7 +1086,6 @@ class AdminController extends Controller
                 'exception' => $exception::class,
                 'message' => $exception->getMessage(),
             ]);
-
             return back()->with('warning', 'Account rejected and an in-app notice was recorded, but the notification email could not be sent. Check the mail configuration and contact the user.');
         }
 

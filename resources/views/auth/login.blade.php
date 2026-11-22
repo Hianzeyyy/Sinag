@@ -176,7 +176,7 @@
         right: .85rem;
         top: 0 !important;
         bottom: 0 !important;
-        z-index: 3;
+        z-index: 4;
         width: 2rem;
         height: 2rem;
         display: inline-flex;
@@ -184,6 +184,8 @@
         justify-content: center;
         transform: none !important;
         margin: auto 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
     }
     .login-actions { min-width: 0; }
     .login-actions > * { min-height: 52px; min-width: 0; }
@@ -410,6 +412,12 @@
     .register-fields > .col-12.register-submit-wrap { grid-column: 1 / -1; }
     .auth-overlay-copy p { font-size: .9rem; line-height: 1.5; }
     .register-password { padding-right: 2.75rem; }
+    .register-password-row {
+        grid-column: 1 / -1 !important;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+    }
     .register-password-toggle {
         position: absolute;
         top: 50%;
@@ -462,6 +470,7 @@
         .register-fields > .col-6,
         .register-fields > .col-12:not(.register-name-field),
         .register-fields > .register-name-field { grid-column: span 6; }
+        .register-password-row { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 1199.98px) {
@@ -690,19 +699,21 @@
                                         <input type="file" class="form-control" name="selfie_image" accept="image/jpeg,image/png,image/webp" required>
                                         <div class="form-text">JPG, PNG, or WEBP up to 10 MB.</div>
                                     </div>
-                                    <div class="col-12 col-sm-6">
-                                        <label class="form-label small fw-bold text-uppercase">Password</label>
-                                        <div class="position-relative">
-                                            <input type="password" class="form-control register-password" name="password" id="registerPassword" autocomplete="new-password" required>
-                                            <button type="button" class="register-password-toggle" data-password-target="registerPassword" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye"></i></button>
+                                    <div class="col-12 register-password-row">
+                                        <div>
+                                            <label class="form-label small fw-bold text-uppercase">Password</label>
+                                            <div class="position-relative">
+                                                <input type="password" class="form-control register-password" name="password" id="registerPassword" autocomplete="new-password" required>
+                                                <button type="button" class="register-password-toggle" data-password-target="registerPassword" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye-slash"></i></button>
+                                            </div>
+                                            <div class="form-text" id="registerPasswordHint" hidden>Use at least 8 characters.</div>
                                         </div>
-                                        <div class="form-text">Use at least 8 characters.</div>
-                                    </div>
-                                    <div class="col-12 col-sm-6">
-                                        <label class="form-label small fw-bold text-uppercase">Confirm Password</label>
-                                        <div class="position-relative">
-                                            <input type="password" class="form-control register-password" name="password_confirmation" id="registerPasswordConfirmation" autocomplete="new-password" required>
-                                            <button type="button" class="register-password-toggle" data-password-target="registerPasswordConfirmation" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye"></i></button>
+                                        <div>
+                                            <label class="form-label small fw-bold text-uppercase">Confirm Password</label>
+                                            <div class="position-relative">
+                                                <input type="password" class="form-control register-password" name="password_confirmation" id="registerPasswordConfirmation" autocomplete="new-password" required>
+                                                <button type="button" class="register-password-toggle" data-password-target="registerPasswordConfirmation" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye-slash"></i></button>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-12 register-submit-wrap mt-2">
@@ -846,6 +857,8 @@
     const password = document.querySelector('#password');
     const eyeIcon = document.querySelector('#eyeIcon');
     const passwordHint = document.querySelector('#passwordHint');
+    const registerPassword = document.querySelector('#registerPassword');
+    const registerPasswordHint = document.querySelector('#registerPasswordHint');
 
     function updatePasswordHint() {
         const length = loginPassword.value.length;
@@ -859,6 +872,10 @@
     });
 
     loginPassword.addEventListener('input', updatePasswordHint);
+    registerPassword.addEventListener('input', function () {
+        const length = registerPassword.value.length;
+        registerPasswordHint.hidden = length === 0 || length >= 8;
+    });
     loginForm.addEventListener('submit', function () {
         passwordValue.value = loginPassword.value;
     });

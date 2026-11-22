@@ -10,7 +10,14 @@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden password-reset-card">
         <div class="table-responsive password-reset-table-wrap"><table class="table align-middle mb-0 password-reset-table"><thead><tr><th>Requester</th><th>Reference</th><th>ID number</th><th>Status</th><th>Submitted</th><th class="text-end">Action</th></tr></thead><tbody>
         @forelse ($requests as $item)
-            <tr><td>{{ $item->name }}<div class="small text-muted">{{ $item->email }}</div></td><td class="fw-bold">{{ $item->reference_number }}</td><td>{{ $item->student_employee_id }}</td><td><span class="badge password-status-{{ $item->status }}">{{ ucfirst($item->status) }}</span></td><td>{{ $item->created_at->format('M d, Y h:i A') }}</td><td><a class="btn btn-sm rounded-pill px-3 password-reset-review-btn" href="{{ route('admin.password-resets.show', $item) }}"><i class="bi bi-eye me-1"></i>Review</a></td></tr>
+            <tr>
+                <td data-label="Requester"><div class="password-requester-name">{{ $item->name }}</div><div class="small text-muted text-break">{{ $item->email }}</div></td>
+                <td data-label="Reference" class="fw-bold text-break">{{ $item->reference_number }}</td>
+                <td data-label="ID number">{{ $item->student_employee_id }}</td>
+                <td data-label="Status"><span class="badge password-status-{{ $item->status }}">{{ ucfirst($item->status) }}</span></td>
+                <td data-label="Submitted" class="text-nowrap">{{ $item->created_at->format('M d, Y h:i A') }}</td>
+                <td data-label="Action" class="text-end password-reset-action"><a class="btn btn-sm rounded-pill px-3 password-reset-review-btn" href="{{ route('admin.password-resets.show', $item) }}"><i class="bi bi-eye me-1"></i>Review</a></td>
+            </tr>
         @empty
             <tr><td colspan="6" class="text-center py-5 text-muted">No password reset requests yet.</td></tr>
         @endforelse
@@ -63,5 +70,62 @@
     .password-status-approved { background: #d8cdfc; color: #5b4b9b; }
     .password-status-rejected { background: #f7c4dd; color: #9d285d; }
     .password-status-pending { background: #ede9fe; color: #6d55d9; }
+    .password-requester-name {
+        max-width: 16rem;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 767.98px) {
+        .password-reset-table-wrap {
+            overflow: visible;
+            border-radius: 1rem;
+        }
+        .password-reset-table {
+            min-width: 0;
+            display: block;
+        }
+        .password-reset-table thead {
+            display: none;
+        }
+        .password-reset-table tbody {
+            display: grid;
+            gap: .75rem;
+            padding: .75rem;
+        }
+        .password-reset-table tbody tr {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .65rem;
+            padding: .85rem;
+            border: 1px solid #ebe6fb;
+            border-radius: .9rem;
+            background: #fff;
+        }
+        .password-reset-table tbody td,
+        .password-reset-table-wrap th:first-child,
+        .password-reset-table-wrap td:first-child {
+            position: static;
+            min-width: 0;
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+        .password-reset-table tbody td::before {
+            content: attr(data-label);
+            display: block;
+            margin-bottom: .25rem;
+            color: #7a748d;
+            font-size: .68rem;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+        .password-reset-action {
+            grid-column: 1 / -1;
+            text-align: left !important;
+        }
+        .password-requester-name { max-width: none; }
+    }
 </style>
 @endsection

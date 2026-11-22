@@ -112,13 +112,13 @@
     <h2>{{ 2 + $sectionOffset }}. Incident Reports ({{ $reports->count() }})</h2>
     <table class="report-table">
         <thead>
-            <tr><th>Incident ID</th><th>Reporter Alias</th><th>Nature</th><th>Location</th><th>Priority</th><th>Status</th><th>Filed Date</th></tr>
+            <tr><th>Incident ID</th><th>Reported By</th><th>Nature</th><th>Location</th><th>Priority</th><th>Status</th><th>Filed Date</th></tr>
         </thead>
         <tbody>
             @forelse($reports as $report)
                 <tr>
                     <td>{{ $report->incident_id }}</td>
-                    <td>{{ $report->cloak_alias ?? 'Anonymous' }}</td>
+                    <td>{{ $report->reporter_display_name }}</td>
                     <td>{{ $report->nature }}</td>
                     <td>{{ $report->location ?? 'N/A' }}</td>
                     <td>{{ ucfirst($report->priority ?? 'Normal') }}</td>

@@ -35,7 +35,7 @@
             <td><span class="label">Filed Date</span><span class="value">{{ optional($report->created_at)->format('M d, Y h:i A') }}</span></td>
         </tr>
         <tr>
-            <td><span class="label">Reporter Alias</span><span class="value">{{ $report->cloak_alias }}</span></td>
+            <td><span class="label">{{ $report->is_anonymous ? 'Reporter Alias' : 'Reporter Name' }}</span><span class="value">{{ $report->reporter_display_name }}</span></td>
             <td><span class="label">Nature</span><span class="value">{{ $report->nature }}</span></td>
         </tr>
         <tr>
@@ -57,5 +57,10 @@
     @empty
         <div class="muted">No evidence files attached.</div>
     @endforelse
+
+    @if(trim((string) $report->admin_comment) !== '')
+        <h2>GAD Office Comment</h2>
+        <div class="description">{{ $report->admin_comment }}</div>
+    @endif
 </body>
 </html>

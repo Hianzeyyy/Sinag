@@ -13,6 +13,7 @@ class Report extends Model
         'user_id',
         'incident_id',
         'cloak_alias',
+        'is_anonymous',
         'nature',
         'course',
         'gender',
@@ -24,6 +25,7 @@ class Report extends Model
         'status',
         'seen_at',
         'resolution_notice_sent_at',
+        'admin_comment',
         'evidence', // Idinagdag para sa file uploads
     ];
 
@@ -32,6 +34,7 @@ class Report extends Model
      */
     protected $casts = [
         'incident_date' => 'date',
+        'is_anonymous' => 'boolean',
         'seen_at' => 'datetime',
         'resolution_notice_sent_at' => 'datetime',
         'evidence' => 'array', // Ginagawang array ang JSON string mula sa DB
@@ -68,6 +71,15 @@ class Report extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getReporterDisplayNameAttribute(): string
+    {
+        if ($this->is_anonymous !== false) {
+            return $this->cloak_alias ?: 'Anonymous';
+        }
+
+        return $this->user?->name ?: $this->cloak_alias ?: 'Unknown';
     }
 
     /**

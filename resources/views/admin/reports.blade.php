@@ -56,7 +56,7 @@
                                 <tr>
                                     <th class="ps-4 py-3">INCIDENT ID</th>
                                     <th>DATE FILED</th>
-                                    <th>CLOAK ALIAS</th>
+                                    <th>REPORTED BY</th>
                                     <th>NATURE OF ABUSE</th>
                                     <th>PRIORITY</th>
                                     <th>STATUS</th>
@@ -75,7 +75,7 @@
                                                 <i class="bi {{ $report->priority == 'High' ? 'bi-shield-exclamation' : 'bi-incognito text-primary' }}" style="{{ $report->priority == 'High' ? 'color:#806000;' : '' }}"></i>
                                             </div>
                                             <div class="d-flex align-items-center gap-2">
-                                                <span class="small fw-medium text-secondary">{{ $report->cloak_alias }}</span>
+                                                <span class="small fw-medium text-secondary">{{ $report->reporter_display_name }}</span>
                                                 <span id="seen-badge-{{ $report->id }}" class="badge rounded-pill {{ is_null($report->seen_at) ? 'sinag-yellow-badge' : 'sinag-violet-badge' }}">
                                                     {{ is_null($report->seen_at) ? 'UNREAD' : 'READ' }}
                                                 </span>
@@ -139,8 +139,8 @@
                                                         <span class="fw-bold">#{{ $report->incident_id }}</span>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <label class="small text-muted d-block">Reporter Alias</label>
-                                                        <span class="fw-bold text-primary">{{ $report->cloak_alias }}</span>
+                                                        <label class="small text-muted d-block">{{ $report->is_anonymous ? 'Reporter Alias' : 'Reporter Name' }}</label>
+                                                        <span class="fw-bold text-primary">{{ $report->reporter_display_name }}</span>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="small text-muted d-block">Location of Incident</label>
@@ -222,6 +222,11 @@
                                                                 <option value="Medium" {{ $report->priority == 'Medium' ? 'selected' : '' }}>Medium Priority</option>
                                                                 <option value="High" {{ $report->priority == 'High' ? 'selected' : '' }}>High Priority / Urgent</option>
                                                             </select>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="small fw-bold mb-1" for="reportAdminComment{{ $report->id }}">Comment for the Reporter</label>
+                                                            <textarea id="reportAdminComment{{ $report->id }}" name="admin_comment" class="form-control shadow-sm" rows="3" maxlength="4000" placeholder="Add an update or explanation the reporter can view">{{ old('admin_comment', $report->admin_comment) }}</textarea>
+                                                            <div class="form-text">This comment will be visible to the reporter in Report Status.</div>
                                                         </div>
                                                         <div class="col-12 mt-4">
                                                             <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill shadow" style="background: #A594F9; border:none;">

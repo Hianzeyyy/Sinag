@@ -78,6 +78,23 @@ class ProfileController extends Controller
         return $response;
     }
 
+    public function updateBasics(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'age' => ['required', 'integer', 'min:1', 'max:120'],
+            'gender' => ['required', 'string', 'in:Male,Female,Prefer not to say'],
+            'department' => ['required', 'string', 'max:255'],
+            'phone_number' => ['required', 'string', 'regex:/^09[0-9]{9}$/'],
+            'cloak_alias' => ['nullable', 'string', 'max:255', Rule::unique('users', 'cloak_alias')->ignore($user->id)],
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('profile.show')->with('status', 'Profile information updated.');
+    }
+
     public function profilePhoto(\App\Models\User $user)
     {
         $path = $this->normalizeProfilePhotoPath($user->profile_photo_path);

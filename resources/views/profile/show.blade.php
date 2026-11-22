@@ -349,44 +349,48 @@
                 <h5 class="modal-title fw-bold">Edit Information</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('profile.update') }}" method="POST" class="modal-body p-4">
+            <form action="{{ route('profile.update-basics') }}" method="POST" class="modal-body p-4">
                 @csrf
                 <div class="profile-edit-grid two-col">
                     <div>
                         <label class="form-label fw-bold text-uppercase small text-muted">Name</label>
-                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="form-control profile-input" required>
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" maxlength="255" class="form-control profile-input" required>
                         @error('name')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
                     <div>
                         <label class="form-label fw-bold text-uppercase small text-muted">Email</label>
-                        <input type="email" name="email" value="{{ old('email', $user->email) }}" class="form-control profile-input" required>
-                        @error('email')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                        <input type="email" value="{{ $user->email }}" class="form-control profile-input" readonly aria-describedby="profileEmailHelp">
+                        <div id="profileEmailHelp" class="form-text">Email cannot be changed here.</div>
                     </div>
                     <div>
                         <label class="form-label fw-bold text-uppercase small text-muted">Age</label>
-                        <input type="number" name="age" value="{{ old('age', $user->age) }}" class="form-control profile-input" min="1" max="120">
+                        <input type="number" name="age" value="{{ old('age', $user->age) }}" class="form-control profile-input" min="1" max="120" required>
                         @error('age')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
                     <div>
                         <label class="form-label fw-bold text-uppercase small text-muted">Gender</label>
-                        <input type="text" name="gender" value="{{ old('gender', $user->gender) }}" class="form-control profile-input" placeholder="Male / Female / Prefer not to say">
+                        <select name="gender" class="form-select profile-input" required>
+                            @foreach(['Male', 'Female', 'Prefer not to say'] as $option)
+                                <option value="{{ $option }}" {{ old('gender', $user->gender) === $option ? 'selected' : '' }}>{{ $option }}</option>
+                            @endforeach
+                        </select>
                         @error('gender')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
                     <div>
                         <label class="form-label fw-bold text-uppercase small text-muted">Department / Course</label>
-                        <input type="text" name="department" value="{{ old('department', $user->department) }}" class="form-control profile-input" placeholder="Your course or department">
+                        <input type="text" name="department" value="{{ old('department', $user->department) }}" maxlength="255" class="form-control profile-input" placeholder="Your course or department" required>
                         @error('department')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
                     <div>
                         <label class="form-label fw-bold text-uppercase small text-muted">Phone</label>
-                        <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" class="form-control profile-input" placeholder="09xxxxxxxxx">
+                        <input type="tel" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" class="form-control profile-input" inputmode="numeric" pattern="09[0-9]{9}" minlength="11" maxlength="11" placeholder="09xxxxxxxxx" required>
                         @error('phone_number')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
                 </div>
 
                 <div class="mt-3">
                     <label class="form-label fw-bold text-uppercase small text-muted">Cloak Alias</label>
-                    <input type="text" name="cloak_alias" value="{{ old('cloak_alias', $user->cloak_alias) }}" class="form-control profile-input" placeholder="Anonymous alias">
+                    <input type="text" name="cloak_alias" value="{{ old('cloak_alias', $user->cloak_alias) }}" maxlength="255" class="form-control profile-input" placeholder="Anonymous alias">
                     @error('cloak_alias')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
 

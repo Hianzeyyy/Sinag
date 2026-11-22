@@ -249,14 +249,18 @@
                         {{-- Anonymity Toggle --}}
                         <div class="p-3 mb-4 report-anon">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="is_anonymous" id="anonymousSwitch" checked>
+                                <input class="form-check-input" type="checkbox" name="is_anonymous" id="anonymousSwitch" value="1" {{ old('is_anonymous', true) ? 'checked' : '' }}>
                                 <label class="form-check-label fw-bold text-dark" for="anonymousSwitch"><i class="bi bi-incognito me-1"></i>Report Anonymously</label>
                             </div>
-                            <small class="d-block text-muted mt-1">Your real name will be hidden. Only your cloak alias ({{ Auth::user()->cloak_alias }}) will be shown to the GAD office.</small>
+                            <small id="anonymousHelpText" class="d-block text-muted mt-1"
+                                   data-alias="Your real name will be hidden. Only your cloak alias ({{ Auth::user()->cloak_alias }}) will be shown to the GAD office."
+                                   data-name="Your name ({{ Auth::user()->name }}) will be shown to the GAD office.">
+                                {{ old('is_anonymous', true) ? 'Your real name will be hidden. Only your cloak alias (' . Auth::user()->cloak_alias . ') will be shown to the GAD office.' : 'Your name (' . Auth::user()->name . ') will be shown to the GAD office.' }}
+                            </small>
                         </div>
 
-                        <div class="mt-4 p-3 rounded-3" style="background:#fff7ed; border:1px solid #fed7aa;">
-                            <p class="mb-1 fw-bold small" style="color:#9a3412;"><i class="bi bi-telephone-fill me-1"></i> Emergency Hotline</p>
+                        <div class="mt-4 p-3 rounded-3" style="background:#f3efff; border:1px solid #d8cdfc;">
+                            <p class="mb-1 fw-bold small" style="color:#5b4b9b;"><i class="bi bi-telephone-fill me-1"></i> Emergency Hotline</p>
                             <p class="mb-0 small text-muted">For immediate assistance, call GAD Emergency Hotline: <span class="fw-bold text-dark">(075) 123-4567</span></p>
                         </div>
 
@@ -287,6 +291,16 @@
 
 <script>
     window.addEventListener('load', function () {
+        const anonymousSwitch = document.getElementById('anonymousSwitch');
+        const anonymousHelpText = document.getElementById('anonymousHelpText');
+        anonymousSwitch?.addEventListener('change', function () {
+            if (anonymousHelpText) {
+                anonymousHelpText.textContent = anonymousSwitch.checked
+                    ? anonymousHelpText.dataset.alias
+                    : anonymousHelpText.dataset.name;
+            }
+        });
+
         const natureSelect = document.getElementById('nature-select');
         const otherWrapper = document.getElementById('other-nature-wrapper');
         const otherInput = document.getElementById('other-nature-input');

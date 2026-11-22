@@ -213,6 +213,12 @@
                                                         {{ $report->description }}
                                                     </div>
                                                 </div>
+                                                @if(trim((string) $report->admin_comment) !== '')
+                                                    <div class="col-12">
+                                                        <label class="small text-muted d-block">GAD Office Comment</label>
+                                                        <div class="p-3 rounded-3 small border shadow-sm mt-1" style="line-height:1.6;background:#f3efff;border-color:#d8cdfc !important;color:#5b4b9b;white-space:pre-wrap;">{{ $report->admin_comment }}</div>
+                                                    </div>
+                                                @endif
                                                 <div class="col-12">
                                                     <label class="small text-muted d-block mb-2">Attached Evidence</label>
                                                     @php

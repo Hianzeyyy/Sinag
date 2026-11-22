@@ -85,7 +85,7 @@
                         @elseif ($appointment->status === 'rejected') <span class="badge sinag-alert-badge rounded-pill">Rejected</span>
                         @else <span class="badge bg-secondary rounded-pill">{{ ucfirst($appointment->status) }}</span> @endif
                     </td>
-                    <td class="text-end pe-4"><button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#appointmentModal{{ $appointment->id }}"><i class="bi bi-eye me-1"></i>View</button></td>
+                    <td class="text-end pe-4"><button type="button" class="btn btn-sm appointment-view-button" data-bs-toggle="modal" data-bs-target="#appointmentModal{{ $appointment->id }}"><i class="bi bi-eye me-1"></i>View</button></td>
                 </tr>
             @endforeach
                 </tbody>
@@ -264,6 +264,23 @@
     .appointment-detail-grid strong { display: block; margin-top: .25rem; overflow-wrap: anywhere; }
     .appointment-user-link { color: #35216d; }
     .appointment-user-link:hover, .appointment-user-link:focus-visible { color: #7658df; }
+    .appointment-view-button {
+        border: 0;
+        border-radius: 999px;
+        padding: .45rem .9rem;
+        color: #fff;
+        background: linear-gradient(135deg, #8f72f5, #6d55d9);
+        box-shadow: 0 5px 14px rgba(109, 85, 217, .2);
+        font-weight: 800;
+        transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .appointment-view-button:hover,
+    .appointment-view-button:focus-visible {
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(109, 85, 217, .28);
+    }
+    .appointment-view-button:focus-visible { outline: 3px solid #d8cdfc; outline-offset: 2px; }
 
     @media (max-width: 575.98px) {
         .container-fluid.py-4 { padding: 1rem !important; }
