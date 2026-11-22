@@ -46,8 +46,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 4.75rem;
-        height: 4.75rem;
+        width: 3.35rem;
+        height: 3.35rem;
         padding: 0;
         border: 1px solid rgba(255,255,255,.75);
         border-radius: 50%;
@@ -70,13 +70,17 @@
     .gad-faq-launcher-icon {
         position: relative;
         display: grid;
-        width: 3.15rem;
-        height: 3.15rem;
+        width: 2.45rem;
+        height: 2.45rem;
         place-items: center;
         border-radius: 50%;
         background: rgba(255,255,255,.22);
-        font-size: 1.45rem;
+        font-size: 1.05rem;
+    }
+    .gad-faq-launcher-icon > .bi-heart-fill {
+        display: block;
         animation: gadFaqHeart30s 30s ease-in-out infinite;
+        transform-origin: center;
     }
     .gad-faq-launcher-stars {
         position: absolute;
@@ -90,9 +94,9 @@
     .gad-faq-launcher-grip { display: none; }
     @keyframes gadFaqHeart30s {
         0%, 92%, 100% { transform: scale(1); }
-        94% { transform: scale(1.22); }
-        96% { transform: scale(.96); }
-        98% { transform: scale(1.12); }
+        94% { transform: scale(1.16); }
+        96% { transform: scale(.98); }
+        98% { transform: scale(1.1); }
     }
 
     .gad-faq-widget.gad-faq-wiggle .gad-faq-launcher {
@@ -157,8 +161,8 @@
 
     @media (max-width: 575.98px) {
         .gad-faq-widget { right: .65rem; bottom: max(.65rem, env(safe-area-inset-bottom)); }
-        .gad-faq-launcher { width: 4.25rem; height: 4.25rem; }
-        .gad-faq-launcher-icon { width: 2.85rem; height: 2.85rem; font-size: 1.25rem; }
+        .gad-faq-launcher { width: 3.1rem; height: 3.1rem; }
+        .gad-faq-launcher-icon { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
         .gad-faq-panel { width: min(21rem, calc(100vw - 1rem)); height: min(68dvh, 31rem); min-height: min(15rem, calc(100dvh - 2rem)); border-radius: 1rem; }
         .gad-faq-open-below .gad-faq-panel { transform-origin: top right; }
         .gad-faq-messages { padding: .75rem; }

@@ -365,6 +365,24 @@
     }
     .auth-toggle:hover, .auth-toggle:focus-visible { background: #5b43b2; color: #fff; transform: translateY(-2px); }
     .register-fields { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .register-name-row {
+        grid-column: 1 / -1 !important;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: .72rem;
+    }
+    .register-name-row > div {
+        min-width: 0;
+    }
+    .register-name-row .form-label {
+        min-height: 0;
+        height: auto;
+        margin-bottom: .38rem;
+    }
+    .register-name-row .form-control {
+        min-height: 46px;
+        width: 100%;
+    }
     .register-name-field .form-label {
         display: block;
         height: 3rem;
@@ -706,17 +724,19 @@
                                 <h3 class="text-white fw-bold mb-1">Create Account</h3>
                                 <p class="text-white-50 small mb-3">Join the SINAG network today.</p>
                                 <div class="row g-2 register-fields">
-                                    <div class="col-12 col-sm-4 register-name-field">
-                                        <label class="form-label small fw-bold text-uppercase">First Name</label>
-                                        <input type="text" class="form-control" name="first_name" value="{{ old('first_name') }}" maxlength="255" required autocomplete="given-name" placeholder="Juan">
-                                    </div>
-                                    <div class="col-12 col-sm-4 register-name-field">
-                                        <label class="form-label small fw-bold text-uppercase">Middle Name <span class="text-muted">(optional)</span></label>
-                                        <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" maxlength="255" autocomplete="additional-name" placeholder="(Optional)">
-                                    </div>
-                                    <div class="col-12 col-sm-4 register-name-field">
-                                        <label class="form-label small fw-bold text-uppercase">Last Name</label>
-                                        <input type="text" class="form-control" name="last_name" value="{{ old('last_name') }}" maxlength="255" required autocomplete="family-name" placeholder="Dela Cruz">
+                                    <div class="col-12 register-name-row">
+                                        <div>
+                                            <label class="form-label small fw-bold text-uppercase">First Name</label>
+                                            <input type="text" class="form-control" name="first_name" value="{{ old('first_name') }}" maxlength="255" required autocomplete="given-name" placeholder="Juan">
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-bold text-uppercase">Middle Name <span class="text-muted">(optional)</span></label>
+                                            <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" maxlength="255" autocomplete="additional-name" placeholder="(Optional)">
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-bold text-uppercase">Last Name</label>
+                                            <input type="text" class="form-control" name="last_name" value="{{ old('last_name') }}" maxlength="255" required autocomplete="family-name" placeholder="Dela Cruz">
+                                        </div>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small fw-bold text-uppercase">Institutional Email</label>
