@@ -789,6 +789,7 @@ function updateChangeNote() {
     } else {
         note.textContent = `${count} day${count > 1 ? 's' : ''} modified. Save to apply.`;
         btn.disabled = false;
+        btn.textContent = 'Save changes';
     }
 }
 
@@ -832,7 +833,6 @@ function saveCalendar() {
             renderAdminCalendar();
             updateChangeNote();
             btn.textContent = 'Saved';
-            setTimeout(() => { btn.textContent = 'Save changes'; }, 1200);
             return;
         }
 

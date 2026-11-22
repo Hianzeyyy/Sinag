@@ -324,7 +324,7 @@ SVG;
                 ->with('status', 'Profile updated. Complete the remaining required personal data to access suggestions.');
         }
 
-        return back()->with('status', $user->hasCompletedPersonalData()
+        return redirect()->route('personal-data.show')->with('status', $user->hasCompletedPersonalData()
             ? 'Personal information complete. Suggestions, Schedule, and the other features are now available.'
             : 'Profile information updated.');
     }

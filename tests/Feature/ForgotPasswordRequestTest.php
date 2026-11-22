@@ -56,6 +56,15 @@ class ForgotPasswordRequestTest extends TestCase
         Storage::fake('local');
     }
 
+    public function test_password_request_form_always_renders_reference_instructions(): void
+    {
+        $this->get(route('password.code.form'))
+            ->assertOk()
+            ->assertSee('class="reference-instruction"', false)
+            ->assertSeeText('Keep the reference number after submitting.')
+            ->assertSeeText('Copy and save the reference number.');
+    }
+
     public function test_password_reset_request_saves_the_private_id_picture_and_reference(): void
     {
         User::create([

@@ -2239,26 +2239,31 @@
             const notice = document.createElement('div');
             notice.setAttribute('role', 'status');
             notice.setAttribute('aria-live', 'polite');
-            notice.style.cssText = 'position:fixed;top:max(1rem,env(safe-area-inset-top));right:max(1rem,env(safe-area-inset-right));z-index:1105;width:min(24rem,calc(100vw - 2rem));box-sizing:border-box;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none';
+            notice.style.cssText = 'position:fixed;top:max(1rem,env(safe-area-inset-top));right:max(1rem,env(safe-area-inset-right));z-index:1105;width:min(24rem,calc(100vw - 2rem));box-sizing:border-box;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none;align-items:flex-start;gap:.75rem';
+            const noticeContent = document.createElement('div');
+            noticeContent.style.flex = '1';
+            const dismissNotice = document.createElement('button');
+            dismissNotice.type = 'button';
+            dismissNotice.className = 'btn-close btn-close-white flex-shrink-0';
+            dismissNotice.setAttribute('aria-label', 'Dismiss notification');
+            dismissNotice.addEventListener('click', function () { notice.style.display = 'none'; });
+            notice.append(noticeContent, dismissNotice);
             document.body.appendChild(notice);
-            let hideNotice;
             let unreadCount = {{ (int) ($adminNotifications['messages'] ?? 0) }};
             let currentCallIds = null;
             function notifyAdmin(message, link) {
-                notice.textContent = '';
+                noticeContent.replaceChildren();
                 const text = document.createElement('span');
                 text.textContent = message;
-                notice.appendChild(text);
+                noticeContent.appendChild(text);
                 if (link) {
                     const anchor = document.createElement('a');
                     anchor.href = link;
                     anchor.className = 'text-white fw-bold ms-2';
                     anchor.textContent = 'Open';
-                    notice.appendChild(anchor);
+                    noticeContent.appendChild(anchor);
                 }
-                notice.style.display = 'block';
-                clearTimeout(hideNotice);
-                hideNotice = setTimeout(function () { notice.style.display = 'none'; }, 7000);
+                notice.style.display = 'flex';
             }
             async function checkMessages() {
                 try {
@@ -2310,10 +2315,17 @@
             const notice = document.createElement('div');
             notice.setAttribute('role', 'status');
             notice.setAttribute('aria-live', 'polite');
-            notice.style.cssText = 'position:fixed;top:max(1rem,env(safe-area-inset-top));right:max(1rem,env(safe-area-inset-right));z-index:1105;width:min(24rem,calc(100vw - 2rem));box-sizing:border-box;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none';
+            notice.style.cssText = 'position:fixed;top:max(1rem,env(safe-area-inset-top));right:max(1rem,env(safe-area-inset-right));z-index:1105;width:min(24rem,calc(100vw - 2rem));box-sizing:border-box;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none;align-items:flex-start;gap:.75rem';
+            const noticeContent = document.createElement('div');
+            noticeContent.style.flex = '1';
+            const dismissNotice = document.createElement('button');
+            dismissNotice.type = 'button';
+            dismissNotice.className = 'btn-close btn-close-white flex-shrink-0';
+            dismissNotice.setAttribute('aria-label', 'Dismiss notification');
+            dismissNotice.addEventListener('click', function () { notice.style.display = 'none'; });
+            notice.append(noticeContent, dismissNotice);
             document.body.appendChild(notice);
 
-            let hideNotice;
             let lastMessageId = Number(localStorage.getItem('sinag.last-notified-message-id') || 0);
             let lastCallState = null;
             try {
@@ -2321,16 +2333,14 @@
             } catch (error) {}
 
             function notifyUser(message, href) {
-                notice.textContent = '';
-                notice.appendChild(document.createTextNode(message));
+                noticeContent.replaceChildren();
+                noticeContent.appendChild(document.createTextNode(message));
                 const link = document.createElement('a');
                 link.href = href;
                 link.className = 'text-white fw-bold ms-2';
                 link.textContent = 'Open';
-                notice.appendChild(link);
-                notice.style.display = 'block';
-                clearTimeout(hideNotice);
-                hideNotice = setTimeout(function () { notice.style.display = 'none'; }, 7000);
+                noticeContent.appendChild(link);
+                notice.style.display = 'flex';
             }
 
             async function checkUserNotifications() {

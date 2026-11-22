@@ -209,8 +209,9 @@
     <div class="alert border-0 shadow-sm rounded-4 mx-auto mb-4" role="status" style="max-width:1100px;background:#f3efff;color:#5b4b9b;">
         <i class="bi bi-person-vcard-fill me-2"></i>{{ session('personal_data_required') }}
     </div>
+@endif
 
-    <script>
+<script>
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.querySelector('.pd-edit-card form[action="{{ route('profile.update') }}"], .pd-page form[action="{{ route('profile.update') }}"]');
         if (!form) return;
@@ -293,37 +294,18 @@
                 input.value = input.value.replace(/[^0-9.]/g, '');
             });
         });
-    });
-    </script>
-@endif
-
-@if(session('status'))
-    <div class="toast-container p-3">
-        <div id="personalDataToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header" style="background:#f5f3ff; color:#5b4b9b;">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                <strong class="me-auto">SINAG Profile</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">{{ session('status') }}</div>
-        </div>
-    </div>
-
-    <script>
-        document.querySelectorAll('input[name="phone_number"]').forEach(function (phoneInput) {
+        form.querySelectorAll('input[name="phone_number"]').forEach(function (phoneInput) {
             phoneInput.addEventListener('input', function () {
                 phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '').slice(0, 11);
             });
         });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const toastElement = document.getElementById('personalDataToast');
-            if (toastElement && window.bootstrap) {
-                window.bootstrap.Toast.getOrCreateInstance(toastElement, { delay: 4500 }).show();
-            }
-        });
-    </script>
+    });
+</script>
+
+@if(session('status'))
+    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4" role="status" aria-live="polite">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ session('status') }}
+    </div>
 @endif
 
 @if($errors->any())
