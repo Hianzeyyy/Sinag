@@ -22,10 +22,26 @@
         <div class="gad-faq-footnote"><i class="bi bi-shield-heart"></i> FAQ guide only · For personal support, message the GAD Office.</div>
     </section>
     <button type="button" class="gad-faq-launcher" id="gadFaqLauncher" aria-label="Open GAD FAQ assistant" aria-expanded="false" title="GAD Guide — drag to move">
-        <span class="gad-faq-launcher-icon" aria-hidden="true">
-            <i class="bi bi-heart-fill"></i>
-            <i class="bi bi-stars gad-faq-launcher-stars"></i>
-        </span>
+        <svg class="gad-faq-launcher-badge" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+                <path id="gadFaqTopArc" d="M 18 50 A 32 32 0 0 1 82 50"></path>
+                <path id="gadFaqBottomArc" d="M 82 58 A 32 32 0 0 1 18 58"></path>
+                <filter id="gadFaqBadgeShadow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#5b43b2" flood-opacity=".28"></feDropShadow>
+                </filter>
+                <linearGradient id="gadFaqHeartFill" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#c7b8ff"></stop>
+                    <stop offset="55%" stop-color="#8f72f5"></stop>
+                    <stop offset="100%" stop-color="#6546c7"></stop>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="38" fill="#ffffff" filter="url(#gadFaqBadgeShadow)"></circle>
+            <text class="gad-faq-badge-top"><textPath href="#gadFaqTopArc" startOffset="50%" text-anchor="middle">GAD</textPath></text>
+            <text class="gad-faq-badge-bottom"><textPath href="#gadFaqBottomArc" startOffset="50%" text-anchor="middle">Guide</textPath></text>
+            <path class="gad-faq-badge-heart" d="M50 67 C44 61 31 53 31 43 C31 36 36 32 42 32 C46 32 49 34 50 38 C51 34 54 32 58 32 C64 32 69 36 69 43 C69 53 56 61 50 67 Z" fill="url(#gadFaqHeartFill)"></path>
+            <path class="gad-faq-badge-star" d="M76 22 L78 27 L83 29 L78 31 L76 36 L74 31 L69 29 L74 27 Z" fill="#ffdf6c"></path>
+            <path class="gad-faq-badge-star gad-faq-badge-star-small" d="M21 27 L22.5 30 L26 31.5 L22.5 33 L21 36 L19.5 33 L16 31.5 L19.5 30 Z" fill="#c8b9ff"></path>
+        </svg>
     </button>
 </aside>
 
@@ -46,14 +62,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 3.8rem;
-        height: 3.8rem;
+        width: 5.25rem;
+        height: 5.25rem;
         padding: 0;
         border: 0;
         border-radius: 50%;
-        color: #fff;
-        background: #a594f9;
-        box-shadow: 0 10px 24px rgba(76, 29, 149, .22);
+        color: #5b43b2;
+        background: transparent;
+        box-shadow: none;
         cursor: grab;
         touch-action: none;
         transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
@@ -67,36 +83,40 @@
     }
 
     .gad-faq-launcher:active { cursor: grabbing; }
-    .gad-faq-launcher-icon {
-        position: relative;
-        display: grid;
+    .gad-faq-launcher-badge {
         width: 100%;
         height: 100%;
-        place-items: center;
-        border-radius: 50%;
-        background: transparent;
-        font-size: 1.7rem;
+        overflow: visible;
+        filter: drop-shadow(0 7px 12px rgba(76, 29, 149, .20));
     }
-    .gad-faq-launcher-icon > .bi-heart-fill {
-        display: block;
+    .gad-faq-badge-top,
+    .gad-faq-badge-bottom {
+        fill: #5b43b2;
+        font-family: 'Nunito', sans-serif;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 1.4px;
+    }
+    .gad-faq-badge-bottom {
+        font-size: 8.5px;
+        letter-spacing: .8px;
+    }
+    .gad-faq-badge-heart {
+        filter: drop-shadow(0 3px 2px rgba(67, 43, 143, .38));
+        transform-origin: 50px 50px;
         animation: gadFaqHeart30s 30s ease-in-out infinite;
-        transform-origin: center;
     }
-    .gad-faq-launcher-stars {
-        position: absolute;
-        top: .55rem;
-        right: .55rem;
-        color: #fff4a8;
-        font-size: .72rem;
-        filter: drop-shadow(0 2px 4px rgba(92,55,171,.22));
+    .gad-faq-badge-star {
+        filter: drop-shadow(0 1.5px 1px rgba(92,55,171,.28));
     }
-    .gad-faq-launcher-label,
-    .gad-faq-launcher-grip { display: none; }
+    .gad-faq-badge-star-small {
+        opacity: .75;
+    }
     @keyframes gadFaqHeart30s {
         0%, 92%, 100% { transform: scale(1); }
-        94% { transform: scale(1.55); }
-        96% { transform: scale(.92); }
-        98% { transform: scale(1.38); }
+        94% { transform: scale(1.38); }
+        96% { transform: scale(.94); }
+        98% { transform: scale(1.28); }
     }
 
     .gad-faq-widget.gad-faq-wiggle .gad-faq-launcher {
@@ -161,8 +181,7 @@
 
     @media (max-width: 575.98px) {
         .gad-faq-widget { right: .65rem; bottom: max(.65rem, env(safe-area-inset-bottom)); }
-        .gad-faq-launcher { width: 3.45rem; height: 3.45rem; }
-        .gad-faq-launcher-icon { width: 100%; height: 100%; font-size: 1.45rem; }
+        .gad-faq-launcher { width: 4.65rem; height: 4.65rem; }
         .gad-faq-panel { width: min(21rem, calc(100vw - 1rem)); height: min(68dvh, 31rem); min-height: min(15rem, calc(100dvh - 2rem)); border-radius: 1rem; }
         .gad-faq-open-below .gad-faq-panel { transform-origin: top right; }
         .gad-faq-messages { padding: .75rem; }
