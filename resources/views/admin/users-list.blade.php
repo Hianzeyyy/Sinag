@@ -100,8 +100,6 @@
             'BS Information Technology' => 'Bachelor of Science in Information Technology',
             'BS Information Technology (BSIT)' => 'Bachelor of Science in Information Technology',
             'BSIT' => 'Bachelor of Science in Information Technology',
-            'Bsa' => 'Bachelor of Science in Accountancy',
-            'BSA' => 'Bachelor of Science in Accountancy',
             'Bsit' => 'Bachelor of Science in Information Technology',
             'BS Business Administration' => 'Bachelor of Science in Business Administration',
             'BS Business Administration (BSBA)' => 'Bachelor of Science in Business Administration',

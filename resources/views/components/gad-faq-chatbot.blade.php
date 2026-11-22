@@ -22,6 +22,7 @@
         <div class="gad-faq-footnote"><i class="bi bi-shield-heart"></i> FAQ guide only · For personal support, message the GAD Office.</div>
     </section>
     <button type="button" class="gad-faq-launcher" id="gadFaqLauncher" aria-label="Open GAD FAQ assistant" aria-expanded="false" title="GAD Guide — drag to move">
+        <span class="gad-faq-badge-words" aria-hidden="true"><strong>GAD</strong><strong>Guide</strong></span>
         <svg class="gad-faq-launcher-badge" viewBox="0 0 100 112" aria-hidden="true">
             <defs>
                 <filter id="gadFaqBadgeShadow" x="-30%" y="-30%" width="160%" height="160%">
@@ -33,10 +34,8 @@
                     <stop offset="100%" stop-color="#6648c5"></stop>
                 </linearGradient>
             </defs>
-            <text class="gad-faq-badge-top" x="50" y="10" text-anchor="middle">GAD</text>
             <path d="M18 23 C18 15 24 10 32 10 H68 C76 10 82 16 82 24 V49 C82 57 76 63 68 63 H43 L30 73 L33 63 H32 C24 63 18 57 18 49 Z" fill="#ffffff" filter="url(#gadFaqBadgeShadow)"></path>
             <path class="gad-faq-badge-heart" d="M50 54 C44 49 34 42 34 34 C34 28 38 24 44 24 C47 24 49 26 50 29 C51 26 53 24 56 24 C62 24 66 28 66 34 C66 42 56 49 50 54 Z" fill="url(#gadFaqHeartFill)"></path>
-            <text class="gad-faq-badge-bottom" x="50" y="108" text-anchor="middle">Guide</text>
             <path class="gad-faq-badge-star" d="M70 16 L72 21 L77 23 L72 25 L70 30 L68 25 L63 23 L68 21 Z" fill="#ffdf6c"></path>
             <path class="gad-faq-badge-star gad-faq-badge-star-small" d="M24 25 L25.5 28 L29 29.5 L25.5 31 L24 34 L22.5 31 L19 29.5 L22.5 28 Z" fill="#c8b9ff"></path>
         </svg>
@@ -60,8 +59,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 4.9rem;
-        height: 5.5rem;
+        width: 5.5rem;
+        height: 5.8rem;
         padding: 0;
         border: 0;
         border-radius: 50%;
@@ -82,22 +81,34 @@
 
     .gad-faq-launcher:active { cursor: grabbing; }
     .gad-faq-launcher-badge {
-        width: 100%;
-        height: 100%;
+        width: 4.65rem;
+        height: 5.2rem;
         overflow: visible;
         filter: drop-shadow(0 7px 12px rgba(76, 29, 149, .20));
     }
-    .gad-faq-badge-top,
-    .gad-faq-badge-bottom {
-        fill: #5b43b2;
+    .gad-faq-badge-words {
+        position: absolute;
+        top: -.05rem;
+        left: 50%;
+        z-index: 2;
+        display: flex;
+        align-items: baseline;
+        gap: .32rem;
+        transform: translateX(-50%);
         font-family: 'Nunito', sans-serif;
-        font-size: 11px;
-        font-weight: 900;
-        letter-spacing: 1.5px;
+        white-space: nowrap;
+        line-height: 1;
+        text-shadow: 0 2px 5px rgba(76, 29, 149, .12);
     }
-    .gad-faq-badge-bottom {
-        font-size: 10px;
-        letter-spacing: 1px;
+    .gad-faq-badge-words strong:first-child {
+        color: #5b43b2;
+        font-size: .72rem;
+        letter-spacing: .08em;
+    }
+    .gad-faq-badge-words strong:last-child {
+        color: #7257d9;
+        font-size: .82rem;
+        letter-spacing: .02em;
     }
     .gad-faq-badge-heart {
         filter: drop-shadow(0 3px 2px rgba(67, 43, 143, .38));
@@ -106,6 +117,8 @@
     }
     .gad-faq-badge-star {
         filter: drop-shadow(0 1.5px 1px rgba(92,55,171,.28));
+        transform-origin: center;
+        animation: gadFaqStar30s 30s ease-in-out infinite;
     }
     .gad-faq-badge-star-small {
         opacity: .75;
@@ -115,6 +128,12 @@
         94% { transform: scale(1.38); }
         96% { transform: scale(.94); }
         98% { transform: scale(1.28); }
+    }
+    @keyframes gadFaqStar30s {
+        0%, 92%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        94% { transform: scale(1.55) rotate(12deg); opacity: 1; }
+        96% { transform: scale(.85) rotate(-8deg); opacity: .75; }
+        98% { transform: scale(1.35) rotate(6deg); opacity: 1; }
     }
 
     .gad-faq-widget.gad-faq-wiggle .gad-faq-launcher {
@@ -179,7 +198,7 @@
 
     @media (max-width: 575.98px) {
         .gad-faq-widget { right: .65rem; bottom: max(.65rem, env(safe-area-inset-bottom)); }
-        .gad-faq-launcher { width: 4.45rem; height: 5rem; }
+        .gad-faq-launcher { width: 5rem; height: 5.15rem; }
         .gad-faq-panel { width: min(21rem, calc(100vw - 1rem)); height: min(68dvh, 31rem); min-height: min(15rem, calc(100dvh - 2rem)); border-radius: 1rem; }
         .gad-faq-open-below .gad-faq-panel { transform-origin: top right; }
         .gad-faq-messages { padding: .75rem; }

@@ -113,7 +113,6 @@
         <div class="col-12 col-sm-6 col-lg-3">
             <select id="departmentFilter" name="department" class="form-select form-select-sm">
                 <option value="">All Departments</option>
-                <option value="Bachelor of Science in Accountancy">BSA</option>
                 <option value="Bachelor Industrial Technology - Major in Electrical Technology">Electrical Technology</option>
                 <option value="Bachelor Industrial Technology - Major in Food Management Service">Food Management</option>
                 <option value="Bachelor Industrial Technology - Major in Mechanical Technology">Mechanical Technology</option>
@@ -122,6 +121,14 @@
                 <option value="Bachelor Secondary Education">BSEd</option>
                 <option value="BS Business Administration">BSBA</option>
                 <option value="BS Information Technology" {{ request('department') === 'BS Information Technology' ? 'selected' : '' }}>BSIT</option>
+                <option value="College of Technology and Business">College of Technology and Business</option>
+                <option value="College of Education">College of Education</option>
+                <option value="Office of the Registrar">Office of the Registrar</option>
+                <option value="Human Resource Office">Human Resource Office</option>
+                <option value="Finance Office">Finance Office</option>
+                <option value="Library">Library</option>
+                <option value="IT Services">IT Services</option>
+                <option value="Student Affairs Office">Student Affairs Office</option>
             </select>
         </div>
     </div>

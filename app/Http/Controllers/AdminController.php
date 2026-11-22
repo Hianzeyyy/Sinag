@@ -369,7 +369,6 @@ class AdminController extends Controller
             ->when($request->filled('department'), function ($query) use ($request) {
                 $department = $request->input('department');
                 $aliases = [
-                    'Bachelor of Science in Accountancy' => ['Bachelor of Science in Accountancy', 'Bsa', 'BSA'],
                     'BS Information Technology (BSIT)' => ['BS Information Technology (BSIT)', 'BS Information Technology', 'BSIT', 'Bsit'],
                     'BS Business Administration (BSBA)' => ['BS Business Administration (BSBA)', 'BS Business Administration', 'BSBA'],
                     'Bachelor of Elementary Education (BEEd)' => ['Bachelor of Elementary Education (BEEd)', 'Bachelor of Elementary Education', 'BEEd'],
@@ -398,7 +397,6 @@ class AdminController extends Controller
             ->first();
         $departmentType = $request->input('account_type');
         $studentDepartments = [
-            'Bachelor of Science in Accountancy' => 'Bachelor of Science in Accountancy',
             'Bachelor Industrial Technology - Major in Electrical Technology' => 'Bachelor in Industrial Technology - Major in Electrical Technology',
             'Bachelor Industrial Technology - Major in Food Management Service' => 'Bachelor in Industrial Technology - Major in Food Management Service',
             'Bachelor Industrial Technology - Major in Mechanical Technology' => 'Bachelor in Industrial Technology - Major in Mechanical Technology',
@@ -410,14 +408,24 @@ class AdminController extends Controller
             'BS Business Administration (BSBA)' => 'Bachelor of Science in Business Administration',
             'BS Information Technology (BSIT)' => 'Bachelor of Science in Information Technology',
         ];
-        $employeeDepartments = [
+        $teachingDepartments = [
             'College of Technology and Business' => 'College of Technology and Business',
             'College of Education' => 'College of Education',
         ];
+        $nonTeachingDepartments = [
+            'Non-Teaching' => 'Non-Teaching',
+            'Office of the Registrar' => 'Office of the Registrar',
+            'Human Resource Office' => 'Human Resource Office',
+            'Finance Office' => 'Finance Office',
+            'Library' => 'Library',
+            'IT Services' => 'IT Services',
+            'Student Affairs Office' => 'Student Affairs Office',
+        ];
         $departments = match ($departmentType) {
             'student' => $studentDepartments,
-            'teaching', 'non_teaching' => $employeeDepartments,
-            default => $studentDepartments + $employeeDepartments,
+            'teaching' => $teachingDepartments,
+            'non_teaching' => $nonTeachingDepartments,
+            default => $studentDepartments + $teachingDepartments + $nonTeachingDepartments,
         };
 
         return view('admin.users-list', compact('users', 'userCounts', 'departments', 'filteredUserCount'));
