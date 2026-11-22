@@ -209,6 +209,70 @@
     <div class="alert border-0 shadow-sm rounded-4 mx-auto mb-4" role="status" style="max-width:1100px;background:#f3efff;color:#5b4b9b;">
         <i class="bi bi-person-vcard-fill me-2"></i>{{ session('personal_data_required') }}
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('.pd-edit-card form[action="{{ route('profile.update') }}"], .pd-page form[action="{{ route('profile.update') }}"]');
+        if (!form) return;
+
+        form.addEventListener('submit', function () {
+            const valueOf = (root, selector) => root.querySelector(selector)?.value.trim() || '';
+            const education = Array.from(form.querySelectorAll('[data-education-row]')).map(function (row) {
+                return {
+                    level: row.dataset.level,
+                    school: valueOf(row, '[data-school]'),
+                    degree: valueOf(row, '[data-degree]'),
+                    from: valueOf(row, '[data-from]'),
+                    to: valueOf(row, '[data-to]')
+                };
+            }).filter(function (row) {
+                return row.school || row.degree || row.from || row.to;
+            });
+
+            const civilRow = form.querySelector('[data-civil-row]');
+            const civil = civilRow ? [{
+                career: valueOf(civilRow, '[data-career]'),
+                rating: valueOf(civilRow, '[data-rating]'),
+                exam_date: valueOf(civilRow, '[data-exam-date]'),
+                exam_place: valueOf(civilRow, '[data-exam-place]'),
+                license_num: valueOf(civilRow, '[data-license-num]')
+            }] : [];
+            const workRow = form.querySelector('[data-work-row]');
+            const work = workRow ? [{
+                position: valueOf(workRow, '[data-position]'),
+                department: valueOf(workRow, '[data-department]'),
+                from: valueOf(workRow, '[data-from]'),
+                to: valueOf(workRow, '[data-to]'),
+                appointment_status: valueOf(workRow, '[data-appointment-status]')
+            }] : [];
+            const voluntaryRow = form.querySelector('[data-voluntary-row]');
+            const voluntary = voluntaryRow ? [{
+                org_name: valueOf(voluntaryRow, '[data-org-name]'),
+                org_address: valueOf(voluntaryRow, '[data-org-address]'),
+                hours: valueOf(voluntaryRow, '[data-hours]'),
+                position: valueOf(voluntaryRow, '[data-position]')
+            }] : [];
+            const gadRow = form.querySelector('[data-gad-row]');
+            const gad = gadRow ? [{
+                title: valueOf(gadRow, '[data-title]'),
+                from: valueOf(gadRow, '[data-from]'),
+                to: valueOf(gadRow, '[data-to]'),
+                hours: valueOf(gadRow, '[data-hours]'),
+                conducted_by: valueOf(gadRow, '[data-conducted-by]')
+            }] : [];
+
+            const setJson = (id, value) => {
+                const input = form.querySelector('#' + id);
+                if (input) input.value = JSON.stringify(value);
+            };
+            setJson('employeeEducationJson', education);
+            setJson('civilServiceJson', civil.filter(function (row) { return Object.values(row).some(Boolean); }));
+            setJson('workExperienceJson', work.filter(function (row) { return Object.values(row).some(Boolean); }));
+            setJson('voluntaryWorkJson', voluntary.filter(function (row) { return Object.values(row).some(Boolean); }));
+            setJson('gadTrainingJson', gad.filter(function (row) { return Object.values(row).some(Boolean); }));
+        });
+    });
+    </script>
 @endif
 
 @if(session('status'))
@@ -322,7 +386,24 @@
                     </div>
                     <div>
                         <label class="pd-label">Department / Course <span class="text-danger">*</span></label>
-                        <input type="text" name="department" value="{{ old('department', $user->department ?? '') }}" class="form-control pd-input" required>
+                        <select name="department" class="form-select pd-select" required>
+                            <option value="">Select department or office</option>
+                            @if($isEmployee)
+                                @if(($user->employee_category ?? '') === 'non_teaching')
+                                    @foreach(['Non-Teaching','Office of the Registrar','Human Resource Office','Finance Office','Library','IT Services','Student Affairs Office'] as $department)
+                                        <option value="{{ $department }}" {{ old('department', $user->department ?? '') === $department ? 'selected' : '' }}>{{ $department }}</option>
+                                    @endforeach
+                                @else
+                                    @foreach(['College of Technology and Business','College of Education'] as $department)
+                                        <option value="{{ $department }}" {{ old('department', $user->department ?? '') === $department ? 'selected' : '' }}>{{ $department }}</option>
+                                    @endforeach
+                                @endif
+                            @else
+                                @foreach(['Bachelor Industrial Technology - Major in Electrical Technology','Bachelor Industrial Technology - Major in Food Management Service','Bachelor Industrial Technology - Major in Mechanical Technology','Bachelor of Elementary Education (BEEd)','Bachelor of Technology and Livelihood Education (BTLEd)','Bachelor Secondary Education (BSEd) - Major in English','Bachelor Secondary Education (BSEd) - Major in Math','Bachelor Secondary Education (BSEd) - Major in Science','BS Business Administration (BSBA)','BS Information Technology (BSIT)'] as $department)
+                                    <option value="{{ $department }}" {{ old('department', $user->department ?? '') === $department ? 'selected' : '' }}>{{ $department }}</option>
+                                @endforeach
+                            @endif
+                        </select>
                     </div>
                     <div>
                         <label class="pd-label">Cloak Alias</label>
@@ -428,13 +509,81 @@
             @if($isEmployee)
                 <div class="pd-form-section pd-edit-section" data-section="employee">
                     <div class="pd-form-section pd-edit-section-title">Employee Records</div>
-                    <p class="pd-form-note mb-3">Enter your information in plain text. You may use multiple lines for separate entries.</p>
+                    @php
+                        $decodeEmployeeRecord = function (?string $json) {
+                            $decoded = json_decode((string) $json, true);
+                            return is_array($decoded) ? $decoded : [];
+                        };
+                        $employeeEducationData = $decodeEmployeeRecord($employeeEducationJson);
+                        $civilServiceData = $decodeEmployeeRecord($civilServiceJson);
+                        $workExperienceData = $decodeEmployeeRecord($workExperienceJson);
+                        $voluntaryWorkData = $decodeEmployeeRecord($voluntaryWorkJson);
+                        $gadTrainingData = $decodeEmployeeRecord($gadTrainingJson);
+                        $civilServiceRow = $civilServiceData[0] ?? [];
+                        $workExperienceRow = $workExperienceData[0] ?? [];
+                        $voluntaryWorkRow = $voluntaryWorkData[0] ?? [];
+                        $gadTrainingRow = $gadTrainingData[0] ?? [];
+                    @endphp
                     <div class="pd-grid">
-                        <div style="grid-column: 1 / -1;"><label class="pd-label">Employee Education</label><textarea name="employee_education_json" class="form-control pd-textarea" rows="8">{{ old('employee_education_json', $employeeEducationJson) }}</textarea></div>
-                        <div style="grid-column: 1 / -1;"><label class="pd-label">Civil Service Eligibility</label><textarea name="civil_service_eligibility_json" class="form-control pd-textarea" rows="8">{{ old('civil_service_eligibility_json', $civilServiceJson) }}</textarea></div>
-                        <div style="grid-column: 1 / -1;"><label class="pd-label">Work Experience</label><textarea name="work_experience_json" class="form-control pd-textarea" rows="8">{{ old('work_experience_json', $workExperienceJson) }}</textarea></div>
-                        <div style="grid-column: 1 / -1;"><label class="pd-label">Voluntary Work</label><textarea name="voluntary_work_json" class="form-control pd-textarea" rows="8">{{ old('voluntary_work_json', $voluntaryWorkJson) }}</textarea></div>
-                        <div style="grid-column: 1 / -1;"><label class="pd-label">GAD Training</label><textarea name="gad_training_json" class="form-control pd-textarea" rows="8">{{ old('gad_training_json', $gadTrainingJson) }}</textarea></div>
+                        <div style="grid-column:1/-1">
+                            <label class="pd-label">Employee Education</label>
+                            @foreach(['Elementary','High School','Vocational/Trade Course','College','Graduate Studies'] as $index => $level)
+                                @php($educationRow = $employeeEducationData[$index] ?? [])
+                                <div class="border rounded-3 p-3 mb-2 bg-light" data-education-row data-level="{{ $level }}">
+                                    <div class="fw-bold small mb-2">{{ $level }}</div>
+                                    <div class="row g-2">
+                                        <div class="col-md-4"><label class="pd-label">Name of School</label><input type="text" class="form-control pd-input" data-school value="{{ $educationRow['school'] ?? '' }}"></div>
+                                        <div class="col-md-4"><label class="pd-label">Degree / Course</label><input type="text" class="form-control pd-input" data-degree value="{{ $educationRow['degree'] ?? '' }}"></div>
+                                        <div class="col-md-2"><label class="pd-label">From</label><input type="text" class="form-control pd-input" data-from value="{{ $educationRow['from'] ?? '' }}"></div>
+                                        <div class="col-md-2"><label class="pd-label">To</label><input type="text" class="form-control pd-input" data-to value="{{ $educationRow['to'] ?? '' }}"></div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div style="grid-column:1/-1" data-civil-row>
+                            <label class="pd-label">Civil Service Eligibility</label>
+                            <div class="row g-2">
+                                <div class="col-md-4"><label class="pd-label">Career Service / RA 1080</label><input type="text" class="form-control pd-input" data-career value="{{ $civilServiceRow['career'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Rating</label><input type="text" class="form-control pd-input" data-rating value="{{ $civilServiceRow['rating'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Exam Date</label><input type="text" class="form-control pd-input" data-exam-date value="{{ $civilServiceRow['exam_date'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Exam Place</label><input type="text" class="form-control pd-input" data-exam-place value="{{ $civilServiceRow['exam_place'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">License No.</label><input type="text" class="form-control pd-input" data-license-num value="{{ $civilServiceRow['license_num'] ?? '' }}"></div>
+                            </div>
+                        </div>
+                        <div style="grid-column:1/-1" data-work-row>
+                            <label class="pd-label">Work Experience</label>
+                            <div class="row g-2">
+                                <div class="col-md-3"><label class="pd-label">Position / Title</label><input type="text" class="form-control pd-input" data-position value="{{ $workExperienceRow['position'] ?? '' }}"></div>
+                                <div class="col-md-3"><label class="pd-label">Department / Office</label><input type="text" class="form-control pd-input" data-department value="{{ $workExperienceRow['department'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">From</label><input type="text" class="form-control pd-input" data-from value="{{ $workExperienceRow['from'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">To</label><input type="text" class="form-control pd-input" data-to value="{{ $workExperienceRow['to'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Status</label><input type="text" class="form-control pd-input" data-appointment-status value="{{ $workExperienceRow['appointment_status'] ?? '' }}"></div>
+                            </div>
+                        </div>
+                        <div style="grid-column:1/-1" data-voluntary-row>
+                            <label class="pd-label">Voluntary Work</label>
+                            <div class="row g-2">
+                                <div class="col-md-4"><label class="pd-label">Organization</label><input type="text" class="form-control pd-input" data-org-name value="{{ $voluntaryWorkRow['org_name'] ?? '' }}"></div>
+                                <div class="col-md-4"><label class="pd-label">Address</label><input type="text" class="form-control pd-input" data-org-address value="{{ $voluntaryWorkRow['org_address'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Hours</label><input type="text" class="form-control pd-input" data-hours value="{{ $voluntaryWorkRow['hours'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Position / Work</label><input type="text" class="form-control pd-input" data-position value="{{ $voluntaryWorkRow['position'] ?? '' }}"></div>
+                            </div>
+                        </div>
+                        <div style="grid-column:1/-1" data-gad-row>
+                            <label class="pd-label">GAD Training / Seminar</label>
+                            <div class="row g-2">
+                                <div class="col-md-4"><label class="pd-label">Title</label><input type="text" class="form-control pd-input" data-title value="{{ $gadTrainingRow['title'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">From</label><input type="text" class="form-control pd-input" data-from value="{{ $gadTrainingRow['from'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">To</label><input type="text" class="form-control pd-input" data-to value="{{ $gadTrainingRow['to'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Hours</label><input type="text" class="form-control pd-input" data-hours value="{{ $gadTrainingRow['hours'] ?? '' }}"></div>
+                                <div class="col-md-2"><label class="pd-label">Conducted By</label><input type="text" class="form-control pd-input" data-conducted-by value="{{ $gadTrainingRow['conducted_by'] ?? '' }}"></div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="employee_education_json" id="employeeEducationJson">
+                        <input type="hidden" name="civil_service_eligibility_json" id="civilServiceJson">
+                        <input type="hidden" name="work_experience_json" id="workExperienceJson">
+                        <input type="hidden" name="voluntary_work_json" id="voluntaryWorkJson">
+                        <input type="hidden" name="gad_training_json" id="gadTrainingJson">
                     </div>
                 </div>
             @endif

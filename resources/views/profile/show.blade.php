@@ -368,7 +368,24 @@
                     </div>
                     <div>
                         <label class="form-label fw-bold text-uppercase small text-muted">Department / Course</label>
-                        <input type="text" name="department" value="{{ old('department', $user->department) }}" maxlength="255" class="form-control profile-input" placeholder="Your course or department" required>
+                        <select name="department" class="form-select profile-input" required>
+                            <option value="">Select department or office</option>
+                            @if(strtolower((string) ($user->account_type ?? $user->role)) === 'employee')
+                                @if(strtolower((string) $user->employee_category) === 'non_teaching')
+                                    @foreach(['Non-Teaching','Office of the Registrar','Human Resource Office','Finance Office','Library','IT Services','Student Affairs Office'] as $department)
+                                        <option value="{{ $department }}" {{ old('department', $user->department) === $department ? 'selected' : '' }}>{{ $department }}</option>
+                                    @endforeach
+                                @else
+                                    @foreach(['College of Technology and Business','College of Education'] as $department)
+                                        <option value="{{ $department }}" {{ old('department', $user->department) === $department ? 'selected' : '' }}>{{ $department }}</option>
+                                    @endforeach
+                                @endif
+                            @else
+                                @foreach(['Bachelor Industrial Technology - Major in Electrical Technology','Bachelor Industrial Technology - Major in Food Management Service','Bachelor Industrial Technology - Major in Mechanical Technology','Bachelor of Elementary Education (BEEd)','Bachelor of Technology and Livelihood Education (BTLEd)','Bachelor Secondary Education (BSEd) - Major in English','Bachelor Secondary Education (BSEd) - Major in Math','Bachelor Secondary Education (BSEd) - Major in Science','BS Business Administration (BSBA)','BS Information Technology (BSIT)'] as $department)
+                                    <option value="{{ $department }}" {{ old('department', $user->department) === $department ? 'selected' : '' }}>{{ $department }}</option>
+                                @endforeach
+                            @endif
+                        </select>
                         @error('department')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
                     <div>

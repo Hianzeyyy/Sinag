@@ -159,23 +159,48 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-uppercase" style="letter-spacing: 1px; color:#A594F9;">Department / Program</label>
                                 <select name="course" class="form-select border-0 bg-white shadow-sm" required style="border-radius: 14px; font-size: 1rem;">
-                                    <option value="" disabled {{ old('course') ? '' : 'selected' }}>Select your department or program...</option>
-                                    <optgroup label="Student Programs">
-                                    <option value="Bachelor Industrial Technology - Major in Electrical Technology" {{ old('course') === 'Bachelor Industrial Technology - Major in Electrical Technology' ? 'selected' : '' }}>Bachelor Industrial Technology - Major in Electrical Technology</option>
-                                    <option value="Bachelor Industrial Technology - Major in Food Management Service" {{ old('course') === 'Bachelor Industrial Technology - Major in Food Management Service' ? 'selected' : '' }}>Bachelor Industrial Technology - Major in Food Management Service</option>
-                                    <option value="Bachelor Industrial Technology - Major in Mechanical Technology" {{ old('course') === 'Bachelor Industrial Technology - Major in Mechanical Technology' ? 'selected' : '' }}>Bachelor Industrial Technology - Major in Mechanical Technology</option>
-                                    <option value="Bachelor of Elementary Education (BEEd)" {{ old('course') === 'Bachelor of Elementary Education (BEEd)' ? 'selected' : '' }}>Bachelor of Elementary Education (BEEd)</option>
-                                    <option value="Bachelor of Technology and Livelihood Education (BTLEd)" {{ old('course') === 'Bachelor of Technology and Livelihood Education (BTLEd)' ? 'selected' : '' }}>Bachelor of Technology and Livelihood Education (BTLEd)</option>
-                                    <option value="Bachelor Secondary Education (BSEd) - Major in English" {{ old('course') === 'Bachelor Secondary Education (BSEd) - Major in English' ? 'selected' : '' }}>Bachelor Secondary Education (BSEd) - Major in English</option>
-                                    <option value="Bachelor Secondary Education (BSEd) - Major in Math" {{ old('course') === 'Bachelor Secondary Education (BSEd) - Major in Math' ? 'selected' : '' }}>Bachelor Secondary Education (BSEd) - Major in Math</option>
-                                    <option value="Bachelor Secondary Education (BSEd) - Major in Science" {{ old('course') === 'Bachelor Secondary Education (BSEd) - Major in Science' ? 'selected' : '' }}>Bachelor Secondary Education (BSEd) - Major in Science</option>
-                                    <option value="BS Business Administration (BSBA)" {{ old('course') === 'BS Business Administration (BSBA)' ? 'selected' : '' }}>BS Business Administration (BSBA)</option>
-                                    <option value="BS Information Technology (BSIT)" {{ old('course') === 'BS Information Technology (BSIT)' ? 'selected' : '' }}>BS Information Technology (BSIT)</option>
-                                    </optgroup>
-                                    <optgroup label="Employee Departments">
-                                    <option value="College of Technology and Business" {{ old('course') === 'College of Technology and Business' ? 'selected' : '' }}>College of Technology and Business</option>
-                                    <option value="College of Education" {{ old('course') === 'College of Education' ? 'selected' : '' }}>College of Education</option>
-                                    </optgroup>
+                                    @php
+                                        $reportAccountType = strtolower((string) (Auth::user()->account_type ?? Auth::user()->role));
+                                        $reportEmployeeCategory = strtolower((string) Auth::user()->employee_category);
+                                        $reportDepartment = old('course', Auth::user()->department);
+                                    @endphp
+                                    @if($reportAccountType === 'employee')
+                                        @if($reportEmployeeCategory === 'non_teaching')
+                                            @foreach([
+                                                'Non-Teaching',
+                                                'Office of the Registrar',
+                                                'Human Resource Office',
+                                                'Finance Office',
+                                                'Library',
+                                                'IT Services',
+                                                'Student Affairs Office',
+                                            ] as $department)
+                                                <option value="{{ $department }}" {{ $reportDepartment === $department ? 'selected' : '' }}>{{ $department }}</option>
+                                            @endforeach
+                                        @else
+                                            @foreach([
+                                                'College of Technology and Business',
+                                                'College of Education',
+                                            ] as $department)
+                                                <option value="{{ $department }}" {{ $reportDepartment === $department ? 'selected' : '' }}>{{ $department }}</option>
+                                            @endforeach
+                                        @endif
+                                    @else
+                                        @foreach([
+                                            'Bachelor Industrial Technology - Major in Electrical Technology',
+                                            'Bachelor Industrial Technology - Major in Food Management Service',
+                                            'Bachelor Industrial Technology - Major in Mechanical Technology',
+                                            'Bachelor of Elementary Education (BEEd)',
+                                            'Bachelor of Technology and Livelihood Education (BTLEd)',
+                                            'Bachelor Secondary Education (BSEd) - Major in English',
+                                            'Bachelor Secondary Education (BSEd) - Major in Math',
+                                            'Bachelor Secondary Education (BSEd) - Major in Science',
+                                            'BS Business Administration (BSBA)',
+                                            'BS Information Technology (BSIT)',
+                                        ] as $department)
+                                            <option value="{{ $department }}" {{ $reportDepartment === $department ? 'selected' : '' }}>{{ $department }}</option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </div>
                             <div class="col-md-6">
