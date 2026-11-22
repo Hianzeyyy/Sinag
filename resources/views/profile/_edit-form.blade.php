@@ -549,13 +549,17 @@
                     <div class="pd-grid">
                         <div style="grid-column:1/-1">
                             <label class="pd-label">Employee Education</label>
-                            @foreach(['Elementary','High School','Vocational/Trade Course','College','Graduate Studies'] as $index => $level)
+                            @foreach(['Elementary','High School','Vocational/Trade Course','College'] as $index => $level)
                                 @php($educationRow = $employeeEducationData[$index] ?? [])
                                 <div class="border rounded-3 p-3 mb-2 bg-light" data-education-row data-level="{{ $level }}">
                                     <div class="fw-bold small mb-2">{{ $level }}</div>
                                     <div class="row g-2">
                                         <div class="col-md-4"><label class="pd-label">Name of School</label><input type="text" class="form-control pd-input" data-school value="{{ $educationRow['school'] ?? '' }}"></div>
-                                        <div class="col-md-4"><label class="pd-label">Degree / Course / Certification</label><input type="text" class="form-control pd-input" data-degree value="{{ $educationRow['degree'] ?? '' }}"></div>
+                                        @if($level === 'College')
+                                            <div class="col-md-4"><label class="pd-label">Degree / Course / Certification</label><input type="text" class="form-control pd-input" data-degree value="{{ $educationRow['degree'] ?? '' }}"></div>
+                                        @else
+                                            <div class="col-md-4"><label class="pd-label">Other / Notes</label><input type="text" class="form-control pd-input" data-degree value="{{ $educationRow['degree'] ?? '' }}" placeholder="Optional"></div>
+                                        @endif
                                         <div class="col-md-2"><label class="pd-label">From</label><input type="text" class="form-control pd-input" data-from value="{{ $educationRow['from'] ?? '' }}"></div>
                                         <div class="col-md-2"><label class="pd-label">To</label><input type="text" class="form-control pd-input" data-to value="{{ $educationRow['to'] ?? '' }}"></div>
                                     </div>

@@ -395,7 +395,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach(['Elementary','High School','Vocational/Trade Course','College','Graduate Studies'] as $index => $level)
+                    @foreach(['Elementary','High School','Vocational/Trade Course','College'] as $index => $level)
                         <tr>
                             <td><strong>{{ $level }}</strong></td>
                             <td>{{ $employeeEducation[$index]['school'] ?? 'N/A' }}</td>

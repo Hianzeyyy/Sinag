@@ -113,12 +113,12 @@
     .gad-faq-badge-heart {
         filter: drop-shadow(0 3px 2px rgba(67, 43, 143, .38));
         transform-origin: 50px 50px;
-        animation: gadFaqHeart30s 20s ease-in-out infinite;
+        animation: gadFaqHeart30s 15s ease-in-out infinite;
     }
     .gad-faq-badge-star {
         filter: drop-shadow(0 1.5px 1px rgba(92,55,171,.28));
         transform-origin: center;
-        animation: gadFaqStar30s 20s ease-in-out infinite;
+        animation: gadFaqStar30s 15s ease-in-out infinite;
     }
     .gad-faq-badge-star-small {
         opacity: .75;
