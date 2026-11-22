@@ -39,7 +39,7 @@
         .password-reset-pending-count { align-self: flex-start; }
     }
     .password-reset-table-wrap { overscroll-behavior-x: contain; }
-    .password-reset-table { min-width: 850px; }
+    .password-reset-table { min-width: 760px; }
     .password-reset-table thead th {
         padding: .95rem .8rem;
         background: #f5f2ff;
@@ -78,52 +78,44 @@
 
     @media (max-width: 767.98px) {
         .password-reset-table-wrap {
-            overflow: visible;
-            border-radius: 1rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: .75rem;
         }
         .password-reset-table {
-            min-width: 0;
-            display: block;
+            min-width: 760px;
+            display: table;
         }
         .password-reset-table thead {
-            display: none;
+            display: table-header-group;
         }
         .password-reset-table tbody {
-            display: grid;
-            gap: .75rem;
-            padding: .75rem;
+            display: table-row-group;
         }
         .password-reset-table tbody tr {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: .65rem;
-            padding: .85rem;
-            border: 1px solid #ebe6fb;
-            border-radius: .9rem;
-            background: #fff;
+            display: table-row;
         }
         .password-reset-table tbody td,
         .password-reset-table-wrap th:first-child,
         .password-reset-table-wrap td:first-child {
             position: static;
-            min-width: 0;
-            padding: 0;
-            border: 0;
+            min-width: 7rem;
+            padding: .7rem .55rem;
             background: transparent;
         }
+        .password-reset-table-wrap th:first-child,
+        .password-reset-table-wrap td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            min-width: 10rem;
+            background: #fff;
+        }
         .password-reset-table tbody td::before {
-            content: attr(data-label);
-            display: block;
-            margin-bottom: .25rem;
-            color: #7a748d;
-            font-size: .68rem;
-            font-weight: 800;
-            letter-spacing: .04em;
-            text-transform: uppercase;
+            content: none;
         }
         .password-reset-action {
-            grid-column: 1 / -1;
-            text-align: left !important;
+            text-align: right;
         }
         .password-requester-name { max-width: none; }
     }
