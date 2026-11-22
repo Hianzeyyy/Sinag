@@ -2,6 +2,50 @@
 
 @section('content')
 <style>
+    .view-modal-footer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 1rem;
+    }
+    .view-modal-actions {
+        display: flex;
+        align-items: end;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: .65rem;
+    }
+    .view-modal-actions form {
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+    }
+    .view-modal-actions form input {
+        min-width: 170px;
+    }
+    .view-modal-action-btn,
+    .view-user-btn {
+        transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+    .view-modal-action-btn:hover,
+    .view-modal-action-btn:focus-visible,
+    .view-user-btn:hover,
+    .view-user-btn:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(91, 75, 155, .18);
+        filter: brightness(.98);
+    }
+    @media (max-width: 767.98px) {
+        .view-modal-footer { grid-template-columns: 1fr; align-items: stretch; }
+        .view-modal-actions { justify-content: stretch; }
+        .view-modal-actions form,
+        .view-modal-actions a,
+        .view-modal-actions .btn { width: 100%; }
+        .view-modal-actions form { flex-direction: column; align-items: stretch; }
+        .view-modal-actions form input { min-width: 0; width: 100%; }
+    }
+</style>
+<style>
     .sinag-violet-badge { background: #d8cdfc; color: #5b4b9b; border-color: #c4b5fd !important; }
     .sinag-yellow-badge { background: #f8cb12; color: #4a3500; border-color: #e5b900 !important; }
     #viewUserModal .modal-content { transform: translateY(24px) scale(.97); opacity: 0; transition: transform .28s ease, opacity .28s ease; }
@@ -205,7 +249,28 @@
                 <div id="viewUserIdPictureWrap" class="mt-4 d-none"><div class="small text-muted fw-bold text-uppercase mb-2">ID Picture</div><img id="viewUserIdPicture" src="" alt="Selected user's ID picture" class="img-fluid rounded-3 border" style="max-height:320px;object-fit:contain;"><p id="viewUserIdPictureError" class="small text-muted mt-2 mb-0 d-none">The ID picture could not be loaded from storage.</p></div>
                 <div class="text-muted small mt-4"><i class="bi bi-calendar-event me-1"></i>Registered <span id="viewUserJoined"></span></div>
             </div>
-            <div class="modal-footer border-0 bg-light justify-content-between"><div class="d-flex gap-2"><a id="viewPersonalDataLink" href="#" class="btn btn-outline-secondary"><i class="bi bi-person-vcard me-1"></i>Full personal information</a><form id="viewApproveForm" method="POST" class="d-none">@csrf<input type="text" name="approval_note" class="form-control form-control-sm mb-2" maxlength="2000" placeholder="Optional approval note" aria-label="Optional approval note"><button type="submit" class="btn" style="background:#8f72f5;color:#fff;"><i class="bi bi-check-circle me-1"></i>Approve</button></form><form id="viewRejectForm" method="POST" class="d-none">@csrf<input type="hidden" name="rejection_reason" value="Rejected by administrator"><button type="submit" class="btn btn-warning"><i class="bi bi-x-circle me-1"></i>Reject</button></form></div><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+            <div class="modal-footer view-modal-footer border-0 bg-light">
+                <a id="viewPersonalDataLink" href="#" class="btn btn-outline-secondary view-modal-action-btn">
+                    <i class="bi bi-person-vcard me-1"></i>Full personal information
+                </a>
+                <div class="view-modal-actions">
+                    <form id="viewApproveForm" method="POST" class="d-none">
+                        @csrf
+                        <input type="text" name="approval_note" class="form-control form-control-sm" maxlength="2000" placeholder="Optional approval note" aria-label="Optional approval note">
+                        <button type="submit" class="btn view-modal-action-btn" style="background:#8f72f5;color:#fff;">
+                            <i class="bi bi-check-circle me-1"></i>Approve
+                        </button>
+                    </form>
+                    <form id="viewRejectForm" method="POST" class="d-none">
+                        @csrf
+                        <input type="hidden" name="rejection_reason" value="Rejected by administrator">
+                        <button type="submit" class="btn btn-warning view-modal-action-btn">
+                            <i class="bi bi-x-circle me-1"></i>Reject
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary view-modal-action-btn" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

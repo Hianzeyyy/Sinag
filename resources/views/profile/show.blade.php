@@ -194,6 +194,7 @@
     .profile-edit-grid {
         display: grid;
         gap: 0.95rem;
+        align-items: start;
     }
 
     @media (min-width: 768px) {
@@ -204,6 +205,7 @@
 
     .profile-input {
         border-radius: 0.95rem;
+        min-height: 44px;
         border: 1px solid rgba(165,148,249,0.22);
         background: rgba(255,255,255,0.95);
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);

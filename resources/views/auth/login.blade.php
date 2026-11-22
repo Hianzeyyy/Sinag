@@ -173,17 +173,17 @@
     .login-password-hidden { -webkit-text-security: disc; }
     .login-password-toggle {
         position: absolute;
-        right: .85rem;
-        top: 0 !important;
-        bottom: 0 !important;
+        right: .55rem;
+        top: 50%;
+        bottom: auto;
         z-index: 4;
-        width: 2rem;
-        height: 2rem;
+        width: 2.25rem;
+        height: 2.25rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transform: none !important;
-        margin: auto 0 !important;
+        transform: translateY(-50%) !important;
+        margin: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
     }
@@ -418,6 +418,16 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: .5rem;
     }
+    .register-detail-row {
+        grid-column: 1 / -1 !important;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+        align-items: end;
+    }
+    .register-detail-row > div {
+        min-width: 0;
+    }
     .register-upload-field {
         display: flex;
         min-height: 8.75rem;
@@ -499,6 +509,7 @@
         .register-fields > .register-name-field { grid-column: span 6; }
         .register-password-row { grid-template-columns: 1fr; }
         .register-upload-row { grid-template-columns: 1fr; }
+        .register-detail-row { grid-template-columns: 1fr; }
         .register-upload-field { min-height: auto; }
         .register-upload-field .form-label { min-height: 0; }
     }
@@ -618,8 +629,8 @@
                                             <span class="login-input-icon input-group-text border-0">
                                                 <i class="bi bi-key fs-5"></i>
                                             </span>
-                                              <input id="password" type="text" class="login-input login-password-hidden form-control form-control-lg border-0 py-3 pe-5"
-                                                  name="login_password" required autocomplete="off" style="font-size: 1rem;">
+                                              <input id="password" type="password" class="login-input form-control form-control-lg border-0 py-3 pe-5"
+                                                  name="login_password" required autocomplete="new-password" style="font-size: 1rem;">
                                               <input type="hidden" name="password" id="passwordValue">
                                             <button class="btn p-0 bg-transparent border-0 text-secondary login-password-toggle" type="button" id="togglePassword"
                                                     title="Toggle password visibility" aria-label="Toggle password visibility">
@@ -705,19 +716,21 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-12">
-                                        <label class="form-label small fw-bold text-uppercase">Department / Course</label>
-                                        <select class="form-select" name="department" id="department" required data-old-department="{{ old('department') }}">
-                                            <option value="" disabled {{ old('department') ? '' : 'selected' }}>Choose course or department</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12 d-none" id="employeeCategoryField">
-                                        <label class="form-label small fw-bold text-uppercase">Employee Category</label>
-                                        <select class="form-select" name="employee_category" id="employeeCategory">
-                                            <option value="" disabled {{ old('employee_category') ? '' : 'selected' }}>Choose employee category</option>
-                                            <option value="teaching" {{ old('employee_category') === 'teaching' ? 'selected' : '' }}>Teaching</option>
-                                            <option value="non_teaching" {{ old('employee_category') === 'non_teaching' ? 'selected' : '' }}>Non-teaching</option>
-                                        </select>
+                                    <div class="col-12 register-detail-row">
+                                        <div>
+                                            <label class="form-label small fw-bold text-uppercase">Department / Course</label>
+                                            <select class="form-select" name="department" id="department" required data-old-department="{{ old('department') }}">
+                                                <option value="" disabled {{ old('department') ? '' : 'selected' }}>Choose course or department</option>
+                                            </select>
+                                        </div>
+                                        <div class="d-none" id="employeeCategoryField">
+                                            <label class="form-label small fw-bold text-uppercase">Employee Category</label>
+                                            <select class="form-select" name="employee_category" id="employeeCategory">
+                                                <option value="" disabled {{ old('employee_category') ? '' : 'selected' }}>Choose employee category</option>
+                                                <option value="teaching" {{ old('employee_category') === 'teaching' ? 'selected' : '' }}>Teaching</option>
+                                                <option value="non_teaching" {{ old('employee_category') === 'non_teaching' ? 'selected' : '' }}>Non-teaching</option>
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="col-12 register-upload-row">
                                         <div class="register-upload-field">
@@ -898,9 +911,12 @@
     }
 
     togglePassword.addEventListener('click', function () {
-        password.classList.toggle('login-password-hidden');
-        eyeIcon.classList.toggle('bi-eye');
-        eyeIcon.classList.toggle('bi-eye-slash');
+        const isHidden = password.type === 'password';
+        password.type = isHidden ? 'text' : 'password';
+        eyeIcon.classList.toggle('bi-eye', isHidden);
+        eyeIcon.classList.toggle('bi-eye-slash', !isHidden);
+        togglePassword.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        togglePassword.setAttribute('aria-pressed', String(isHidden));
     });
 
     loginPassword.addEventListener('input', updatePasswordHint);
@@ -923,11 +939,11 @@
             button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
             button.setAttribute('aria-pressed', String(isHidden));
         });
+    });
 
-        registerForm.querySelectorAll('input[name="phone_number"]').forEach(function (phoneInput) {
-            phoneInput.addEventListener('input', function () {
-                phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '').slice(0, 11);
-            });
+    registerForm.querySelectorAll('input[name="phone_number"]').forEach(function (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '').slice(0, 11);
         });
     });
 
@@ -966,10 +982,24 @@
             ['College of Technology and Business', 'College of Technology and Business'],
             ['College of Education', 'College of Education']
         ]
+        ,
+        non_teaching: [
+            ['Non-Teaching', 'Non-Teaching'],
+            ['Office of the Registrar', 'Office of the Registrar'],
+            ['Human Resource Office', 'Human Resource Office'],
+            ['Finance Office', 'Finance Office'],
+            ['Library', 'Library'],
+            ['IT Services', 'IT Services'],
+            ['Student Affairs Office', 'Student Affairs Office']
+        ]
     };
     function updateDepartmentOptions() {
         department.innerHTML = '<option value="" disabled selected>Choose course or department</option>';
-        (departmentOptions[accountType.value] || []).forEach(function ([value, label]) {
+        let departmentKey = accountType.value;
+        if (departmentKey === 'employee') {
+            departmentKey = employeeCategory.value === 'non_teaching' ? 'non_teaching' : 'employee';
+        }
+        (departmentOptions[departmentKey] || []).forEach(function ([value, label]) {
             department.add(new Option(label, value, false, value === oldDepartment));
         });
         const isEmployee = accountType.value === 'employee';
@@ -978,6 +1008,7 @@
         if (!isEmployee) employeeCategory.value = '';
     }
     accountType.addEventListener('change', updateDepartmentOptions);
+    employeeCategory.addEventListener('change', updateDepartmentOptions);
     updateDepartmentOptions();
 
     const passwordLockoutModal = document.getElementById('passwordLockoutModal');

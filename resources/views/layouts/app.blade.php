@@ -1866,7 +1866,7 @@
             @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
             <aside class="sidebar" id="mainSidebar">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <a class="navbar-brand-custom mb-0" href="{{ url('/') }}" style="display:inline-flex; align-items:center; gap:0.7rem; background:#b9adf4; border-radius:1.2rem; padding:0.2em 1.1em 0.2em 1.1em;">
+                    <a class="navbar-brand-custom mb-0" href="{{ route('admin.dashboard') }}" style="display:inline-flex; align-items:center; gap:0.7rem; background:#b9adf4; border-radius:1.2rem; padding:0.2em 1.1em 0.2em 1.1em;">
                         <span style="font-size:1.35rem; font-weight:900; letter-spacing:1px; line-height:1;">
                             <span style="color:#fdfdfd;">SI</span><span style="color:#facc15;">NAG</span>
                         </span>

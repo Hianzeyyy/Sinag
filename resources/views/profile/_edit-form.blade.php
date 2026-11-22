@@ -33,6 +33,13 @@
     .pd-grid > div {
         min-width: 0;
     }
+    .pd-grid .pd-label {
+        margin-bottom: .45rem;
+    }
+    .pd-grid .pd-input,
+    .pd-grid .pd-select {
+        min-height: 44px;
+    }
 
     .pd-form-section {
         color: var(--pd-violet-deep);

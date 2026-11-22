@@ -1,6 +1,49 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    .user-management-action,
+    .user-status-filter,
+    .view-user-btn {
+        transition: transform .18s ease, box-shadow .18s ease, filter .18s ease, background-color .18s ease;
+    }
+    .user-management-action:hover,
+    .user-management-action:focus-visible,
+    .user-status-filter:hover,
+    .user-status-filter:focus-visible,
+    .view-user-btn:hover,
+    .view-user-btn:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(91, 75, 155, .16);
+        filter: brightness(.98);
+    }
+    .user-resume-modal .modal-footer {
+        align-items: end;
+        gap: .75rem;
+    }
+    .user-resume-actions {
+        display: flex;
+        align-items: end;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: .5rem;
+    }
+    .user-resume-actions form {
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+    }
+    .user-resume-actions form input { min-width: 180px; }
+    @media (max-width: 767.98px) {
+        .user-resume-modal .modal-footer,
+        .user-resume-actions,
+        .user-resume-actions form { width: 100%; }
+        .user-resume-modal .modal-footer { flex-direction: column; align-items: stretch; }
+        .user-resume-actions { justify-content: stretch; }
+        .user-resume-actions form { flex-direction: column; align-items: stretch; }
+        .user-resume-actions form input { min-width: 0; width: 100%; }
+    }
+</style>
 <div class="container py-4">
     @php
         $pendingCount = (int) ($userCounts->pending ?? 0);
@@ -186,13 +229,13 @@
                                     <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         <input type="text" name="approval_note" class="form-control form-control-sm d-inline-block align-middle" style="width:160px;" maxlength="2000" placeholder="Optional approval note" aria-label="Optional approval note">
-                                        <button type="submit" class="btn btn-sm rounded-pill px-3" style="background:#8f72f5;color:#fff;border:0;">Approve</button>
+                                        <button type="submit" class="btn btn-sm rounded-pill px-3 user-management-action" style="background:#8f72f5;color:#fff;border:0;">Approve</button>
                                     </form>
 
                                     <form action="{{ route('admin.users.reject', $user->id) }}" method="POST" class="d-inline reject-user-form">
                                         @csrf
                                         <input type="hidden" name="rejection_reason" value="">
-                                        <button type="submit" class="btn btn-sm rounded-pill px-3 ms-1" style="background:#facc15;color:#4a3500;border:0;">Reject</button>
+                                        <button type="submit" class="btn btn-sm rounded-pill px-3 ms-1 user-management-action" style="background:#facc15;color:#4a3500;border:0;">Reject</button>
                                     </form>
                                 @else
                                     <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#userProfileModal{{ $user->id }}">
@@ -245,9 +288,9 @@
                                         <span class="small text-muted">Registered {{ optional($user->created_at)->format('M d, Y') }}</span>
                                         <a href="{{ route('admin.users.personal-data', $user->id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-person-vcard me-1"></i>Full personal information</a>
                                         @if($user->role !== 'admin' && $accountStatus === 'pending')
-                                            <div class="d-flex gap-2">
-                                                <form action="{{ route('admin.users.approve', $user->id) }}" method="POST">@csrf<input type="text" name="approval_note" class="form-control form-control-sm mb-2" maxlength="2000" placeholder="Optional approval note" aria-label="Optional approval note"><button class="btn btn-sm" style="background:#8f72f5;color:#fff;">Approve</button></form>
-                                                <form action="{{ route('admin.users.reject', $user->id) }}" method="POST" class="reject-user-form">@csrf<input type="hidden" name="rejection_reason" value=""><button class="btn btn-sm" style="background:#facc15;color:#4a3500;">Reject</button></form>
+                                            <div class="user-resume-actions">
+                                                <form action="{{ route('admin.users.approve', $user->id) }}" method="POST">@csrf<input type="text" name="approval_note" class="form-control form-control-sm" maxlength="2000" placeholder="Optional approval note" aria-label="Optional approval note"><button class="btn btn-sm user-management-action" style="background:#8f72f5;color:#fff;">Approve</button></form>
+                                                <form action="{{ route('admin.users.reject', $user->id) }}" method="POST" class="reject-user-form">@csrf<input type="hidden" name="rejection_reason" value=""><button class="btn btn-sm user-management-action" style="background:#facc15;color:#4a3500;">Reject</button></form>
                                             </div>
                                         @endif
                                     </div>

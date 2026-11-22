@@ -357,13 +357,26 @@
         employee: [
             ['College of Technology and Business', 'College of Technology and Business'],
             ['College of Education', 'College of Education']
+        ],
+        non_teaching: [
+            ['Non-Teaching', 'Non-Teaching'],
+            ['Office of the Registrar', 'Office of the Registrar'],
+            ['Human Resource Office', 'Human Resource Office'],
+            ['Finance Office', 'Finance Office'],
+            ['Library', 'Library'],
+            ['IT Services', 'IT Services'],
+            ['Student Affairs Office', 'Student Affairs Office']
         ]
     };
 
     function updateDepartmentOptions() {
         const type = accountType.value;
         department.innerHTML = '<option value="" disabled selected>Choose course or department</option>';
-        (departmentOptions[type] || []).forEach(function ([value, label]) {
+        let departmentKey = type;
+        if (departmentKey === 'employee') {
+            departmentKey = employeeCategory.value === 'non_teaching' ? 'non_teaching' : 'employee';
+        }
+        (departmentOptions[departmentKey] || []).forEach(function ([value, label]) {
             const option = new Option(label, value, false, value === oldDepartment);
             department.add(option);
         });
@@ -374,6 +387,7 @@
     }
 
     accountType.addEventListener('change', updateDepartmentOptions);
+    employeeCategory.addEventListener('change', updateDepartmentOptions);
     updateDepartmentOptions();
 
     document.querySelectorAll('.password-toggle').forEach(function (button) {
