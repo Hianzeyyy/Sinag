@@ -2239,7 +2239,7 @@
             const notice = document.createElement('div');
             notice.setAttribute('role', 'status');
             notice.setAttribute('aria-live', 'polite');
-            notice.style.cssText = 'position:static;margin:1rem 1rem 0 auto;z-index:1080;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none;max-width:min(90vw,24rem)';
+            notice.style.cssText = 'position:fixed;top:max(1rem,env(safe-area-inset-top));right:max(1rem,env(safe-area-inset-right));z-index:1105;width:min(24rem,calc(100vw - 2rem));box-sizing:border-box;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none';
             document.body.appendChild(notice);
             let hideNotice;
             let unreadCount = {{ (int) ($adminNotifications['messages'] ?? 0) }};
@@ -2310,7 +2310,7 @@
             const notice = document.createElement('div');
             notice.setAttribute('role', 'status');
             notice.setAttribute('aria-live', 'polite');
-            notice.style.cssText = 'position:fixed;top:max(1rem,env(safe-area-inset-top));right:1rem;z-index:1090;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none;max-width:min(90vw,24rem)';
+            notice.style.cssText = 'position:fixed;top:max(1rem,env(safe-area-inset-top));right:max(1rem,env(safe-area-inset-right));z-index:1105;width:min(24rem,calc(100vw - 2rem));box-sizing:border-box;background:#35216d;color:#fff;padding:.8rem 1rem;border-radius:.75rem;box-shadow:0 8px 28px #0003;display:none';
             document.body.appendChild(notice);
 
             let hideNotice;
@@ -2336,7 +2336,7 @@
             async function checkUserNotifications() {
                 try {
                     const response = await fetch('{{ route('student.notifications.feed') }}', { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
-                    if (!response.ok) return;
+                    if (!response.ok) throw new Error('User notification check failed (' + response.status + ').');
                     const data = await response.json();
                     if (data.app_notification?.message) {
                         notifyUser(data.app_notification.message, data.app_notification.url || '{{ route('home') }}');
