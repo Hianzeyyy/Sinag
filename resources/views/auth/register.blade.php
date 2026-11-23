@@ -222,7 +222,7 @@
                                 </div>
                             </div>
 
-                            <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" id="registerForm">
+                            <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" id="registerForm" autocomplete="off">
                                 @csrf
                                 <div class="row">
                                     <div class="col-md-4 mb-3 register-name-field">
@@ -295,15 +295,15 @@
                                     <div class="col-6 mb-3">
                                         <label class="form-label text-white small fw-bold text-uppercase">Password</label>
                                         <div class="input-group">
-                                            <input type="password" class="form-control" name="password" id="registerPassword" autocomplete="new-password" required>
-                                            <button type="button" class="btn password-toggle" data-password-target="registerPassword" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                                            <input type="password" class="form-control" name="password" id="registerPassword" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" data-lpignore="true" data-1p-ignore="true" required>
+                                            <button type="button" class="btn password-toggle" data-password-target="registerPassword" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye-slash"></i></button>
                                         </div>
                                     </div>
                                     <div class="col-6 mb-4">
                                         <label class="form-label text-white small fw-bold text-uppercase">Confirm Password</label>
                                         <div class="input-group">
-                                            <input type="password" class="form-control" name="password_confirmation" id="registerPasswordConfirmation" autocomplete="new-password" required>
-                                            <button type="button" class="btn password-toggle" data-password-target="registerPasswordConfirmation" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                                            <input type="password" class="form-control" name="password_confirmation" id="registerPasswordConfirmation" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" data-lpignore="true" data-1p-ignore="true" required>
+                                            <button type="button" class="btn password-toggle" data-password-target="registerPasswordConfirmation" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye-slash"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -396,9 +396,10 @@
             const icon = button.querySelector('i');
             const isHidden = input.type === 'password';
             input.type = isHidden ? 'text' : 'password';
-            icon.classList.toggle('bi-eye', !isHidden);
-            icon.classList.toggle('bi-eye-slash', isHidden);
+            icon.classList.toggle('bi-eye', isHidden);
+            icon.classList.toggle('bi-eye-slash', !isHidden);
             button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+            button.setAttribute('aria-pressed', String(isHidden));
         });
     });
 </script>

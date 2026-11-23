@@ -677,8 +677,8 @@
                                                 <i class="bi bi-key fs-5"></i>
                                             </span>
                                               <input id="password" type="password" class="login-input login-password-input form-control form-control-lg border-0 py-3"
-                                                  name="login_password" required autocomplete="new-password" style="font-size: 1rem;">
-                                              <input type="hidden" name="password" id="passwordValue">
+                                                  name="login_password" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" data-lpignore="true" data-1p-ignore="true" style="font-size: 1rem;">
+                                              <input type="hidden" name="password" id="passwordValue" autocomplete="off">
                                             <button class="login-password-eye input-group-text login-password-toggle" type="button" id="togglePassword"
                                                     title="Toggle password visibility" aria-label="Toggle password visibility">
                                                 <i class="bi bi-eye-slash fs-5" id="eyeIcon" style="opacity: 0.9; transition: opacity 0.2s ease, transform 0.2s ease;"></i>
@@ -717,7 +717,7 @@
                                 </div>
                             </form>
 
-                            <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" id="registerForm" class="auth-pane sign-up-pane">
+                            <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" id="registerForm" class="auth-pane sign-up-pane" autocomplete="off">
                                 @csrf
                                 <h3 class="text-white fw-bold mb-1">Create Account</h3>
                                 <p class="text-white-50 small mb-3">Join the SINAG network today.</p>
@@ -799,7 +799,7 @@
                                         <div>
                                             <label class="form-label small fw-bold text-uppercase">Password</label>
                                             <div class="position-relative">
-                                                <input type="password" class="form-control register-password" name="password" id="registerPassword" autocomplete="new-password" required>
+                                                <input type="password" class="form-control register-password" name="password" id="registerPassword" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" data-lpignore="true" data-1p-ignore="true" required>
                                                 <button type="button" class="register-password-toggle" data-password-target="registerPassword" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye-slash"></i></button>
                                             </div>
                                             <div class="form-text" id="registerPasswordHint" hidden>Use at least 8 characters.</div>
@@ -807,7 +807,7 @@
                                         <div>
                                             <label class="form-label small fw-bold text-uppercase">Confirm Password</label>
                                             <div class="position-relative">
-                                                <input type="password" class="form-control register-password" name="password_confirmation" id="registerPasswordConfirmation" autocomplete="new-password" required>
+                                                <input type="password" class="form-control register-password" name="password_confirmation" id="registerPasswordConfirmation" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" data-lpignore="true" data-1p-ignore="true" required>
                                                 <button type="button" class="register-password-toggle" data-password-target="registerPasswordConfirmation" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye-slash"></i></button>
                                             </div>
                                         </div>
@@ -985,8 +985,8 @@
             const icon = button.querySelector('i');
             const isHidden = input.type === 'password';
             input.type = isHidden ? 'text' : 'password';
-            icon.classList.toggle('bi-eye', !isHidden);
-            icon.classList.toggle('bi-eye-slash', isHidden);
+            icon.classList.toggle('bi-eye', isHidden);
+            icon.classList.toggle('bi-eye-slash', !isHidden);
             button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
             button.setAttribute('aria-pressed', String(isHidden));
         });
