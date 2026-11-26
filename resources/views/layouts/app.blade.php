@@ -324,6 +324,10 @@
             border-radius: 1rem;
         }
 
+        .admin-sidebar .admin-sidebar-close {
+            display: none;
+        }
+
         .admin-sidebar.active .navbar-brand-custom {
             justify-content: flex-start;
             padding: .4rem .65rem;
@@ -860,35 +864,55 @@
         @media (max-width: 1199.98px) {
             .admin-sidebar {
                 position: fixed;
-                inset: 5.5rem auto 1rem .75rem;
+                inset: 0 auto 0 0;
                 z-index: 1101;
-                width: 60px;
-                flex: 0 0 60px;
-                height: auto;
-                max-height: calc(100dvh - 6.5rem);
-                padding: .55rem .35rem;
-                border-radius: 1.25rem;
+                width: min(88vw, 280px);
+                flex: 0 0 min(88vw, 280px);
+                min-width: 0;
+                height: 100vh;
+                height: 100dvh;
+                max-height: 100dvh;
+                padding: max(1.25rem, env(safe-area-inset-top)) 1rem max(1.25rem, env(safe-area-inset-bottom));
+                border-radius: 0 1.25rem 1.25rem 0;
                 overflow-y: auto;
+                transform: translateX(calc(-100% - 1rem));
+                visibility: hidden;
+                transition: transform .24s ease, visibility .24s ease;
             }
 
             .main-wrapper .admin-sidebar.active {
                 position: fixed;
-                inset: 5.5rem auto 1rem .75rem;
-                width: min(88vw, 248px);
-                flex-basis: min(88vw, 248px);
-                height: auto;
-                max-height: calc(100dvh - 6.5rem);
-                padding: 1rem;
-                border-radius: 1.25rem;
+                inset: 0 auto 0 0;
+                width: min(88vw, 280px);
+                flex-basis: min(88vw, 280px);
+                height: 100vh;
+                height: 100dvh;
+                max-height: 100dvh;
+                padding: max(1.25rem, env(safe-area-inset-top)) 1rem max(1.25rem, env(safe-area-inset-bottom));
+                border-radius: 0 1.25rem 1.25rem 0;
                 overflow-y: auto;
+                transform: translateX(0);
+                visibility: visible;
                 box-shadow: 12px 0 32px rgba(15, 23, 42, .16);
+            }
+
+            .admin-sidebar.active .admin-sidebar-close {
+                display: inline-flex !important;
+            }
+
+            .admin-sidebar-toggle-floating {
+                display: none !important;
+            }
+
+            .admin-mobile-sidebar-toggle {
+                display: inline-flex !important;
             }
 
             .main-wrapper .admin-main {
                 width: auto;
                 max-width: none;
                 min-width: 0;
-                margin-left: 88px;
+                margin-left: 0;
                 flex: 1 1 0%;
             }
         }
@@ -1229,6 +1253,20 @@
             cursor: pointer;
             color: #1e293b;
             transition: all 0.2s;
+        }
+
+        .admin-mobile-sidebar-toggle {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: 0;
+            border-radius: 10px;
+            background: #A594F9;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(165, 148, 249, .2);
         }
 
         .student-top-nav {
@@ -3156,6 +3194,9 @@
                         <img src="{{ asset('images/gadlogo.png') }}" alt="GAD Logo" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                         <span class="admin-brand-name ms-2" style="font-size:1.2rem;font-weight:900;letter-spacing:1px;line-height:1;color:#8f72f5;">SI<span style="color:#facc15;">NAG</span></span>
                     </a>
+                    <button type="button" class="btn border-0 admin-sidebar-close" onclick="toggleSidebar()" aria-label="Close sidebar">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
                 </div>
 
                 <nav class="nav-menu mt-4 d-flex flex-column h-100" aria-label="Admin main menu">
@@ -3289,6 +3330,11 @@
             @auth
                 <header class="top-navbar {{ in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true) || Auth::user()->isGadCoordinator() ? 'student-navbar' : 'admin-navbar' }} {{ Auth::user()->role !== 'admin' ? 'student-floating-enabled' : '' }}">
                     <div class="d-flex align-items-center gap-3">
+                        @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
+                            <button type="button" class="sidebar-toggle admin-mobile-sidebar-toggle" id="adminMobileSidebarToggle" onclick="toggleSidebar()" aria-label="Open admin menu" aria-controls="mainSidebar" aria-expanded="false">
+                                <i class="bi bi-list fs-5" aria-hidden="true"></i>
+                            </button>
+                        @endif
                         @if(Auth::user()->role !== 'admin' || Auth::user()->isGadCoordinator())
                             <button type="button" class="student-sidebar-toggle" onclick="toggleSidebar('studentSidebar', 'studentSidebarBackdrop')" aria-label="Open navigation menu" aria-controls="studentSidebar" aria-expanded="false">
                                 <i class="bi bi-list fs-5"></i>
@@ -3461,12 +3507,15 @@
                     backdrop.classList.toggle('is-visible', isOpen);
                     backdrop.classList.toggle('d-none', !isOpen);
                 }
-                const toggle = document.querySelector(`[aria-controls="${sidebarId}"]`);
-                if (toggle) {
+                document.querySelectorAll(`[aria-controls="${sidebarId}"]`).forEach(function (toggle) {
                     toggle.setAttribute('aria-expanded', String(isOpen));
-                    toggle.setAttribute('aria-label', isOpen ? 'Collapse admin sidebar' : 'Expand admin sidebar');
-                    toggle.setAttribute('title', isOpen ? 'Collapse sidebar' : 'Expand sidebar');
-                }
+                    if (toggle.id === 'adminSidebarToggle') {
+                        toggle.setAttribute('aria-label', isOpen ? 'Collapse admin sidebar' : 'Expand admin sidebar');
+                        toggle.setAttribute('title', isOpen ? 'Collapse sidebar' : 'Expand sidebar');
+                    } else if (toggle.id === 'adminMobileSidebarToggle') {
+                        toggle.setAttribute('aria-label', isOpen ? 'Close admin menu' : 'Open admin menu');
+                    }
+                });
                 if (sidebarId === 'mainSidebar') {
                     window.requestAnimationFrame(function () {
                         window.dispatchEvent(new Event('admin-sidebar-layout'));

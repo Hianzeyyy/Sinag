@@ -212,6 +212,7 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Export report')
             ->assertSee('exportGadFilePreview')
             ->assertSee('admin-sidebar-toggle-floating')
+            ->assertSee('admin-mobile-sidebar-toggle')
             ->assertSee('admin-dashboard-nav-row')
             ->assertSee('bi-chevron-right admin-sidebar-toggle-icon')
             ->assertDontSee('aria-label="Close admin navigation"');
