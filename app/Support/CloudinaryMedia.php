@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class CloudinaryMedia
 {
-    private const REFERENCE_PATTERN = '#^cloudinary://(upload|authenticated)/(image|raw)/([A-Za-z0-9_./-]+)$#D';
+    private const REFERENCE_PATTERN = '#^cloudinary://(upload|authenticated)/(image|video|raw)/([A-Za-z0-9_./-]+)$#D';
 
     public function __construct(private Cloudinary $cloudinary) {}
 
@@ -110,7 +110,10 @@ class CloudinaryMedia
             throw new RuntimeException('The media folder is invalid.');
         }
 
-        $resourceType = str_starts_with(strtolower($mimeType), 'image/') ? 'image' : 'raw';
+        $normalizedMimeType = strtolower($mimeType);
+        $resourceType = str_starts_with($normalizedMimeType, 'image/')
+            ? 'image'
+            : ($normalizedMimeType === 'video/mp4' ? 'video' : 'raw');
         $publicId = 'sinag/'.$folder.'/'.Str::uuid();
         if ($resourceType === 'raw') {
             $extension = strtolower(preg_replace('/[^A-Za-z0-9]/', '', $extension) ?? '');
@@ -264,15 +267,17 @@ class CloudinaryMedia
 
     private function asset(array $asset): BaseAsset
     {
-        return $asset['resource_type'] === 'raw'
-            ? $this->cloudinary->raw($asset['public_id'])
-            : $this->cloudinary->image($asset['public_id']);
+        return match ($asset['resource_type']) {
+            'video' => $this->cloudinary->video($asset['public_id']),
+            'raw' => $this->cloudinary->raw($asset['public_id']),
+            default => $this->cloudinary->image($asset['public_id']),
+        };
     }
 
     private static function reference(string $deliveryType, string $resourceType, string $publicId): string
     {
         if (! in_array($deliveryType, ['upload', 'authenticated'], true)
-            || ! in_array($resourceType, ['image', 'raw'], true)
+            || ! in_array($resourceType, ['image', 'video', 'raw'], true)
             || self::parseReference("cloudinary://{$deliveryType}/{$resourceType}/{$publicId}") === null) {
             throw new RuntimeException('Cloudinary returned an invalid media reference.');
         }

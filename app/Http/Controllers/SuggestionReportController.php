@@ -13,6 +13,8 @@ class SuggestionReportController extends Controller
 {
     public function storePost(Request $request, Suggestion $suggestion)
     {
+        abort_if($suggestion->archived_at, 404);
+
         $validated = $request->validate(['reason' => ['required', 'string', 'max:500']]);
         $attributes = ['reporter_id' => Auth::id(), 'suggestion_id' => $suggestion->id, 'status' => 'pending'];
         if (!SuggestionReport::where($attributes)->exists()) {

@@ -883,7 +883,7 @@
                                         @endif
                                     @endif
                                     @if($sugg->admin_remarks)
-                                        <div class="p-3 rounded-3 w-100" style="background:#f3efff;color:#5b4b9b;">
+                                        <div class="p-3 rounded-3 w-100 suggestion-admin-note" style="background:#f3efff;color:#5b4b9b;">
                                             <strong>Admin review:</strong> {{ $sugg->admin_remarks }}
                                         </div>
                                     @endif

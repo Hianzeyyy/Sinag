@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Report;
+use App\Models\ReportConsent;
+use App\Models\ReportStatusUpdate;
 use App\Models\User;
 use App\Support\MediaResolver;
 use Illuminate\Support\Facades\Auth;
@@ -59,6 +61,24 @@ class ReportController extends Controller
 
         $reportColumns = array_flip(Schema::getColumnListing('reports'));
 
+        $user = $request->user();
+        $consentAccepted = $user->reportConsents()
+            ->where('version', ReportConsent::VERSION)
+            ->exists();
+        if (! $consentAccepted) {
+            if (! $request->boolean('privacy_consent')) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'privacy_consent' => 'Please review and accept the report privacy notice before submitting.',
+                ]);
+            }
+
+            ReportConsent::create([
+                'user_id' => $user->id,
+                'version' => ReportConsent::VERSION,
+                'accepted_at' => now(),
+            ]);
+        }
+
         // 1. Validation - only enforce fields that exist in the active schema.
         $validationRules = [
             'nature' => ['required', 'string', Rule::in($allowedIncidentTypes)],
@@ -67,7 +87,25 @@ class ReportController extends Controller
             'description' => 'required|string|min:5',
             'location' => 'required|string|max:255',
             'is_anonymous' => ['nullable', 'boolean'],
-            'evidence.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx|max:10240',
+            'evidence' => ['nullable', 'array'],
+            'evidence.*' => [
+                'nullable',
+                'file',
+                'mimes:jpg,jpeg,png,gif,webp,mp4',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! $value instanceof \Illuminate\Http\UploadedFile) {
+                        return;
+                    }
+
+                    $isVideo = strtolower($value->getClientOriginalExtension()) === 'mp4';
+                    $maxKilobytes = $isVideo ? 51200 : 10240;
+                    if ($value->getSize() > $maxKilobytes * 1024) {
+                        $fail($isVideo
+                            ? 'Each MP4 video must be 50 MB or smaller.'
+                            : 'Each image must be 10 MB or smaller.');
+                    }
+                },
+            ],
         ];
 
         if (isset($reportColumns['incident_time'])) {
@@ -88,7 +126,6 @@ class ReportController extends Controller
             ? trim((string) $request->other_nature)
             : $request->nature;
 
-        $user = $request->user();
         $isAnonymous = $request->boolean('is_anonymous');
         if (!$user) {
             return redirect()->route('login');
@@ -148,10 +185,18 @@ class ReportController extends Controller
         }
 
         try {
-            \App\Support\CompatibleInsert::insert(
-                'reports',
-                array_intersect_key($reportData, $reportColumns)
-            );
+            \DB::transaction(function () use ($reportData, $reportColumns): void {
+                $reportId = \App\Support\CompatibleInsert::insert(
+                    'reports',
+                    array_intersect_key($reportData, $reportColumns)
+                );
+
+                ReportStatusUpdate::create([
+                    'report_id' => $reportId,
+                    'to_status' => 'Pending',
+                    'details' => 'Your report was received by the GAD Office.',
+                ]);
+            });
         } catch (\Throwable $exception) {
             $this->logReportFailure($exception, [
                 'user_id' => Auth::id(),
@@ -192,7 +237,7 @@ class ReportController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || ($user->role !== 'admin' && $report->user_id !== $user->id)) {
+        if (!$user || ($user->role !== 'admin' && ! $user->isGadCoordinator() && $report->user_id !== $user->id)) {
             abort(403);
         }
 

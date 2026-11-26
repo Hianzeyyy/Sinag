@@ -31,11 +31,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-install pdo_mysql pdo_pgsql mbstring bcmath exif pcntl gd zip \
     && rm -rf /var/lib/apt/lists/*
 
-# Registration accepts two verification images. Keep PHP's request limits above
-# Laravel's per-file validation limit so uploads are not silently discarded.
+# Keep PHP's request limits above Laravel's per-file validation limits so
+# evidence uploads up to 50 MB are not silently discarded.
 RUN printf '%s\n' \
-    'upload_max_filesize=12M' \
-    'post_max_size=28M' \
+    'upload_max_filesize=50M' \
+    'post_max_size=60M' \
     'max_file_uploads=10' \
     > /usr/local/etc/php/conf.d/99-sinag-uploads.ini
 

@@ -213,7 +213,7 @@
                                 @else<span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2">REJECTED</span>@endif
                             </td>
                             <td class="text-end pe-4">
-                                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm view-user-btn" style="background:#A594F9;border:none;" data-bs-toggle="modal" data-bs-target="#viewUserModal"
+                                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm view-user-btn" style="background:#A594F9;border:none;" data-bs-toggle="modal" data-bs-target="#viewUserModal" data-user-record-id="{{ $user->id }}"
                                     data-user-name="{{ $user->name }}" data-user-alias="{{ $user->cloak_alias ?: 'Not set' }}" data-user-email="{{ $user->email }}" data-user-id="UID-{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}" data-user-type="{{ $displayType }}" data-user-department="{{ $fullDepartment }}" data-user-status="{{ ucfirst($accountStatus) }}" data-user-phone="{{ $user->phone_number ?: 'Not provided' }}" data-user-gender="{{ $user->gender ?: 'Not provided' }}" data-user-age="{{ $user->age ?: 'Not provided' }}" data-user-joined="{{ optional($user->created_at)->format('F d, Y h:i A') }}" data-user-photo="{{ route('profile.photo', $user) }}" data-user-id-picture="{{ ($user->id_image_path ?: $user->selfie_image_path) ? route('profile.verification-image', $user) : '' }}" data-personal-data-url="{{ route('admin.users.personal-data', $user->id) }}" data-approve-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.approve', $user->id) : '' }}" data-reject-url="{{ $user->role !== 'admin' && $accountStatus === 'pending' ? route('admin.users.reject', $user->id) : '' }}">
                                     <i class="bi bi-eye me-1"></i>View
                                 </button>
@@ -346,6 +346,13 @@
             approveForm.action = data.approveUrl || '#';
             rejectForm.action = data.rejectUrl || '#';
         });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const openUserId = new URLSearchParams(window.location.search).get('open');
+        if (openUserId) {
+            document.querySelector(`.view-user-btn[data-user-record-id="${CSS.escape(openUserId)}"]`)?.click();
+        }
     });
 </script>
 @endsection

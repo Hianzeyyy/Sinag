@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $receiver_id
  * @property string $message
  * @property string|null $original_message
+ * @property bool $is_anonymous
  */
 class Message extends Model
 {
@@ -24,11 +25,13 @@ class Message extends Model
         'deleted_at',
         'sender_type',
         'read_at',
+        'is_anonymous',
     ];
 
     protected $casts = [
         'read_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'is_anonymous' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

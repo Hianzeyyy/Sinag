@@ -31,19 +31,19 @@
         font-size: clamp(1.55rem, 4vw, 2.1rem);
         font-weight: 900;
         letter-spacing: 1.2px;
-        background: linear-gradient(90deg, #A594F9 60%, #facc15 100%);
+        background: linear-gradient(90deg, #A594F9 0%, #7658df 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
     .report-anon {
-        background: linear-gradient(90deg, #facc1533 60%, #ede9fe 100%);
+        background: linear-gradient(90deg, #f3efff 0%, #e8e0ff 100%);
         border-radius: 12px;
-        border-left: 6px solid #facc15;
-        box-shadow: 0 2px 12px #facc1533;
+        border-left: 6px solid #8f72f5;
+        box-shadow: 0 2px 12px #a594f922;
     }
     .report-btn {
-        background: linear-gradient(90deg, #A594F9 60%, #facc15 100%);
+        background: linear-gradient(135deg, #8f72f5 0%, #6748c7 100%);
         color: #fff;
         font-weight: 700;
         font-size: 1.05rem;
@@ -78,7 +78,6 @@
             <div class="mb-4 text-center">
                 <img src="{{ asset('images/gadlogo.png') }}" alt="GAD Logo" class="mb-3" style="width:74px; height:74px; border-radius:50%; object-fit:cover; box-shadow:0 8px 24px rgba(124,58,237,0.25);">
                 <h2 class="fw-bold report-title mb-1">File a Safe Spaces Report</h2>
-                <p class="text-muted small mb-1">Your safety is our priority. All reports are handled with strict confidentiality under RA 11313.</p>
                 <p class="small fw-semibold mb-0" style="color:#A594F9;">This is a safe space for students and employees. We are here to listen and help.</p>
             </div>
 
@@ -264,9 +263,9 @@
                                 <span class="input-group-text bg-white border-0" style="border-radius: 12px 0 0 12px;">
                                     <i class="bi bi-paperclip text-secondary"></i>
                                 </span>
-                                <input type="file" name="evidence[]" class="form-control border-0 bg-white shadow-sm" id="inputGroupFile02" multiple style="border-radius: 0 12px 12px 0;">
+                                <input type="file" name="evidence[]" class="form-control border-0 bg-white shadow-sm" id="inputGroupFile02" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,.jpg,.jpeg,.png,.gif,.webp,.mp4" multiple style="border-radius: 0 12px 12px 0;">
                             </div>
-                            <small class="text-muted">Upload screenshots, photos, or documents (Max 10 MB per file).</small>
+                            <small class="text-muted">Upload images (max 10 MB each) or MP4 videos (max 50 MB each).</small>
                         </div>
 
                         <hr class="my-4 opacity-25">
@@ -284,7 +283,7 @@
                             </small>
                         </div>
 
-                        <div class="mt-4 p-3 rounded-3" style="background:#f3efff; border:1px solid #d8cdfc;">
+                        <div class="mt-4 p-3 rounded-3 report-hotline" style="background:#f3efff; border:1px solid #d8cdfc;">
                             <p class="mb-1 fw-bold small" style="color:#5b4b9b;"><i class="bi bi-telephone-fill me-1"></i> Emergency Hotline</p>
                             <p class="mb-0 small text-muted">For immediate assistance, call GAD Emergency Hotline: <span class="fw-bold text-dark">(075) 123-4567</span></p>
                         </div>
@@ -296,8 +295,40 @@
                                 <i class="bi bi-send-fill me-2"></i> Submit Report
                             </button>
                         </div>
+                        <input type="hidden" name="privacy_consent" id="reportPrivacyConsent" value="{{ old('privacy_consent') }}">
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reportPrivacyConsentModal" tabindex="-1" aria-labelledby="reportPrivacyConsentTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="reportPrivacyConsentTitle">Report Terms and Data Privacy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <p class="text-muted">Before submitting, please review how your report information is handled:</p>
+                <ul class="small text-muted ps-3">
+                    <li>Report details and evidence may be reviewed by authorized GAD staff for case handling.</li>
+                    <li>Share only the information needed to address your concern.</li>
+                    <li>Choosing anonymous does not hide identifying information included in your report.</li>
+                </ul>
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="reportPrivacyConsentCheck">
+                    <label class="form-check-label fw-semibold" for="reportPrivacyConsentCheck">
+                        I have read and agree to this report privacy notice.
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn text-white rounded-pill px-4" id="acceptReportPrivacyConsent" style="background:#8f72f5;" disabled>
+                    Agree and Continue
+                </button>
             </div>
         </div>
     </div>
@@ -330,6 +361,42 @@
         const otherWrapper = document.getElementById('other-nature-wrapper');
         const otherInput = document.getElementById('other-nature-input');
         const otherOption = 'Other GAD-related Concern';
+        const reportForm = document.querySelector('.report-glass form');
+        const privacyConsentAccepted = @json($reportConsentAccepted);
+        const privacyConsentInput = document.getElementById('reportPrivacyConsent');
+        const privacyConsentModalElement = document.getElementById('reportPrivacyConsentModal');
+        const privacyConsentModal = privacyConsentModalElement && window.bootstrap
+            ? window.bootstrap.Modal.getOrCreateInstance(privacyConsentModalElement)
+            : null;
+        const privacyConsentCheck = document.getElementById('reportPrivacyConsentCheck');
+        const acceptPrivacyConsentButton = document.getElementById('acceptReportPrivacyConsent');
+
+        reportForm?.addEventListener('submit', function (event) {
+            if (!privacyConsentAccepted && privacyConsentInput?.value !== '1') {
+                event.preventDefault();
+                privacyConsentModal?.show();
+            }
+        });
+
+        privacyConsentCheck?.addEventListener('change', function () {
+            if (acceptPrivacyConsentButton) {
+                acceptPrivacyConsentButton.disabled = !privacyConsentCheck.checked;
+            }
+        });
+
+        acceptPrivacyConsentButton?.addEventListener('click', function () {
+            if (!privacyConsentCheck?.checked || !privacyConsentInput || !reportForm) {
+                return;
+            }
+
+            privacyConsentInput.value = '1';
+            privacyConsentModal?.hide();
+            reportForm.requestSubmit();
+        });
+
+        @if($errors->has('privacy_consent'))
+            privacyConsentModal?.show();
+        @endif
 
         function toggleOtherNatureField() {
             const isOtherSelected = natureSelect && natureSelect.value === otherOption;

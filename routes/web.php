@@ -14,6 +14,7 @@ use App\Http\Controllers\SuggestionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuggestionReportController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\PasswordResetRequestController;
 use App\Http\Controllers\CustomerSatisfactionController;
 use App\Http\Controllers\UserDirectoryController;
@@ -31,6 +32,8 @@ Route::get('/', function () {
 
 // 2. Auth Routes
 Auth::routes(['register' => true, 'reset' => false]);
+Route::get('/auth/google/redirect', [LoginController::class, 'redirectToGoogle'])->name('auth.google.redirect');
+Route::get('/auth/google/callback', [LoginController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 Route::get('/password/request', [ForgotPasswordController::class, 'showRequestForm'])->name('password.code.form');
 Route::post('/password/request', [ForgotPasswordController::class, 'storeRequest'])->middleware('throttle:password-reset-request')->name('password.code.request');
 Route::get('/password/status', [ForgotPasswordController::class, 'showStatusForm'])->name('password.status.form');
@@ -53,6 +56,7 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     // The coordinator shares GAD analytics and report exports, but not other admin tools.
     Route::prefix('admin')->name('admin.')->middleware('can:gad-analytics-access')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+        Route::get('/report-tracking', [AdminController::class, 'coordinatorReports'])->name('report-tracking');
         Route::get('/gad-report/export/{format}/{period?}', [ExportGADReportController::class, 'export'])
             ->where('format', 'pdf|excel')
             ->name('gad-report.export');
@@ -80,6 +84,14 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::delete('/suggestions/reports/{suggestionReport}', [AdminController::class, 'deleteReportedSuggestion'])->name('suggestions.reports.delete');
         Route::post('/suggestions/reports/{suggestionReport}/dismiss', [AdminController::class, 'dismissSuggestionReport'])->name('suggestions.reports.dismiss');
         Route::get('/users', [AdminController::class, 'users'])->name('users');
+        Route::get('/archive', [AdminController::class, 'archive'])->name('archive');
+        Route::patch('/archive/reports/{id}/restore', [AdminController::class, 'restoreReport'])->name('archive.reports.restore');
+        Route::patch('/archive/suggestions/{id}/restore', [AdminController::class, 'restoreSuggestion'])->name('archive.suggestions.restore');
+        Route::delete('/archive/reports/{id}', [AdminController::class, 'permanentlyDeleteReport'])->name('archive.reports.delete');
+        Route::delete('/archive/suggestions/{id}', [AdminController::class, 'permanentlyDeleteSuggestion'])->name('archive.suggestions.delete');
+        Route::get('/activity-log', [AdminController::class, 'activityLog'])->name('activity-log');
+        Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+        Route::patch('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
         Route::get('/gad-schedules', [AdminController::class, 'gadSchedules'])->name('gad-schedules.index');
         Route::post('/gad-schedules/sync', [AdminController::class, 'syncGadSchedule'])->name('gad-schedules.sync');
         Route::post('/office-info', [AdminController::class, 'updateOfficeInfo'])->name('office-info.update');
@@ -119,6 +131,7 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     // --- STUDENT ROUTES ---
     Route::prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentController::class, 'index'])->name('dashboard');
+        Route::get('/settings', [StudentController::class, 'settings'])->name('settings');
 
         // Core Modules
         Route::get('/report', [StudentController::class, 'report'])->middleware('profile.complete')->name('report');

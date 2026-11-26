@@ -367,6 +367,7 @@ class SuggestionPersonalDataGateTest extends TestCase
             $table->timestamp('resolution_notice_sent_at')->nullable();
             $table->timestamps();
         });
+        $this->createReportSupportTables();
         Schema::create('suggestions', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id');
@@ -383,6 +384,7 @@ class SuggestionPersonalDataGateTest extends TestCase
                 'description' => 'A test report description.',
                 'location' => 'Test location',
                 'gender' => 'Female',
+                'privacy_consent' => '1',
             ])
             ->assertRedirect(route('student.report'))
             ->assertSessionHas('report_case_id');
@@ -749,6 +751,28 @@ class SuggestionPersonalDataGateTest extends TestCase
             $table->string('department')->nullable();
             $table->json('personal_information')->nullable();
             $table->json('student_information')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    private function createReportSupportTables(): void
+    {
+        Schema::create('report_consents', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->string('version');
+            $table->timestamp('accepted_at');
+            $table->timestamps();
+            $table->unique(['user_id', 'version']);
+        });
+
+        Schema::create('report_status_updates', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('report_id');
+            $table->unsignedBigInteger('admin_id')->nullable();
+            $table->string('from_status')->nullable();
+            $table->string('to_status');
+            $table->text('details')->nullable();
             $table->timestamps();
         });
     }

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Schema;
 
 class Report extends Model
 {
@@ -27,6 +29,8 @@ class Report extends Model
         'resolution_notice_sent_at',
         'admin_comment',
         'evidence', // Idinagdag para sa file uploads
+        'archived_at',
+        'archived_by',
     ];
 
     /**
@@ -38,6 +42,7 @@ class Report extends Model
         'seen_at' => 'datetime',
         'resolution_notice_sent_at' => 'datetime',
         'evidence' => 'array', // Ginagawang array ang JSON string mula sa DB
+        'archived_at' => 'datetime',
     ];
 
     /**
@@ -71,6 +76,25 @@ class Report extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function statusUpdates()
+    {
+        return $this->hasMany(ReportStatusUpdate::class)->oldest();
+    }
+
+    public function scopeNotArchived(Builder $query): Builder
+    {
+        return Schema::hasColumn($this->getTable(), 'archived_at')
+            ? $query->whereNull($this->qualifyColumn('archived_at'))
+            : $query;
+    }
+
+    public function scopeArchived(Builder $query): Builder
+    {
+        return Schema::hasColumn($this->getTable(), 'archived_at')
+            ? $query->whereNotNull($this->qualifyColumn('archived_at'))
+            : $query->whereRaw('1 = 0');
     }
 
     public function getReporterDisplayNameAttribute(): string

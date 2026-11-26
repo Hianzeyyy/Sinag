@@ -32,6 +32,7 @@ class ExportGADReportController extends Controller
         $startDate = $dates['start'];
         $endDate = $dates['end'];
         $periodLabel = $dates['label'];
+        $preview = $request->boolean('preview');
         $currentUser = auth()->user();
         $isGadCoordinator = $currentUser?->isGadCoordinator() ?? false;
         $includeRegisteredUsers = ! $isGadCoordinator;
@@ -53,12 +54,12 @@ class ExportGADReportController extends Controller
         $students = $profileUsers->filter(fn (User $user) => strtolower((string) ($user->account_type ?? $user->role)) === 'student')->values();
         $employees = $profileUsers->filter(fn (User $user) => strtolower((string) ($user->account_type ?? $user->role)) === 'employee')->values();
 
-        $reports = Report::whereBetween('created_at', [$startDate, $endDate])
+        $reports = Report::notArchived()->whereBetween('created_at', [$startDate, $endDate])
             ->orderBy('created_at', 'desc')
             ->get();
         $reportUsers = User::whereIn('id', $reports->pluck('user_id')->filter()->unique())->get();
 
-        $suggestions = Suggestion::with('user')
+        $suggestions = Suggestion::notArchived()->with('user')
             ->withCount('upvotes')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->orderBy('created_at', 'desc')
@@ -120,10 +121,12 @@ class ExportGADReportController extends Controller
                 'sexDisaggregatedData' => $sexDisaggregatedData,
             ])->setPaper('a4', 'portrait');
 
-            return $pdf->download("GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf');
+            $filename = "GAD_Report_{$period}_" . Carbon::now()->format('Ymd_His') . '.pdf';
+
+            return $preview ? $pdf->stream($filename) : $pdf->download($filename);
         }
 
-        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, $surveyFindings, $sexDisaggregatedData, $showSatisfactionNames, $includeRegisteredUsers, $includeProfileSheets, $includeDetailedGadReports, $includeReports, $includeFeedback, $period);
+        return $this->exportExcelWorkbook($data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, $surveyFindings, $sexDisaggregatedData, $showSatisfactionNames, $includeRegisteredUsers, $includeProfileSheets, $includeDetailedGadReports, $includeReports, $includeFeedback, $period, $preview);
     }
 
     /**
@@ -213,7 +216,7 @@ class ExportGADReportController extends Controller
         ];
     }
 
-    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, array $surveyFindings, array $sexDisaggregatedData, bool $showSatisfactionNames, bool $includeRegisteredUsers, bool $includeProfileSheets, bool $includeDetailedGadReports, bool $includeReports, bool $includeFeedback, string $period)
+    private function exportExcelWorkbook(array $data, $users, $students, $employees, $reports, $suggestions, $satisfactionSurveys, array $surveyFindings, array $sexDisaggregatedData, bool $showSatisfactionNames, bool $includeRegisteredUsers, bool $includeProfileSheets, bool $includeDetailedGadReports, bool $includeReports, bool $includeFeedback, string $period, bool $preview = false)
     {
         $summaryRows = [
             ['SINAG - GENDER AND DEVELOPMENT (GAD) OFFICE'],
@@ -375,6 +378,10 @@ class ExportGADReportController extends Controller
                 $survey->feedback ?? '',
                 optional($survey->created_at)->format('Y-m-d H:i:s'),
             ];
+        }
+
+        if ($preview) {
+            return view('admin.gad-report-workbook-preview', compact('data', 'sheets'));
         }
 
         $temporaryPath = tempnam(sys_get_temp_dir(), 'sinag-gad-');

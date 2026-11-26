@@ -77,8 +77,13 @@ class RegisterController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'selfie_image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ])->after(function ($validator) use ($data) {
-            $emailPrefix = (string) str($data['email'] ?? '')->before('@');
+            $email = strtolower(trim((string) ($data['email'] ?? '')));
+            $emailPrefix = (string) str($email)->before('@');
             $accountType = $data['account_type'] ?? null;
+
+            if (!str_ends_with($email, '@psu.edu.ph')) {
+                $validator->errors()->add('email', 'Use your Pangasinan State University institutional email address.');
+            }
 
             if ($accountType === 'student' && !preg_match('/^\d/', $emailPrefix)) {
                 $validator->errors()->add('email', 'Student email must start with a number.');

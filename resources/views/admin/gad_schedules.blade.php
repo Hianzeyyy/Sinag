@@ -394,6 +394,123 @@
         overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
     }
+
+    body[data-admin-theme="dark"] .gad-page .panel,
+    body[data-admin-theme="dark"] .gad-page .schedule-modal-card {
+        background: #1b1529;
+        border-color: #332846;
+        color: #eee8ff;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .day-name,
+    body[data-admin-theme="dark"] .gad-page .save-bar-note,
+    body[data-admin-theme="dark"] .gad-page .schedule-type-desc,
+    body[data-admin-theme="dark"] .gad-page .schedule-time-label {
+        color: #bdb1d1;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .cal-day {
+        background: #211936;
+        border-color: #3a2d50;
+        color: #eee8ff;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .cal-day.day-scheduled {
+        background: #302348;
+        border-color: #5a4778;
+        color: #ddd1ff;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .cal-day.day-available {
+        background: #173327;
+        border-color: #276247;
+        color: #b8f5d0;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .cal-day.day-unavailable {
+        background: #3a1c2a;
+        border-color: #71344d;
+        color: #ffc3d5;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .day-schedule-time,
+    body[data-admin-theme="dark"] .gad-page .day-schedule-time.badge-hours {
+        background: #302348;
+        border-color: #49365f;
+        color: #e5dcff;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .day-schedule-time.badge-available {
+        background: #173327;
+        border-color: #276247;
+        color: #b8f5d0;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .day-schedule-time.badge-unavailable {
+        background: #3a1c2a;
+        border-color: #71344d;
+        color: #ffc3d5;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .save-bar {
+        border-color: #332846;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .schedule-type-card {
+        background: #211936;
+        border-color: #49365f;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .schedule-type-card:hover,
+    body[data-admin-theme="dark"] .gad-page .schedule-type-card.active {
+        background: #302348;
+        border-color: #8f72f5;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .schedule-type-card.active.type-available {
+        background: #173327;
+        border-color: #276247;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .schedule-type-card.active.type-unavailable {
+        background: #3a1c2a;
+        border-color: #71344d;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .schedule-type-icon {
+        background: #302348;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .schedule-type-title {
+        color: #eee8ff;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .schedule-time-input {
+        background: #211936;
+        border-color: #49365f;
+        color: #eee8ff;
+        color-scheme: dark;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .schedule-time-input:focus {
+        background: #302348;
+    }
+
+    body[data-admin-theme="dark"] .gad-page #scheduleAvailableBanner {
+        background: #173327 !important;
+        border-color: #276247 !important;
+        color: #b8f5d0 !important;
+    }
+
+    body[data-admin-theme="dark"] .gad-page #scheduleUnavailableBanner {
+        background: #3a1c2a !important;
+        border-color: #71344d !important;
+        color: #ffc3d5 !important;
+    }
+
+    body[data-admin-theme="dark"] .gad-page .schedule-modal-error {
+        color: #ff9fba;
+    }
 </style>
 <div class="gad-page">
 

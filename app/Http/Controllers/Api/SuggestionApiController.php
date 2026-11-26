@@ -76,7 +76,7 @@ class SuggestionApiController extends Controller
     public function index(Request $request): JsonResponse
     {
         $uid = $request->user()->id;
-        $query = Suggestion::with(['user', 'comments.user'])
+        $query = Suggestion::notArchived()->with(['user', 'comments.user'])
             ->withCount('upvotes')
             ->where(function ($query) use ($uid) {
                 $query->where('status', 'Approved')
@@ -95,7 +95,7 @@ class SuggestionApiController extends Controller
     public function mine(Request $request): JsonResponse
     {
         $uid = $request->user()->id;
-        $rows = Suggestion::with(['user', 'comments.user'])->withCount('upvotes')
+        $rows = Suggestion::notArchived()->with(['user', 'comments.user'])->withCount('upvotes')
             ->where('user_id', $uid)->latest()->get();
 
         return response()->json(['data' => $rows->map(fn ($s) => $this->suggestionPayload($s, $uid))->values()]);
@@ -134,7 +134,7 @@ class SuggestionApiController extends Controller
 
     public function update(Request $request, $id): JsonResponse
     {
-        $s = Suggestion::findOrFail($id);
+        $s = Suggestion::notArchived()->findOrFail($id);
         abort_unless($s->user_id === $request->user()->id, 403, 'Hindi mo kayang i-edit ang suggestion na ito.');
 
         $data = $request->validate([
@@ -151,7 +151,7 @@ class SuggestionApiController extends Controller
 
     public function destroy(Request $request, $id): JsonResponse
     {
-        $s = Suggestion::findOrFail($id);
+        $s = Suggestion::notArchived()->findOrFail($id);
         abort_unless($s->user_id === $request->user()->id, 403, 'Hindi mo kayang i-delete ang suggestion na ito.');
         $s->comments()->delete();
         $s->delete();
@@ -161,7 +161,7 @@ class SuggestionApiController extends Controller
 
     public function upvote(Request $request, $id): JsonResponse
     {
-        $s = Suggestion::findOrFail($id);
+        $s = Suggestion::notArchived()->findOrFail($id);
         $uid = $request->user()->id;
 
         if ($s->isUpvotedBy($uid)) {
@@ -185,7 +185,7 @@ class SuggestionApiController extends Controller
     {
         $data = $request->validate(['comment' => 'required|string|max:1000']);
         $this->assertClean($data['comment'], 'comment', 'Naglalaman ng hindi angkop na salita ang iyong komento.');
-        $s = Suggestion::findOrFail($id);
+        $s = Suggestion::notArchived()->findOrFail($id);
 
         DB::table('suggestion_comments')->insert([
             'id' => ((int) DB::table('suggestion_comments')->max('id')) + 1,
@@ -221,7 +221,7 @@ class SuggestionApiController extends Controller
 
     public function reportSuggestion(Request $request, $id): JsonResponse
     {
-        $s = Suggestion::findOrFail($id);
+        $s = Suggestion::notArchived()->findOrFail($id);
 
         return $this->storeReport($request, ['suggestion_id' => $s->id], $s->id);
     }

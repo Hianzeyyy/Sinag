@@ -2,569 +2,473 @@
 
 @section('content')
 <style>
-    .sinag-violet-badge { background: #d8cdfc; color: #5b4b9b; }
-    .sinag-yellow-badge { background: #f8cb12; color: #4a3500; }
-
     .admin-dashboard-page {
-        --accent: #A594F9;
-        --accent-deep: #8f72f5;
-        --ink: #111827;
-        --muted: #6b7280;
-        background:
-            radial-gradient(circle at top left, rgba(165, 148, 249, 0.12), transparent 34%),
-            radial-gradient(circle at right top, rgba(124, 92, 203, 0.12), transparent 22%),
-            linear-gradient(180deg, #faf7ff 0%, #f8fafc 62%, #f8fafc 100%);
-        border-radius: 1.45rem;
-        padding: 1rem;
-        animation: adminDashboardReveal .55s ease-out both;
+        --purple: #7658df;
+        --purple-dark: #4a2d96;
+        --purple-soft: #f2edff;
+        padding: .5rem;
+        animation: dashboardReveal .4s ease-out both;
     }
 
-    .admin-dashboard-wrap > * {
-        animation: adminDashboardReveal .55s ease-out both;
+    @keyframes dashboardReveal {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    .admin-dashboard-wrap > *:nth-child(2) { animation-delay: .08s; }
-    .admin-dashboard-wrap > *:nth-child(3) { animation-delay: .16s; }
-    .admin-dashboard-wrap > *:nth-child(4) { animation-delay: .24s; }
-
-    @keyframes adminDashboardReveal {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
+    .admin-dashboard-wrap { max-width: 1540px; margin: 0 auto; }
+    .dashboard-greeting { color: #28164f; }
+    .dashboard-greeting h1 { font-weight: 900; letter-spacing: -.035em; font-size: clamp(1.7rem, 3vw, 2.35rem); }
+    .dashboard-greeting p { color: #756c89; }
+    .dashboard-export-button { background: linear-gradient(135deg,#7658df,#a594f9); border:0; color:#fff; font-weight:800; border-radius:999px; box-shadow:0 10px 24px #7658df33; }
+    .dashboard-export-button:hover { color:#fff; transform:translateY(-2px); box-shadow:0 14px 28px #7658df44; }
+    .dashboard-card { background:#fff; border:1px solid #eee9f8; border-radius:1.25rem; box-shadow:0 12px 30px rgba(48,27,90,.07); height:100%; overflow:hidden; transition:transform .2s ease, box-shadow .2s ease, background-color .3s ease; }
+    .dashboard-card:hover { box-shadow:0 17px 36px rgba(76,42,157,.12); }
+    .dashboard-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; padding:1.15rem 1.25rem .4rem; }
+    .dashboard-card-head h2 { font-size:1rem; font-weight:850; margin:0; color:#32224f; }
+    .dashboard-card-head p { font-size:.78rem; color:#8a8298; margin:.25rem 0 0; }
+    .dashboard-card-body { padding:1rem 1.25rem 1.25rem; }
+    .recent-user-card { display:block; color:inherit; text-decoration:none; }
+    .recent-user-card:hover { color:inherit; }
+    .avatar-orbit { position:relative; min-height:8rem; margin:.15rem 0 .6rem; overflow:hidden; }
+    .recent-user-avatar { display:inline-flex; align-items:center; justify-content:center; width:var(--avatar-size); height:var(--avatar-size); position:absolute; left:var(--avatar-left); top:var(--avatar-top); z-index:var(--avatar-index); border:3px solid #fff; border-radius:50%; overflow:hidden; background:#eee8ff; box-shadow:0 8px 18px rgba(49,31,86,.15); animation:avatarFloat 3.6s ease-in-out infinite; transition:transform .2s ease,box-shadow .2s ease; }
+    .recent-user-avatar:nth-child(2) { animation-delay:.35s; }
+    .recent-user-avatar:nth-child(3) { animation-delay:.7s; }
+    .recent-user-avatar:nth-child(4) { animation-delay:1.05s; }
+    .recent-user-avatar:nth-child(5) { animation-delay:1.4s; }
+    .recent-user-avatar:hover { z-index:6; transform:scale(1.13) !important; box-shadow:0 12px 25px rgba(76,42,157,.28); }
+    .recent-user-avatar img { width:100%;height:100%;object-fit:cover; }
+    @keyframes avatarFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
+    .resolved-ratio { display:flex; align-items:baseline; gap:.3rem; margin:.35rem 0 .7rem; color:var(--purple-dark); }
+    .resolved-ratio strong { font-size:2.55rem; font-weight:900; letter-spacing:-.06em; }
+    .resolved-ratio span { font-weight:700; color:#958aa9; }
+    .ratio-track,.analytics-track { height:9px; background:#eee9f7; border-radius:999px; overflow:hidden; }
+    .ratio-track span,.analytics-track span { display:block; height:100%; width:var(--bar-width); border-radius:inherit; transform:scaleX(0); transform-origin:left; background:linear-gradient(90deg,#4a2d96,#8f72f5); animation:barGrow .85s .1s ease-out forwards; }
+    @keyframes barGrow { to { transform:scaleX(1); } }
+    .category-flip-card { min-height:24rem; perspective:1100px; }
+    .category-flip-inner { position:relative; height:100%; min-height:24rem; transform-style:preserve-3d; transition:transform .65s cubic-bezier(.2,.72,.25,1); }
+    .category-flip-card.is-flipped .category-flip-inner { transform:rotateY(180deg); }
+    .category-flip-face { position:absolute; inset:0; display:flex; flex-direction:column; min-height:24rem; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+    .category-flip-back { transform:rotateY(180deg); }
+    .category-flip-face .dashboard-card-body { flex:1; min-height:0; }
+    .dashboard-chart-toggle { display:grid; place-items:center; width:2.25rem; height:2.25rem; flex:0 0 auto; border:1px solid #e8e1f5; border-radius:.75rem; background:#f7f4ff; color:#6b4bd4; transition:transform .18s ease,background-color .18s ease; }
+    .dashboard-chart-toggle:hover { transform:scale(1.08); background:#eee8ff; }
+    .category-pie-layout { display:grid; grid-template-columns:minmax(110px, 42%) 1fr; align-items:center; gap:1rem; height:100%; }
+    .category-pie { display:block; width:min(100%, 180px); margin:auto; overflow:visible; }
+    .category-pie-track { fill:none; stroke:#eee9f7; stroke-width:8; }
+    .category-pie-segment { fill:none; stroke-width:8; }
+    .category-pie-center { fill:#fff; }
+    .category-pie-total { fill:#4a2d96; font-size:5px; font-weight:800; text-anchor:middle; }
+    .category-pie-caption { fill:#8a8298; font-size:2.3px; text-anchor:middle; }
+    .category-pie-legend { display:grid; gap:.45rem; max-height:15rem; overflow:auto; padding-right:.25rem; }
+    .category-pie-legend-item { display:flex; align-items:center; justify-content:space-between; gap:.65rem; color:#635a71; font-size:.75rem; }
+    .category-pie-label { display:flex; align-items:center; gap:.45rem; min-width:0; }
+    .category-pie-label span:last-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .category-pie-dot { width:.65rem; height:.65rem; flex:0 0 auto; border-radius:50%; }
+    .appointments-list { display:grid; gap:.5rem; }
+    .appointment-row { display:flex; align-items:center; gap:.7rem; text-decoration:none; padding:.55rem .65rem; border-radius:.85rem; color:#34284c; transition:background .18s ease,transform .18s ease; }
+    .appointment-row:hover { background:#f6f2ff; color:#4a2d96; transform:translateX(3px); }
+    .appointment-date-chip { width:3.1rem; min-width:3.1rem; text-align:center; border-radius:.7rem; padding:.4rem .2rem; background:#f1eaff; color:#7658df; line-height:1.1; }
+    .appointment-date-chip strong { display:block; font-size:1.05rem; }
+    .appointment-date-chip small { display:block; font-size:.58rem; font-weight:800; text-transform:uppercase; }
+    .appointment-person { min-width:0; flex:1; }
+    .appointment-person strong,.appointment-person small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .appointment-person small { color:#877e94; font-size:.74rem; }
+    .dashboard-analytics-row { display:flex; justify-content:space-between; gap:1rem; font-size:.79rem; margin-bottom:.35rem; color:#635a71; }
+    .dashboard-analytics-row strong { color:#483675; }
+    .dashboard-analytics-item { margin-bottom:1rem; }
+    .feedback-score { display:flex; align-items:center; gap:.7rem; color:#4a2d96; }
+    .feedback-score strong { font-size:2.3rem; line-height:1; font-weight:900; }
+    .feedback-stars { color:#e6b800; letter-spacing:.05em; }
+    .feedback-entry { border-top:1px solid #f0edf5; padding-top:.7rem; margin-top:.7rem; }
+    .feedback-entry p { font-size:.75rem; color:#6f667c; margin:.35rem 0 0; }
+    .admin-dashboard-table { min-width:650px; }
+    .admin-dashboard-table thead th { background:#f7f4ff; color:#635188; font-size:.69rem; text-transform:uppercase; letter-spacing:.08em; border:0; padding:1rem; }
+    .admin-dashboard-table tbody td { border-color:#f0edf5; padding:1rem; }
+    .admin-dashboard-table tbody tr:hover { background:#fcfaff; }
+    .dashboard-report-status { font-weight:800; }
+    .dashboard-report-status.status-warning { background:#f8cb12; color:#4a3500; }
+    .dashboard-report-status.status-info { background:#c9e8ff; color:#174b70; }
+    .dashboard-report-status.status-success { background:#c9f0dc; color:#145c38; }
+    .dashboard-report-status.status-danger { background:#f7c4dd; color:#7e204b; }
+    .dashboard-report-status.status-secondary { background:#e9e3f2; color:#4d435b; }
+    .dashboard-link { color:#7658df; font-size:.78rem; font-weight:800; text-decoration:none; white-space:nowrap; }
+    .dashboard-link:hover { color:#4a2d96; }
+    .export-section-choice { display:flex; align-items:center; gap:.7rem; padding:.75rem .85rem; border:1px solid #e8e1f5; border-radius:.8rem; cursor:pointer; }
+    .export-section-choice:has(input:checked) { background:#f4f0ff; border-color:#a594f9; color:#4a2d96; }
+    .export-preview-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+    .export-preview-item { padding:.75rem; background:#f7f4ff; border:1px solid #eee8fb; border-radius:.8rem; }
+    .export-file-preview { display:block;width:100%;height:min(62vh,760px);min-height:320px;border:1px solid #e8e1f5;border-radius:1rem;background:#fff; }
+    body[data-admin-theme="dark"] .export-file-preview { border-color:#3a2d50; }
+    .export-preview-item small { color:#81788d; display:block; text-transform:uppercase; letter-spacing:.07em; font-size:.64rem; }
+    .export-preview-item strong { display:block; margin-top:.2rem; }
+    body[data-admin-theme="dark"] .dashboard-greeting { color:#f0e9ff; }
+    body[data-admin-theme="dark"] .dashboard-greeting p { color:#c0b4d7; }
+    body[data-admin-theme="dark"] .dashboard-card { background:#1b1529; border-color:#302443; color:#eee8ff; }
+    body[data-admin-theme="dark"] .dashboard-card-head h2,
+    body[data-admin-theme="dark"] .dashboard-analytics-row strong { color:#e5dcff; }
+    body[data-admin-theme="dark"] .dashboard-card-head p,
+    body[data-admin-theme="dark"] .dashboard-analytics-row,
+    body[data-admin-theme="dark"] .appointment-person small,
+    body[data-admin-theme="dark"] .feedback-entry p { color:#bdb1d1; }
+    body[data-admin-theme="dark"] .recent-user-avatar { border-color:#1b1529; background:#2b2040; }
+    body[data-admin-theme="dark"] .ratio-track,
+    body[data-admin-theme="dark"] .analytics-track { background:#332846; }
+    body[data-admin-theme="dark"] .category-flip-face { background:#1b1529; }
+    body[data-admin-theme="dark"] .dashboard-chart-toggle { background:#302348; border-color:#49365f; color:#d5c6ff; }
+    body[data-admin-theme="dark"] .dashboard-chart-toggle:hover { background:#3a2d50; }
+    body[data-admin-theme="dark"] .category-pie-center { fill:#1b1529; }
+    body[data-admin-theme="dark"] .category-pie-track { stroke:#332846; }
+    body[data-admin-theme="dark"] .category-pie-total { fill:#e5dcff; }
+    body[data-admin-theme="dark"] .category-pie-caption,
+    body[data-admin-theme="dark"] .category-pie-legend-item { fill:#bdb1d1; color:#bdb1d1; }
+    body[data-admin-theme="dark"] .resolved-ratio { color:#d5c6ff; }
+    body[data-admin-theme="dark"] .appointment-row { color:#e8e0f7; }
+    body[data-admin-theme="dark"] .appointment-row:hover { background:#2a203e;color:#fff; }
+    body[data-admin-theme="dark"] .appointment-date-chip { background:#352851;color:#d9cbff; }
+    body[data-admin-theme="dark"] .admin-dashboard-table thead th { background:#241b35;color:#ddd1ff; }
+    body[data-admin-theme="dark"] .admin-dashboard-table tbody td { color:#eee8ff;border-color:#332846; }
+    body[data-admin-theme="dark"] .admin-dashboard-table tbody tr:hover { background:#251d38; }
+    body[data-admin-theme="dark"] .dashboard-report-status.status-warning { background:#594916; color:#ffe989; }
+    body[data-admin-theme="dark"] .dashboard-report-status.status-info { background:#173951; color:#c5e8ff; }
+    body[data-admin-theme="dark"] .dashboard-report-status.status-success { background:#174431; color:#b8f1d0; }
+    body[data-admin-theme="dark"] .dashboard-report-status.status-danger { background:#54243b; color:#ffd0df; }
+    body[data-admin-theme="dark"] .dashboard-report-status.status-secondary { background:#3a3047; color:#e4d9f2; }
+    body[data-admin-theme="dark"] .feedback-entry { border-color:#332846; }
+    @media(max-width:767.98px) {
+        .admin-dashboard-page { padding:0; }
+        .dashboard-card-head,.dashboard-card-body { padding-left:1rem;padding-right:1rem; }
+        .export-preview-list { grid-template-columns:1fr; }
+        .category-pie-layout { grid-template-columns:minmax(100px, 38%) 1fr; gap:.7rem; }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-        .admin-dashboard-page,
-        .admin-dashboard-wrap > * {
-            animation: none;
-        }
-    }
-
-    .admin-dashboard-wrap {
-        max-width: 1440px;
-        margin: 0 auto;
-    }
-
-    .admin-hero {
-        border: 0;
-        border-radius: 1.4rem;
-        overflow: hidden;
-        color: #35216d;
-        background: linear-gradient(135deg, #f1eaff 0%, #d9c8ff 52%, #c7b5ff 100%);
-        box-shadow: 0 20px 42px rgba(165, 148, 249, 0.22);
-    }
-
-    .hero-kicker {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-        padding: 0.4rem 0.75rem;
-        border-radius: 999px;
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #5b4b9b;
-        background: rgba(255, 255, 255, 0.62);
-    }
-
-    .hero-title {
-        font-weight: 900;
-        font-size: clamp(1.9rem, 3vw, 2.6rem);
-        line-height: 1.05;
-    }
-
-    .hero-copy {
-        color: #5b4b9b;
-        max-width: 40rem;
-    }
-
-    .hero-action {
-        border: 0;
-        border-radius: 999px;
-        background: #8f72f5;
-        color: #fff;
-        font-weight: 800;
-        box-shadow: 0 12px 22px rgba(17, 24, 39, 0.2);
-    }
-
-    .hero-action:hover {
-        color: #fff;
-    }
-
-    .metric-card {
-        border: 1px solid rgba(143, 114, 245, 0.14);
-        border-radius: 1.1rem;
-        color: #35216d;
-        text-decoration: none;
-        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
-        overflow: hidden;
-        transition: transform .22s ease, box-shadow .22s ease;
-    }
-
-    .metric-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 18px 34px rgba(143, 114, 245, 0.24);
-        color: #35216d;
-    }
-
-    .metric-card .card-body {
-        position: relative;
-    }
-
-    .metric-card .text-white,
-    .metric-card .text-white-50 {
-        color: #35216d !important;
-    }
-
-    .metric-card .metric-value {
-        color: #4c2a9d;
-    }
-
-    .metric-card .card-body::after {
-        content: '';
-        position: absolute;
-        width: 6rem;
-        height: 6rem;
-        border-radius: 999px;
-        right: -2rem;
-        top: -2rem;
-        background: rgba(255, 255, 255, 0.16);
-    }
-
-    .metric-label {
-        font-size: 0.72rem;
-        letter-spacing: 0.09em;
-    }
-
-    .dashboard-panel {
-        border: 1px solid rgba(165, 148, 249, 0.14);
-        border-radius: 1.2rem;
-        box-shadow: 0 14px 34px rgba(165, 148, 249, 0.1);
-    }
-
-    .dashboard-panel .card-header {
-        background: #fff;
-    }
-
-    .reports-table thead {
-        background: #f8fafc;
-    }
-
-    .reports-table tbody tr:hover {
-        background-color: #fbfaff !important;
-    }
-
-    .review-btn {
-        border: 1px solid #A594F9;
-        color: #8f72f5;
-        font-weight: 700;
-    }
-
-    .review-btn:hover {
-        background: #A594F9;
-        color: #fff;
-    }
-
-    .admin-tool-btn {
-        transition: transform 0.2s, box-shadow 0.2s;
-        border: 1px solid rgba(165, 148, 249, 0.12);
-    }
-
-    .admin-tool-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
-    }
-
-    .tool-icon {
-        width: 2.35rem;
-        height: 2.35rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-    }
-
-    .command-tools-card {
-        overflow: hidden;
-        border-color: rgba(165, 148, 249, 0.18);
-        box-shadow: 0 16px 36px rgba(165, 148, 249, 0.12);
-    }
-
-    .command-tools-head {
-        background: linear-gradient(135deg, rgba(165, 148, 249, 0.18), rgba(196, 181, 253, 0.18));
-        border: 1px solid rgba(165, 148, 249, 0.2);
-        border-radius: 1rem;
-    }
-
-    .command-tools-title {
-        font-size: 1.08rem;
-        color: #111827;
-        font-weight: 900;
-    }
-
-    .command-tools-sub {
-        color: #6b7280;
-        font-size: 0.82rem;
-    }
-
-    .survey-choice {
-        display: flex;
-        align-items: center;
-        gap: .55rem;
-        padding: .65rem .8rem;
-        border: 1px solid #e5e7eb;
-        border-radius: .65rem;
-        cursor: pointer;
-    }
-
-    .survey-choice:has(input:checked) {
-        color: #4c2a9d;
-        background: #f1eaff;
-        border-color: #a594f9;
-    }
-
-    .admin-tool-btn {
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(165, 148, 249, 0.18);
-        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
-    }
-
-    .admin-tool-btn::after {
-        content: '';
-        position: absolute;
-        width: 4.25rem;
-        height: 4.25rem;
-        border-radius: 999px;
-        right: -1.75rem;
-        top: -1.75rem;
-        background: rgba(255, 255, 255, 0.28);
-        pointer-events: none;
-    }
-
-    .admin-tool-btn .text-muted {
-        color: #334155 !important;
-        opacity: 0.9;
-    }
-
-    .admin-tool-users {
-        background: linear-gradient(135deg, #f5f3ff 0%, #e9d5ff 100%) !important;
-    }
-
-    .admin-tool-boses {
-        background: linear-gradient(135deg, #eef2ff 0%, #ddd6fe 100%) !important;
-    }
-
-    .admin-tool-announcements {
-        background: linear-gradient(135deg, #f8fafc 0%, #ede9fe 100%) !important;
-    }
-
-    .admin-tool-arrow {
-        width: 1.8rem;
-        height: 1.8rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.85);
-        color: #8f72f5;
-        transition: transform 0.2s ease;
-        flex: 0 0 auto;
-    }
-
-    .admin-tool-btn:hover .admin-tool-arrow {
-        transform: translateX(2px);
-    }
-
-    .privacy-box {
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-        background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%) !important;
-    }
-
-    .badge {
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-
-    @media (max-width: 991px) {
-        .admin-dashboard-page {
-            padding: 0.55rem;
-        }
+    @media(prefers-reduced-motion:reduce) {
+        .admin-dashboard-page,.recent-user-avatar,.ratio-track span,.analytics-track span { animation:none;transform:none; }
+        .dashboard-card,.dashboard-export-button,.appointment-row,.category-flip-inner,.dashboard-chart-toggle { transition:none; }
     }
 </style>
 
 <div class="container-fluid admin-dashboard-page">
     <div class="admin-dashboard-wrap">
-        @if(session('success'))
-            <div class="sinag-persistent-notice alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between p-3" role="alert" style="background: #eefdf3; color: #166534;">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                    <span class="fw-medium">{{ session('success') }}</span>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 px-1">
+            <div class="dashboard-greeting">
+                <p class="small fw-bold text-uppercase mb-1" style="letter-spacing:.11em;color:#8f72f5;">SINAG · Admin workspace</p>
+                <h1 class="mb-1">{{ $greeting }}, {{ auth()->user()->first_name ?: explode(' ', trim(auth()->user()->name))[0] }}</h1>
+                <p class="mb-0">{{ $dashboardDate }} <span class="mx-2">·</span> Here is the latest campus activity.</p>
             </div>
+            <button type="button" class="btn dashboard-export-button px-4 py-2" data-bs-toggle="modal" data-bs-target="#exportGadFormatModal">
+                <i class="bi bi-file-earmark-arrow-down me-2"></i>Export report
+            </button>
+        </div>
+
+        @if(session('success'))
+            <div class="alert alert-success rounded-4 border-0 shadow-sm">{{ session('success') }}</div>
         @endif
 
-        <div class="card admin-hero mb-4">
-            <div class="card-body p-4 p-lg-5">
-                <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
-                    <div>
-                        <span class="hero-kicker mb-3"><i class="bi bi-shield-check"></i> GAD Command Center</span>
-                        <h2 class="hero-title mb-2">GAD Office Analytics</h2>
-                        <p class="hero-copy mb-0">Real-time monitoring of campus safety, incident escalation, and response status across the reporting system.</p>
+        <div class="row g-3 mb-4">
+            <div class="col-xl-4 col-lg-4">
+                <section class="dashboard-card">
+                    <div class="dashboard-card-head">
+                        <div><h2>Recent accounts</h2><p>Newest sign-ups; hover for a first name or open a profile.</p></div>
+                        <a class="dashboard-link" href="{{ route('admin.users') }}">Manage <i class="bi bi-arrow-up-right"></i></a>
                     </div>
-                    <div class="text-lg-end">
-                        <button class="btn hero-action px-4 py-2" type="button" data-bs-toggle="modal" data-bs-target="#exportGadFormatModal">
-                            <i class="bi bi-file-earmark-arrow-down me-2"></i>Export GAD Report
-                        </button>
+                    <div class="dashboard-card-body">
+                        <div class="avatar-orbit" role="group" aria-label="Five most recently registered accounts">
+                            @forelse($recentUsers as $index => $user)
+                                @php
+                                    $accountName = trim((string) ($user->first_name ?: explode(' ', trim($user->name))[0]));
+                                    $avatarSizes = [58, 48, 42, 36, 34];
+                                    $avatarLeft = [7, 29, 48, 67, 83];
+                                    $avatarTop = [25, 4, 39, 12, 47];
+                                @endphp
+                                <a class="recent-user-avatar" href="{{ route('admin.users', ['q' => $user->email, 'open' => $user->id]) }}" title="{{ $accountName }}" aria-label="Open {{ $accountName }}'s account" style="--avatar-size:{{ $avatarSizes[$index] ?? 34 }}px;--avatar-left:{{ $avatarLeft[$index] ?? 83 }}%;--avatar-top:{{ $avatarTop[$index] ?? 47 }}%;--avatar-index:{{ 5 - $index }};">
+                                    <img src="{{ route('profile.photo', $user) }}" alt="" data-fallback="{{ strtoupper(substr($accountName, 0, 1)) }}" onerror="this.hidden=true;this.parentElement.textContent=this.parentElement.dataset.fallback;">
+                                </a>
+                            @empty
+                                <div class="text-muted small">No recent accounts.</div>
+                            @endforelse
+                        </div>
+                        <a href="{{ route('admin.users') }}" class="dashboard-link">View user management <i class="bi bi-arrow-right ms-1"></i></a>
                     </div>
-                </div>
+                </section>
+            </div>
+            <div class="col-xl-3 col-lg-3">
+                <a href="{{ route('admin.reports', ['status' => 'Resolved']) }}" class="dashboard-card d-block text-decoration-none">
+                    <div class="dashboard-card-head">
+                        <div><h2>Resolved cases</h2><p>Resolved reports out of all reports received.</p></div>
+                        <i class="bi bi-check2-circle fs-4" style="color:#8f72f5;"></i>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <div class="resolved-ratio"><strong>{{ $resolvedReports }}</strong><span>/ {{ $totalReports }}</span></div>
+                        <div class="ratio-track"><span style="--bar-width:{{ $resolvedPercentage }}%;"></span></div>
+                        <div class="d-flex justify-content-between small text-muted mt-2"><span>{{ $resolvedPercentage }}% resolved</span><span>Open cases {{ max(0, $totalReports - $resolvedReports) }}</span></div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-5 col-lg-5">
+                <section class="dashboard-card">
+                    <div class="dashboard-card-head">
+                        <div><h2>Appointments</h2><p>Today and upcoming requests</p></div>
+                        <a class="dashboard-link" href="{{ route('admin.appointments') }}">All appointments <i class="bi bi-arrow-up-right"></i></a>
+                    </div>
+                    <div class="dashboard-card-body pt-2">
+                        <div class="appointments-list">
+                            @forelse($upcomingAppointments as $appointment)
+                                @php
+                                    $scheduledDate = $appointment->scheduled_date;
+                                @endphp
+                                <a class="appointment-row" href="{{ route('admin.appointments', ['open' => $appointment->id]) }}#appointmentModal{{ $appointment->id }}">
+                                    <span class="appointment-date-chip">
+                                        <strong>{{ optional($scheduledDate)->format('d') }}</strong>
+                                        <small>{{ optional($scheduledDate)->isToday() ? 'Today' : optional($scheduledDate)->format('M') }}</small>
+                                    </span>
+                                    <span class="appointment-person">
+                                        <strong>{{ $appointment->full_name }}</strong>
+                                        <small>{{ optional($scheduledDate)->format('M d') }} · {{ optional($appointment->scheduled_time)->format('h:i A') }} · {{ ucfirst($appointment->status) }}</small>
+                                    </span>
+                                    <i class="bi bi-chevron-right small text-muted"></i>
+                                </a>
+                            @empty
+                                <p class="text-muted small mb-1">No appointments scheduled for today or later.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
 
         <div class="row g-3 mb-4">
-            <div class="col-md-6 col-xl-3">
-                <a href="{{ route('admin.reports') }}" class="card metric-card h-100" style="background: linear-gradient(135deg, #f1eaff 0%, #d9c8ff 100%);">
-                    <div class="card-body text-white">
-                        <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Total Reports</h6>
-                        <h2 class="metric-value fw-bold mb-1" data-counter="{{ $totalReports ?? 0 }}">0</h2>
-                        <small class="text-white-50">Active database records</small>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-6 col-xl-3">
-                <a href="{{ route('admin.reports', ['status' => 'Pending']) }}" class="card metric-card h-100" style="background: linear-gradient(135deg, #e8ddff 0%, #cbb8ff 100%);">
-                    <div class="card-body text-white">
-                        <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Pending Review</h6>
-                        <h2 class="metric-value fw-bold mb-1" data-counter="{{ $pendingReports ?? 0 }}">0</h2>
-                        <small class="text-white-50">Requires attention</small>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-6 col-xl-3">
-                <a href="{{ route('admin.reports', ['status' => 'Resolved']) }}" class="card metric-card h-100" style="background: linear-gradient(135deg, #eee8ff 0%, #d5c7ff 100%);">
-                    <div class="card-body text-white">
-                        <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Resolved Cases</h6>
-                        <h2 class="metric-value fw-bold mb-1" data-counter="{{ $resolvedReports ?? 0 }}">0</h2>
-                        <small class="text-white-50">Completed actions</small>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-6 col-xl-3">
-                <a href="{{ route('admin.suggestions') }}" class="card metric-card h-100" style="background: linear-gradient(135deg, #e5dcff 0%, #c7b5ff 100%);">
-                    <div class="card-body text-white">
-                        <h6 class="text-white-50 fw-bold text-uppercase metric-label mb-2">Suggestions</h6>
-                        <h2 class="metric-value fw-bold mb-1" data-counter="{{ $totalSuggestions ?? 0 }}">0</h2>
-                        <small class="text-white-50">Participatory suggestions feedback</small>
-                    </div>
-
-                    <script>
-                        document.querySelectorAll('[data-counter]').forEach(function (counter) {
-                            const target = Number(counter.dataset.counter || 0);
-                            const duration = 700;
-                            const startedAt = performance.now();
-                            function tick(now) {
-                                const progress = Math.min((now - startedAt) / duration, 1);
-                                counter.textContent = Math.floor(progress * target).toLocaleString();
-                                if (progress < 1) window.requestAnimationFrame(tick);
-                            }
-                            window.requestAnimationFrame(tick);
-                        });
-                    </script>
-                </a>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="card dashboard-panel overflow-hidden h-100">
-                    <div class="card-header py-3 border-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-inbox-fill me-2" style="color: #8f72f5;"></i>Recent Reports</h5>
-                            <a href="{{ route('admin.reports') }}" class="btn btn-sm text-decoration-none fw-bold" style="color: #8f72f5;">See All <i class="bi bi-arrow-right"></i></a>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0 reports-table">
-                                <thead>
-                                    <tr class="small text-muted text-uppercase">
-                                        <th class="ps-4">Incident ID</th>
-                                        <th>Nature</th>
-                                        <th>Status</th>
-                                        <th class="text-end pe-4">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($recentReports ?? [] as $report)
-                                    <tr>
-                                        <td class="ps-4 fw-bold">#{{ $report->incident_id }}</td>
-                                        <td class="small">{{ $report->nature }}</td>
-                                        <td>
-                                            <span class="badge rounded-pill {{ $report->status == 'Pending' ? 'sinag-yellow-badge' : 'sinag-violet-badge' }}">
-                                                {{ $report->status }}
-                                            </span>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <a href="{{ route('admin.reports') }}" class="btn btn-sm rounded-pill px-3 py-1 review-btn">Review</a>
-                                        </td>
-                                    </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted small">No recent reports found.</td>
-                                    </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="card dashboard-panel h-100 command-tools-card">
-                    <div class="card-header py-3 border-0">
-                        <div class="command-tools-head d-flex align-items-center justify-content-between gap-3 p-3">
-                            <div>
-                                <div class="command-tools-title mb-1">Command Tools</div>
-                                <div class="command-tools-sub">Quick admin actions and controls</div>
+            <div class="col-xl-5 col-lg-5">
+                @php
+                    $maxReportCategory = max(1, (int) $reportCategories->max('total'));
+                    $reportCategoryTotal = (float) $reportCategories->sum('total');
+                    $reportPieColors = ['#4a2d96', '#7658df', '#8f72f5', '#f8cb12', '#34205f', '#c6b7f5'];
+                    $reportCategoryOffset = 0.0;
+                @endphp
+                <section class="dashboard-card category-flip-card">
+                    <div class="category-flip-inner">
+                        <div class="category-flip-face category-flip-front" aria-hidden="false">
+                            <div class="dashboard-card-head">
+                                <div><h2>Most used report categories</h2><p>All active incident reports</p></div>
+                                <button type="button" class="dashboard-chart-toggle" data-chart-toggle aria-label="Show report category pie chart" aria-pressed="false" title="Show pie chart">
+                                    <i class="bi bi-pie-chart-fill" aria-hidden="true"></i>
+                                </button>
                             </div>
-                            <span class="tool-icon" style="background: #e9d5ff; width:2.1rem; height:2.1rem;">
-                                <i class="bi bi-lightning-fill" style="color:#8f72f5;"></i>
-                            </span>
+                            <div class="dashboard-card-body">
+                                @forelse($reportCategories as $category)
+                                    <div class="dashboard-analytics-item">
+                                        <div class="dashboard-analytics-row"><span>{{ $category->label }}</span><strong>{{ $category->total }}</strong></div>
+                                        <div class="analytics-track"><span style="--bar-width:{{ round(($category->total / $maxReportCategory) * 100) }}%;"></span></div>
+                                    </div>
+                                @empty
+                                    <p class="text-muted small mb-0">No report data yet.</p>
+                                @endforelse
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-3">
-                            <a href="{{ route('admin.users') }}" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn admin-tool-users">
-                                <div class="d-flex align-items-center">
-                                    <div class="tool-icon me-3" style="background: rgba(255,255,255,0.7);">
-                                        <i class="bi bi-people-fill" style="color: #8f72f5;"></i>
+                        <div class="category-flip-face category-flip-back" aria-hidden="true" inert>
+                            <div class="dashboard-card-head">
+                                <div><h2>Report category breakdown</h2><p>Share of active reports</p></div>
+                                <button type="button" class="dashboard-chart-toggle" data-chart-toggle aria-label="Show report category bars" aria-pressed="false" title="Show category bars">
+                                    <i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="category-pie-layout">
+                                    <svg class="category-pie" viewBox="0 0 42 42" role="img" aria-label="Pie chart showing report categories">
+                                        <circle class="category-pie-track" cx="21" cy="21" r="15.9155"></circle>
+                                        @foreach($reportCategories as $index => $category)
+                                            @php
+                                                $reportShare = $reportCategoryTotal > 0 ? (float) $category->total / $reportCategoryTotal * 100 : 0;
+                                                $reportShare = round($reportShare, 2);
+                                            @endphp
+                                            <circle class="category-pie-segment" cx="21" cy="21" r="15.9155" pathLength="100"
+                                                stroke="{{ $reportPieColors[$index % count($reportPieColors)] }}"
+                                                stroke-dasharray="{{ $reportShare }} {{ 100 - $reportShare }}"
+                                                stroke-dashoffset="{{ -$reportCategoryOffset }}"
+                                                transform="rotate(-90 21 21)"></circle>
+                                            @php $reportCategoryOffset += $reportShare; @endphp
+                                        @endforeach
+                                        <circle class="category-pie-center" cx="21" cy="21" r="11"></circle>
+                                        <text class="category-pie-total" x="21" y="20">{{ (int) $reportCategoryTotal }}</text>
+                                        <text class="category-pie-caption" x="21" y="24">reports</text>
+                                    </svg>
+                                    <div class="category-pie-legend" aria-label="Report category totals">
+                                        @forelse($reportCategories as $index => $category)
+                                            @php $reportShare = $reportCategoryTotal > 0 ? round((float) $category->total / $reportCategoryTotal * 100) : 0; @endphp
+                                            <div class="category-pie-legend-item">
+                                                <span class="category-pie-label"><span class="category-pie-dot" style="background:{{ $reportPieColors[$index % count($reportPieColors)] }};"></span><span>{{ $category->label }}</span></span>
+                                                <strong>{{ $category->total }} <span class="text-muted">({{ $reportShare }}%)</span></strong>
+                                            </div>
+                                        @empty
+                                            <p class="text-muted small mb-0">No report data to chart.</p>
+                                        @endforelse
                                     </div>
-                                    <div>
-                                        <span class="d-block fw-bold text-dark small">User Management</span>
-                                        <small class="text-muted">Manage GAD personnel</small>
-                                    </div>
-                                    <span class="admin-tool-arrow ms-auto"><i class="bi bi-arrow-right-short"></i></span>
                                 </div>
-                            </a>
-
-                            <a href="{{ route('admin.suggestions') }}" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn admin-tool-boses">
-                                <div class="d-flex align-items-center">
-                                    <div class="tool-icon me-3" style="background: rgba(255,255,255,0.7);">
-                                        <i class="bi bi-chat-square-dots-fill" style="color:#8f72f5;"></i>
-                                    </div>
-                                    <div>
-                                        <span class="d-block fw-bold text-dark small">Participatory Suggestions</span>
-                                        <small class="text-muted">Review safe space feedback</small>
-                                    </div>
-                                    <span class="admin-tool-arrow ms-auto"><i class="bi bi-arrow-right-short"></i></span>
-                                </div>
-                            </a>
-
-                            <a href="{{ route('admin.gad-schedules.index') }}" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);">
-                                <div class="d-flex align-items-center">
-                                    <div class="tool-icon me-3" style="background: rgba(255,255,255,0.8);">
-                                        <i class="bi bi-calendar2-week-fill" style="color:#8f72f5;"></i>
-                                    </div>
-                                    <div>
-                                        <span class="d-block fw-bold text-dark small">Office Schedule</span>
-                                        <small class="text-muted">Set live meeting availability</small>
-                                    </div>
-                                    <span class="admin-tool-arrow ms-auto"><i class="bi bi-arrow-right-short"></i></span>
-                                </div>
-                            </a>
-
-                            <button type="button" class="btn border-0 text-start py-3 px-4 rounded-4 shadow-sm admin-tool-btn" data-bs-toggle="modal" data-bs-target="#editOfficeInfoModal" style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);">
-                                <div class="d-flex align-items-center">
-                                    <div class="tool-icon me-3" style="background: rgba(255,255,255,0.85);">
-                                        <i class="bi bi-telephone-inbound-fill" style="color:#7c3aed;"></i>
-                                    </div>
-                                    <div>
-                                        <span class="d-block fw-bold text-dark small">Office Info & Hotline</span>
-                                        <small class="text-muted">{{ $officeInfo['phone_number'] ?? 'Set hotline number' }}</small>
-                                    </div>
-                                    <span class="admin-tool-arrow ms-auto"><i class="bi bi-pencil-fill" style="font-size: 0.75rem;"></i></span>
-                                </div>
-                            </button>
-
-                            <div class="p-4 mt-2 rounded-4 text-white privacy-box" style="background: linear-gradient(135deg, #A594F9 0%, #8f72f5 100%);">
-                                <h6 class="fw-bold mb-2 small"><i class="bi bi-shield-check me-1"></i>Privacy Protocol</h6>
-                                <p class="mb-0" style="font-size: 0.75rem; opacity: 0.82;">
-                                    Cloak Protocol is currently encrypting 12 reporter identities. Data access is being logged.
-                                </p>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
+            </div>
+            <div class="col-xl-5 col-lg-5">
+                @php
+                    $maxSuggestionCategory = max(1, (int) $suggestionCategories->max('total'));
+                    $suggestionCategoryTotal = (float) $suggestionCategories->sum('total');
+                    $suggestionPieColors = ['#4a2d96', '#7658df', '#8f72f5', '#f8cb12', '#34205f', '#c6b7f5'];
+                    $suggestionCategoryOffset = 0.0;
+                @endphp
+                <section class="dashboard-card category-flip-card">
+                    <div class="category-flip-inner">
+                        <div class="category-flip-face category-flip-front" aria-hidden="false">
+                            <div class="dashboard-card-head">
+                                <div><h2>Suggestion categories</h2><p>Community feedback trends</p></div>
+                                <button type="button" class="dashboard-chart-toggle" data-chart-toggle aria-label="Show suggestion category pie chart" aria-pressed="false" title="Show pie chart">
+                                    <i class="bi bi-pie-chart-fill" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <div class="dashboard-card-body">
+                                @forelse($suggestionCategories as $category)
+                                    <div class="dashboard-analytics-item">
+                                        <div class="dashboard-analytics-row"><span>{{ $category->label }}</span><strong>{{ $category->total }}</strong></div>
+                                        <div class="analytics-track"><span style="--bar-width:{{ round(($category->total / $maxSuggestionCategory) * 100) }}%;"></span></div>
+                                    </div>
+                                @empty
+                                    <p class="text-muted small mb-0">No suggestion data yet.</p>
+                                @endforelse
+                            </div>
+                        </div>
+                        <div class="category-flip-face category-flip-back" aria-hidden="true" inert>
+                            <div class="dashboard-card-head">
+                                <div><h2>Suggestion breakdown</h2><p>Share by suggestion category</p></div>
+                                <button type="button" class="dashboard-chart-toggle" data-chart-toggle aria-label="Show suggestion category bars" aria-pressed="false" title="Show category bars">
+                                    <i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="category-pie-layout">
+                                    <svg class="category-pie" viewBox="0 0 42 42" role="img" aria-label="Pie chart showing suggestion categories">
+                                        <circle class="category-pie-track" cx="21" cy="21" r="15.9155"></circle>
+                                        @foreach($suggestionCategories as $index => $category)
+                                            @php
+                                                $suggestionShare = $suggestionCategoryTotal > 0 ? (float) $category->total / $suggestionCategoryTotal * 100 : 0;
+                                                $suggestionShare = round($suggestionShare, 2);
+                                            @endphp
+                                            <circle class="category-pie-segment" cx="21" cy="21" r="15.9155" pathLength="100"
+                                                stroke="{{ $suggestionPieColors[$index % count($suggestionPieColors)] }}"
+                                                stroke-dasharray="{{ $suggestionShare }} {{ 100 - $suggestionShare }}"
+                                                stroke-dashoffset="{{ -$suggestionCategoryOffset }}"
+                                                transform="rotate(-90 21 21)"></circle>
+                                            @php $suggestionCategoryOffset += $suggestionShare; @endphp
+                                        @endforeach
+                                        <circle class="category-pie-center" cx="21" cy="21" r="11"></circle>
+                                        <text class="category-pie-total" x="21" y="20">{{ (int) $suggestionCategoryTotal }}</text>
+                                        <text class="category-pie-caption" x="21" y="24">suggestions</text>
+                                    </svg>
+                                    <div class="category-pie-legend" aria-label="Suggestion category totals">
+                                        @forelse($suggestionCategories as $index => $category)
+                                            @php $suggestionShare = $suggestionCategoryTotal > 0 ? round((float) $category->total / $suggestionCategoryTotal * 100) : 0; @endphp
+                                            <div class="category-pie-legend-item">
+                                                <span class="category-pie-label"><span class="category-pie-dot" style="background:{{ $suggestionPieColors[$index % count($suggestionPieColors)] }};"></span><span>{{ $category->label }}</span></span>
+                                                <strong>{{ $category->total }} <span class="text-muted">({{ $suggestionShare }}%)</span></strong>
+                                            </div>
+                                        @empty
+                                            <p class="text-muted small mb-0">No suggestion data to chart.</p>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="col-xl-2 col-lg-12">
+                <section class="dashboard-card">
+                    <div class="dashboard-card-head"><div><h2>Ratings & feedback</h2><p>Survey responses</p></div></div>
+                    <div class="dashboard-card-body pt-2">
+                        <div class="feedback-score"><strong>{{ number_format($averageRating, 1) }}</strong><span><span class="feedback-stars">★★★★★</span><small class="d-block text-muted">{{ $feedbackCount }} ratings</small></span></div>
+                        @forelse($recentFeedback->take(3) as $feedback)
+                            <div class="feedback-entry">
+                                <div class="d-flex justify-content-between gap-2 small"><strong>{{ $feedback->user?->first_name ?: 'User' }}</strong><span class="feedback-stars">{{ str_repeat('★', (int) $feedback->rating) }}</span></div>
+                                @if($feedback->feedback)<p>{{ \Illuminate\Support\Str::limit($feedback->feedback, 90) }}</p>@else<p class="fst-italic">No written feedback.</p>@endif
+                            </div>
+                        @empty
+                            <p class="text-muted small mt-3 mb-0">No feedback submitted yet.</p>
+                        @endforelse
+                    </div>
+                </section>
             </div>
         </div>
+
+        <section class="dashboard-card mb-4">
+            <div class="dashboard-card-head">
+                <div><h2>Recent reports</h2><p>Latest active cases requiring visibility</p></div>
+                <a href="{{ route('admin.reports') }}" class="dashboard-link">Manage reports <i class="bi bi-arrow-up-right"></i></a>
+            </div>
+            <div class="table-responsive mt-2">
+                <table class="table align-middle mb-0 admin-dashboard-table">
+                    <thead><tr><th class="ps-4">Case</th><th>Category</th><th>Reporter</th><th>Status</th><th>Date received</th><th class="text-end pe-4">Action</th></tr></thead>
+                    <tbody>
+                        @forelse($recentReports as $report)
+                            <tr>
+                                <td class="ps-4 fw-bold">#{{ $report->incident_id }}</td>
+                                <td>{{ $report->nature }}</td>
+                                <td>{{ $report->reporter_display_name }}</td>
+                                <td><span class="badge rounded-pill dashboard-report-status status-{{ $report->status_color }}">{{ $report->status }}</span></td>
+                                <td class="small text-muted">{{ $report->created_at?->format('M d, Y') }}</td>
+                                <td class="text-end pe-4"><a class="btn btn-sm btn-outline-primary rounded-pill px-3" href="{{ route('admin.reports', ['q' => $report->incident_id]) }}">Review</a></td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="text-center text-muted py-4">No active reports.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 </div>
 
 <div class="modal fade" id="exportGadFormatModal" tabindex="-1" aria-labelledby="exportGadFormatModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 rounded-4 shadow-lg">
             <div class="modal-header border-0">
-                <div>
-                    <h2 class="modal-title h5 fw-bold mb-1" id="exportGadFormatModalLabel">Choose file format</h2>
-                    <p class="small text-muted mb-0">Choose report sections, a format, and a date range.</p>
-                </div>
+                <div><h2 class="modal-title h5 fw-bold mb-1" id="exportGadFormatModalLabel">Choose export sections</h2><p class="small text-muted mb-0">Review the generated file before downloading.</p></div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="exportGadReportForm" method="GET" data-export-url-template="{{ route('admin.gad-report.export', ['format' => '__FORMAT__', 'period' => '__PERIOD__']) }}">
                 <div class="modal-body pt-0" id="exportGadDataStep">
-                    <label class="form-label fw-semibold">What would you like to export?</label>
-                    <div class="d-grid gap-2">
-                        <label class="survey-choice">
-                            <input type="checkbox" name="include_reports" value="1" checked>
-                            <span>Incident reports</span>
-                        </label>
-                        <label class="survey-choice">
-                            <input type="checkbox" name="include_feedback" value="1" checked>
-                            <span>Customer feedback and surveys</span>
-                        </label>
-                    </div>
-                    <div class="small text-danger mt-2 d-none" id="exportGadDataError">Select at least one export section.</div>
+                    <label class="export-section-choice mb-2"><input type="checkbox" name="include_reports" value="1" checked><span>Incident reports and suggestions</span></label>
+                    <label class="export-section-choice"><input type="checkbox" name="include_feedback" value="1" checked><span>Customer feedback and surveys</span></label>
+                    <div class="small text-danger mt-2 d-none" id="exportGadDataError">Select at least one section.</div>
                 </div>
                 <div class="modal-body pt-0 d-none" id="exportGadFormatStep" aria-hidden="true">
                     <label for="exportGadReportFormat" class="form-label fw-semibold">File format</label>
-                    <select id="exportGadReportFormat" class="form-select">
-                        <option value="pdf">PDF</option>
-                        <option value="excel">Excel workbook (.xlsx)</option>
-                    </select>
-                    <div class="form-text">The Excel workbook includes a formatted summary and detailed report sheets.</div>
+                    <select id="exportGadReportFormat" class="form-select"><option value="pdf">PDF</option><option value="excel">Excel workbook (.xlsx)</option></select>
                 </div>
                 <div class="modal-body pt-0 d-none" id="exportGadPeriodStep" aria-hidden="true">
                     <label for="exportGadReportPeriod" class="form-label fw-semibold">Date range</label>
                     <select id="exportGadReportPeriod" class="form-select" required>
-                        <option value="30days">Last 30 days</option>
-                        <option value="7days">Last 7 days</option>
-                        <option value="q1">Quarter 1 (Jan–Mar)</option>
-                        <option value="q2">Quarter 2 (Apr–Jun)</option>
-                        <option value="q3">Quarter 3 (Jul–Sep)</option>
-                        <option value="q4">Quarter 4 (Oct–Dec)</option>
-                        <option value="midyear">Mid-year (Jan–Jun)</option>
-                        <option value="annual">Annual (Jan–Dec)</option>
-                        <option value="lastyear">Last year</option>
+                        <option value="30days">Last 30 days</option><option value="7days">Last 7 days</option>
+                        <option value="q1">Quarter 1 (Jan–Mar)</option><option value="q2">Quarter 2 (Apr–Jun)</option>
+                        <option value="q3">Quarter 3 (Jul–Sep)</option><option value="q4">Quarter 4 (Oct–Dec)</option>
+                        <option value="midyear">Mid-year (Jan–Jun)</option><option value="annual">Annual (Jan–Dec)</option><option value="lastyear">Last year</option>
                     </select>
+                </div>
+                <div class="modal-body pt-0 d-none" id="exportGadPreviewStep" aria-hidden="true">
+                    <p class="small text-muted mb-2" id="exportPreviewDescription">Loading the generated file preview…</p>
+                    <iframe id="exportGadFilePreview" class="export-file-preview" title="Preview of the generated GAD export file"></iframe>
                 </div>
                 <div class="modal-footer border-0" id="exportGadDataActions">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" id="continueGadData" class="btn rounded-pill px-4 text-white" style="background:#8f72f5;">Continue</button>
+                    <button type="button" id="continueGadData" class="btn text-white rounded-pill px-4" style="background:#8f72f5;">Continue</button>
                 </div>
                 <div class="modal-footer border-0 d-none" id="exportGadFormatActions" aria-hidden="true">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" id="continueGadExport" class="btn rounded-pill px-4 text-white" style="background:#8f72f5;">Continue</button>
+                    <button type="button" id="continueGadExport" class="btn text-white rounded-pill px-4" style="background:#8f72f5;">Continue</button>
                 </div>
                 <div class="modal-footer border-0 d-none" id="exportGadPeriodActions" aria-hidden="true">
                     <button type="button" id="backToGadExportFormat" class="btn btn-light rounded-pill px-4">Back</button>
-                    <button type="submit" class="btn rounded-pill px-4 text-white" style="background:#8f72f5;">Export</button>
+                    <button type="button" id="previewGadExport" class="btn text-white rounded-pill px-4" style="background:#8f72f5;">Preview export</button>
+                </div>
+                <div class="modal-footer border-0 d-none" id="exportGadPreviewActions" aria-hidden="true">
+                    <button type="button" id="backToGadExportPeriod" class="btn btn-light rounded-pill px-4">Back</button>
+                    <button type="submit" class="btn text-white rounded-pill px-4" style="background:#8f72f5;"><i class="bi bi-download me-1"></i>Export now</button>
                 </div>
             </form>
         </div>
@@ -573,116 +477,115 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const formatStep = document.getElementById('exportGadFormatStep');
-        const dataStep = document.getElementById('exportGadDataStep');
-        const dataActions = document.getElementById('exportGadDataActions');
-        const periodStep = document.getElementById('exportGadPeriodStep');
-        const dataError = document.getElementById('exportGadDataError');
-        const formatActions = document.getElementById('exportGadFormatActions');
-        const periodActions = document.getElementById('exportGadPeriodActions');
+        const modal = document.getElementById('exportGadFormatModal');
+        const form = document.getElementById('exportGadReportForm');
+        const steps = {
+            data: document.getElementById('exportGadDataStep'),
+            format: document.getElementById('exportGadFormatStep'),
+            period: document.getElementById('exportGadPeriodStep'),
+            preview: document.getElementById('exportGadPreviewStep'),
+        };
+        const actions = {
+            data: document.getElementById('exportGadDataActions'),
+            format: document.getElementById('exportGadFormatActions'),
+            period: document.getElementById('exportGadPeriodActions'),
+            preview: document.getElementById('exportGadPreviewActions'),
+        };
+        const titles = {
+            data: 'Choose export sections',
+            format: 'Choose file format',
+            period: 'Choose date range',
+            preview: 'Preview export',
+        };
         const title = document.getElementById('exportGadFormatModalLabel');
-        const formatTitle = 'Choose file format';
-        const periodTitle = 'Choose date range';
+        const previewFrame = document.getElementById('exportGadFilePreview');
+        const previewDescription = document.getElementById('exportPreviewDescription');
+        let currentPreviewDescription = '';
 
-        function showExportStep(step) {
-            const showData = step === 'data';
-            const showFormat = step === 'format';
-            const showPeriod = step === 'period';
-            dataStep.classList.toggle('d-none', !showData);
-            dataStep.setAttribute('aria-hidden', String(!showData));
-            dataActions.classList.toggle('d-none', !showData);
-            dataActions.setAttribute('aria-hidden', String(!showData));
-            formatStep.classList.toggle('d-none', !showFormat);
-            formatStep.setAttribute('aria-hidden', String(!showFormat));
-            formatActions.classList.toggle('d-none', !showFormat);
-            formatActions.setAttribute('aria-hidden', String(!showFormat));
-            periodStep.classList.toggle('d-none', !showPeriod);
-            periodStep.setAttribute('aria-hidden', String(!showPeriod));
-            periodActions.classList.toggle('d-none', !showPeriod);
-            periodActions.setAttribute('aria-hidden', String(!showPeriod));
-            title.textContent = showData ? 'Choose export sections' : (showPeriod ? periodTitle : formatTitle);
+        document.querySelectorAll('.category-flip-card').forEach(function (card) {
+            const front = card.querySelector('.category-flip-front');
+            const back = card.querySelector('.category-flip-back');
+            const buttons = card.querySelectorAll('[data-chart-toggle]');
+
+            buttons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const showingPie = !card.classList.contains('is-flipped');
+                    card.classList.toggle('is-flipped', showingPie);
+                    front.inert = showingPie;
+                    back.inert = !showingPie;
+                    front.setAttribute('aria-hidden', String(showingPie));
+                    back.setAttribute('aria-hidden', String(!showingPie));
+
+                    buttons.forEach(function (toggle) {
+                        toggle.setAttribute('aria-pressed', String(showingPie));
+                        toggle.setAttribute('aria-label', showingPie ? 'Show category bars' : 'Show category pie chart');
+                        toggle.title = showingPie ? 'Show category bars' : 'Show pie chart';
+                    });
+                });
+            });
+        });
+
+        function showStep(current) {
+            Object.keys(steps).forEach(function (name) {
+                const isCurrent = name === current;
+                steps[name].classList.toggle('d-none', !isCurrent);
+                steps[name].setAttribute('aria-hidden', String(!isCurrent));
+                actions[name].classList.toggle('d-none', !isCurrent);
+                actions[name].setAttribute('aria-hidden', String(!isCurrent));
+            });
+            title.textContent = titles[current];
         }
 
-        showExportStep('data');
+        showStep('data');
         document.getElementById('continueGadData').addEventListener('click', function () {
-            const selected = document.querySelectorAll('#exportGadDataStep input[type="checkbox"]:checked').length;
-            dataError.classList.toggle('d-none', selected > 0);
-            if (selected > 0) showExportStep('format');
+            const selectedCount = form.querySelectorAll('#exportGadDataStep input:checked').length;
+            document.getElementById('exportGadDataError').classList.toggle('d-none', selectedCount > 0);
+            if (selectedCount > 0) showStep('format');
         });
         document.getElementById('continueGadExport').addEventListener('click', function () {
-            showExportStep('period');
+            showStep('period');
         });
         document.getElementById('backToGadExportFormat').addEventListener('click', function () {
-            showExportStep('format');
+            showStep('format');
         });
-        document.getElementById('exportGadReportForm').addEventListener('submit', function (event) {
-            const form = event.currentTarget;
+        document.getElementById('backToGadExportPeriod').addEventListener('click', function () {
+            showStep('period');
+        });
+        document.getElementById('previewGadExport').addEventListener('click', function () {
+            const selected = Array.from(form.querySelectorAll('#exportGadDataStep input:checked'))
+                .map((input) => input.name === 'include_reports' ? 'Reports & suggestions' : 'Customer feedback');
+            const format = document.getElementById('exportGadReportFormat');
+            const period = document.getElementById('exportGadReportPeriod');
+            const previewUrl = form.dataset.exportUrlTemplate
+                .replace('__FORMAT__', encodeURIComponent(format.value))
+                .replace('__PERIOD__', encodeURIComponent(period.value));
+            const params = new URLSearchParams();
+            form.querySelectorAll('#exportGadDataStep input:checked').forEach(function (input) {
+                params.append(input.name, input.value);
+            });
+            params.set('preview', '1');
+            currentPreviewDescription = `${format.options[format.selectedIndex].text} · ${period.options[period.selectedIndex].text} · ${selected.join(', ')}`;
+            previewDescription.textContent = `Generating preview: ${currentPreviewDescription}`;
+            previewFrame.src = `${previewUrl}?${params.toString()}`;
+            showStep('preview');
+        });
+        previewFrame.addEventListener('load', function () {
+            if (previewFrame.src !== 'about:blank') {
+                previewDescription.textContent = `Preview ready: ${currentPreviewDescription}`;
+            }
+        });
+        form.addEventListener('submit', function () {
             const format = document.getElementById('exportGadReportFormat').value;
             const period = document.getElementById('exportGadReportPeriod').value;
             form.action = form.dataset.exportUrlTemplate
                 .replace('__FORMAT__', encodeURIComponent(format))
                 .replace('__PERIOD__', encodeURIComponent(period));
         });
-
-        document.getElementById('exportGadFormatModal').addEventListener('hidden.bs.modal', function () {
-            showExportStep('data');
-            dataError.classList.add('d-none');
+        modal.addEventListener('hidden.bs.modal', function () {
+            showStep('data');
+            document.getElementById('exportGadDataError').classList.add('d-none');
+            previewFrame.src = 'about:blank';
         });
     });
 </script>
-
-<div class="modal fade" id="editOfficeInfoModal" tabindex="-1" aria-labelledby="editOfficeInfoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-            <div class="modal-header border-0 p-4 pb-3" style="background: linear-gradient(135deg, #8f72f5 0%, #a594f9 100%); color: #fff;">
-                <div>
-                    <h5 class="modal-title fw-bold mb-1" id="editOfficeInfoModalLabel"><i class="bi bi-building-gear me-2"></i>GAD Office Info & Contact</h5>
-                    <p class="small mb-0 text-white-50">Manage the contact hotline and office details shown to students and faculty.</p>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('admin.office-info.update') }}" method="POST">
-                @csrf
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase text-muted">GAD Hotline / Phone Number <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-telephone text-primary"></i></span>
-                            <input type="text" name="phone_number" class="form-control bg-light border-start-0 ps-0" value="{{ old('phone_number', $officeInfo['phone_number'] ?? auth()->user()->phone_number ?? '0919-777-7377') }}" placeholder="e.g. 0919-777-7377 or (075) 653-9000" required>
-                        </div>
-                        <small class="text-muted">This phone number will be clickable (click-to-call) for students and faculty.</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase text-muted">Office Location / Room</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
-                            <input type="text" name="office_location" class="form-control bg-light border-start-0 ps-0" value="{{ old('office_location', $officeInfo['office_location'] ?? 'Admin Building, Room 105') }}" placeholder="e.g. Admin Building, Room 105">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase text-muted">Office Hours</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-clock text-primary"></i></span>
-                            <input type="text" name="office_hours" class="form-control bg-light border-start-0 ps-0" value="{{ old('office_hours', $officeInfo['office_hours'] ?? 'Mon – Fri, 8:00 AM – 5:00 PM') }}" placeholder="e.g. Mon – Fri, 8:00 AM – 5:00 PM">
-                        </div>
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold text-uppercase text-muted">Official GAD Email</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-primary"></i></span>
-                            <input type="email" name="office_email" class="form-control bg-light border-start-0 ps-0" value="{{ old('office_email', $officeInfo['office_email'] ?? auth()->user()->email ?? 'gad@psu.edu.ph') }}" placeholder="e.g. gad@psu.edu.ph">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 bg-light px-4 py-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-3 px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn text-white rounded-3 px-4" style="background: #8f72f5;"><i class="bi bi-check2-circle me-1"></i>Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection

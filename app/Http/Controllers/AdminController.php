@@ -18,6 +18,8 @@ use App\Models\User;
 use App\Models\Message;
 use App\Models\GadSchedule;
 use App\Models\AppointmentRequest;
+use App\Models\CustomerSatisfactionSurvey;
+use App\Models\ReportStatusUpdate;
 use App\Models\SuggestionReport;
 
 class AdminController extends Controller
@@ -41,12 +43,12 @@ class AdminController extends Controller
         }
 
         if ($user->isGadCoordinator()) {
-            $reportStatusCounts = Report::query()
+            $reportStatusCounts = Report::notArchived()
                 ->selectRaw("COALESCE(status, 'Unspecified') as status, COUNT(*) as total")
                 ->groupBy('status')
                 ->orderBy('status')
                 ->get();
-            $reportNatureCounts = Report::query()
+            $reportNatureCounts = Report::notArchived()
                 ->selectRaw("COALESCE(nature, 'Unspecified') as nature, COUNT(*) as total")
                 ->groupBy('nature')
                 ->orderByDesc('total')
@@ -63,15 +65,15 @@ class AdminController extends Controller
         }
 
         // 1. Dashboard Summary Data
-        $totalReports     = Report::count();
-        $pendingReports   = Report::where('status', 'Pending')->count();
-        $resolvedReports  = Report::where('status', 'Resolved')->count();
-        $totalSuggestions = Suggestion::count();
+        $totalReports     = Report::notArchived()->count();
+        $pendingReports   = Report::notArchived()->where('status', 'Pending')->count();
+        $resolvedReports  = Report::notArchived()->where('status', 'Resolved')->count();
+        $totalSuggestions = Suggestion::notArchived()->count();
         $resolvedPercentage = $totalReports > 0 ? (int) round(($resolvedReports / $totalReports) * 100) : 0;
         $pendingPercentage = $totalReports > 0 ? (int) round(($pendingReports / $totalReports) * 100) : 0;
 
         // 2. Active Emergencies Logic
-        $activeEmergencies = Report::where(function($query) {
+        $activeEmergencies = Report::notArchived()->where(function($query) {
                                     $query->where('status', 'Emergency')
                                           ->orWhere('priority', 'High');
                                 })
@@ -79,11 +81,47 @@ class AdminController extends Controller
                                 ->count();
 
         // 3. Recent Reports Table
-        $recentReports = Report::with('user')
+        $recentReports = Report::notArchived()->with('user')
                                 ->orderByRaw("CASE WHEN status = 'Emergency' THEN 0 ELSE 1 END")
                                 ->latest()
                                 ->take(5)
                                 ->get();
+
+        $recentUsers = User::where('role', '!=', 'admin')
+            ->latest('created_at')
+            ->take(5)
+            ->get();
+        $upcomingAppointments = AppointmentRequest::with('user')
+            ->whereDate('scheduled_date', '>=', today())
+            ->whereIn('status', ['pending', 'approved'])
+            ->orderBy('scheduled_date')
+            ->orderBy('scheduled_time')
+            ->take(5)
+            ->get();
+        $reportCategories = Report::notArchived()
+            ->selectRaw("COALESCE(nature, 'Unspecified') as label, COUNT(*) as total")
+            ->groupBy('nature')
+            ->orderByDesc('total')
+            ->limit(6)
+            ->get();
+        $suggestionCategories = Suggestion::notArchived()
+            ->selectRaw("COALESCE(category, 'Unspecified') as label, COUNT(*) as total")
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->limit(6)
+            ->get();
+        $feedbackCount = 0;
+        $averageRating = 0.0;
+        $recentFeedback = collect();
+        if (Schema::hasTable('customer_satisfaction_surveys')) {
+            $feedbackQuery = CustomerSatisfactionSurvey::query();
+            $feedbackCount = (clone $feedbackQuery)->count();
+            $averageRating = (float) (clone $feedbackQuery)->avg('rating');
+            $recentFeedback = $feedbackQuery->with('user')->latest()->take(5)->get();
+        }
+        $dashboardNow = now('Asia/Manila');
+        $greeting = $dashboardNow->hour < 12 ? 'Good morning' : ($dashboardNow->hour < 18 ? 'Good afternoon' : 'Good evening');
+        $dashboardDate = $dashboardNow->format('l, F j, Y');
 
         $officeInfo = Cache::get('gad_office_info', [
             'phone_number' => Auth::user()->phone_number ?: '0919-777-7377',
@@ -101,6 +139,15 @@ class AdminController extends Controller
             'totalSuggestions',
             'activeEmergencies',
             'recentReports',
+            'recentUsers',
+            'upcomingAppointments',
+            'reportCategories',
+            'suggestionCategories',
+            'feedbackCount',
+            'averageRating',
+            'recentFeedback',
+            'greeting',
+            'dashboardDate',
             'officeInfo'
         ));
     }
@@ -119,7 +166,10 @@ class AdminController extends Controller
         $query = trim($validated['q'] ?? '');
         $escapedQuery = '%' . addcslashes($query, '\\%_') . '%';
 
-        $reports = Report::with('user')
+        $relations = Schema::hasTable('report_status_updates')
+            ? ['user', 'statusUpdates']
+            : ['user'];
+        $reports = Report::notArchived()->with($relations)
             ->when($query !== '', fn ($reports) => $reports->where(function ($search) use ($escapedQuery) {
                 $search->where('incident_id', 'like', $escapedQuery)
                     ->orWhere('cloak_alias', 'like', $escapedQuery);
@@ -193,12 +243,39 @@ class AdminController extends Controller
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:Pending,Under Review,Resolved'],
             'priority' => ['nullable', 'string', 'in:Low,Medium,High'],
-            'admin_comment' => ['nullable', 'string', 'max:4000'],
+            'admin_comment' => ['required', 'string', 'min:5', 'max:4000'],
+            'send_to_coordinator' => ['sometimes', 'boolean'],
         ]);
 
+        $sendToCoordinator = (bool) ($validated['send_to_coordinator'] ?? false);
+        $coordinator = null;
+        if ($sendToCoordinator) {
+            $coordinator = User::query()
+                ->where('role', 'admin')
+                ->where(function ($query): void {
+                    $query->whereRaw('LOWER(account_type) = ?', ['coordinator'])
+                        ->orWhereRaw('LOWER(email) = ?', ['gadcoordinator@psu.edu.ph']);
+                })
+                ->first();
+
+            if (!$coordinator || !$this->isMessageRecipient($coordinator)) {
+                return back()->withInput()->withErrors([
+                    'send_to_coordinator' => 'No GAD Coordinator account is available to receive this report.',
+                ]);
+            }
+        }
+
         $shouldSendResolutionNotice = false;
-        \DB::transaction(function () use ($id, $validated, &$shouldSendResolutionNotice): void {
-            $report = Report::whereKey($id)->lockForUpdate()->firstOrFail();
+        \DB::transaction(function () use (
+            $id,
+            $validated,
+            $sendToCoordinator,
+            $coordinator,
+            &$shouldSendResolutionNotice
+        ): void {
+            $report = Report::notArchived()->whereKey($id)->lockForUpdate()->firstOrFail();
+            $previousStatus = $report->status;
+            $details = trim((string) ($validated['admin_comment'] ?? ''));
             $report->update([
                 'status' => $validated['status'],
                 'priority' => $validated['priority'] ?? $report->priority,
@@ -206,6 +283,39 @@ class AdminController extends Controller
                     ? trim($validated['admin_comment'])
                     : $report->admin_comment,
             ]);
+
+            if ($sendToCoordinator) {
+                $details .= "\n\nThis report was sent to the GAD Coordinator for follow-up.";
+            }
+
+            if ($previousStatus !== $report->status || $details !== '') {
+                ReportStatusUpdate::create([
+                    'report_id' => $report->id,
+                    'admin_id' => Auth::id(),
+                    'from_status' => $previousStatus,
+                    'to_status' => $report->status,
+                    'details' => $details !== ''
+                        ? $details
+                        : "Status changed from {$previousStatus} to {$report->status}.",
+                ]);
+            }
+
+            if ($sendToCoordinator && $coordinator) {
+                \App\Support\CompatibleInsert::insert('messages', [
+                    'sender_id' => Auth::id(),
+                    'receiver_id' => $coordinator->id,
+                    'message' => sprintf(
+                        "Report #%s has been forwarded to you for review.\nPriority: %s\nStatus: %s\n\nOpen Report Details & Analytics: %s",
+                        $report->incident_id,
+                        $report->priority ?: 'Unspecified',
+                        $report->status ?: 'Pending',
+                        route('admin.report-tracking', ['report_id' => $report->getKey()])
+                    ),
+                    'sender_type' => 'admin',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
 
             if (strtolower($report->status) === 'resolved' && ! $report->resolution_notice_sent_at) {
                 $report->user->notify(new ReportResolvedNotification(
@@ -220,6 +330,10 @@ class AdminController extends Controller
         if ($shouldSendResolutionNotice) {
             $report = Report::with('user')->findOrFail($id);
 
+            $coordinatorNotice = $sendToCoordinator
+                ? ' It was also forwarded to the GAD Coordinator.'
+                : '';
+
             try {
                 Mail::to($report->user->email)->send(new ReportResolvedMail($report->incident_id));
             } catch (\Throwable $exception) {
@@ -231,15 +345,19 @@ class AdminController extends Controller
                     'message' => $exception->getMessage(),
                 ]);
 
-                return back()->with('warning', "Report #{$report->incident_id} was resolved and the in-app notice was sent, but the email could not be sent. The survey is now available in the user's Evidence Vault.");
+                return back()->with('warning', "Report #{$report->incident_id} was resolved and the in-app notice was sent, but the email could not be sent. The survey is now available in the user's Evidence Vault.{$coordinatorNotice}");
             }
 
-            return back()->with('success', "Report #{$report->incident_id} was resolved and the user was notified by email and in-app.");
+            return back()->with('success', "Report #{$report->incident_id} was resolved and the user was notified by email and in-app.{$coordinatorNotice}");
         }
 
         $report = Report::findOrFail($id);
 
-        return back()->with('success', "Report #{$report->incident_id} updated successfully.");
+        $coordinatorNotice = $sendToCoordinator
+            ? ' and forwarded to the GAD Coordinator'
+            : '';
+
+        return back()->with('success', "Report #{$report->incident_id} updated successfully{$coordinatorNotice}.");
     }
 
     /**
@@ -249,9 +367,192 @@ class AdminController extends Controller
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
 
-        $suggestions = Suggestion::with('user')->latest()->paginate(15);
+        $suggestions = Suggestion::notArchived()->with('user')->latest()->paginate(15);
         $pendingSuggestionReports = SuggestionReport::where('status', 'pending')->count();
         return view('admin.suggestions', compact('suggestions', 'pendingSuggestionReports'));
+    }
+
+    public function coordinatorReports(Request $request)
+    {
+        abort_unless(Auth::user()?->isGadCoordinator(), 403);
+
+        $validated = $request->validate([
+            'report_id' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $relations = Schema::hasTable('report_status_updates')
+            ? ['user', 'statusUpdates']
+            : ['user'];
+        $reports = Report::notArchived()
+            ->with($relations)
+            ->when(isset($validated['report_id']), fn ($query) => $query->whereKey($validated['report_id']))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+        $reportCountsByStatus = Report::notArchived()
+            ->selectRaw("COALESCE(status, 'Unspecified') as status, COUNT(*) as total")
+            ->groupBy('status')
+            ->orderBy('status')
+            ->pluck('total', 'status');
+        $reportCategories = Report::notArchived()
+            ->selectRaw("COALESCE(nature, 'Unspecified') as label, COUNT(*) as total")
+            ->groupBy('nature')
+            ->orderByDesc('total')
+            ->limit(8)
+            ->get();
+
+        return view('admin.coordinator-reports', compact(
+            'reports',
+            'reportCountsByStatus',
+            'reportCategories'
+        ));
+    }
+
+    public function archive()
+    {
+        return redirect()->route('admin.settings', ['section' => 'archive']);
+    }
+
+    public function restoreReport($id)
+    {
+        $report = Report::archived()->findOrFail($id);
+        $report->update(['archived_at' => null, 'archived_by' => null]);
+
+        return back()->with('success', "Report #{$report->incident_id} restored from archive.");
+    }
+
+    public function restoreSuggestion($id)
+    {
+        $suggestion = Suggestion::archived()->findOrFail($id);
+        $suggestion->update(['archived_at' => null, 'archived_by' => null]);
+
+        return back()->with('success', 'Suggestion restored from archive.');
+    }
+
+    public function permanentlyDeleteReport($id)
+    {
+        if (strtolower(trim((string) Auth::user()?->role)) !== 'admin') {
+            return redirect()->route('home');
+        }
+
+        $report = Report::archived()->findOrFail($id);
+        $incidentId = $report->incident_id;
+
+        foreach ($report->evidence_files as $path) {
+            \App\Support\MediaResolver::delete($path, $this->mediaStorageDisks());
+        }
+
+        \DB::transaction(function () use ($report): void {
+            $report->statusUpdates()->delete();
+            $report->delete();
+        });
+
+        return back()->with('success', "Report #{$incidentId} permanently deleted.");
+    }
+
+    public function permanentlyDeleteSuggestion($id)
+    {
+        if (strtolower(trim((string) Auth::user()?->role)) !== 'admin') {
+            return redirect()->route('home');
+        }
+
+        $suggestion = Suggestion::archived()->findOrFail($id);
+        $imagePath = $suggestion->image_path;
+
+        if ($imagePath) {
+            \App\Support\MediaResolver::delete($imagePath, $this->mediaStorageDisks());
+        }
+
+        \DB::transaction(function () use ($suggestion): void {
+            $suggestion->comments()->delete();
+            $suggestion->upvotes()->detach();
+            $suggestion->delete();
+        });
+
+        return back()->with('success', 'Suggestion permanently deleted.');
+    }
+
+    private function mediaStorageDisks(): array
+    {
+        return array_values(array_unique(array_filter([
+            'public',
+            'public_s3',
+            'local',
+            'private_s3',
+            config('filesystems.user_public_disk'),
+            config('filesystems.user_private_disk'),
+        ], static fn ($disk): bool => is_string($disk) && $disk !== '')));
+    }
+
+    public function activityLog()
+    {
+        return redirect()->route('admin.settings', ['section' => 'activity']);
+    }
+
+    public function settings(Request $request)
+    {
+        $section = $request->query('section', 'appearance');
+        abort_unless(in_array($section, ['appearance', 'archive', 'activity', 'feedback'], true), 404);
+
+        $data = ['section' => $section];
+        if ($section === 'archive') {
+            $data['archivedReports'] = Report::archived()
+                ->with('user')
+                ->latest('archived_at')
+                ->paginate(10, ['*'], 'reports_page')
+                ->withQueryString();
+            $data['archivedSuggestions'] = Suggestion::archived()
+                ->with('user')
+                ->latest('archived_at')
+                ->paginate(10, ['*'], 'suggestions_page')
+                ->withQueryString();
+        } elseif ($section === 'activity') {
+            $activityQuery = Schema::hasColumn('users', 'last_seen_at')
+                ? User::whereNotNull('last_seen_at')->orderByDesc('last_seen_at')
+                : User::query()->whereRaw('1 = 0');
+            $data['recentUsers'] = $activityQuery
+                ->paginate(25)
+                ->withQueryString();
+        } elseif ($section === 'feedback') {
+            $data['totalRatings'] = 0;
+            $data['averageRating'] = 0.0;
+            $data['writtenReviews'] = 0;
+            $data['ratingDistribution'] = collect();
+            $data['recentReviews'] = collect();
+
+            if (Schema::hasTable('customer_satisfaction_surveys')) {
+                $surveyQuery = CustomerSatisfactionSurvey::query();
+                $data['totalRatings'] = (clone $surveyQuery)->count();
+                $data['averageRating'] = (float) ((clone $surveyQuery)->avg('rating') ?? 0);
+                $data['writtenReviews'] = (clone $surveyQuery)
+                    ->whereNotNull('feedback')
+                    ->where('feedback', '<>', '')
+                    ->count();
+                $data['ratingDistribution'] = (clone $surveyQuery)
+                    ->selectRaw('rating, COUNT(*) as total')
+                    ->groupBy('rating')
+                    ->pluck('total', 'rating');
+                $data['recentReviews'] = $surveyQuery
+                    ->with('user')
+                    ->whereNotNull('feedback')
+                    ->where('feedback', '<>', '')
+                    ->latest()
+                    ->paginate(10)
+                    ->withQueryString();
+            }
+        }
+
+        return view('admin.settings', $data);
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'theme' => ['required', 'in:light,dark'],
+        ]);
+
+        Auth::user()->update(['admin_theme' => $validated['theme']]);
+
+        return back()->with('success', 'Dashboard appearance saved.');
     }
 
     public function suggestionReports()
@@ -271,10 +572,12 @@ class AdminController extends Controller
         if ($suggestionReport->comment_id && $suggestionReport->comment) {
             $suggestionReport->comment->delete();
         } elseif ($suggestionReport->suggestion) {
-            $suggestionReport->suggestion->comments()->delete();
-            $suggestionReport->suggestion->delete();
+            $suggestionReport->suggestion->update([
+                'archived_at' => now(),
+                'archived_by' => Auth::id(),
+            ]);
         }
-        return back()->with('success', 'Reported content deleted.');
+        return back()->with('success', 'Reported content was archived.');
     }
 
     public function dismissSuggestionReport(SuggestionReport $suggestionReport)
@@ -296,7 +599,7 @@ class AdminController extends Controller
             'admin_remarks' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $suggestion = Suggestion::findOrFail($id);
+        $suggestion = Suggestion::notArchived()->findOrFail($id);
 
         $suggestion->status = $request->action === 'approve' ? 'Approved' : 'Rejected';
         $suggestion->admin_remarks = trim((string) $request->input('admin_remarks')) ?: null;
@@ -311,12 +614,13 @@ class AdminController extends Controller
             return redirect()->route('home');
         }
 
-        $suggestion = Suggestion::findOrFail($id);
-        $suggestion->comments()->delete();
-        \DB::table('suggestion_user_upvotes')->where('suggestion_id', $suggestion->id)->delete();
-        $suggestion->delete();
+        $suggestion = Suggestion::notArchived()->findOrFail($id);
+        $suggestion->update([
+            'archived_at' => now(),
+            'archived_by' => Auth::id(),
+        ]);
 
-        return back()->with('success', 'Suggestion deleted successfully.');
+        return back()->with('success', 'Suggestion moved to the archive.');
     }
 
     /**
@@ -1140,9 +1444,12 @@ class AdminController extends Controller
     public function deleteReport($id)
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
-        $report = Report::findOrFail($id);
-        $report->delete();
-        return redirect()->back()->with('success', 'Report deleted successfully.');
+        $report = Report::notArchived()->findOrFail($id);
+        $report->update([
+            'archived_at' => now(),
+            'archived_by' => Auth::id(),
+        ]);
+        return redirect()->back()->with('success', 'Report moved to the archive.');
     }
 
     /**
@@ -1274,6 +1581,7 @@ class AdminController extends Controller
                 'original_message' => $message->original_message,
                 'deleted_at' => $message->deleted_at?->toIso8601String(),
                 'sender_id' => $message->sender_id,
+                'is_anonymous' => (bool) $message->is_anonymous,
                 'created_at' => $message->created_at?->toIso8601String(),
             ]),
             'unread_count' => $unreadQuery->count(),
@@ -1302,16 +1610,25 @@ class AdminController extends Controller
     /**
      * Show appointment requests management page
      */
-    public function appointments()
+    public function appointments(Request $request)
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') {
             return redirect()->route('home');
         }
 
-        $appointments = AppointmentRequest::with('user')
-            ->orderByRaw("CASE urgency_level WHEN 'High' THEN 0 WHEN 'Medium' THEN 1 WHEN 'Low' THEN 2 ELSE 3 END")
-            ->latest()
-            ->paginate(30)
+        $validated = $request->validate([
+            'open' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $appointmentQuery = AppointmentRequest::with('user');
+        if (isset($validated['open'])) {
+            $appointmentQuery->whereKey($validated['open']);
+        } else {
+            $appointmentQuery
+                ->orderByRaw("CASE urgency_level WHEN 'High' THEN 0 WHEN 'Medium' THEN 1 WHEN 'Low' THEN 2 ELSE 3 END")
+                ->latest();
+        }
+        $appointments = $appointmentQuery
+            ->paginate(isset($validated['open']) ? 1 : 30)
             ->withQueryString();
 
         $appointmentsByUrgency = $appointments->getCollection()->groupBy('urgency_level');

@@ -196,6 +196,57 @@
     .gad-faq-input button { width: 2.65rem; border: 0; border-radius: .7rem; color: #fff; background: #8f72f5; }
     .gad-faq-footnote { flex: 0 0 auto; padding: 0 .8rem .7rem; color: #817b91; text-align: center; font-size: .67rem; }
 
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-panel {
+        border-color: #49365f;
+        background: #20192d;
+        color: #eee8ff;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, .48);
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-header {
+        background: linear-gradient(120deg, #5b3fa8, #7658c7 70%, #8f72f5);
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-messages {
+        background: #15101f;
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-answer {
+        border-color: #49365f;
+        color: #eee8ff;
+        background: #211a2e;
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-quick-questions button,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-answer-links a {
+        border-color: #594478;
+        color: #ded3f4;
+        background: #211a2e;
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-quick-questions button:hover,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-answer-links a:hover,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-answer-links a:focus-visible {
+        border-color: #947cf0;
+        color: #fff;
+        background: #302348;
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-input {
+        border-color: #49365f;
+        background: #20192d;
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-input input {
+        border-color: #594478;
+        color: #eee8ff;
+        background: #15101f;
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-input input::placeholder,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-footnote {
+        color: #b7aacb;
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-input button {
+        background: #7658df;
+    }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-badge-words strong {
+        color: #ded3f4;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, .6);
+    }
+
     @media (max-width: 575.98px) {
         .gad-faq-widget { right: .65rem; bottom: max(.65rem, env(safe-area-inset-bottom)); }
         .gad-faq-launcher { width: 5rem; height: 5.15rem; }

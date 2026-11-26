@@ -326,6 +326,36 @@ body {
     flex-shrink: 0;
 }
 
+.msg-identity-control {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+    padding: .8rem 1.2rem 0;
+    border-top: 1px solid #F0E7FF;
+    background: #FAFAFA;
+}
+
+.msg-identity-choice {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: #4b3b66;
+    font-size: .8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.msg-identity-choice input {
+    accent-color: #7658df;
+}
+
+.msg-identity-note {
+    flex-basis: 100%;
+    color: #6b7280;
+    font-size: .72rem;
+}
+
 .msg-textarea {
     flex: 1;
     border: 1.5px solid #E9D5FF;
@@ -645,6 +675,8 @@ body {
                             <div class="msg-bubble-wrap">
                                 @if($message->sender_id !== Auth::id())
                                     <div class="msg-sender-name">GAD Office</div>
+                                @else
+                                    <div class="msg-sender-name msg-identity-label">{{ $message->is_anonymous ? 'Anonymous' : (Auth::user()->cloak_alias ?: 'Campus alias') }}</div>
                                 @endif
 
                                 <div class="msg-bubble {{ $message->deleted_at ? 'msg-deleted' : '' }}" id="bubble-{{ $message->id }}">
@@ -671,6 +703,13 @@ body {
             </div>
 
             {{-- Input area --}}
+            <div class="msg-identity-control" role="note" aria-label="Message display name">
+                <span class="msg-identity-choice">
+                    <i class="bi bi-person-badge" aria-hidden="true"></i>
+                    <span>Messages are sent as {{ Auth::user()->cloak_alias ?: 'your campus alias' }}</span>
+                </span>
+                <small class="msg-identity-note">Your account stays linked so the GAD Office can reply.</small>
+            </div>
             <div class="msg-input-area">
                 <textarea class="msg-textarea" id="messageInput"
                           placeholder="Type your message…" rows="2"></textarea>
@@ -804,7 +843,9 @@ function sendMessage() {
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': CSRF
         },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({
+            message
+        })
     })
     .then(async r => {
         if (!r.ok) {
@@ -857,10 +898,11 @@ function studentMessageMarkup(message) {
     const original = message.original_message && !deleted
         ? `<div class="msg-original" id="original-${id}"><strong>Original message:</strong> ${escapeHtml(message.original_message)}</div>`
         : '';
-    const state = JSON.stringify([message.message, message.original_message, message.deleted_at]);
+    const state = JSON.stringify([message.message, message.original_message, message.deleted_at, message.is_anonymous]);
+    const identity = message.is_anonymous ? 'Anonymous' : @json(Auth::user()->cloak_alias ?: 'Campus alias');
     return `<div class="msg-group ${own ? 'user' : 'admin'}" data-message-id="${id}" data-message-state="${escapeHtml(state)}">
         ${own ? '' : '<img src="{{ asset('images/gadlogo.png') }}" alt="GAD" class="msg-admin-avatar">'}
-        <div class="msg-bubble-wrap">${own ? '' : '<div class="msg-sender-name">GAD Office</div>'}<div class="msg-bubble${deleted ? ' msg-deleted' : ''}" id="bubble-${id}"><span class="message-text" id="message-text-${id}">${escapeHtml(content)}</span></div>${editedControl}
+        <div class="msg-bubble-wrap">${own ? `<div class="msg-sender-name msg-identity-label">${escapeHtml(identity)}</div>` : '<div class="msg-sender-name">GAD Office</div>'}<div class="msg-bubble${deleted ? ' msg-deleted' : ''}" id="bubble-${id}"><span class="message-text" id="message-text-${id}">${escapeHtml(content)}</span></div>${editedControl}
         <div class="msg-message-meta"><div class="msg-time">${escapeHtml(formatUserLocalMessageTime(message.created_at))}</div>${actions}</div>${original}</div></div>`;
 }
 
@@ -876,7 +918,7 @@ async function refreshMessages() {
         for (const message of data.messages) {
             const existing = thread.querySelector(`[data-message-id="${message.id}"]`);
             if (existing?.querySelector('textarea')) continue;
-            const state = JSON.stringify([message.message, message.original_message, message.deleted_at]);
+            const state = JSON.stringify([message.message, message.original_message, message.deleted_at, message.is_anonymous]);
             if (existing?.dataset.messageState === state) continue;
             thread.querySelector('.msg-empty')?.remove();
             if (existing) existing.outerHTML = studentMessageMarkup(message);

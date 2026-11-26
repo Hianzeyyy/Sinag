@@ -74,6 +74,7 @@ class User extends Authenticatable
         'other_information',
         'failed_login_attempts',
         'password_locked_at',
+        'admin_theme',
     ];
 
     protected $hidden = [
@@ -165,6 +166,17 @@ class User extends Authenticatable
     public function customerSatisfactionSurvey()
     {
         return $this->hasOne(CustomerSatisfactionSurvey::class);
+    }
+
+    public function reportConsents()
+    {
+        return $this->hasMany(ReportConsent::class);
+    }
+
+    public function hasAcceptedReportConsent(): bool
+    {
+        return \Illuminate\Support\Facades\Schema::hasTable('report_consents')
+            && $this->reportConsents()->where('version', ReportConsent::VERSION)->exists();
     }
 
     public function isGadCoordinator(): bool

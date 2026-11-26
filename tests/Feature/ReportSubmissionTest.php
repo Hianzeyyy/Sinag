@@ -50,7 +50,7 @@ class ReportSubmissionTest extends TestCase
             ->assertSee(route('student.dashboard'))
             ->assertSee(route('student.messaging'))
             ->assertSee(route('profile.show'))
-            ->assertSee(route('personal-data.show'))
+            ->assertSee(route('student.settings'))
             ->assertDontSee('SINAG Menu');
 
         $html = $response->getContent();
@@ -58,6 +58,59 @@ class ReportSubmissionTest extends TestCase
         $this->assertStringNotContainsString(route('profile.show'), $studentSidebar[0]);
         $this->assertStringNotContainsString(route('personal-data.show'), $studentSidebar[0]);
         $this->assertLessThan(strpos($html, 'Submit Report'), strpos($html, 'Emergency Hotline'));
+    }
+
+    public function test_report_submission_requires_privacy_consent(): void
+    {
+        Schema::create('users', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('role')->default('student');
+            $table->string('cloak_alias')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->unsignedTinyInteger('age')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('department')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->json('personal_information')->nullable();
+            $table->json('student_information')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('reports', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('incident_id')->unique();
+            $table->string('cloak_alias');
+            $table->boolean('is_anonymous')->default(true);
+            $table->string('nature');
+            $table->date('incident_date')->nullable();
+            $table->time('incident_time')->nullable();
+            $table->string('course')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('location');
+            $table->text('description')->nullable();
+            $table->string('priority')->default('Medium');
+            $table->string('status')->default('Pending');
+            $table->json('evidence')->nullable();
+            $table->timestamps();
+        });
+        $this->createReportSupportTables();
+        $user = $this->completeStudent();
+
+        $this->actingAs($user)->post(route('reports.store'), [
+            'nature' => 'Catcalling',
+            'gender' => 'Female',
+            'incident_date' => now()->toDateString(),
+            'incident_time' => '12:30',
+            'description' => 'A test report description.',
+            'location' => 'Test location',
+        ])->assertSessionHasErrors('privacy_consent');
+
+        $this->assertDatabaseCount('reports', 0);
+        $this->assertDatabaseCount('report_consents', 0);
     }
 
     public function test_report_submission_succeeds_when_optional_metadata_columns_are_not_migrated(): void
@@ -94,6 +147,7 @@ class ReportSubmissionTest extends TestCase
             $table->json('evidence')->nullable();
             $table->timestamps();
         });
+        $this->createReportSupportTables();
 
         $user = $this->completeStudent();
 
@@ -119,6 +173,7 @@ class ReportSubmissionTest extends TestCase
             'incident_time' => '12:30',
             'description' => 'A test report description.',
             'location' => 'Test location',
+            'privacy_consent' => '1',
         ]);
 
         $response->assertRedirect(route('student.report'));
@@ -129,6 +184,14 @@ class ReportSubmissionTest extends TestCase
             'user_id' => $user->id,
             'nature' => 'Catcalling',
             'location' => 'Test location',
+        ]);
+        $this->assertDatabaseHas('report_consents', [
+            'user_id' => $user->id,
+            'version' => \App\Models\ReportConsent::VERSION,
+        ]);
+        $this->assertDatabaseHas('report_status_updates', [
+            'report_id' => 5,
+            'to_status' => 'Pending',
         ]);
     }
 
@@ -173,6 +236,7 @@ class ReportSubmissionTest extends TestCase
             $table->json('evidence')->nullable();
             $table->timestamps();
         });
+        $this->createReportSupportTables();
 
         $user = $this->completeStudent();
 
@@ -184,7 +248,11 @@ class ReportSubmissionTest extends TestCase
             'incident_time' => '12:30',
             'description' => 'A test report description.',
             'location' => 'Test location',
-            'evidence' => [UploadedFile::fake()->image('incident.png')],
+            'evidence' => [
+                UploadedFile::fake()->image('incident.png'),
+                UploadedFile::fake()->create('incident.mp4', 51200, 'video/mp4'),
+            ],
+            'privacy_consent' => '1',
         ]);
 
         $response->assertRedirect(route('student.report'));
@@ -200,11 +268,38 @@ class ReportSubmissionTest extends TestCase
 
         $report = Report::where('user_id', $user->id)->firstOrFail();
         $evidencePath = $report->evidence_files[0];
+        $videoPath = $report->evidence_files[1];
 
         $this->assertStringStartsWith('cloudinary://authenticated/image/sinag/reports/evidence/', $evidencePath);
+        $this->assertStringStartsWith('cloudinary://authenticated/video/sinag/reports/evidence/', $videoPath);
         $this->actingAs($user)
             ->get(route('reports.evidence.view', ['report' => $report->id, 'index' => 0]))
             ->assertOk();
+        $this->actingAs($user)
+            ->get(route('reports.evidence.view', ['report' => $report->id, 'index' => 1]))
+            ->assertOk();
+    }
+
+    private function createReportSupportTables(): void
+    {
+        Schema::create('report_consents', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->string('version');
+            $table->timestamp('accepted_at');
+            $table->timestamps();
+            $table->unique(['user_id', 'version']);
+        });
+
+        Schema::create('report_status_updates', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('report_id');
+            $table->unsignedBigInteger('admin_id')->nullable();
+            $table->string('from_status')->nullable();
+            $table->string('to_status');
+            $table->text('details')->nullable();
+            $table->timestamps();
+        });
     }
 
     private function completeStudent(): User

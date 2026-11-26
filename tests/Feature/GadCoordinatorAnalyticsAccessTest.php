@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Report;
+use App\Models\ReportStatusUpdate;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Gate;
@@ -23,16 +24,34 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             $table->string('role')->default('student');
             $table->string('account_type')->nullable();
             $table->string('account_status')->nullable();
+            $table->string('cloak_alias')->nullable();
             $table->timestamps();
         });
 
         Schema::create('reports', function (Blueprint $table): void {
             $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->string('incident_id');
             $table->string('nature')->nullable();
             $table->string('status')->nullable();
             $table->string('priority')->nullable();
+            $table->boolean('is_anonymous')->default(true);
+            $table->date('incident_date')->nullable();
+            $table->string('location')->nullable();
+            $table->text('description')->nullable();
+            $table->json('evidence')->nullable();
+            $table->text('admin_comment')->nullable();
             $table->timestamp('seen_at')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('report_status_updates', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('report_id');
+            $table->unsignedBigInteger('admin_id')->nullable();
+            $table->string('from_status')->nullable();
+            $table->string('to_status');
+            $table->text('details')->nullable();
             $table->timestamps();
         });
 
@@ -70,6 +89,7 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             $table->timestamp('deleted_at')->nullable();
             $table->string('sender_type')->default('student');
             $table->timestamp('read_at')->nullable();
+            $table->boolean('is_anonymous')->default(false);
             $table->timestamps();
         });
     }
@@ -146,6 +166,55 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
         }
     }
 
+    public function test_coordinator_can_open_report_details_and_tracking_history(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'account_status' => 'active',
+        ]);
+        $reporter = User::create([
+            'name' => 'Report Owner',
+            'email' => 'owner@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_type' => 'student',
+            'account_status' => 'active',
+        ]);
+        $report = Report::create([
+            'user_id' => $reporter->id,
+            'incident_id' => 'SN-TRACK-1',
+            'nature' => 'Stalking',
+            'status' => 'Under Review',
+            'priority' => 'High',
+            'incident_date' => today()->toDateString(),
+            'location' => 'Library',
+            'description' => 'The report details for tracking.',
+        ]);
+        ReportStatusUpdate::create([
+            'report_id' => $report->id,
+            'to_status' => 'Under Review',
+            'details' => 'Assigned to the GAD review team.',
+        ]);
+        Report::create([
+            'incident_id' => 'SN-TRACK-2',
+            'nature' => 'Bullying',
+            'status' => 'Pending',
+            'priority' => 'Low',
+        ]);
+
+        $this->actingAs($coordinator)
+            ->get(route('admin.report-tracking', ['report_id' => $report->id]))
+            ->assertOk()
+            ->assertSee('Report Details & Analytics', false)
+            ->assertSee('SN-TRACK-1')
+            ->assertDontSee('SN-TRACK-2')
+            ->assertSee('Assigned to the GAD review team.');
+    }
+
     public function test_gad_coordinator_can_open_messages_and_send_a_message(): void
     {
         $coordinator = User::create([
@@ -207,6 +276,48 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertOk()
             ->assertJsonCount(2, 'messages')
             ->assertJsonPath('messages.1.message', 'Reply from the GAD Administrator');
+    }
+
+    public function test_admin_message_thread_displays_the_selected_alias_or_anonymous_label(): void
+    {
+        $student = User::create([
+            'name' => 'Test Student',
+            'email' => 'student@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_type' => 'student',
+            'account_status' => 'active',
+            'cloak_alias' => 'Silver Sparrow',
+        ]);
+        $admin = User::create([
+            'name' => 'GAD Administrator',
+            'email' => 'gadadmin@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'admin',
+            'account_status' => 'active',
+        ]);
+        \App\Models\Message::create([
+            'sender_id' => $student->id,
+            'receiver_id' => $admin->id,
+            'message' => 'Private concern',
+            'sender_type' => 'student',
+            'is_anonymous' => true,
+        ]);
+        \App\Models\Message::create([
+            'sender_id' => $student->id,
+            'receiver_id' => $admin->id,
+            'message' => 'Follow-up',
+            'sender_type' => 'student',
+            'is_anonymous' => false,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.messages', ['student_id' => $student->id]))
+            ->assertOk()
+            ->assertSee('Anonymous')
+            ->assertSee('Silver Sparrow')
+            ->assertSee('message-identity-label', false);
     }
 
     public function test_gad_admins_share_coordinator_conversations(): void

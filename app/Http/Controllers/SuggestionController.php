@@ -14,7 +14,7 @@ class SuggestionController extends Controller
 {
     public function upvote($id)
     {
-        $suggestion = Suggestion::findOrFail($id);
+        $suggestion = Suggestion::notArchived()->findOrFail($id);
         $user = Auth::user();
 
         if ($suggestion->isUpvotedBy($user->id)) {
@@ -106,7 +106,7 @@ class SuggestionController extends Controller
 
     public function update(Request $request, $id)
     {
-        $suggestion = Suggestion::findOrFail($id);
+        $suggestion = Suggestion::notArchived()->findOrFail($id);
         $user = Auth::user();
 
         if (!$user || $suggestion->user_id !== $user->id) {
@@ -155,7 +155,7 @@ class SuggestionController extends Controller
 
     public function destroy($id)
     {
-        $suggestion = Suggestion::findOrFail($id);
+        $suggestion = Suggestion::notArchived()->findOrFail($id);
         $user = Auth::user();
 
         if (!$user) {

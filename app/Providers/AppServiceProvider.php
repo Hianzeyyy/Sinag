@@ -62,8 +62,8 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('adminNotifications', [
                 'users' => User::where('account_status', 'pending')->count(),
-                'reports' => Report::whereNull('seen_at')->count(),
-                'suggestions' => Suggestion::where('status', 'Pending')->count(),
+                'reports' => Report::notArchived()->whereNull('seen_at')->count(),
+                'suggestions' => Suggestion::notArchived()->where('status', 'Pending')->count(),
                 'appointments' => AppointmentRequest::where('status', 'pending')->count(),
                 'messages' => Message::whereIn('receiver_id', $gadAdminIds)
                     ->whereNotIn('sender_id', $gadAdminIds)

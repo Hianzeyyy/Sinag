@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Schema;
 
 class Suggestion extends Model
 {
@@ -21,6 +23,8 @@ class Suggestion extends Model
         'is_anonymous',
         'status',
         'admin_remarks',
+        'archived_at',
+        'archived_by',
     ];
 
     public function getAdminStatusLabelAttribute(): string
@@ -40,6 +44,20 @@ class Suggestion extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function scopeNotArchived(Builder $query): Builder
+    {
+        return Schema::hasColumn($this->getTable(), 'archived_at')
+            ? $query->whereNull($this->qualifyColumn('archived_at'))
+            : $query;
+    }
+
+    public function scopeArchived(Builder $query): Builder
+    {
+        return Schema::hasColumn($this->getTable(), 'archived_at')
+            ? $query->whereNotNull($this->qualifyColumn('archived_at'))
+            : $query->whereRaw('1 = 0');
     }
 
     // Comments relationship

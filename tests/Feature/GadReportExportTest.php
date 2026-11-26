@@ -477,6 +477,37 @@ class GadReportExportTest extends TestCase
         }
     }
 
+    public function test_export_preview_renders_pdf_inline_and_shows_excel_workbook_sheets(): void
+    {
+        $admin = User::create([
+            'name' => 'GAD Administrator',
+            'email' => 'gadadmin@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'admin',
+        ]);
+        $this->actingAs($admin);
+
+        $pdfPreview = $this->get(route('admin.gad-report.export', [
+            'format' => 'pdf',
+            'period' => '30days',
+            'preview' => 1,
+        ]))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('inline', $pdfPreview->headers->get('content-disposition'));
+
+        $this->get(route('admin.gad-report.export', [
+            'format' => 'excel',
+            'period' => '30days',
+            'preview' => 1,
+        ]))
+            ->assertOk()
+            ->assertSee('SINAG GAD workbook preview')
+            ->assertSee('Incident Reports')
+            ->assertSee('Customer Satisfaction');
+    }
+
     public function test_gad_admin_and_coordinator_excel_exports_use_the_same_color_theme(): void
     {
         $loadStyles = function (string $name, string $email, string $accountType): string {

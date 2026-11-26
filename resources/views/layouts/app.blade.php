@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-student-theme-enabled="{{ Auth::check() && Auth::user()->role !== 'admin' ? 'true' : 'false' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,6 +12,19 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    <script>
+        (function () {
+            const root = document.documentElement;
+            if (root.dataset.studentThemeEnabled !== 'true') return;
+
+            try {
+                const theme = localStorage.getItem('sinag-student-theme');
+                if (theme === 'light' || theme === 'dark') root.dataset.studentTheme = theme;
+            } catch (error) {
+                console.error('Unable to load the SINAG theme preference:', error);
+            }
+        })();
+    </script>
 
     <style>
         a,
@@ -271,6 +284,505 @@
             visibility: visible;
         }
 
+        .admin-sidebar {
+            width: 76px;
+            flex: 0 0 76px;
+            min-width: 76px;
+            padding: .8rem .45rem;
+            position: fixed;
+            inset: 5.5rem auto 1rem .75rem;
+            z-index: 1101;
+            height: auto;
+            max-height: calc(100dvh - 6.5rem);
+            visibility: visible;
+            border-right-color: #e7defc;
+            border-radius: 1.25rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+            box-shadow: 8px 0 24px rgba(62, 35, 112, .06);
+            transition: width .24s ease, flex-basis .24s ease, padding .24s ease, background-color .24s ease;
+        }
+
+        .admin-sidebar.active {
+            width: 264px;
+            flex-basis: 264px;
+            padding: 1.15rem .9rem;
+        }
+
+        .admin-sidebar .navbar-brand-custom {
+            width: 100%;
+            justify-content: center;
+            margin: 0;
+            padding: .45rem;
+            background: #f3efff;
+            border-radius: 1rem;
+        }
+
+        .admin-sidebar.active .navbar-brand-custom {
+            justify-content: flex-start;
+            padding: .4rem .65rem;
+        }
+
+        .admin-sidebar:not(.active) .admin-brand-name,
+        .admin-sidebar:not(.active) .admin-sidebar-heading,
+        .admin-sidebar:not(.active) .admin-nav-label,
+        .admin-sidebar:not(.active) .admin-nav-count,
+        .admin-sidebar:not(.active) .admin-subnav {
+            display: none !important;
+        }
+
+        .admin-sidebar:not(.active) .nav-link-custom {
+            justify-content: center;
+            padding: .78rem .45rem;
+        }
+
+        .admin-sidebar .nav-link-custom i {
+            margin-right: .8rem;
+            flex: 0 0 auto;
+            transition: transform .18s ease;
+        }
+
+        .admin-sidebar .nav-link-custom:hover i,
+        .admin-sidebar .nav-link-custom:focus-visible i {
+            transform: scale(1.14);
+        }
+
+        .admin-sidebar:not(.active) .nav-link-custom i {
+            margin-right: 0;
+        }
+
+        .admin-sidebar .admin-sidebar-footer {
+            border-top: 1px solid #e8e1f5;
+            padding-top: .8rem;
+            margin-top: auto;
+        }
+
+        .admin-dashboard-nav-row {
+            position: relative;
+            margin-bottom: .5rem;
+        }
+
+        .admin-dashboard-nav-row > .nav-link-custom {
+            margin-bottom: 0;
+        }
+
+        .admin-sidebar-toggle-floating {
+            position: fixed;
+            top: 12.5rem;
+            left: calc(.75rem + 76px);
+            z-index: 1102;
+            display: grid;
+            align-items: center;
+            justify-content: center;
+            width: 2.75rem;
+            height: 2.75rem;
+            padding: 0;
+            border: 1px solid #d9cdf5;
+            border-radius: 50%;
+            background: #fff;
+            color: #6b4bd4;
+            box-shadow: 0 8px 20px rgba(39, 23, 73, .2);
+            transition: left .24s ease, background-color .18s ease, transform .18s ease;
+        }
+
+        .admin-sidebar-toggle-floating[aria-expanded="true"] {
+            left: calc(.75rem + min(88vw, 280px));
+        }
+
+        .admin-sidebar-toggle-floating:hover {
+            background: #eee8ff;
+            transform: scale(1.08);
+        }
+
+        .admin-sidebar-toggle-floating .admin-sidebar-toggle-icon {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .admin-sidebar-toggle-icon {
+            transition: transform .24s ease;
+        }
+
+        .admin-sidebar-toggle-floating[aria-expanded="true"] .admin-sidebar-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .admin-sidebar .admin-nav-group {
+            margin: 0;
+        }
+
+        .admin-sidebar .admin-subnav {
+            display: block;
+            margin: -.25rem 0 .45rem 2.85rem;
+            padding: .38rem .55rem;
+            border-radius: .65rem;
+            color: #665c7d;
+            text-decoration: none;
+            font-size: .79rem;
+            font-weight: 600;
+        }
+
+        .admin-sidebar.active .admin-subnav:hover,
+        .admin-sidebar.active .admin-subnav.active {
+            color: #6b4bd4;
+            background: #f2edff;
+        }
+
+        body[data-admin-theme="dark"] {
+            background: #100b1d;
+            color: #eee8ff;
+            transition: background-color .3s ease, color .3s ease;
+        }
+
+        body[data-admin-theme="dark"] .admin-main {
+            background: #100b1d;
+            color: #eee8ff;
+            color-scheme: dark;
+        }
+
+        body[data-admin-theme="dark"] .admin-sidebar {
+            background: #171126;
+            border-color: #302348;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-sidebar .navbar-brand-custom,
+        body[data-admin-theme="dark"] .admin-sidebar-footer {
+            background-color: #211936;
+            border-color: #302348;
+        }
+
+        body[data-admin-theme="dark"] .admin-sidebar-toggle-floating {
+            background: #211936;
+            border-color: #3a2d50;
+            color: #d7caff;
+        }
+
+        body[data-admin-theme="dark"] .admin-sidebar-toggle-floating:hover {
+            background: #302348;
+        }
+
+        body[data-admin-theme="dark"] .admin-main > .top-navbar {
+            background: #171126;
+            border-color: #302348;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main > .top-navbar .brand-descriptor,
+        body[data-admin-theme="dark"] .admin-main > .top-navbar .text-muted {
+            color: #bdb1d1 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main > .top-navbar .profile-menu-btn {
+            background: #211936;
+            border-color: #3a2d50;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .bg-white,
+        body[data-admin-theme="dark"] .admin-main .bg-light {
+            background-color: #1b1529 !important;
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .card,
+        body[data-admin-theme="dark"] .admin-main .modal-content {
+            background-color: #1b1529 !important;
+            border-color: #332846 !important;
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .text-dark,
+        body[data-admin-theme="dark"] .admin-main .text-secondary {
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .text-muted {
+            color: #bdb1d1 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .form-control,
+        body[data-admin-theme="dark"] .admin-main .form-select,
+        body[data-admin-theme="dark"] .admin-main .input-group-text {
+            background-color: #211936 !important;
+            border-color: #49365f !important;
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .form-control::placeholder {
+            color: #bdb1d1 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .form-select option {
+            background-color: #211936;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        body[data-admin-theme="dark"] .admin-main .dropdown-menu {
+            background-color: #1b1529;
+            border-color: #332846;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .dropdown-item {
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .dropdown-item:hover,
+        body[data-admin-theme="dark"] .admin-main .dropdown-item:focus {
+            background-color: #302348;
+            color: #fff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page {
+            background: #100b1d !important;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .left-panel,
+        body[data-admin-theme="dark"] .admin-main .messages-page .right-panel,
+        body[data-admin-theme="dark"] .admin-main .messages-page .messaging-header,
+        body[data-admin-theme="dark"] .admin-main .messages-page .messaging-input-area {
+            background: #1b1529 !important;
+            border-color: #332846 !important;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .messaging-thread {
+            background: #100b1d !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .panel-title,
+        body[data-admin-theme="dark"] .admin-main .messages-page .conv-name,
+        body[data-admin-theme="dark"] .admin-main .messages-page .msg-name {
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .panel-sub,
+        body[data-admin-theme="dark"] .admin-main .messages-page .conv-preview,
+        body[data-admin-theme="dark"] .admin-main .messages-page .conv-time,
+        body[data-admin-theme="dark"] .admin-main .messages-page .msg-email {
+            color: #bdb1d1;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .conversation-item {
+            border-color: #332846;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .conversation-item:hover,
+        body[data-admin-theme="dark"] .admin-main .messages-page .conversation-item.active {
+            background: #302348 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-group.admin .message-bubble {
+            background: #211936;
+            border-color: #49365f;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-input,
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-edit-input {
+            background: #211936;
+            border-color: #49365f;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .modal-header,
+        body[data-admin-theme="dark"] .admin-main .modal-footer {
+            border-color: #332846 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .modal-content .border,
+        body[data-admin-theme="dark"] .admin-main .modal-content .border-bottom,
+        body[data-admin-theme="dark"] .admin-main .modal-content .border-top {
+            border-color: #3a2d50 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .appointment-detail-grid > div,
+        body[data-admin-theme="dark"] .admin-main .resume-grid > div,
+        body[data-admin-theme="dark"] .admin-main .resume-id-image {
+            background: #211936 !important;
+            border-color: #3a2d50 !important;
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .appointment-detail-grid span,
+        body[data-admin-theme="dark"] .admin-main .resume-grid span {
+            color: #bdb1d1 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .resume-grid strong,
+        body[data-admin-theme="dark"] .admin-main .appointment-user-link {
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .appointment-filters .appointment-filter {
+            background: #211936;
+            border-color: #49365f;
+            color: #d7caff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .appointment-filters .appointment-filter span {
+            background: #302348;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .appointment-filters .appointment-filter.active {
+            background: #7658df;
+            color: #fff;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-user-search-results,
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-user-search-results a,
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-original {
+            background: #211936 !important;
+            border-color: #3a2d50 !important;
+            color: #ddd1ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-user-search-results a:hover,
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-user-search-results a:focus-visible {
+            background: #302348 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-user-search-results small,
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-user-search-empty,
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-time,
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-action,
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-edited-link {
+            color: #c9bde8 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .messages-page .message-bubble.is-deleted {
+            background: #302348 !important;
+            border-color: #49365f !important;
+            color: #d7caff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .call-item,
+        body[data-admin-theme="dark"] .admin-main .fw-wrap,
+        body[data-admin-theme="dark"] .admin-main .fw-topbar,
+        body[data-admin-theme="dark"] .admin-main .fw-table-card,
+        body[data-admin-theme="dark"] .admin-main .fw-card,
+        body[data-admin-theme="dark"] .admin-main .fw-empty,
+        body[data-admin-theme="dark"] .admin-main .announcement-hero {
+            background: #1b1529 !important;
+            border-color: #332846 !important;
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .fw-page-title,
+        body[data-admin-theme="dark"] .admin-main .fw-cat-label,
+        body[data-admin-theme="dark"] .admin-main .fw-msg,
+        body[data-admin-theme="dark"] .admin-main .fw-empty-title {
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .fw-count-chip,
+        body[data-admin-theme="dark"] .admin-main .fw-cat,
+        body[data-admin-theme="dark"] .admin-main .fw-btn-del {
+            background: #302348 !important;
+            border-color: #49365f !important;
+            color: #ddd1ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .fw-count-num,
+        body[data-admin-theme="dark"] .admin-main .fw-count-text,
+        body[data-admin-theme="dark"] .admin-main .fw-cat-icon {
+            color: #d7caff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .fw-card-foot {
+            border-color: #332846 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .fw-page-sub,
+        body[data-admin-theme="dark"] .admin-main .fw-time,
+        body[data-admin-theme="dark"] .admin-main .fw-author-name,
+        body[data-admin-theme="dark"] .admin-main .fw-empty-sub,
+        body[data-admin-theme="dark"] .admin-main .call-item .text-muted {
+            color: #bdb1d1 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .sinag-persistent-notice {
+            background: #211936 !important;
+            border-color: #49365f !important;
+            color: #ddd1ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .sinag-persistent-notice.alert-success {
+            background: #173327 !important;
+            border-color: #276247 !important;
+            color: #b8f5d0 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .sinag-persistent-notice.alert-warning {
+            background: #3b2b15 !important;
+            border-color: #76521f !important;
+            color: #ffe0a6 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .sinag-persistent-notice.alert-danger {
+            background: #3a1c2a !important;
+            border-color: #71344d !important;
+            color: #ffc3d5 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main #userTable tbody {
+            background: #100b1d !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main #userTable tbody tr[data-status] {
+            background: #1b1529 !important;
+            border-color: #3a2d50 !important;
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main #userTable tbody tr[data-status] td:last-child {
+            border-color: #3a2d50 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main .appointments-page .sinag-persistent-notice {
+            background: #211936 !important;
+            border-color: #49365f !important;
+            color: #d7caff !important;
+        }
+
+        .main-content.admin-main {
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        .admin-main > .container,
+        .admin-main > .container-fluid,
+        .admin-main > .messages-page,
+        .admin-main > .gad-page,
+        .admin-main > .urgent-admin-page,
+        .admin-main > .fw-wrap {
+            min-width: 0;
+            flex: 1 0 auto;
+            margin-top: 0 !important;
+            padding-top: .5rem !important;
+            padding-bottom: .75rem !important;
+        }
+
+        .admin-main .admin-data-page {
+            padding-top: .5rem !important;
+            padding-bottom: .75rem !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-sidebar .nav-link-custom {
+            color: #c9bde8;
+        }
+
+        body[data-admin-theme="dark"] .admin-sidebar .admin-subnav {
+            color: #c9bde8;
+        }
+
         @media (min-width: 1200px) {
             .main-wrapper {
                 height: auto;
@@ -288,11 +800,81 @@
                 -webkit-overflow-scrolling: touch;
             }
 
+            .admin-sidebar:not(.active) {
+                position: fixed;
+                inset: 5.5rem auto 1rem .75rem;
+                z-index: 1101;
+                width: 76px;
+                flex: 0 0 76px;
+                height: auto;
+                max-height: calc(100dvh - 6.5rem);
+                padding: .8rem .45rem;
+                border-radius: 1.25rem;
+                overflow-y: auto;
+            }
+
+            .admin-sidebar.active {
+                position: fixed;
+                inset: 5.5rem auto 1rem .75rem;
+                z-index: 1101;
+                width: min(88vw, 280px);
+                flex: 0 0 min(88vw, 280px);
+                height: auto;
+                max-height: calc(100dvh - 6.5rem);
+                padding: 1rem;
+                border-radius: 1.25rem;
+                overflow-y: auto;
+                box-shadow: 12px 0 32px rgba(15, 23, 42, .16);
+            }
+
+            .admin-sidebar.active > .d-flex:first-child > .btn {
+                display: inline-flex !important;
+            }
+
             .main-content {
                 flex: 1 1 auto;
                 height: auto;
                 min-height: 100dvh;
                 overflow: visible;
+            }
+
+            .admin-main {
+                width: calc(100% - 148px);
+                margin-left: 148px;
+            }
+        }
+
+        @media (max-width: 1199.98px) {
+            .admin-sidebar {
+                position: fixed;
+                inset: 5.5rem auto 1rem .75rem;
+                z-index: 1101;
+                width: 76px;
+                flex: 0 0 76px;
+                height: auto;
+                max-height: calc(100dvh - 6.5rem);
+                padding: .8rem .45rem;
+                border-radius: 1.25rem;
+                overflow-y: auto;
+            }
+
+            .main-wrapper .admin-sidebar.active {
+                position: fixed;
+                inset: 5.5rem auto 1rem .75rem;
+                width: min(88vw, 280px);
+                flex-basis: min(88vw, 280px);
+                height: auto;
+                max-height: calc(100dvh - 6.5rem);
+                padding: 1rem;
+                border-radius: 1.25rem;
+                overflow-y: auto;
+                box-shadow: 12px 0 32px rgba(15, 23, 42, .16);
+            }
+
+            .main-wrapper .admin-main {
+                width: calc(100% - 148px);
+                margin-left: 148px;
+                flex: 1 1 auto;
             }
         }
 
@@ -1869,63 +2451,738 @@
                 display: none !important;
             }
         }
+
+        body[data-admin-theme="dark"] .admin-main .table-responsive {
+            background: #1b1529 !important;
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main :is(table, .table) {
+            --bs-table-color: #eee8ff;
+            --bs-table-bg: #1b1529;
+            --bs-table-border-color: #49365f;
+            --bs-table-striped-color: #eee8ff;
+            --bs-table-striped-bg: #211936;
+            --bs-table-hover-color: #fff;
+            --bs-table-hover-bg: #302348;
+            background: #1b1529 !important;
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main :is(table, .table) :is(th, td) {
+            background: #1b1529 !important;
+            background-color: #1b1529 !important;
+            background-image: none !important;
+            box-shadow: none !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-dropdown-action {
+            background: #302348 !important;
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-dropdown-action:hover,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-dropdown-action:focus-visible {
+            background: #493568 !important;
+            color: #fff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-dropdown .dropdown-divider {
+            border-color: #49365f !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main :is(table, .table) :is(th, td) :not(.badge):not(.btn) {
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main :is(table, .table) thead :is(th, td) {
+            background: #2a203e !important;
+            background-color: #2a203e !important;
+            color: #e5dcff !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main :is(table, .table) tbody tr:nth-child(even) :is(th, td) {
+            background: #211936 !important;
+            background-color: #211936 !important;
+        }
+
+        body[data-admin-theme="dark"] .admin-main :is(table, .table) tbody tr:hover :is(th, td) {
+            background: #302348 !important;
+            background-color: #302348 !important;
+            color: #fff !important;
+        }
+
+        .student-floating-enabled > .d-flex:last-child {
+            position: relative !important;
+            inset: auto !important;
+            z-index: 1040 !important;
+            width: max-content !important;
+            max-width: calc(100vw - 1rem) !important;
+            min-width: 0;
+            padding: .55rem .7rem !important;
+            margin: .35rem auto 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            gap: .45rem !important;
+            overflow: visible !important;
+            border: 1px solid #e7def5;
+            border-radius: 1.35rem;
+            background: rgba(255, 255, 255, .96);
+            box-shadow: 0 14px 40px rgba(40, 27, 66, .18);
+            backdrop-filter: blur(16px);
+            transform: none !important;
+            transition: box-shadow .2s ease, background-color .2s ease;
+        }
+
+        .student-floating-enabled > .d-flex:last-child:hover {
+            box-shadow: 0 18px 44px rgba(40, 27, 66, .22);
+        }
+
+        .student-floating-enabled {
+            transform: none !important;
+        }
+
+        .student-floating-enabled > .d-flex:first-child {
+            justify-content: flex-start !important;
+            min-width: 0;
+        }
+
+        .student-floating-enabled .navbar-brand-custom {
+            justify-content: flex-start !important;
+            margin: 0 !important;
+        }
+
+        .student-floating-enabled .brand-descriptor {
+            text-align: left !important;
+        }
+
+        .student-floating-enabled .student-mobile-scroll-hint {
+            display: none !important;
+        }
+
+        .student-floating-enabled > .d-flex:last-child .student-top-nav {
+            display: flex !important;
+            align-items: center;
+            flex: 0 1 auto;
+            min-width: 0;
+            width: auto;
+            margin: 0 !important;
+            padding: 0;
+            gap: .2rem;
+            flex-wrap: nowrap;
+            overflow: visible;
+        }
+
+        .student-floating-enabled > .d-flex:last-child .student-nav-link {
+            white-space: nowrap;
+        }
+
+        .student-floating-enabled > .d-flex:last-child > a[href*="/messaging"] {
+            flex: 0 0 auto;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            margin: 0 !important;
+            white-space: nowrap;
+            border-radius: 1rem !important;
+        }
+
+        .student-floating-enabled .profile-menu-btn {
+            white-space: nowrap;
+        }
+
+        .student-floating-enabled .profile-dropdown {
+            border-radius: 1rem;
+            border: 1px solid #e7def5;
+            box-shadow: 0 16px 36px rgba(40, 27, 66, .2);
+        }
+
+        @media (max-width: 991.98px) {
+            .student-floating-enabled > .d-flex:last-child {
+                grid-column: 1 / -1;
+                grid-row: 2;
+                justify-self: center;
+                gap: .2rem !important;
+                padding: .45rem !important;
+                border-radius: 1.15rem;
+            }
+
+            .student-floating-enabled > .d-flex:last-child .student-top-nav {
+                gap: .1rem;
+            }
+
+            .student-floating-enabled > .d-flex:last-child .student-nav-link {
+                min-width: 38px;
+                min-height: 40px;
+                padding: .45rem .3rem;
+            }
+
+            .student-floating-enabled > .d-flex:last-child > a[href*="/messaging"] {
+                min-width: 38px;
+                min-height: 40px;
+                padding: .45rem .5rem !important;
+            }
+
+            .student-floating-enabled > .d-flex:last-child > .text-end {
+                position: static !important;
+                top: auto !important;
+                right: auto !important;
+                transform: none !important;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .student-floating-enabled > .d-flex:last-child {
+                max-width: calc(100vw - .75rem) !important;
+                gap: .1rem !important;
+            }
+
+            .student-floating-enabled .student-nav-link {
+                min-width: 34px !important;
+                padding-inline: .22rem !important;
+            }
+
+            .student-floating-enabled .profile-avatar {
+                width: 30px;
+                height: 30px;
+                flex-basis: 30px;
+            }
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] {
+            color-scheme: dark;
+            --bs-body-bg: #15101f;
+            --bs-body-color: #eee8ff;
+            --bs-heading-color: #eee8ff;
+            --bs-emphasis-color: #eee8ff;
+            --bs-secondary-color: #b7aacb;
+            --bs-link-color: #b9a5ff;
+            --surface: #15101f;
+            --card: #20192d;
+            --text: #eee8ff;
+            --muted: #b7aacb;
+            --border: rgba(196, 181, 253, .18);
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] body {
+            background: #15101f !important;
+            background-color: #15101f !important;
+            color: #eee8ff;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) {
+            background: #15101f !important;
+            color: #eee8ff;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled {
+            background: #1b1529;
+            border-color: #352747;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled .navbar-brand-custom,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled .brand-descriptor {
+            color: #d7c9f3 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled > .d-flex:last-child {
+            background: rgba(32, 25, 45, .97);
+            border-color: #49365f;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, .38);
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-nav-link {
+            color: #ded3f4;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-nav-link:hover,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-nav-link:focus-visible {
+            background: #302348;
+            color: #fff;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-dropdown,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-nav-menu,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .dropdown-menu,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .modal-content {
+            background: #211a2e !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-nav-menu .dropdown-item,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .dropdown-item {
+            color: #eee8ff;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-nav-menu .dropdown-item:hover,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .dropdown-item:hover {
+            background: #302348;
+            color: #fff;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .card, .vault-glass, .report-glass, .msg-chat-card, .msg-info-card,
+            .list-group-item, .table-responsive, .table, .alert, .customer-satisfaction-card,
+            .bg-white, .bg-light, .alert-light
+        ) {
+            background-color: #20192d !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .form-control, .form-select, textarea, .msg-textarea, .msg-edit-input
+        ) {
+            background-color: #1b1529 !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .form-control, .form-select, textarea
+        )::placeholder {
+            color: #b7aacb !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .text-dark, .text-body, .modal-title, .modal-body, .card-title
+        ) {
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .text-muted {
+            color: #b7aacb !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .modal-header,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .modal-footer,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .msg-input-area,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .msg-identity-control {
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .msg-identity-control {
+            background: #20192d !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .msg-identity-choice {
+            color: #ded3f4;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-settings-page .theme-choice {
+            background: #1b1529;
+            border-color: #49365f;
+            color: #eee8ff;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .msg-page, .vault-page, .report-page
+        ) {
+            background: #15101f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .student-dashboard-page {
+            --ink: #eee8ff !important;
+            --muted: #b7aacb !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .dashboard-card, .dashboard-panel, .dashboard-news-events, .dashboard-event-card,
+            .announcement-item, .daily-quote-card, .reference-card, .vision-mission-panel
+        ) {
+            background: #20192d !important;
+            background-color: #20192d !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .dashboard-panel .card-header, .dashboard-event-card-body
+        ) {
+            background: #211a2e !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .vision-mission-grid {
+            background: #20192d !important;
+            border: 1px solid #49365f !important;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, .22) !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .section-title, .dashboard-news-events h2, .dashboard-event-card-title,
+            .reference-card-title, .daily-quote-text, .dashboard-card h1,
+            .dashboard-card h2, .dashboard-card h3, .vision-mission-panel h2
+        ) {
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .section-subtitle, .dashboard-event-card-body, .reference-card-body,
+            .announcement-meta, .dashboard-news-events p, .vision-mission-panel p
+        ) {
+            color: #b7aacb !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .announcement-shell, .article-shell
+        ) {
+            background: #15101f !important;
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .announcement-card, .article-card
+        ) {
+            background: #20192d !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .announcement-title, .announcement-lead, .announcement-body,
+            .article-title, .article-lead, .article-body
+        ) {
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .announcement-subtitle, .article-subtitle
+        ) {
+            color: #b7aacb !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .appointment-list-card .col-lg-4 {
+            background: #211a2e !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .schedule-appointment-page :is(
+            .appointment-format-option, .appointment-format-option small
+        ) {
+            color: #ded3f4 !important;
+            background: #20192d !important;
+            border-color: #594478 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .schedule-appointment-page .btn-check:checked + .appointment-format-option {
+            color: #fff !important;
+            background: #302348 !important;
+            border-color: #947cf0 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .schedule-appointment-page .alert-info {
+            color: #d7ecff !important;
+            background: #17283a !important;
+            border-color: #34516e !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .report-page :is(
+            .report-anon, .report-hotline, .report-help
+        ) {
+            background: #211a2e !important;
+            background-color: #211a2e !important;
+            border-color: #49365f !important;
+            color: #eee8ff !important;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, .18) !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .report-page .report-hotline :is(p, span) {
+            color: #ded3f4 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .report-page .btn-light {
+            color: #eee8ff !important;
+            background: #302348 !important;
+            border: 1px solid #594478 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .report-page .btn-light:hover,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .report-page .btn-light:focus-visible {
+            color: #fff !important;
+            background: #493568 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .report-page input[type="file"]::file-selector-button {
+            color: #eee8ff !important;
+            background: #302348 !important;
+            border-color: #594478 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .report-page input[type="file"]::file-selector-button:hover {
+            background: #493568 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .profile-page {
+            background: #15101f !important;
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .profile-page :is(
+            .profile-hero, .profile-card, .profile-stat
+        ) {
+            background: #20192d !important;
+            border-color: #49365f !important;
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .profile-card.soft-panel {
+            background: #211a2e !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .profile-page :is(
+            .profile-name, .profile-value, .profile-section-title, .profile-detail .value
+        ) {
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .profile-page :is(
+            .profile-meta, .profile-label, .profile-detail .label, .text-muted
+        ) {
+            color: #b7aacb !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .profile-detail {
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .profile-action-btn {
+            color: #ded3f4 !important;
+            background: #302348 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .profile-action-btn:hover {
+            color: #fff !important;
+            background: #493568 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .profile-input {
+            color: #eee8ff !important;
+            background: #1b1529 !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .gad-student .panel {
+            color: #eee8ff !important;
+            background: #20192d !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .gad-student .cal-day:not(.day-empty) {
+            color: #eee8ff !important;
+            background: #211a2e !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .gad-student .cal-day.day-scheduled {
+            color: #ded3f4 !important;
+            background: #302348 !important;
+            border-color: #594478 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .gad-student .cal-day.day-available {
+            color: #b8f5d0 !important;
+            background: #173327 !important;
+            border-color: #276247 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .gad-student .cal-day.day-unavailable {
+            color: #ffc3d5 !important;
+            background: #3a1c2a !important;
+            border-color: #71344d !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .gad-student .day-schedule-time {
+            color: #ded3f4 !important;
+            background: #302348 !important;
+            border-color: #594478 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .gad-student .day-schedule-time.badge-available {
+            color: #b8f5d0 !important;
+            background: #173327 !important;
+            border-color: #276247 !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .gad-student .day-schedule-time.badge-unavailable {
+            color: #ffc3d5 !important;
+            background: #3a1c2a !important;
+            border-color: #71344d !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .boses-page {
+            --ink: #eee8ff !important;
+            --muted: #b7aacb !important;
+            --surface: #20192d !important;
+            --surface-strong: #211a2e !important;
+            --border: rgba(196, 181, 253, .18) !important;
+            background: #15101f !important;
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .boses-page :is(
+            .stat-panel, .feed-panel, .side-panel, .suggestion-card, .compose-panel,
+            .empty-panel, .suggestion-feed-table .suggestion-card, .suggestion-top,
+            .suggestion-admin-note,
+            .comment-card, .search-input, .kebab-btn, .suggestion-comment-trigger,
+            .upvote-btn:not(.is-active), .action-menu
+        ) {
+            background: #20192d !important;
+            background-color: #20192d !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .boses-page :is(
+            .section-title, .stat-value, .suggestion-message, .comment-author,
+            .comment-text, .section-subtitle, .meta-badge.time, .search-input
+        ) {
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .boses-page :is(
+            .suggestion-top, .suggestion-feed-table .suggestion-top
+        ) {
+            border-bottom-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .boses-page :is(
+            .suggestion-comment-trigger:hover, .suggestion-comment-trigger:focus-visible,
+            .suggestion-comment-trigger[aria-expanded="true"], .action-menu .dropdown-item:hover
+        ) {
+            background: #302348 !important;
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) .msg-page {
+            --surface: #15101f !important;
+            --card: #20192d !important;
+            --text: #eee8ff !important;
+            --muted: #b7aacb !important;
+            --border: rgba(196, 181, 253, .18) !important;
+            background: #15101f !important;
+            color: #eee8ff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .msg-thread, .msg-input-area, .msg-info-details, .msg-info-row,
+            .msg-identity-control, .msg-identity-note
+        ) {
+            background: #211a2e !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .main-content:not(.admin-main) :is(
+            .msg-group.admin .msg-bubble, .msg-info-card, .msg-textarea
+        ) {
+            background-color: #20192d !important;
+            color: #eee8ff !important;
+            border-color: #49365f !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled > .d-flex:last-child .student-nav-link {
+            color: #ded3f4;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled > .d-flex:last-child .student-nav-link.active,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled > .d-flex:last-child > a[href*="/messaging"] {
+            background: #7658df !important;
+            border-color: #947cf0 !important;
+            color: #fff !important;
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled .profile-menu-btn,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled .profile-avatar {
+            background: #302348 !important;
+            border-color: #594478 !important;
+            color: #eee8ff !important;
+        }
+
+        @media (max-width: 991.98px) {
+            html[data-student-theme-enabled="true"] .student-floating-enabled > .d-flex:last-child {
+                position: relative !important;
+                inset: auto !important;
+                transform: none !important;
+                margin: .35rem auto 0 !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .student-floating-enabled > .d-flex:last-child {
+                transition: none;
+            }
+        }
     </style>
 </head>
-<body>
+<body data-admin-theme="{{ Auth::check() && Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator() ? (Auth::user()->admin_theme ?? 'light') : 'light' }}">
     <div id="app" class="main-wrapper {{ request()->routeIs('splash') ? 'splash-wrapper' : '' }}">
 
         @auth
             @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
-            <aside class="sidebar" id="mainSidebar">
+            <aside class="sidebar admin-sidebar" id="mainSidebar" aria-label="Admin navigation">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <a class="navbar-brand-custom mb-0" href="{{ route('admin.dashboard') }}" style="display:inline-flex; align-items:center; gap:0.7rem; background:#b9adf4; border-radius:1.2rem; padding:0.2em 1.1em 0.2em 1.1em;">
-                        <span style="font-size:1.35rem; font-weight:900; letter-spacing:1px; line-height:1;">
-                            <span style="color:#fdfdfd;">SI</span><span style="color:#facc15;">NAG</span>
-                        </span>
-                        <img src="{{ asset('images/gadlogo.png') }}" alt="GAD Logo" style="width:42px; height:42px; border-radius:50%; object-fit:cover;">
+                    <a class="navbar-brand-custom mb-0" href="{{ route('admin.dashboard') }}" title="SINAG admin dashboard">
+                        <img src="{{ asset('images/gadlogo.png') }}" alt="GAD Logo" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                        <span class="admin-brand-name ms-2" style="font-size:1.2rem;font-weight:900;letter-spacing:1px;line-height:1;color:#8f72f5;">SI<span style="color:#facc15;">NAG</span></span>
                     </a>
-                    <button class="btn border-0 d-lg-none" onclick="toggleSidebar()">
-                        <i class="bi bi-x-lg" style="color:#a78bfa;"></i>
-                    </button>
                 </div>
 
-                <div class="nav-menu mt-4 d-flex flex-column h-100">
-                    <p class="text-uppercase small fw-bold text-muted mb-3" style="font-size: 0.7rem; letter-spacing: 1px;">Main Menu</p>
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link-custom {{ Request::is('admin/dashboard*') ? 'active' : '' }}">
-                        <i class="bi bi-bar-chart-fill"></i> Dashboard
-                    </a>
-                    <a href="{{ route('admin.appointments') }}" class="nav-link-custom {{ Request::is('admin/appointments*') ? 'active' : '' }}">
-                        <i class="bi bi-calendar-check-fill"></i> Appointments @if(($adminNotifications['appointments'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['appointments'] }}</span>@endif
-                    </a>
-                    <a href="{{ route('admin.reports') }}" class="nav-link-custom {{ Request::is('admin/reports*') ? 'active' : '' }}">
-                        <i class="bi bi-inbox-fill"></i> Manage Reports @if(($adminNotifications['reports'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['reports'] }}</span>@endif
-                    </a>
-                    <a href="{{ route('admin.users') }}" class="nav-link-custom {{ Request::is('admin/users*') ? 'active' : '' }}">
-                        <i class="bi bi-people-fill"></i> User Management @if(($adminNotifications['users'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['users'] }}</span>@endif
-                    </a>
-                    <a href="{{ route('admin.password-resets.index') }}" class="nav-link-custom {{ Request::is('admin/password-reset-requests*') ? 'active' : '' }}">
-                        <i class="bi bi-key-fill"></i> Password Reset Requests @if(($adminNotifications['password_resets'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['password_resets'] }}</span>@endif
-                    </a>
-                    <a href="{{ route('admin.suggestions') }}" class="nav-link-custom {{ Request::is('admin/suggestions*') ? 'active' : '' }}">
-                        <i class="bi bi-rss-fill"></i> Participatory Suggestions @if(($adminNotifications['suggestions'] ?? 0) > 0)<span class="nav-notification ms-auto">{{ $adminNotifications['suggestions'] }}</span>@endif
-                    </a>
-                    <a href="{{ route('admin.messages') }}" class="nav-link-custom {{ Request::is('admin/messages*') ? 'active' : '' }}">
-                        <i class="bi bi-chat-left-dots-fill"></i> Messages <span class="nav-notification ms-auto" data-admin-message-badge @if(($adminNotifications['messages'] ?? 0) < 1) hidden @endif>{{ $adminNotifications['messages'] ?? 0 }}</span>
-                    </a>
-                     <a href="{{ route('admin.urgent.calls') }}" class="nav-link-custom {{ Request::is('admin/urgent-calls*') ? 'active' : '' }}">
-                        <i class="bi bi-camera-video-fill"></i> Urgent Calls
-                    </a>
-                    <a href="{{ route('admin.gad-schedules.index') }}" class="nav-link-custom {{ Request::is('admin/gad-schedules*') ? 'active' : '' }}">
-                        <i class="bi bi-calendar2-week-fill"></i> Office Schedule
-                    </a>
-
-
-                    <div class="mt-auto mb-4">
-                        <hr class="text-muted opacity-25">
-                        {{-- Logout moved to profile dropdown for consistency --}}
+                <nav class="nav-menu mt-4 d-flex flex-column h-100" aria-label="Admin main menu">
+                    <p class="admin-sidebar-heading text-uppercase small fw-bold text-muted mb-3" style="font-size:.7rem;letter-spacing:1px;">Main Menu</p>
+                    <div class="admin-dashboard-nav-row">
+                        <a href="{{ route('admin.dashboard') }}" title="Dashboard" class="nav-link-custom {{ Request::is('admin/dashboard*') ? 'active' : '' }}">
+                            <i class="bi bi-bar-chart-fill"></i><span class="admin-nav-label">Dashboard</span>
+                        </a>
                     </div>
-                </div>
+                    <div class="admin-nav-group">
+                        <a href="{{ route('admin.appointments') }}" title="Appointments" class="nav-link-custom {{ Request::is('admin/appointments*') || Request::is('admin/gad-schedules*') ? 'active' : '' }}">
+                            <i class="bi bi-calendar-check-fill"></i><span class="admin-nav-label">Appointments @if(($adminNotifications['appointments'] ?? 0) > 0)<span class="admin-nav-count nav-notification ms-auto">{{ $adminNotifications['appointments'] }}</span>@endif</span>
+                        </a>
+                        <a href="{{ route('admin.gad-schedules.index') }}" title="Office schedule" class="admin-subnav {{ Request::is('admin/gad-schedules*') ? 'active' : '' }}">Office schedule</a>
+                    </div>
+                    <a href="{{ route('admin.reports') }}" title="Manage reports" class="nav-link-custom {{ Request::is('admin/reports*') ? 'active' : '' }}">
+                        <i class="bi bi-inbox-fill"></i><span class="admin-nav-label">Manage Reports @if(($adminNotifications['reports'] ?? 0) > 0)<span class="admin-nav-count nav-notification ms-auto">{{ $adminNotifications['reports'] }}</span>@endif</span>
+                    </a>
+                    <div class="admin-nav-group">
+                        <a href="{{ route('admin.users') }}" title="User management" class="nav-link-custom {{ Request::is('admin/users*') || Request::is('admin/password-reset-requests*') ? 'active' : '' }}">
+                            <i class="bi bi-people-fill"></i><span class="admin-nav-label">User Management @if(($adminNotifications['users'] ?? 0) > 0)<span class="admin-nav-count nav-notification ms-auto">{{ $adminNotifications['users'] }}</span>@endif</span>
+                        </a>
+                        <a href="{{ route('admin.password-resets.index') }}" title="Password requests" class="admin-subnav {{ Request::is('admin/password-reset-requests*') ? 'active' : '' }}">Password requests @if(($adminNotifications['password_resets'] ?? 0) > 0)({{ $adminNotifications['password_resets'] }})@endif</a>
+                    </div>
+                    <a href="{{ route('admin.suggestions') }}" title="Participatory suggestions" class="nav-link-custom {{ Request::is('admin/suggestions*') ? 'active' : '' }}">
+                        <i class="bi bi-rss-fill"></i><span class="admin-nav-label">Suggestions @if(($adminNotifications['suggestions'] ?? 0) > 0)<span class="admin-nav-count nav-notification ms-auto">{{ $adminNotifications['suggestions'] }}</span>@endif</span>
+                    </a>
+                    <div class="admin-nav-group">
+                        <a href="{{ route('admin.messages') }}" title="Messages" class="nav-link-custom {{ Request::is('admin/messages*') || Request::is('admin/urgent-calls*') ? 'active' : '' }}">
+                            <i class="bi bi-chat-left-dots-fill"></i><span class="admin-nav-label">Messages <span class="admin-nav-count nav-notification ms-auto" data-admin-message-badge @if(($adminNotifications['messages'] ?? 0) < 1) hidden @endif>{{ $adminNotifications['messages'] ?? 0 }}</span></span>
+                        </a>
+                        <a href="{{ route('admin.urgent.calls') }}" title="Urgent calls" class="admin-subnav {{ Request::is('admin/urgent-calls*') ? 'active' : '' }}">Urgent calls</a>
+                    </div>
+                    <div class="admin-sidebar-footer">
+                        <div class="admin-nav-group">
+                            <a href="{{ route('admin.settings') }}" title="Settings" class="nav-link-custom {{ Request::is('admin/settings*', 'admin/archive*', 'admin/activity-log*') ? 'active' : '' }}">
+                                <i class="bi bi-gear-fill"></i><span class="admin-nav-label">Settings</span>
+                            </a>
+                            <a href="{{ route('admin.settings', ['section' => 'appearance']) }}" title="Appearance" class="admin-subnav {{ request()->query('section', 'appearance') === 'appearance' && Request::is('admin/settings*') ? 'active' : '' }}">Appearance</a>
+                            <a href="{{ route('admin.settings', ['section' => 'archive']) }}" title="Archive" class="admin-subnav {{ request()->query('section') === 'archive' || Request::is('admin/archive*') ? 'active' : '' }}">Archive</a>
+                            <a href="{{ route('admin.settings', ['section' => 'activity']) }}" title="Activity log" class="admin-subnav {{ request()->query('section') === 'activity' || Request::is('admin/activity-log*') ? 'active' : '' }}">Activity log</a>
+                            <a href="{{ route('admin.settings', ['section' => 'feedback']) }}" title="Ratings and reviews" class="admin-subnav {{ request()->query('section') === 'feedback' ? 'active' : '' }}">Ratings &amp; reviews</a>
+                        </div>
+                        <button type="button" title="Log out" class="nav-link-custom text-danger" onclick="document.getElementById('logout-form').submit()">
+                            <i class="bi bi-box-arrow-left"></i><span class="admin-nav-label">Log out</span>
+                        </button>
+                    </div>
+                </nav>
             </aside>
+            <button type="button" id="adminSidebarToggle" class="admin-sidebar-toggle-floating" onclick="toggleSidebar()" aria-label="Expand admin sidebar" aria-controls="mainSidebar" aria-expanded="false" title="Expand sidebar">
+                <i class="bi bi-chevron-right admin-sidebar-toggle-icon" aria-hidden="true"></i>
+            </button>
             <button type="button" class="sidebar-backdrop d-none" id="adminSidebarBackdrop" aria-label="Close navigation menu"></button>
             @endif
         @endauth
@@ -1949,13 +3206,16 @@
                         <a href="{{ route('admin.dashboard') }}" class="nav-link-custom {{ Request::is('admin/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-bar-chart-fill"></i> GAD Report Analytics
                         </a>
+                        <a href="{{ route('admin.report-tracking') }}" class="nav-link-custom {{ Request::is('admin/report-tracking*') ? 'active' : '' }}">
+                            <i class="bi bi-clipboard-data-fill"></i> Report Details
+                        </a>
                         <a href="{{ route('student.boses') }}" class="nav-link-custom {{ Request::is('student/boses*') ? 'active' : '' }}">
                             <i class="bi bi-rss-fill"></i> Suggestions
                         </a>
                         <a href="{{ route('student.messaging') }}" class="nav-link-custom {{ Request::is('student/messaging*') ? 'active' : '' }}">
                             <i class="bi bi-chat-dots-fill"></i> Messages
                         </a>
-                        @else
+                        @elseif(Auth::user()->role !== 'admin')
                         <a href="{{ route('student.dashboard') }}" class="nav-link-custom {{ Request::is('student/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-house-door-fill"></i> Dashboard
                         </a>
@@ -2002,14 +3262,8 @@
 
         <main class="{{ Auth::check() ? 'main-content ' . (Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator() ? 'admin-main' : '') . (!request()->routeIs('admin.dashboard', 'student.dashboard') ? ' page-load-motion' : '') : (request()->routeIs('login', 'register', 'password.*') ? 'auth-main' : 'container py-5') }}">
             @auth
-                <header class="top-navbar {{ in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true) || Auth::user()->isGadCoordinator() ? 'student-navbar' : 'admin-navbar' }}">
+                <header class="top-navbar {{ in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true) || Auth::user()->isGadCoordinator() ? 'student-navbar' : 'admin-navbar' }} {{ Auth::user()->role !== 'admin' ? 'student-floating-enabled' : '' }}">
                     <div class="d-flex align-items-center gap-3">
-                         @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
-                            <button class="sidebar-toggle" onclick="toggleSidebar()" style="background: #A594F9; color: #fff; border: none; box-shadow: 0 2px 8px rgba(165,148,249,0.15);">
-                                <i class="bi bi-list fs-5" style="color:#fff;"></i>
-                            </button>
-
-                        @endif
                         @if(Auth::user()->role !== 'admin' || Auth::user()->isGadCoordinator())
                             <button type="button" class="student-sidebar-toggle" onclick="toggleSidebar('studentSidebar', 'studentSidebarBackdrop')" aria-label="Open navigation menu" aria-controls="studentSidebar" aria-expanded="false">
                                 <i class="bi bi-list fs-5"></i>
@@ -2041,17 +3295,15 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-3">
-                        @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
-                            <a href="{{ route('admin.messages') }}" class="btn btn-sm" style="background: linear-gradient(135deg, #A594F9 0%, #8f72f5 100%); color: white; border: none; border-radius: 0.85rem; padding: 0.6rem 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 4px 12px rgba(165, 148, 249, 0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(165, 148, 249, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(165, 148, 249, 0.2);'">
-                                <i class="bi bi-chat-dots-fill"></i>
-                                <span>Messages</span>
-                                <span class="nav-notification" data-admin-message-badge @if(($adminNotifications['messages'] ?? 0) < 1) hidden @endif>{{ $adminNotifications['messages'] ?? 0 }}</span>
-                            </a>
-                        @elseif(Auth::user()->isGadCoordinator())
+                        @if(Auth::user()->isGadCoordinator())
                             <nav class="student-top-nav me-3" aria-label="Coordinator main navigation">
                                 <a href="{{ route('admin.dashboard') }}" class="student-nav-link {{ Request::is('admin/dashboard*') ? 'active' : '' }}">
                                     <i class="bi bi-bar-chart-fill"></i>
                                     <span>GAD Report Analytics</span>
+                                </a>
+                                <a href="{{ route('admin.report-tracking') }}" class="student-nav-link {{ Request::is('admin/report-tracking*') ? 'active' : '' }}">
+                                    <i class="bi bi-clipboard-data-fill"></i>
+                                    <span>Report Details</span>
                                 </a>
                                 <a href="{{ route('student.boses') }}" class="student-nav-link {{ Request::is('student/boses*') ? 'active' : '' }}" aria-label="Suggestions" title="Suggestions">
                                     <i class="bi bi-rss-fill"></i>
@@ -2062,7 +3314,7 @@
                                     <span>Messages</span>
                                 </a>
                             </nav>
-                        @else
+                        @elseif(Auth::user()->role !== 'admin')
                             <nav class="student-top-nav me-3" aria-label="Student main navigation">
                                 <a href="{{ route('student.dashboard') }}" class="student-nav-link {{ Request::is('student/dashboard*') ? 'active' : '' }}" aria-label="Dashboard" title="Dashboard">
                                     <i class="bi bi-house-door-fill"></i>
@@ -2117,7 +3369,6 @@
                                 <i class="bi bi-chat-dots-fill"></i>
                                 <span>Message</span>
                             </a>
-                        @endif
                         <div class="text-end">
                             <div class="dropdown user-meta">
                                 <a class="profile-menu-btn" href="{{ route('profile.show') }}" title="View profile">
@@ -2141,10 +3392,11 @@
                                         <i class="bi bi-person-lines-fill"></i>
                                         View Profile
                                     </a>
-                                    <a href="{{ route('personal-data.show') }}" class="profile-dropdown-action text-decoration-none">
-                                        <i class="bi bi-file-earmark-person"></i>
-                                        Personal Data
+                                    <a href="{{ route('student.settings') }}" class="profile-dropdown-action text-decoration-none">
+                                        <i class="bi bi-gear-fill"></i>
+                                        Settings
                                     </a>
+                                    <div class="dropdown-divider"></div>
                                     <a href="{{ route('logout') }}" class="profile-dropdown-action text-danger" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                         <i class="bi bi-power"></i>
                                         Log out
@@ -2152,6 +3404,7 @@
                                 </div>
                             </div>
                         </div>
+                            @endif
                     </div>
                 </header>
             @endauth
@@ -2183,7 +3436,17 @@
                     backdrop.classList.toggle('is-visible', isOpen);
                     backdrop.classList.toggle('d-none', !isOpen);
                 }
-                document.querySelector(`[aria-controls="${sidebarId}"]`)?.setAttribute('aria-expanded', String(isOpen));
+                const toggle = document.querySelector(`[aria-controls="${sidebarId}"]`);
+                if (toggle) {
+                    toggle.setAttribute('aria-expanded', String(isOpen));
+                    toggle.setAttribute('aria-label', isOpen ? 'Collapse admin sidebar' : 'Expand admin sidebar');
+                    toggle.setAttribute('title', isOpen ? 'Collapse sidebar' : 'Expand sidebar');
+                }
+                if (sidebarId === 'mainSidebar') {
+                    window.requestAnimationFrame(function () {
+                        window.dispatchEvent(new Event('admin-sidebar-layout'));
+                    });
+                }
             }
         }
 
@@ -2194,12 +3457,59 @@
             toggleSidebar('studentSidebar', 'studentSidebarBackdrop');
         });
 
+        (function () {
+            const sidebar = document.getElementById('mainSidebar');
+            const toggle = document.getElementById('adminSidebarToggle');
+            const brand = sidebar?.querySelector('.navbar-brand-custom');
+            const header = document.querySelector('.admin-main > .top-navbar');
+
+            function alignSidebarToggle() {
+                if (!sidebar || !toggle || !brand) return;
+                const headerBottom = Math.max(0, header?.getBoundingClientRect().bottom || 0);
+                const railTop = Math.max(88, headerBottom + 16);
+                sidebar.style.top = `${railTop}px`;
+                sidebar.style.maxHeight = `calc(100dvh - ${railTop + 16}px)`;
+                const brandBounds = brand.getBoundingClientRect();
+                toggle.style.top = `${brandBounds.top + brandBounds.height / 2 - toggle.offsetHeight / 2}px`;
+            }
+
+            alignSidebarToggle();
+            window.addEventListener('resize', alignSidebarToggle);
+            window.addEventListener('admin-sidebar-layout', alignSidebarToggle);
+        })();
+
+        (function () {
+            if (!document.querySelector('.admin-main')) return;
+            if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+            function resetAdminScroll() {
+                const navbar = document.querySelector('.admin-main > .top-navbar');
+                navbar?.classList.remove('is-hidden');
+                window.scrollTo(0, 0);
+                requestAnimationFrame(function () {
+                    navbar?.classList.remove('is-hidden');
+                    window.scrollTo(0, 0);
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', resetAdminScroll, { once: true });
+            window.addEventListener('load', resetAdminScroll, { once: true });
+            window.addEventListener('pageshow', resetAdminScroll);
+        })();
+
         function settlePageMotion() {
             document.querySelectorAll(
                 '.page-load-motion > :not(.top-navbar):not(.student-navbar), .admin-dashboard-page, .admin-dashboard-wrap > *'
             ).forEach(function (element) {
                 element.style.animation = 'none';
                 element.style.opacity = '1';
+            });
+        }
+
+        if (document.querySelector('.admin-main')) {
+            document.addEventListener('DOMContentLoaded', settlePageMotion, { once: true });
+            window.addEventListener('pageshow', function (event) {
+                if (!event.persisted) settlePageMotion();
             });
         }
 

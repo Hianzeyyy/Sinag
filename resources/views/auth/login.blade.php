@@ -301,6 +301,12 @@
     }
     .sign-in-pane { grid-column: 1; grid-row: 1; z-index: 2; transform: translateX(0) scale(1); }
     .sign-up-pane { grid-column: 2; grid-row: 1; display: none; z-index: 1; transform: translateX(3%) scale(.985); opacity: 0; filter: blur(5px); }
+    .auth-stage:not(.right-panel-active) .sign-in-pane { animation: authSignInEnter .72s cubic-bezier(.2,.75,.25,1) both; }
+    @keyframes authSignInEnter {
+        0% { opacity: 0; transform: translateX(-7%) scale(.97); filter: blur(7px); }
+        55% { opacity: 1; transform: translateX(1%) scale(1.012); filter: blur(0); }
+        100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+    }
     .auth-stage.right-panel-active .sign-in-pane { display: none; z-index: 1; transform: translateX(-8%) scale(.94); opacity: 0; visibility: hidden; filter: blur(5px); pointer-events: none; }
     .auth-stage.right-panel-active .sign-up-pane { display: block; z-index: 3; transform: translateX(0) scale(1); opacity: 1; filter: blur(0); animation: authSignUpEnter .72s cubic-bezier(.2,.75,.25,1) both; }
     @keyframes authSignUpEnter {
@@ -353,6 +359,36 @@
     }
     .auth-switch-signup:hover,
     .auth-switch-signup:focus-visible { color: #fff; background: #6b55c4; }
+    .google-auth-divider {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        margin: .85rem 0;
+        color: #817b96;
+        font-size: .82rem;
+    }
+    .google-auth-divider::before,
+    .google-auth-divider::after { content: ''; height: 1px; flex: 1; background: #e7e3f0; }
+    .google-auth-button {
+        display: flex;
+        min-height: 46px;
+        align-items: center;
+        justify-content: center;
+        gap: .65rem;
+        border: 1px solid #dedbe7;
+        border-radius: .7rem;
+        color: #302b4c;
+        background: #fff;
+        font-weight: 700;
+        transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+    .google-auth-button:hover,
+    .google-auth-button:focus-visible {
+        border-color: #9a87dc;
+        color: #302b4c;
+        box-shadow: 0 .35rem 1rem rgba(75, 58, 139, .12);
+        transform: translateY(-1px);
+    }
     .auth-toggle {
         border: 1px solid #735bd0;
         border-radius: 999px;
@@ -530,8 +566,21 @@
             max-height: none;
             padding: 1.5rem;
             overflow: visible;
-            transform: none !important;
-            transition: none;
+            transition: opacity .32s ease, transform .38s cubic-bezier(.2,.75,.25,1);
+        }
+        .auth-stage:not(.right-panel-active) .sign-in-pane { animation: authMobileSignInEnter .38s ease both; }
+        .auth-stage:not(.right-panel-active) .sign-up-pane { transform: translateY(.7rem) scale(.99); }
+        .auth-stage.right-panel-active .sign-up-pane {
+            transform: translateY(0) scale(1);
+            animation: authMobileSignUpEnter .42s cubic-bezier(.2,.75,.25,1) both;
+        }
+        @keyframes authMobileSignInEnter {
+            from { opacity: 0; transform: translateY(-.45rem) scale(.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes authMobileSignUpEnter {
+            from { opacity: 0; transform: translateY(.7rem) scale(.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .auth-pane .login-actions { flex-direction: column; }
@@ -701,6 +750,10 @@
                                         LOG IN
                                     </button>
                                 </div>
+                                <div class="google-auth-divider"><span>or</span></div>
+                                <a class="google-auth-button" href="{{ route('auth.google.redirect', ['intent' => 'login']) }}">
+                                    <i class="bi bi-google" aria-hidden="true"></i> Sign in with Google
+                                </a>
 
                                 <div class="text-center mt-3">
                                     <a class="login-forgot text-decoration-none small fw-bold" href="{{ route('password.code.form') }}">
@@ -719,26 +772,31 @@
 
                             <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" id="registerForm" class="auth-pane sign-up-pane" autocomplete="off">
                                 @csrf
+                                @php($googleSignup = session('google_signup', []))
                                 <h3 class="text-white fw-bold mb-1">Create Account</h3>
                                 <p class="text-white-50 small mb-3">Join the SINAG network today.</p>
+                                <div class="google-auth-divider"><span>or prefill your details with</span></div>
+                                <a class="google-auth-button mb-3" href="{{ route('auth.google.redirect', ['intent' => 'signup']) }}">
+                                    <i class="bi bi-google" aria-hidden="true"></i> Continue with Google
+                                </a>
                                 <div class="row g-2 register-fields">
                                     <div class="col-12 register-name-row">
                                         <div>
                                             <label class="form-label small fw-bold text-uppercase">First Name</label>
-                                            <input type="text" class="form-control" name="first_name" value="{{ old('first_name') }}" maxlength="255" required autocomplete="given-name" placeholder="Juan">
+                                            <input type="text" class="form-control" name="first_name" value="{{ old('first_name', $googleSignup['first_name'] ?? '') }}" maxlength="255" required autocomplete="given-name" placeholder="Juan">
                                         </div>
                                         <div>
                                             <label class="form-label small fw-bold text-uppercase">Middle Name <span class="text-muted">(optional)</span></label>
-                                            <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name') }}" maxlength="255" autocomplete="additional-name" placeholder="(Optional)">
+                                            <input type="text" class="form-control" name="middle_name" value="{{ old('middle_name', $googleSignup['middle_name'] ?? '') }}" maxlength="255" autocomplete="additional-name" placeholder="(Optional)">
                                         </div>
                                         <div>
                                             <label class="form-label small fw-bold text-uppercase">Last Name</label>
-                                            <input type="text" class="form-control" name="last_name" value="{{ old('last_name') }}" maxlength="255" required autocomplete="family-name" placeholder="Dela Cruz">
+                                            <input type="text" class="form-control" name="last_name" value="{{ old('last_name', $googleSignup['last_name'] ?? '') }}" maxlength="255" required autocomplete="family-name" placeholder="Dela Cruz">
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small fw-bold text-uppercase">Institutional Email</label>
-                                        <input type="email" class="form-control" name="email" value="{{ old('email') }}" required placeholder="username@psu.edu.ph">
+                                        <input type="email" class="form-control" name="email" id="registerEmail" value="{{ old('email', $googleSignup['email'] ?? '') }}" required placeholder="username@psu.edu.ph">
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small fw-bold text-uppercase">Contact Number</label>
@@ -855,6 +913,21 @@
                             </div>
                         </div>
 
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="institutionalEmailModal" tabindex="-1" aria-labelledby="institutionalEmailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3 text-warning fs-1"><i class="bi bi-envelope-exclamation" aria-hidden="true"></i></div>
+                <h2 class="h5 fw-bold" id="institutionalEmailModalLabel">Use your institutional email</h2>
+                <p class="text-muted mb-0">Students and employees need a Pangasinan State University email address ending in <strong>@psu.edu.ph</strong> to register.</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pt-0">
+                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">Got it</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1015,6 +1088,8 @@
     const department = document.getElementById('department');
     const employeeCategoryField = document.getElementById('employeeCategoryField');
     const employeeCategory = document.getElementById('employeeCategory');
+    const registerEmail = document.getElementById('registerEmail');
+    const institutionalEmailModal = document.getElementById('institutionalEmailModal');
     const oldDepartment = department.dataset.oldDepartment;
     const departmentOptions = {
         student: [
@@ -1061,6 +1136,16 @@
     accountType.addEventListener('change', updateDepartmentOptions);
     employeeCategory.addEventListener('change', updateDepartmentOptions);
     updateDepartmentOptions();
+
+    registerForm.addEventListener('submit', function (event) {
+        if (!registerEmail.value.trim().toLowerCase().endsWith('@psu.edu.ph')) {
+            event.preventDefault();
+            window.bootstrap.Modal.getOrCreateInstance(institutionalEmailModal).show();
+        }
+    });
+    institutionalEmailModal.addEventListener('hidden.bs.modal', function () {
+        registerEmail.focus({ preventScroll: true });
+    });
 
     const passwordLockoutModal = document.getElementById('passwordLockoutModal');
     if (passwordLockoutModal) {

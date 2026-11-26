@@ -72,6 +72,11 @@ class StudentController extends Controller
         ));
     }
 
+    public function settings()
+    {
+        return view('student.settings');
+    }
+
     /**
      * Open a single announcement for students
      */
@@ -108,7 +113,9 @@ class StudentController extends Controller
                 ->with('personal_data_required', 'Complete your personal information before filing a report.');
         }
 
-        return view('student.report');
+        return view('student.report', [
+            'reportConsentAccepted' => Auth::user()->hasAcceptedReportConsent(),
+        ]);
     }
 
     /**
@@ -120,10 +127,14 @@ class StudentController extends Controller
         $user_id = Auth::id();
 
         // Kunin ang sariling data ng user
-        $myReports = Report::where('user_id', $user_id)->latest()
+        $reportsQuery = Report::notArchived();
+        if (Schema::hasTable('report_status_updates')) {
+            $reportsQuery->with('statusUpdates');
+        }
+        $myReports = $reportsQuery->where('user_id', $user_id)->latest()
             ->paginate(15, ['*'], 'reports_page')
             ->withQueryString();
-        $mySuggestions = Suggestion::where('user_id', $user_id)->latest()
+        $mySuggestions = Suggestion::notArchived()->where('user_id', $user_id)->latest()
             ->paginate(15, ['*'], 'suggestions_page')
             ->withQueryString();
 
@@ -232,7 +243,7 @@ class StudentController extends Controller
                 ->with('personal_data_required', 'Complete your personal data to access Community Suggestions.');
         }
 
-        $query = Suggestion::with(['user', 'comments.user'])
+        $query = Suggestion::notArchived()->with(['user', 'comments.user'])
             ->withCount('upvotes')
             ->where(function ($query) use ($request) {
                 $query->where('status', 'Approved')
@@ -682,6 +693,7 @@ class StudentController extends Controller
                 'original_message' => $message->original_message,
                 'deleted_at' => $message->deleted_at?->toIso8601String(),
                 'sender_id' => $message->sender_id,
+                'is_anonymous' => (bool) $message->is_anonymous,
                 'created_at' => $message->created_at?->toIso8601String(),
             ]),
         ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');

@@ -15,6 +15,12 @@
         z-index: 3;
         background: #f8f9fa;
     }
+    .reports-table-wrap table { min-width: 1080px; }
+    .report-tracking-cell { min-width: 190px; max-width: 250px; }
+    .report-tracking-count { display:inline-flex; align-items:center; gap:.35rem; color:#5b3ca8; font-size:.75rem; font-weight:800; }
+    .report-tracking-latest { display:block; margin-top:.2rem; color:#746b82; font-size:.72rem; line-height:1.35; }
+    body[data-admin-theme="dark"] .report-tracking-count { color:#d5c6ff; }
+    body[data-admin-theme="dark"] .report-tracking-latest { color:#bdb1d1; }
 </style>
 <style>
     .sinag-violet-badge { background: #d8cdfc; color: #5b4b9b; border-color: #c4b5fd !important; }
@@ -22,6 +28,15 @@
     
 </style>
 <div class="container py-4">
+    @if($errors->any())
+        <div class="alert alert-danger rounded-3" role="alert">{{ $errors->first() }}</div>
+    @endif
+    @if(session('success'))
+        <div class="alert alert-success rounded-3" role="status">{{ session('success') }}</div>
+    @endif
+    @if(session('warning'))
+        <div class="alert alert-warning rounded-3" role="alert">{{ session('warning') }}</div>
+    @endif
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             
@@ -60,11 +75,16 @@
                                     <th>NATURE OF ABUSE</th>
                                     <th>PRIORITY</th>
                                     <th>STATUS</th>
+                                    <th>REPORT TRACKING</th>
                                     <th class="text-end pe-4">ACTION</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($reports as $report)
+                                @php
+                                    $reportStatusUpdates = $report->relationLoaded('statusUpdates') ? $report->statusUpdates : collect();
+                                    $latestStatusUpdate = $reportStatusUpdates->last();
+                                @endphp
                                 <tr>
                                     <td class="ps-4"><span class="fw-bold text-dark">#{{ $report->incident_id }}</span></td>
                                     <td class="small text-muted">{{ $report->created_at->format('M d, Y') }}</td>
@@ -99,6 +119,17 @@
                                             {{ $report->status }}
                                         </span>
                                     </td>
+                                    <td class="report-tracking-cell">
+                                        <span class="report-tracking-count"><i class="bi bi-clock-history"></i>{{ $reportStatusUpdates->count() }} timeline {{ \Illuminate\Support\Str::plural('update', $reportStatusUpdates->count()) }}</span>
+                                        @if($latestStatusUpdate)
+                                            <span class="report-tracking-latest"><strong>{{ $latestStatusUpdate->to_status }}</strong>@if($latestStatusUpdate->created_at) · {{ $latestStatusUpdate->created_at->format('M d, Y') }}@endif</span>
+                                            @if($latestStatusUpdate->details)
+                                                <span class="report-tracking-latest">{{ \Illuminate\Support\Str::limit($latestStatusUpdate->details, 65) }}</span>
+                                            @endif
+                                        @else
+                                            <span class="report-tracking-latest">Awaiting the first admin update.</span>
+                                        @endif
+                                    </td>
                                     <td class="text-end pe-4">
                                         <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" 
                                                 style="background: #A594F9; border: none;"
@@ -110,12 +141,13 @@
                                         <form action="{{ route('admin.reports.delete', $report->id) }}" method="POST" style="display:inline-block;">
                                             @csrf
                                             @method('DELETE')
-                                           <button type="submit" 
-        class="btn btn-sm rounded-pill px-3 ms-2 text-white" 
-        style="background-color: #ee529e !important; border-color: #ee529e !important;" 
-        onclick="return confirm('Are you sure you want to delete this report?')">
-    Delete
-</button>
+                                            <button type="submit"
+                                                    class="btn btn-sm rounded-pill ms-2 text-white report-archive-button"
+                                                    aria-label="Move report {{ $report->incident_id }} to archive"
+                                                    title="Archive report"
+                                                    onclick="return confirm('Move this report to the archive?')">
+                                                <i class="bi bi-archive" aria-hidden="true"></i>
+                                            </button>
                                         </form>
                                     </td>
                                 </tr>
@@ -169,6 +201,7 @@
                                                                     @php
                                                                         $extension = pathinfo($evidencePath, PATHINFO_EXTENSION);
                                                                         $isImage = in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                                                        $isVideo = strtolower($extension) === 'mp4' || str_contains($evidencePath, '/video/');
                                                                         $evidenceUrl = route('reports.evidence.view', ['report' => $report->id, 'index' => $idx]);
                                                                     @endphp
                                                                     <div class="col-12 col-md-6 col-lg-4">
@@ -180,16 +213,13 @@
                                                                                      onclick="window.open(this.src)">
                                                                                 <p class="small text-muted mt-2 mb-0"><i class="bi bi-info-circle me-1"></i>Click image to preview</p>
                                                                             </div>
-                                                                        @else
-                                                                            <div class="d-flex align-items-center justify-content-center p-3 border rounded-3 bg-light h-100">
-                                                                                <i class="bi bi-file-earmark-text fs-1 text-primary me-3"></i>
-                                                                                <div class="text-start">
-                                                                                    <span class="d-block small fw-bold">Document Attachment</span>
-                                                                                    <a href="{{ $evidenceUrl }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">
-                                                                                        <i class="bi bi-download me-1"></i> Open File
-                                                                                    </a>
-                                                                                </div>
+                                                                        @elseif($isVideo)
+                                                                            <div class="p-2 border rounded-3 bg-light">
+                                                                                <video class="w-100 rounded" controls preload="metadata" src="{{ $evidenceUrl }}" aria-label="Attached report video"></video>
+                                                                                <p class="small text-muted mt-2 mb-0"><i class="bi bi-camera-video me-1"></i>MP4 video evidence</p>
                                                                             </div>
+                                                                        @else
+                                                                            <div class="p-3 border rounded-3 bg-light text-muted small">Unsupported legacy attachment.</div>
                                                                         @endif
                                                                     </div>
                                                                 @endforeach
@@ -206,6 +236,7 @@
 
                                                 <form action="{{ route('admin.reports.update', $report->id) }}" method="POST">
                                                     @csrf
+                                                    <input type="hidden" name="_report_id" value="{{ $report->id }}">
                                                     <div class="row g-3">
                                                         <div class="col-md-6">
                                                             <label class="small fw-bold mb-1">Update Case Status</label>
@@ -225,8 +256,49 @@
                                                         </div>
                                                         <div class="col-12">
                                                             <label class="small fw-bold mb-1" for="reportAdminComment{{ $report->id }}">Comment for the Reporter</label>
-                                                            <textarea id="reportAdminComment{{ $report->id }}" name="admin_comment" class="form-control shadow-sm" rows="3" maxlength="4000" placeholder="Add an update or explanation the reporter can view">{{ old('admin_comment', $report->admin_comment) }}</textarea>
-                                                            <div class="form-text">This comment will be visible to the reporter in Report Status.</div>
+                                                            <textarea id="reportAdminComment{{ $report->id }}" name="admin_comment" class="form-control shadow-sm" rows="3" maxlength="4000" placeholder="Add the detailed case update the reporter can view">{{ old('admin_comment') }}</textarea>
+                                                            <div class="form-text report-tracking-helper">Each saved update appears in the reporter's tracking timeline.</div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-check form-switch report-coordinator-forward rounded-3 p-3 ps-5">
+                                                                <input class="form-check-input" type="checkbox" name="send_to_coordinator" value="1" id="sendToCoordinator{{ $report->id }}" @checked(old('_report_id') == $report->id && old('send_to_coordinator') === '1')>
+                                                                <label class="form-check-label" for="sendToCoordinator{{ $report->id }}">
+                                                                    <strong class="d-block">Send this report to the GAD Coordinator</strong>
+                                                                    <span class="small">Recommended for high-priority cases. The case reference and status will be sent, and this action will be recorded in the tracking timeline.</span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <section class="report-tracking-timeline rounded-4 border p-3" aria-label="Report tracking timeline">
+                                                                <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                                                                    <div>
+                                                                        <h6 class="fw-bold mb-1">Report tracking timeline</h6>
+                                                                        <p class="small text-muted mb-0">Monitor submission and every recorded case update.</p>
+                                                                    </div>
+                                                                    <span class="badge rounded-pill bg-light text-dark border">Current: {{ $report->status ?: 'Pending' }}</span>
+                                                                </div>
+                                                                <ol class="report-status-timeline mb-0">
+                                                                    <li>
+                                                                        <strong>Report submitted</strong>
+                                                                        <span class="d-block small text-muted">{{ $report->created_at?->format('M d, Y h:i A') ?? 'Submission time unavailable' }}</span>
+                                                                        <p class="small mb-0 mt-1">Received by the GAD Office with {{ strtolower((string) ($report->priority ?: 'Normal')) }} priority.</p>
+                                                                    </li>
+                                                                    @forelse($reportStatusUpdates as $update)
+                                                                        <li>
+                                                                            <strong>{{ $update->from_status ?: 'Case' }} → {{ $update->to_status }}</strong>
+                                                                            <span class="d-block small text-muted">{{ $update->created_at?->format('M d, Y h:i A') ?? 'Update time unavailable' }}</span>
+                                                                            @if($update->details)
+                                                                                <p class="small mb-0 mt-1 report-status-detail">{{ $update->details }}</p>
+                                                                            @endif
+                                                                        </li>
+                                                                    @empty
+                                                                        <li class="report-status-pending">
+                                                                            <strong>Awaiting first admin progress update</strong>
+                                                                            <span class="d-block small text-muted">Add a status update and reporter-facing details below to continue tracking.</span>
+                                                                        </li>
+                                                                    @endforelse
+                                                                </ol>
+                                                            </section>
                                                         </div>
                                                         <div class="col-12 mt-4">
                                                             <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill shadow" style="background: #A594F9; border:none;">
@@ -241,7 +313,7 @@
                                 </div>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-5">
+                                    <td colspan="8" class="text-center py-5">
                                         <div class="text-muted">
                                             <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                                             <p class="mb-0">No confidential reports found.</p>
@@ -269,7 +341,7 @@
         let rows = document.querySelector("#reportsTable tbody").rows;
         
         for (let i = 0; i < rows.length; i++) {
-            let idCol = rows[i].cells[1].textContent.toUpperCase();
+            let idCol = rows[i].cells[0].textContent.toUpperCase();
             let aliasCol = rows[i].cells[2].textContent.toUpperCase();
             if (idCol.indexOf(filter) > -1 || aliasCol.indexOf(filter) > -1) {
                 rows[i].style.display = "";
@@ -309,6 +381,25 @@
 </script>
 
 <style>
+    .report-tracking-timeline { background:#fff; border-color:#e8e1f5 !important; }
+    .report-tracking-helper { color:#6f6680; }
+    .report-archive-button { background:#ee529e !important; border-color:#ee529e !important; }
+    .report-coordinator-forward { background:#f7f4ff; border:1px solid #e8e1f5; }
+    .report-coordinator-forward .form-check-input { margin-left:-2rem; }
+    .report-status-timeline { list-style:none; position:relative; padding:0 0 0 1.35rem; }
+    .report-status-timeline::before { content:""; position:absolute; top:.3rem; bottom:.5rem; left:.35rem; width:2px; background:#ddd3f3; }
+    .report-status-timeline li { position:relative; padding:0 0 1.1rem; }
+    .report-status-timeline li:last-child { padding-bottom:0; }
+    .report-status-timeline li::before { content:""; position:absolute; top:.25rem; left:-1.29rem; width:.65rem; height:.65rem; border:2px solid #8f72f5; border-radius:50%; background:#fff; }
+    .report-status-timeline .report-status-pending::before { border-color:#c4b5fd; background:#eee8ff; }
+    .report-status-detail { white-space:pre-wrap; overflow-wrap:anywhere; }
+    body[data-admin-theme="dark"] .report-tracking-timeline { background:#1b1529 !important; border-color:#3a2d50 !important; }
+    body[data-admin-theme="dark"] .report-tracking-helper { color:#d5c6e8 !important; }
+    body[data-admin-theme="dark"] .report-coordinator-forward { background:#241b35; border-color:#49365f; color:#eee8ff; }
+    body[data-admin-theme="dark"] .report-status-timeline::before { background:#49365f; }
+    body[data-admin-theme="dark"] .report-status-timeline li::before { background:#1b1529; }
+    body[data-admin-theme="dark"] .report-status-timeline .report-status-pending::before { background:#302348; }
+
     .table tbody tr:hover {
         background-color: #fbfaff !important;
         transition: 0.2s;

@@ -441,6 +441,13 @@
         gap: 3px;
     }
 
+    .message-identity-label {
+        margin: 0 .25rem;
+        color: #766892;
+        font-size: .72rem;
+        font-weight: 700;
+    }
+
     .message-group.user .msg-content {
         align-items: flex-end;
     }
@@ -707,6 +714,7 @@
                                     $messageLocalTime = $message->created_at?->copy()->timezone('Asia/Manila')->format('g:i A') ?? '';
                                     $isAdmin = $message->sender_id === Auth::id();
                                     $bubbleInitials = $isAdmin ? 'G' : $selInitials;
+                                    $messageIdentity = $message->is_anonymous ? 'Anonymous' : ($selectedStudent->cloak_alias ?: 'Campus alias');
                                 @endphp
 
                                 <div class="message-group {{ $isAdmin ? 'user' : 'admin' }}" data-message-id="{{ $message->id }}" data-message-timestamp="{{ $messageTimestamp }}">
@@ -714,10 +722,13 @@
                                         @if($isAdmin)
                                             <img src="{{ route('profile.photo', Auth::user()) }}" alt="{{ Auth::user()->name }} profile photo">
                                         @else
-                                            <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo">
+                                            <i class="bi {{ $message->is_anonymous ? 'bi-incognito' : 'bi-person-fill' }}" aria-hidden="true"></i>
                                         @endif
                                     </div>
                                     <div class="msg-content">
+                                        @unless($isAdmin)
+                                            <div class="message-identity-label">{{ $messageIdentity }}</div>
+                                        @endunless
                                         <div class="message-bubble {{ $message->deleted_at ? 'is-deleted' : '' }}" id="messageBubble{{ $message->id }}">{{ $message->deleted_at ? 'This message was deleted.' : $message->message }}</div>
                                         <div class="message-meta">
                                             <time class="message-time" datetime="{{ $messageTimestamp }}" data-user-local-time data-local-time-format="time">{{ $messageLocalTime }}</time>
@@ -808,16 +819,18 @@
         const id = Number(message.id);
         const own = Number(message.sender_id) === Number(adminId);
         const deleted = Boolean(message.deleted_at);
+        const identity = message.is_anonymous ? 'Anonymous' : @json(optional($selectedStudent)->cloak_alias ?: 'Campus alias');
         const classes = `message-bubble${deleted ? ' is-deleted' : ''}`;
         const content = deleted ? 'This message was deleted.' : message.message;
         const actions = deleted ? '' : `${own ? `<button class="message-action" type="button" onclick="startAdminEdit(${id})">Edit</button><button class="message-action delete" type="button" onclick="deleteAdminMessage(${id})">Delete</button>` : ''}`;
         const original = message.original_message && !deleted
             ? `<button class="message-edited-link" type="button" onclick="toggleOriginal(${id})">Edited</button><div class="message-original" id="messageOriginal${id}"><strong>Original message:</strong> ${escapeHtml(message.original_message)}</div>`
             : '';
-        const state = JSON.stringify([message.message, message.original_message, message.deleted_at]);
+        const state = JSON.stringify([message.message, message.original_message, message.deleted_at, message.is_anonymous]);
         return `<div class="message-group ${own ? 'user' : 'admin'}" data-message-id="${id}" data-message-state="${escapeHtml(state)}" data-message-timestamp="${escapeHtml(message.created_at || '')}">
-            <div class="msg-avatar ${own ? 'outgoing-av' : 'incoming-av'}">${own ? 'G' : @json($selInitials ?? '')}</div>
+            <div class="msg-avatar ${own ? 'outgoing-av' : 'incoming-av'}">${own ? 'G' : (message.is_anonymous ? '<i class="bi bi-incognito"></i>' : '<i class="bi bi-person-fill"></i>')}</div>
             <div class="msg-content">
+                ${own ? '' : `<div class="message-identity-label">${escapeHtml(identity)}</div>`}
                 <div class="${classes}" id="messageBubble${id}">${escapeHtml(content)}</div>
                 <div class="message-meta"><span class="message-time">${escapeHtml(formatUserLocalTime(message.created_at, 'time'))}</span>${actions}</div>
                 ${original}
@@ -1046,7 +1059,7 @@
             if (thread) {
                 for (const message of data.messages) {
                     const current = thread.querySelector(`[data-message-id="${message.id}"]`);
-                    const state = JSON.stringify([message.message, message.original_message, message.deleted_at]);
+                    const state = JSON.stringify([message.message, message.original_message, message.deleted_at, message.is_anonymous]);
                     if (current?.dataset.messageState === state) continue;
                     if (current) current.outerHTML = adminMessageMarkup(message);
                     else {

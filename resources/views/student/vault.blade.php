@@ -26,7 +26,7 @@
         z-index: 2;
     }
     .vault-action-btn {
-        background: linear-gradient(90deg, #A594F9 60%, #facc15 100%);
+        background: linear-gradient(135deg, #8f72f5 0%, #6748c7 100%);
         color: #fff;
         font-weight: 700;
         font-size: 1.05rem;
@@ -41,8 +41,8 @@
         box-shadow: 0 6px 24px #a594f944;
     }
     .vault-badge {
-        background: linear-gradient(90deg, #ede9fe 60%, #facc15 100%);
-        color: #A594F9;
+        background: linear-gradient(90deg, #ede9fe 0%, #d8cdfc 100%);
+        color: #5b4b9b;
         font-weight: 600;
     }
     .vault-status {
@@ -69,7 +69,7 @@
         transition: background 0.18s, color 0.18s;
     }
     .nav-pills .nav-link.active {
-        background: linear-gradient(90deg, #A594F9 60%, #facc15 100%) !important;
+        background: linear-gradient(135deg, #8f72f5 0%, #6748c7 100%) !important;
         color: #fff !important;
         box-shadow: 0 2px 12px #a594f933;
     }
@@ -83,7 +83,7 @@
         width: 60%;
         height: 4px;
         border-radius: 2px;
-        background: linear-gradient(90deg, #facc15 0%, #A594F9 100%);
+        background: linear-gradient(90deg, #8f72f5 0%, #c4b5fd 100%);
         animation: vaultTabAccent 0.5s cubic-bezier(.4,2,.6,1) 1;
     }
     @keyframes vaultTabAccent {
@@ -220,6 +220,36 @@
                                                     </div>
                                                 @endif
                                                 <div class="col-12">
+                                                    <label class="small text-muted d-block mb-2">Report Tracking</label>
+                                                    <div class="report-tracking-timeline">
+                                                        @php
+                                                            $reportStatusUpdates = $report->relationLoaded('statusUpdates') ? $report->statusUpdates : collect();
+                                                        @endphp
+                                                        @forelse($reportStatusUpdates as $update)
+                                                            <div class="report-tracking-event">
+                                                                <span class="report-tracking-dot"></span>
+                                                                <div>
+                                                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                                                        <strong>{{ $update->to_status }}</strong>
+                                                                        <small class="text-muted">{{ $update->created_at->format('M d, Y h:i A') }}</small>
+                                                                    </div>
+                                                                    @if($update->details)
+                                                                        <p class="small text-muted mb-0 mt-1" style="white-space:pre-wrap;">{{ $update->details }}</p>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        @empty
+                                                            <div class="report-tracking-event">
+                                                                <span class="report-tracking-dot"></span>
+                                                                <div>
+                                                                    <strong>{{ $report->status }}</strong>
+                                                                    <small class="d-block text-muted">{{ $report->created_at->format('M d, Y h:i A') }} · Report received</small>
+                                                                </div>
+                                                            </div>
+                                                        @endforelse
+                                                    </div>
+                                                </div>
+                                                <div class="col-12">
                                                     <label class="small text-muted d-block mb-2">Attached Evidence</label>
                                                     @php
                                                         $evidenceArr = $report->evidence_files;
@@ -230,6 +260,7 @@
                                                                 @php 
                                                                     $extension = pathinfo($evidencePath, PATHINFO_EXTENSION);
                                                                     $isImage = in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                                                    $isVideo = strtolower($extension) === 'mp4' || str_contains($evidencePath, '/video/');
                                                                     $evidenceUrl = route('reports.evidence.view', ['report' => $report->id, 'index' => $idx]);
                                                                 @endphp
                                                                 <div class="col-12 col-md-6 col-lg-4">
@@ -238,15 +269,15 @@
                                                                             <img src="{{ $evidenceUrl }}" class="img-fluid rounded mb-2" style="max-height: 160px; max-width:100%; object-fit:contain; cursor: zoom-in;" onclick="window.open(this.src)">
                                                                             <p class="small text-muted mb-0"><i class="bi bi-info-circle me-1"></i>Click image to preview</p>
                                                                         </div>
-                                                                    @else
-                                                                        <div class="evidence-doc-wrapper bg-white rounded-3 p-3 shadow-sm d-flex flex-column align-items-center justify-content-center" style="height: 120px;">
-                                                                            <i class="bi bi-file-earmark-text fs-2 text-primary mb-2"></i>
-                                                                            <span class="d-block small fw-bold mb-1">Document Attachment</span>
-                                                                            <a href="{{ $evidenceUrl }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                                                <i class="bi bi-download me-1"></i> Open File
-                                                                            </a>
+                                                                    @elseif($isVideo)
+                                                                        <div class="evidence-video-wrapper bg-white rounded-3 p-2 shadow-sm">
+                                                                            <video class="w-100 rounded" controls preload="metadata" src="{{ $evidenceUrl }}" aria-label="Attached report video"></video>
+                                                                            <p class="small text-muted mb-0 mt-2"><i class="bi bi-camera-video me-1"></i>MP4 video evidence</p>
                                                                         </div>
-                                                                        <div class="d-flex justify-content-center mt-3">{{ $myReports->links() }}</div>
+                                                                    @else
+                                                                        <div class="evidence-doc-wrapper bg-white rounded-3 p-3 shadow-sm text-center text-muted">
+                                                                            Unsupported legacy attachment.
+                                                                        </div>
                                                                     @endif
                                                                 </div>
                                                             @endforeach
@@ -367,4 +398,10 @@
         });
     });
 </script>
+<style>
+    .report-tracking-timeline { display:grid; gap:.9rem; border-left:2px solid #e8defc; margin-left:.45rem; padding-left:1rem; }
+    .report-tracking-event { position:relative; }
+    .report-tracking-dot { position:absolute; width:.65rem;height:.65rem;border-radius:50%;background:#8f72f5;left:-1.38rem;top:.28rem;box-shadow:0 0 0 4px #f1eaff; }
+</style>
+
 @endsection

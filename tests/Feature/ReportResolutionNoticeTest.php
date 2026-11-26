@@ -36,7 +36,18 @@ class ReportResolutionNoticeTest extends TestCase
             $table->text('description');
             $table->string('priority')->default('Medium');
             $table->string('status')->default('Pending');
+            $table->text('admin_comment')->nullable();
             $table->timestamp('resolution_notice_sent_at')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('report_status_updates', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('report_id');
+            $table->unsignedBigInteger('admin_id')->nullable();
+            $table->string('from_status')->nullable();
+            $table->string('to_status');
+            $table->text('details')->nullable();
             $table->timestamps();
         });
 
@@ -72,6 +83,7 @@ class ReportResolutionNoticeTest extends TestCase
             ->post(route('admin.reports.update', $reportId), [
                 'status' => 'Resolved',
                 'priority' => 'Medium',
+                'admin_comment' => 'The case has been reviewed and resolved.',
             ])
             ->assertSessionHas('success', "Report #SINAG-RESOLVED-1 was resolved and the user was notified by email and in-app.");
 
@@ -92,6 +104,7 @@ class ReportResolutionNoticeTest extends TestCase
         $this->post(route('admin.reports.update', $reportId), [
             'status' => 'Resolved',
             'priority' => 'Medium',
+            'admin_comment' => 'Follow-up review completed.',
         ])->assertSessionHas('success', 'Report #SINAG-RESOLVED-1 updated successfully.');
 
         $this->assertSame(1, DB::table('notifications')->count());
@@ -126,6 +139,7 @@ class ReportResolutionNoticeTest extends TestCase
             ->post(route('admin.reports.update', $reportId), [
                 'status' => 'Resolved',
                 'priority' => 'Medium',
+                'admin_comment' => 'The case has been reviewed and resolved.',
             ])
             ->assertSessionHas('warning');
 

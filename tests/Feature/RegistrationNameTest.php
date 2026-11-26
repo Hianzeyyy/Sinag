@@ -58,13 +58,13 @@ class RegistrationNameTest extends TestCase
                 'password_confirmation' => 'strong-password',
             ])
             ->assertRedirect(route('register'))
-            ->assertSessionHasErrors('phone_number');
+            ->assertSessionHasErrors(['phone_number', 'email']);
 
         $response = $this->post(route('register'), [
             'first_name' => 'Ava',
             'middle_name' => 'Marie',
             'last_name' => 'Santos',
-            'email' => '21ava@example.test',
+            'email' => '21ava@psu.edu.ph',
             'account_type' => 'student',
             'phone_number' => '09123456789',
             'age' => 20,
@@ -82,18 +82,18 @@ class RegistrationNameTest extends TestCase
             'first_name' => 'Ava',
             'middle_name' => 'Marie',
             'last_name' => 'Santos',
-            'email' => '21ava@example.test',
+            'email' => '21ava@psu.edu.ph',
             'account_status' => 'pending',
         ]);
 
-        $user = User::query()->where('email', '21ava@example.test')->firstOrFail();
+        $user = User::query()->where('email', '21ava@psu.edu.ph')->firstOrFail();
         $this->assertSame('Ava Marie Santos', $user->name);
 
         $this->post(route('register'), [
             'first_name' => 'Lia',
             'middle_name' => '',
             'last_name' => 'Reyes',
-            'email' => '22lia@example.test',
+            'email' => '22lia@psu.edu.ph',
             'account_type' => 'student',
             'phone_number' => '09123456780',
             'age' => 21,
@@ -110,7 +110,7 @@ class RegistrationNameTest extends TestCase
             'first_name' => 'Lia',
             'middle_name' => null,
             'last_name' => 'Reyes',
-            'email' => '22lia@example.test',
+            'email' => '22lia@psu.edu.ph',
         ]);
     }
 
@@ -128,6 +128,9 @@ class RegistrationNameTest extends TestCase
             ->assertSee('register-account-row', false)
             ->assertSee('register-name-row', false)
             ->assertSee('authSignUpEnter', false)
+            ->assertSee('Sign in with Google')
+            ->assertSee('Continue with Google')
+            ->assertSee('@psu.edu.ph')
             ->assertSee('name="profile_photo"', false)
             ->assertSee('name="selfie_image"', false);
     }

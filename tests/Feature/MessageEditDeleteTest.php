@@ -20,6 +20,7 @@ class MessageEditDeleteTest extends TestCase
             $table->string('email')->unique();
             $table->string('password');
             $table->string('role')->default('student');
+            $table->string('cloak_alias')->nullable();
             $table->timestamps();
         });
 
@@ -32,6 +33,7 @@ class MessageEditDeleteTest extends TestCase
             $table->string('sender_type')->default('student');
             $table->timestamp('read_at')->nullable();
             $table->timestamp('deleted_at')->nullable();
+            $table->boolean('is_anonymous')->default(false);
             $table->timestamps();
         });
     }
@@ -53,7 +55,7 @@ class MessageEditDeleteTest extends TestCase
         ]);
     }
 
-    public function test_student_can_send_message_when_database_does_not_auto_generate_ids(): void
+    public function test_student_can_send_message_without_generated_ids_or_anonymity_column(): void
     {
         [$student, $admin] = $this->users();
         Schema::drop('messages');
@@ -72,7 +74,8 @@ class MessageEditDeleteTest extends TestCase
         $this->actingAs($student)
             ->postJson(route('student.messages.store'), ['message' => 'Hello GAD Office'])
             ->assertOk()
-            ->assertJsonPath('message.id', 1);
+            ->assertJsonPath('message.id', 1)
+            ->assertJsonPath('message.message', 'Hello GAD Office');
 
         $this->assertDatabaseHas('messages', [
             'id' => 1,
@@ -80,6 +83,64 @@ class MessageEditDeleteTest extends TestCase
             'receiver_id' => $admin->id,
             'message' => 'Hello GAD Office',
         ]);
+    }
+
+    public function test_student_messages_always_use_the_alias_even_if_anonymous_is_requested(): void
+    {
+        [$student, $admin] = $this->users();
+
+        $this->actingAs($student)
+            ->postJson(route('student.messages.store'), [
+                'message' => 'Please use my alias.',
+                'is_anonymous' => true,
+            ])
+            ->assertOk()
+            ->assertJsonPath('message.is_anonymous', false);
+
+        $this->postJson(route('student.messages.store'), [
+            'message' => 'Another alias message.',
+        ])
+            ->assertOk()
+            ->assertJsonPath('message.is_anonymous', false);
+
+        $this->assertDatabaseHas('messages', [
+            'sender_id' => $student->id,
+            'receiver_id' => $admin->id,
+            'message' => 'Please use my alias.',
+            'is_anonymous' => false,
+        ]);
+        $this->assertDatabaseHas('messages', [
+            'sender_id' => $student->id,
+            'receiver_id' => $admin->id,
+            'message' => 'Another alias message.',
+            'is_anonymous' => false,
+        ]);
+    }
+
+    public function test_message_composer_uses_only_the_campus_alias(): void
+    {
+        [$student] = $this->users();
+        $student->cloak_alias = 'Silver Sparrow';
+        $student->save();
+
+        $this->actingAs($student)
+            ->get(route('student.messaging'))
+            ->assertOk()
+            ->assertSee('Messages are sent as Silver Sparrow')
+            ->assertDontSee('Send as Anonymous')
+            ->assertSee('Your account stays linked so the GAD Office can reply.');
+    }
+
+    public function test_student_settings_page_has_theme_and_personal_data_choices(): void
+    {
+        [$student] = $this->users();
+
+        $this->actingAs($student)
+            ->get(route('student.settings'))
+            ->assertOk()
+            ->assertSee('Light mode')
+            ->assertSee('Dark mode')
+            ->assertSee(route('personal-data.show'), false);
     }
 
     public function test_message_timestamps_are_returned_as_utc_and_rendered_for_the_viewers_timezone(): void
@@ -112,6 +173,7 @@ class MessageEditDeleteTest extends TestCase
             'email' => 'other@example.test',
             'password' => 'password',
             'role' => 'student',
+            'cloak_alias' => 'Silver Sparrow',
         ]);
         $message = $this->message($otherStudent, $admin, 'Private message', 'student');
 
@@ -242,6 +304,7 @@ class MessageEditDeleteTest extends TestCase
             'email' => 'student@example.test',
             'password' => 'password',
             'role' => 'student',
+            'cloak_alias' => 'Silver Sparrow',
         ]);
         $admin = User::create([
             'name' => 'GAD Admin',

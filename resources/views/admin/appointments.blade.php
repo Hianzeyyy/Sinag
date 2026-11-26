@@ -153,6 +153,16 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const openAppointmentId = new URLSearchParams(window.location.search).get('open');
+        const targetAppointmentModal = openAppointmentId && document.getElementById(`appointmentModal${openAppointmentId}`);
+        if (targetAppointmentModal && window.bootstrap) {
+            window.bootstrap.Modal.getOrCreateInstance(targetAppointmentModal).show();
+        }
+    });
+</script>
+
 <style>
     .appointments-page {
         max-width: 1480px;
@@ -191,6 +201,9 @@
     .priority-high { color: #6d55d9; background: #f3efff; }
     .priority-medium { color: #9a7200; background: #fff8d6; }
     .priority-low { color: #2563eb; background: #eff6ff; }
+    body[data-admin-theme="dark"] .priority-high { color:#e0d5ff; background:#392b5e; border-color:#8066d4; }
+    body[data-admin-theme="dark"] .priority-medium { color:#ffe78a; background:#4a3b16; border-color:#92751e; }
+    body[data-admin-theme="dark"] .priority-low { color:#b9d7ff; background:#1d3654; border-color:#4779b5; }
 
     .appointment-filters .appointment-filter {
         border: 1px solid #d8cdfc;
@@ -281,6 +294,16 @@
         box-shadow: 0 8px 18px rgba(109, 85, 217, .28);
     }
     .appointment-view-button:focus-visible { outline: 3px solid #d8cdfc; outline-offset: 2px; }
+
+    body[data-admin-theme="dark"] .appointment-resume-modal,
+    body[data-admin-theme="dark"] #appointmentUserModal .modal-content { background:#1b1529; color:#eee8ff; }
+    body[data-admin-theme="dark"] .appointment-resume-modal .modal-header,
+    body[data-admin-theme="dark"] .appointment-resume-modal .modal-footer,
+    body[data-admin-theme="dark"] #appointmentUserModal .modal-header,
+    body[data-admin-theme="dark"] #appointmentUserModal .modal-footer { border-color:#3a2d50 !important; }
+    body[data-admin-theme="dark"] .appointment-detail-grid > div { background:#241b35; border-color:#49365f; }
+    body[data-admin-theme="dark"] .appointment-detail-grid span { color:#c0b4d7; }
+    body[data-admin-theme="dark"] .appointment-resume-modal .form-control { background:#241b35; border-color:#49365f; color:#eee8ff; }
 
     @media (max-width: 575.98px) {
         .container-fluid.py-4 { padding: 1rem !important; }

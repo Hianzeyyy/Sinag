@@ -20,7 +20,7 @@ class SuggestionCommentController extends Controller
             return redirect()->back()->withErrors(['comment' => 'Naglalaman ng hindi angkop na salita ang iyong komento.']);
         }
 
-        $suggestion = Suggestion::findOrFail($suggestionId);
+        $suggestion = Suggestion::notArchived()->findOrFail($suggestionId);
 
         \App\Support\CompatibleInsert::insert('suggestion_comments', [
             'suggestion_id' => $suggestion->id,

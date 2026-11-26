@@ -54,16 +54,18 @@
                             </td>
                             <td class="text-nowrap">{{ optional($suggestion->created_at)->format('M d, Y') }}</td>
                             <td class="text-end text-nowrap pe-4">
-                                <button type="button" class="btn btn-sm rounded-pill px-3 user-management-approve-btn" data-bs-toggle="modal" data-bs-target="#suggestionModal{{ $suggestion->id }}">
-                                    <i class="bi bi-eye me-1"></i>View
-                                </button>
-                                <form action="{{ route('admin.suggestions.delete', $suggestion->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this suggestion?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" aria-label="Delete suggestion">
-                                        <i class="bi bi-trash3"></i>
+                                <div class="suggestion-row-actions">
+                                    <button type="button" class="btn btn-sm rounded-pill px-3 user-management-approve-btn" data-bs-toggle="modal" data-bs-target="#suggestionModal{{ $suggestion->id }}">
+                                        <i class="bi bi-eye me-1"></i>View
                                     </button>
-                                </form>
+                                    <form action="{{ route('admin.suggestions.delete', $suggestion->id) }}" method="POST" class="m-0" onsubmit="return confirm('Move this suggestion to the archive?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" aria-label="Archive suggestion" title="Archive suggestion">
+                                            <i class="bi bi-archive"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -200,6 +202,7 @@
 .sinag-status-approved { background: #d8cdfc; color: #5b4b9b; }
 .sinag-status-rejected { background: #f7c4dd; color: #9d285d; }
 .sinag-status-pending { background: #ede9fe; color: #6d55d9; }
+.suggestion-row-actions { display:inline-flex; align-items:center; justify-content:flex-end; gap:.65rem; }
 .suggestion-approve-btn { background: #d8cdfc; color: #5b4b9b; font-weight: 700; }
 .suggestion-reject-btn { background: #facc15; color: #4a3500; border: 0; font-weight: 700; }
 .suggestion-reject-btn:hover { background: #e5b900; color: #4a3500; }
@@ -208,6 +211,26 @@
 .fw-grid { display: block; }
 .fw-table-card .table { min-width: 760px; }
 .fw-table-card td { vertical-align: middle; }
+body[data-admin-theme="dark"] .fw-wrap { background:#151020; }
+body[data-admin-theme="dark"] .fw-topbar,
+body[data-admin-theme="dark"] .fw-table-card { background:#1b1529; border-color:#332846; color:#eee8ff; }
+body[data-admin-theme="dark"] .fw-page-title,
+body[data-admin-theme="dark"] .fw-table-card tbody td { color:#eee8ff; }
+body[data-admin-theme="dark"] .fw-page-sub,
+body[data-admin-theme="dark"] .fw-table-card .text-muted { color:#bdb1d1 !important; }
+body[data-admin-theme="dark"] .fw-table-card thead th { background:#241b35; color:#ddd1ff; border-color:#332846; }
+body[data-admin-theme="dark"] .fw-table-card tbody td { border-color:#332846; }
+body[data-admin-theme="dark"] .fw-table-card tbody tr:hover { background:#251d38; }
+body[data-admin-theme="dark"] .sinag-status-approved { background:#392b5e; color:#e0d5ff; }
+body[data-admin-theme="dark"] .sinag-status-rejected { background:#54243b; color:#ffd0df; }
+body[data-admin-theme="dark"] .sinag-status-pending { background:#302348; color:#d5c6ff; }
+body[data-admin-theme="dark"] .fw-wrap .modal-content { background:#1b1529; color:#eee8ff; }
+body[data-admin-theme="dark"] .fw-wrap .modal-header,
+body[data-admin-theme="dark"] .fw-wrap .modal-footer { border-color:#3a2d50; }
+body[data-admin-theme="dark"] .fw-wrap .modal-body .bg-light,
+body[data-admin-theme="dark"] .fw-wrap .modal-body .alert-light { background:#241b35 !important; color:#eee8ff; border-color:#49365f !important; }
+body[data-admin-theme="dark"] .fw-wrap .modal-content .form-control { background:#241b35; border-color:#49365f; color:#eee8ff; }
+body[data-admin-theme="dark"] .fw-wrap .modal-content .form-control::placeholder { color:#bdb1d1; }
 
 /* ── Grid ─────────────────────────────────── */
 .fw-grid {

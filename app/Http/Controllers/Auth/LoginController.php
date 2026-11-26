@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
+use Laravel\Socialite\Two\User as GoogleSocialiteUser;
 
 class LoginController extends Controller
 {
@@ -38,6 +41,85 @@ class LoginController extends Controller
             ->view('auth.login')
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache');
+    }
+
+    public function redirectToGoogle(Request $request)
+    {
+        $intent = $request->query('intent', 'login');
+        abort_unless(\in_array($intent, ['login', 'signup'], true), 404);
+
+        if (blank(config('services.google.client_id')) || blank(config('services.google.client_secret'))) {
+            $destination = $intent === 'signup' ? 'register' : 'login';
+
+            return redirect()->route($destination)
+                ->with('error', 'Google sign-in is not configured. Please use your email and password or contact the administrator.');
+        }
+
+        $request->session()->put('google_auth_intent', $intent);
+
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback(Request $request)
+    {
+        $intent = $request->session()->pull('google_auth_intent', 'login');
+        $destination = $intent === 'signup' ? 'register' : 'login';
+
+        if ($request->query('error')) {
+            return redirect()->route($destination)->with('error', 'Google sign-in was cancelled or could not be completed.');
+        }
+
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (InvalidStateException $exception) {
+            report($exception);
+
+            return redirect()->route($destination)
+                ->with('error', 'Google sign-in could not be verified. Please try again.');
+        }
+
+        if (!$googleUser instanceof GoogleSocialiteUser) {
+            return redirect()->route($destination)
+                ->with('error', 'Google sign-in returned an invalid response. Please try again.');
+        }
+
+        $googleData = $googleUser->getRaw();
+        $email = strtolower(trim((string) $googleUser->getEmail()));
+        $verified = filter_var(
+            $googleData['email_verified'] ?? $googleData['verified_email'] ?? false,
+            FILTER_VALIDATE_BOOLEAN
+        );
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !$verified) {
+            return redirect()->route($destination)
+                ->with('error', 'Google did not provide a verified email address. Please try again with a verified account.');
+        }
+
+        if ($intent === 'signup') {
+            $nameParts = preg_split('/\s+/', trim((string) $googleUser->getName()), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $firstName = trim((string) ($googleData['given_name'] ?? ($nameParts[0] ?? '')));
+            $lastName = trim((string) ($googleData['family_name'] ?? (\count($nameParts) > 1 ? $nameParts[\count($nameParts) - 1] : '')));
+            $middleName = trim((string) ($googleData['middle_name'] ?? implode(' ', \array_slice($nameParts, 1, max(\count($nameParts) - 2, 0)))));
+
+            return redirect()->route('register')->with('google_signup', [
+                'first_name' => $firstName,
+                'middle_name' => $middleName,
+                'last_name' => $lastName,
+                'email' => $email,
+            ]);
+        }
+
+        $user = User::query()->whereRaw('LOWER(email) = ?', [$email])->first();
+
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('error', 'This Google email is not registered yet. Please choose Sign up to complete your account details.');
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return $this->authenticated($request, $user);
     }
 
     /**
