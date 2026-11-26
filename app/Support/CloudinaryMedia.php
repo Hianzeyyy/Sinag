@@ -163,9 +163,16 @@ class CloudinaryMedia
         $headers = array_merge(['Cache-Control' => 'private, no-store'], $headers);
 
         try {
-            $remoteResponse = Http::timeout(30)
-                ->withOptions(['stream' => true])
-                ->get($url);
+            $request = Http::timeout(30)->withOptions(['stream' => true]);
+            $rangeHeaders = array_filter([
+                'Range' => request()->header('Range'),
+                'If-Range' => request()->header('If-Range'),
+            ], static fn (?string $value): bool => is_string($value) && $value !== '');
+            if ($rangeHeaders !== []) {
+                $request = $request->withHeaders($rangeHeaders);
+            }
+
+            $remoteResponse = $request->get($url);
         } catch (ConnectionException $exception) {
             Log::error('Cloudinary private media delivery failed.', [
                 'resource_type' => $asset['resource_type'],
@@ -193,9 +200,11 @@ class CloudinaryMedia
             return response('Media storage is temporarily unavailable.', 502, $headers);
         }
 
-        $contentType = $remoteResponse->header('Content-Type');
-        if (is_string($contentType) && $contentType !== '') {
-            $headers['Content-Type'] = $contentType;
+        foreach (['Content-Type', 'Content-Length', 'Content-Range', 'Accept-Ranges', 'ETag', 'Last-Modified'] as $header) {
+            $value = $remoteResponse->header($header);
+            if (is_string($value) && $value !== '') {
+                $headers[$header] = $value;
+            }
         }
         $headers['X-Content-Type-Options'] = 'nosniff';
         $body = $remoteResponse->toPsrResponse()->getBody();

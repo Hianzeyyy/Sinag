@@ -2324,7 +2324,7 @@
             }
         }
 
-        @media (max-width: 1199.98px) {
+        @media (max-width: 767.98px) {
             .student-navbar .brand-descriptor {
                 display: block !important;
             }
@@ -2451,7 +2451,7 @@
             }
         }
 
-        @media (min-width: 1200px) {
+        @media (min-width: 768px) {
             .student-navbar .student-top-nav {
                 display: flex !important;
             }
@@ -3125,6 +3125,16 @@
                 inset: auto !important;
                 transform: none !important;
                 margin: .35rem auto 0 !important;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .student-floating-enabled > .d-flex:last-child {
+                background: transparent !important;
+                border-color: transparent !important;
+                box-shadow: none !important;
+                backdrop-filter: none !important;
+                padding: 0 !important;
             }
         }
 

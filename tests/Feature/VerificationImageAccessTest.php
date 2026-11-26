@@ -33,6 +33,31 @@ class VerificationImageAccessTest extends TestCase
         $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
     }
 
+    public function test_authenticated_video_delivery_forwards_range_requests(): void
+    {
+        $this->fakeCloudinaryMedia(false);
+        Http::fake([
+            'https://res.cloudinary.com/*' => Http::response('video bytes', 206, [
+                'Content-Type' => 'video/mp4',
+                'Content-Length' => '11',
+                'Content-Range' => 'bytes 0-10/100',
+                'Accept-Ranges' => 'bytes',
+            ]),
+        ]);
+        request()->headers->set('Range', 'bytes=0-10');
+
+        $response = app(\App\Support\CloudinaryMedia::class)->fileResponse(
+            'cloudinary://authenticated/video/sinag/reports/evidence/test-video'
+        );
+
+        $this->assertNotNull($response);
+        $this->assertSame(206, $response->getStatusCode());
+        $this->assertSame('video/mp4', $response->headers->get('Content-Type'));
+        $this->assertSame('bytes 0-10/100', $response->headers->get('Content-Range'));
+        $this->assertSame('bytes', $response->headers->get('Accept-Ranges'));
+        Http::assertSent(fn ($request): bool => $request->hasHeader('Range', 'bytes=0-10'));
+    }
+
     public function test_verification_image_is_available_to_owner_and_admin_only(): void
     {
         $this->fakeCloudinaryMedia();
