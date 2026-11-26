@@ -641,8 +641,9 @@ class StudentController extends Controller
     public function storeMessage(Request $request)
     {
         $this->authorizeGadOfficeMessaging();
-        $request->validate([
+        $validated = $request->validate([
             'message' => 'required|string|max:1000',
+            'is_anonymous' => ['sometimes', 'boolean'],
         ]);
 
         $admin = $this->gadOfficeAdmins()->first();
@@ -651,14 +652,19 @@ class StudentController extends Controller
             return response()->json(['error' => 'No admin available'], 404);
         }
 
-        $messageId = \App\Support\CompatibleInsert::insert('messages', [
+        $messageValues = [
             'sender_id' => Auth::id(),
             'receiver_id' => $admin->id,
-            'message' => $request->message,
+            'message' => $validated['message'],
             'sender_type' => 'student',
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ];
+        if (Schema::hasColumn('messages', 'is_anonymous')) {
+            $messageValues['is_anonymous'] = (bool) ($validated['is_anonymous'] ?? false);
+        }
+
+        $messageId = \App\Support\CompatibleInsert::insert('messages', $messageValues);
         $message = Message::findOrFail($messageId);
 
         return response()->json([

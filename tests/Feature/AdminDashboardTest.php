@@ -146,6 +146,20 @@ class AdminDashboardTest extends TestCase
             'account_type' => 'student',
             'account_status' => 'active',
         ]);
+        User::create([
+            'name' => 'Legacy Approved User',
+            'email' => 'legacy-approved@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_status' => 'approved',
+        ]);
+        User::create([
+            'name' => 'Pending User',
+            'email' => 'pending@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_status' => 'pending',
+        ]);
         Report::create([
             'user_id' => $reporter->id,
             'incident_id' => 'SN-OPEN-1',
@@ -189,6 +203,8 @@ class AdminDashboardTest extends TestCase
 
         $response->assertSee('Recent accounts')
             ->assertSee('Newest sign-ups; hover for a first name or open a profile.')
+            ->assertSeeText('Approved accounts: 2')
+            ->assertSeeText('Pending review: 1')
             ->assertSee('Resolved cases')
             ->assertSee('Resolved reports out of all reports received.')
             ->assertSeeText('100% resolved')
@@ -255,6 +271,8 @@ class AdminDashboardTest extends TestCase
             ->get(route('admin.reports'))
             ->assertOk()
             ->assertSee('REPORT TRACKING')
+            ->assertSee('reporter-alias-icon')
+            ->assertSee('body[data-admin-theme="dark"] .reports-table-wrap .reporter-alias-icon', false)
             ->assertSee('1 timeline update')
             ->assertSee('Report tracking timeline')
             ->assertSee('Send this report to the GAD Coordinator')

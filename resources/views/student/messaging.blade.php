@@ -703,12 +703,15 @@ body {
             </div>
 
             {{-- Input area --}}
-            <div class="msg-identity-control" role="note" aria-label="Message display name">
-                <span class="msg-identity-choice">
-                    <i class="bi bi-person-badge" aria-hidden="true"></i>
-                    <span>Messages are sent as {{ Auth::user()->cloak_alias ?: 'your campus alias' }}</span>
-                </span>
-                <small class="msg-identity-note">Your account stays linked so the GAD Office can reply.</small>
+            <div class="msg-identity-control" role="group" aria-label="Message identity">
+                <label class="msg-identity-choice" for="sendAnonymously">
+                    <input type="checkbox" id="sendAnonymously">
+                    <span>Send as Anonymous</span>
+                </label>
+                <small class="msg-identity-note">
+                    When off, your campus alias ({{ Auth::user()->cloak_alias ?: 'Campus alias' }}) is shown.
+                    Your account stays linked so the GAD Office can reply.
+                </small>
             </div>
             <div class="msg-input-area">
                 <textarea class="msg-textarea" id="messageInput"
@@ -828,6 +831,7 @@ document.querySelectorAll('[data-user-local-time]').forEach(function (element) {
 
 function sendMessage() {
     const input = document.getElementById('messageInput');
+    const anonymousToggle = document.getElementById('sendAnonymously');
     const message = input.value.trim();
     if (!message) return;
 
@@ -844,7 +848,8 @@ function sendMessage() {
             'X-CSRF-TOKEN': CSRF
         },
         body: JSON.stringify({
-            message
+            message,
+            is_anonymous: anonymousToggle.checked
         })
     })
     .then(async r => {
@@ -870,8 +875,18 @@ function sendMessage() {
             const el = document.createElement('div');
             el.className = 'msg-group user';
             el.dataset.messageId = data.message.id;
+            el.dataset.messageState = JSON.stringify([
+                data.message.message,
+                data.message.original_message,
+                data.message.deleted_at,
+                data.message.is_anonymous
+            ]);
+            const identity = data.message.is_anonymous
+                ? 'Anonymous'
+                : @json(Auth::user()->cloak_alias ?: 'Campus alias');
             el.innerHTML = `
                 <div class="msg-bubble-wrap">
+                    <div class="msg-sender-name msg-identity-label">${escapeHtml(identity)}</div>
                     <div class="msg-bubble" id="bubble-${data.message.id}"><span class="message-text" id="message-text-${data.message.id}">${escapeHtml(message)}</span></div>
                     <div class="msg-message-meta"><div class="msg-time">${escapeHtml(formatUserLocalMessageTime(data.message.created_at) || 'Just now')}</div>
                     <button class="msg-action-btn edit" onclick="startEdit(${data.message.id})">Edit</button>

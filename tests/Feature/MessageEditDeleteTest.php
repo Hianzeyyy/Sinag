@@ -85,20 +85,21 @@ class MessageEditDeleteTest extends TestCase
         ]);
     }
 
-    public function test_student_messages_always_use_the_alias_even_if_anonymous_is_requested(): void
+    public function test_student_can_choose_alias_or_anonymous_identity_per_message(): void
     {
         [$student, $admin] = $this->users();
 
         $this->actingAs($student)
             ->postJson(route('student.messages.store'), [
-                'message' => 'Please use my alias.',
+                'message' => 'Please hide my alias.',
                 'is_anonymous' => true,
             ])
             ->assertOk()
-            ->assertJsonPath('message.is_anonymous', false);
+            ->assertJsonPath('message.is_anonymous', true);
 
         $this->postJson(route('student.messages.store'), [
-            'message' => 'Another alias message.',
+            'message' => 'Show my alias.',
+            'is_anonymous' => false,
         ])
             ->assertOk()
             ->assertJsonPath('message.is_anonymous', false);
@@ -106,13 +107,13 @@ class MessageEditDeleteTest extends TestCase
         $this->assertDatabaseHas('messages', [
             'sender_id' => $student->id,
             'receiver_id' => $admin->id,
-            'message' => 'Please use my alias.',
-            'is_anonymous' => false,
+            'message' => 'Please hide my alias.',
+            'is_anonymous' => true,
         ]);
         $this->assertDatabaseHas('messages', [
             'sender_id' => $student->id,
             'receiver_id' => $admin->id,
-            'message' => 'Another alias message.',
+            'message' => 'Show my alias.',
             'is_anonymous' => false,
         ]);
     }
@@ -126,8 +127,8 @@ class MessageEditDeleteTest extends TestCase
         $this->actingAs($student)
             ->get(route('student.messaging'))
             ->assertOk()
-            ->assertSee('Messages are sent as Silver Sparrow')
-            ->assertDontSee('Send as Anonymous')
+            ->assertSee('Send as Anonymous')
+            ->assertSee('When off, your campus alias (Silver Sparrow) is shown.')
             ->assertSee('Your account stays linked so the GAD Office can reply.');
     }
 

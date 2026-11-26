@@ -91,6 +91,21 @@ class AdminController extends Controller
             ->latest('created_at')
             ->take(5)
             ->get();
+        $accountQuery = User::where('role', '!=', 'admin');
+        if (Schema::hasColumn('users', 'account_status')) {
+            $approvedAccountCount = (clone $accountQuery)
+                ->where(function ($query) {
+                    $query->whereIn('account_status', ['active', 'approved'])
+                        ->orWhereNull('account_status');
+                })
+                ->count();
+            $pendingAccountCount = (clone $accountQuery)
+                ->where('account_status', 'pending')
+                ->count();
+        } else {
+            $approvedAccountCount = (clone $accountQuery)->count();
+            $pendingAccountCount = 0;
+        }
         $upcomingAppointments = AppointmentRequest::with('user')
             ->whereDate('scheduled_date', '>=', today())
             ->whereIn('status', ['pending', 'approved'])
@@ -140,6 +155,8 @@ class AdminController extends Controller
             'activeEmergencies',
             'recentReports',
             'recentUsers',
+            'approvedAccountCount',
+            'pendingAccountCount',
             'upcomingAppointments',
             'reportCategories',
             'suggestionCategories',

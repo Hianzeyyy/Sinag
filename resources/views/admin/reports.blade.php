@@ -21,6 +21,14 @@
     .report-tracking-latest { display:block; margin-top:.2rem; color:#746b82; font-size:.72rem; line-height:1.35; }
     body[data-admin-theme="dark"] .report-tracking-count { color:#d5c6ff; }
     body[data-admin-theme="dark"] .report-tracking-latest { color:#bdb1d1; }
+    .reporter-avatar { background: #f3e8ff; }
+    .reporter-avatar-priority { background: #fef3c7; }
+    .reporter-alias-icon { color: #0d6efd; }
+    .reporter-priority-icon { color: #806000; }
+    body[data-admin-theme="dark"] .reports-table-wrap .reporter-avatar { background: #342645 !important; }
+    body[data-admin-theme="dark"] .reports-table-wrap .reporter-avatar-priority { background: #44371a !important; }
+    body[data-admin-theme="dark"] .reports-table-wrap .reporter-alias-icon { color: #d5c6ff !important; }
+    body[data-admin-theme="dark"] .reports-table-wrap .reporter-priority-icon { color: #f8cb12 !important; }
 </style>
 <style>
     .sinag-violet-badge { background: #d8cdfc; color: #5b4b9b; border-color: #c4b5fd !important; }
@@ -90,9 +98,9 @@
                                     <td class="small text-muted">{{ $report->created_at->format('M d, Y') }}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2" 
-                                                 style="width: 30px; height: 30px; background: {{ $report->priority == 'High' ? '#fef3c7' : '#f3e8ff' }};">
-                                                <i class="bi {{ $report->priority == 'High' ? 'bi-shield-exclamation' : 'bi-incognito text-primary' }}" style="{{ $report->priority == 'High' ? 'color:#806000;' : '' }}"></i>
+                                            <div class="reporter-avatar {{ $report->priority == 'High' ? 'reporter-avatar-priority' : '' }} rounded-circle d-flex align-items-center justify-content-center me-2"
+                                                 style="width: 30px; height: 30px;">
+                                                <i class="bi {{ $report->priority == 'High' ? 'bi-shield-exclamation reporter-priority-icon' : 'bi-incognito reporter-alias-icon' }}"></i>
                                             </div>
                                             <div class="d-flex align-items-center gap-2">
                                                 <span class="small fw-medium text-secondary">{{ $report->reporter_display_name }}</span>

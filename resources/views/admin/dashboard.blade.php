@@ -187,6 +187,11 @@
                             @endforelse
                         </div>
                         <a href="{{ route('admin.users') }}" class="dashboard-link">View user management <i class="bi bi-arrow-right ms-1"></i></a>
+                        <p class="small text-muted mt-2 mb-0" aria-label="Account approval summary">
+                            Approved accounts: <strong>{{ number_format($approvedAccountCount) }}</strong>
+                            <span aria-hidden="true">·</span>
+                            Pending review: <strong>{{ number_format($pendingAccountCount) }}</strong>
+                        </p>
                     </div>
                 </section>
             </div>

@@ -141,6 +141,19 @@ After changing local mail settings, clear Laravel's cached configuration with
 `php artisan config:clear`. Render reads its environment variables on the next
 deployment.
 
+## Google sign-in
+
+Google sign-in requires an OAuth 2.0 Web application client. In Google Cloud
+Console, add the app's callback URL as an authorized redirect URI. It must
+exactly match `GOOGLE_REDIRECT_URI` (by default, `${APP_URL}/auth/google/callback`).
+
+Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in
+local `.env` and in the deployment environment. Keep the client secret out of
+source control. After changing local values, run `php artisan config:clear`;
+deployment environment changes take effect after redeployment. Google sign-in
+remains unavailable until valid client credentials and the matching callback
+URI are configured.
+
 
 ## Uploaded media storage and backups
 
