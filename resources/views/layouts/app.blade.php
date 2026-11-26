@@ -285,10 +285,10 @@
         }
 
         .admin-sidebar {
-            width: 76px;
-            flex: 0 0 76px;
-            min-width: 76px;
-            padding: .8rem .45rem;
+            width: 60px;
+            flex: 0 0 60px;
+            min-width: 60px;
+            padding: .55rem .35rem;
             position: fixed;
             inset: 5.5rem auto 1rem .75rem;
             z-index: 1101;
@@ -299,15 +299,21 @@
             border-radius: 1.25rem;
             overflow-x: hidden;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #7866a7 transparent;
             box-shadow: 8px 0 24px rgba(62, 35, 112, .06);
             transition: width .24s ease, flex-basis .24s ease, padding .24s ease, background-color .24s ease;
         }
 
         .admin-sidebar.active {
-            width: 264px;
-            flex-basis: 264px;
-            padding: 1.15rem .9rem;
+            width: 248px;
+            flex-basis: 248px;
+            padding: 1rem .85rem;
         }
+
+        .admin-sidebar::-webkit-scrollbar { width: 5px; }
+        .admin-sidebar::-webkit-scrollbar-thumb { background: #7866a7; border-radius: 999px; }
+        .admin-sidebar::-webkit-scrollbar-track { background: transparent; }
 
         .admin-sidebar .navbar-brand-custom {
             width: 100%;
@@ -333,7 +339,11 @@
 
         .admin-sidebar:not(.active) .nav-link-custom {
             justify-content: center;
-            padding: .78rem .45rem;
+            padding: .68rem .25rem;
+        }
+
+        .admin-sidebar:not(.active) .nav-link-custom i {
+            font-size: 1.05rem;
         }
 
         .admin-sidebar .nav-link-custom i {
@@ -368,14 +378,14 @@
 
         .admin-sidebar-toggle-floating {
             position: fixed;
-            top: 12.5rem;
-            left: calc(.75rem + 76px);
+            top: calc(5.5rem + 1.8rem);
+            left: calc(.75rem + 60px);
             z-index: 1102;
             display: grid;
             align-items: center;
             justify-content: center;
-            width: 2.75rem;
-            height: 2.75rem;
+            width: 2.5rem;
+            height: 2.5rem;
             padding: 0;
             border: 1px solid #d9cdf5;
             border-radius: 50%;
@@ -386,7 +396,7 @@
         }
 
         .admin-sidebar-toggle-floating[aria-expanded="true"] {
-            left: calc(.75rem + min(88vw, 280px));
+            left: calc(.75rem + min(88vw, 248px));
         }
 
         .admin-sidebar-toggle-floating:hover {
@@ -444,6 +454,7 @@
             background: #171126;
             border-color: #302348;
             color: #eee8ff;
+            scrollbar-color: #594478 transparent;
         }
 
         body[data-admin-theme="dark"] .admin-sidebar .navbar-brand-custom,
@@ -804,11 +815,11 @@
                 position: fixed;
                 inset: 5.5rem auto 1rem .75rem;
                 z-index: 1101;
-                width: 76px;
-                flex: 0 0 76px;
+                width: 60px;
+                flex: 0 0 60px;
                 height: auto;
                 max-height: calc(100dvh - 6.5rem);
-                padding: .8rem .45rem;
+                padding: .55rem .35rem;
                 border-radius: 1.25rem;
                 overflow-y: auto;
             }
@@ -817,8 +828,8 @@
                 position: fixed;
                 inset: 5.5rem auto 1rem .75rem;
                 z-index: 1101;
-                width: min(88vw, 280px);
-                flex: 0 0 min(88vw, 280px);
+                width: min(88vw, 248px);
+                flex: 0 0 min(88vw, 248px);
                 height: auto;
                 max-height: calc(100dvh - 6.5rem);
                 padding: 1rem;
@@ -838,9 +849,11 @@
                 overflow: visible;
             }
 
-            .admin-main {
-                width: calc(100% - 148px);
-                margin-left: 148px;
+            .main-wrapper .admin-main {
+                width: auto;
+                margin-left: 88px;
+                min-width: 0;
+                flex: 1 1 0%;
             }
         }
 
@@ -849,11 +862,11 @@
                 position: fixed;
                 inset: 5.5rem auto 1rem .75rem;
                 z-index: 1101;
-                width: 76px;
-                flex: 0 0 76px;
+                width: 60px;
+                flex: 0 0 60px;
                 height: auto;
                 max-height: calc(100dvh - 6.5rem);
-                padding: .8rem .45rem;
+                padding: .55rem .35rem;
                 border-radius: 1.25rem;
                 overflow-y: auto;
             }
@@ -861,8 +874,8 @@
             .main-wrapper .admin-sidebar.active {
                 position: fixed;
                 inset: 5.5rem auto 1rem .75rem;
-                width: min(88vw, 280px);
-                flex-basis: min(88vw, 280px);
+                width: min(88vw, 248px);
+                flex-basis: min(88vw, 248px);
                 height: auto;
                 max-height: calc(100dvh - 6.5rem);
                 padding: 1rem;
@@ -872,9 +885,11 @@
             }
 
             .main-wrapper .admin-main {
-                width: calc(100% - 148px);
-                margin-left: 148px;
-                flex: 1 1 auto;
+                width: auto;
+                max-width: none;
+                min-width: 0;
+                margin-left: 88px;
+                flex: 1 1 0%;
             }
         }
 
@@ -3460,17 +3475,16 @@
         (function () {
             const sidebar = document.getElementById('mainSidebar');
             const toggle = document.getElementById('adminSidebarToggle');
-            const brand = sidebar?.querySelector('.navbar-brand-custom');
             const header = document.querySelector('.admin-main > .top-navbar');
 
             function alignSidebarToggle() {
-                if (!sidebar || !toggle || !brand) return;
-                const headerBottom = Math.max(0, header?.getBoundingClientRect().bottom || 0);
-                const railTop = Math.max(88, headerBottom + 16);
+                if (!sidebar || !toggle) return;
+                const headerHeight = header?.offsetHeight || 72;
+                const railTop = Math.max(88, headerHeight + 16);
                 sidebar.style.top = `${railTop}px`;
                 sidebar.style.maxHeight = `calc(100dvh - ${railTop + 16}px)`;
-                const brandBounds = brand.getBoundingClientRect();
-                toggle.style.top = `${brandBounds.top + brandBounds.height / 2 - toggle.offsetHeight / 2}px`;
+                const sidebarPaddingTop = Number.parseFloat(getComputedStyle(sidebar).paddingTop) || 0;
+                toggle.style.top = `${railTop + sidebarPaddingTop + 8}px`;
             }
 
             alignSidebarToggle();
