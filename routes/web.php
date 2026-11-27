@@ -57,6 +57,11 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     Route::prefix('admin')->name('admin.')->middleware('can:gad-analytics-access')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         Route::get('/report-tracking', [AdminController::class, 'coordinatorReports'])->name('report-tracking');
+        Route::post('/report-tracking/{id}/update', [AdminController::class, 'updateStatus'])
+            ->whereNumber('id')
+            ->name('report-tracking.update');
+        Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+        Route::patch('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
         Route::get('/gad-report/export/{format}/{period?}', [ExportGADReportController::class, 'export'])
             ->where('format', 'pdf|excel')
             ->name('gad-report.export');
@@ -90,8 +95,6 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::delete('/archive/reports/{id}', [AdminController::class, 'permanentlyDeleteReport'])->name('archive.reports.delete');
         Route::delete('/archive/suggestions/{id}', [AdminController::class, 'permanentlyDeleteSuggestion'])->name('archive.suggestions.delete');
         Route::get('/activity-log', [AdminController::class, 'activityLog'])->name('activity-log');
-        Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
-        Route::patch('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
         Route::get('/gad-schedules', [AdminController::class, 'gadSchedules'])->name('gad-schedules.index');
         Route::post('/gad-schedules/sync', [AdminController::class, 'syncGadSchedule'])->name('gad-schedules.sync');
         Route::post('/office-info', [AdminController::class, 'updateOfficeInfo'])->name('office-info.update');

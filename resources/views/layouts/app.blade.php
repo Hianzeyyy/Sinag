@@ -1,5 +1,8 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-student-theme-enabled="{{ Auth::check() && Auth::user()->role !== 'admin' ? 'true' : 'false' }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+      data-student-theme-enabled="{{ Auth::check() && (Auth::user()->role !== 'admin' || Auth::user()->isGadCoordinator()) ? 'true' : 'false' }}"
+      data-student-theme="{{ Auth::check() && Auth::user()->isGadCoordinator() ? (Auth::user()->admin_theme ?? 'light') : '' }}"
+      data-coordinator-theme="{{ Auth::check() && Auth::user()->isGadCoordinator() ? (Auth::user()->admin_theme ?? 'light') : '' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,6 +19,7 @@
         (function () {
             const root = document.documentElement;
             if (root.dataset.studentThemeEnabled !== 'true') return;
+            if (root.dataset.coordinatorTheme) return;
 
             try {
                 const theme = localStorage.getItem('sinag-student-theme');
@@ -452,6 +456,48 @@
             background: #100b1d;
             color: #eee8ff;
             color-scheme: dark;
+        }
+
+        body[data-admin-theme="dark"] .main-content:not(.admin-main) {
+            background: #100b1d;
+            color: #eee8ff;
+            color-scheme: dark;
+        }
+
+        body[data-admin-theme="dark"] .student-sidebar,
+        body[data-admin-theme="dark"] .student-navbar {
+            background: #171126;
+            border-color: #302348;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .student-sidebar .nav-link-custom,
+        body[data-admin-theme="dark"] .student-navbar .student-nav-link,
+        body[data-admin-theme="dark"] .student-navbar .profile-menu-btn {
+            color: #ddd1ff;
+        }
+
+        body[data-admin-theme="dark"] .student-sidebar .nav-link-custom:hover,
+        body[data-admin-theme="dark"] .student-sidebar .nav-link-custom:focus-visible,
+        body[data-admin-theme="dark"] .student-navbar .student-nav-link:hover,
+        body[data-admin-theme="dark"] .student-navbar .student-nav-link.active {
+            background: #302348 !important;
+            color: #facc15 !important;
+        }
+
+        body[data-admin-theme="dark"] .student-navbar .profile-menu-btn,
+        body[data-admin-theme="dark"] .student-navbar .profile-dropdown {
+            border-color: #3a2d50;
+            background: #211936;
+        }
+
+        body[data-admin-theme="dark"] .student-navbar .profile-dropdown-action {
+            background: #302348;
+            color: #eee8ff;
+        }
+
+        body[data-admin-theme="dark"] .student-navbar .profile-dropdown-head {
+            border-color: #3a2d50;
         }
 
         body[data-admin-theme="dark"] .admin-sidebar {
@@ -3459,9 +3505,192 @@
             border-color: #49365f;
             box-shadow: 0 14px 40px rgba(0, 0, 0, .28);
         }
+
+        .coordinator-navbar,
+        body[data-admin-theme="dark"] .coordinator-navbar {
+            background: #f8f6ff !important;
+            border-bottom: 1px solid #dcd3ee !important;
+            color: #34205f !important;
+        }
+
+        .top-navbar.student-navbar.coordinator-navbar {
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .top-navbar.student-navbar.coordinator-navbar > .d-flex:first-child > .navbar-brand-custom {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            width: auto !important;
+            min-width: 0;
+            max-width: 100%;
+            gap: .5rem !important;
+        }
+
+        .top-navbar.student-navbar.coordinator-navbar > .d-flex:first-child > .navbar-brand-custom > .brand-descriptor {
+            display: none !important;
+        }
+
+        .coordinator-navbar > .d-flex:first-child {
+            width: auto !important;
+            flex: 0 0 auto !important;
+            min-width: 0;
+            justify-content: flex-start !important;
+        }
+
+        .coordinator-navbar > .d-flex:last-child {
+            width: auto !important;
+            flex: 1 1 auto !important;
+            min-width: 0;
+            justify-content: flex-end !important;
+        }
+
+        .coordinator-navbar .student-top-nav {
+            gap: .25rem;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .coordinator-navbar .student-nav-link,
+        body[data-admin-theme="dark"] .coordinator-navbar .student-nav-link,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .coordinator-navbar .student-nav-link {
+            border: 1px solid transparent;
+            background: transparent !important;
+            color: #34205f !important;
+            font-weight: 800;
+        }
+
+        body[data-admin-theme="dark"] .coordinator-navbar {
+            background: #171126 !important;
+            border-bottom-color: #3a2d50 !important;
+            color: #eee8ff !important;
+        }
+
+        body[data-admin-theme="dark"] .coordinator-navbar .brand-descriptor {
+            color: #c6b7f5 !important;
+        }
+
+        body[data-admin-theme="dark"] .coordinator-navbar .student-nav-link,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .coordinator-navbar .student-nav-link:not(.active) {
+            color: #e7ddfb !important;
+        }
+
+        .coordinator-navbar .student-nav-link:hover,
+        .coordinator-navbar .student-nav-link:focus-visible,
+        body[data-admin-theme="dark"] .coordinator-navbar .student-nav-link:hover,
+        body[data-admin-theme="dark"] .coordinator-navbar .student-nav-link:focus-visible {
+            background: rgba(250, 204, 21, .22) !important;
+            color: #34205f !important;
+        }
+
+        .coordinator-navbar .student-nav-link.active,
+        body[data-admin-theme="dark"] .coordinator-navbar .student-nav-link.active,
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .coordinator-navbar .student-nav-link.active {
+            background: #34205f !important;
+            border-color: #34205f !important;
+            color: #facc15 !important;
+        }
+
+        .coordinator-navbar .coordinator-logout-link {
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .coordinator-navbar .profile-menu-btn,
+        body[data-admin-theme="dark"] .coordinator-navbar .profile-menu-btn {
+            border-color: rgba(52, 32, 95, .3);
+            background: rgba(255, 255, 255, .45);
+            color: #34205f;
+        }
+
+        body[data-admin-theme="dark"] .coordinator-navbar .profile-menu-btn {
+            border-color: #49365f;
+            background: #241b35;
+            color: #eee8ff;
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .coordinator-navbar {
+                padding: .6rem .8rem !important;
+                gap: .45rem !important;
+            }
+
+            .top-navbar.student-navbar.coordinator-navbar .student-top-nav {
+                display: flex !important;
+                flex: 1 1 auto;
+                overflow-x: auto;
+                scrollbar-width: none;
+            }
+
+            .top-navbar.student-navbar.coordinator-navbar .student-top-nav::-webkit-scrollbar {
+                display: none;
+            }
+
+            .coordinator-navbar .student-nav-link {
+                padding: .45rem .5rem;
+            }
+
+            .coordinator-navbar .student-nav-link span {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .coordinator-navbar {
+                padding: .65rem 1rem !important;
+                gap: .5rem !important;
+            }
+
+            .coordinator-navbar .student-nav-link {
+                padding: .45rem .5rem;
+                font-size: .76rem;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .top-navbar.student-navbar.coordinator-navbar {
+                flex-wrap: wrap !important;
+                gap: .3rem !important;
+                padding: .5rem .65rem !important;
+            }
+
+            .coordinator-navbar > .d-flex:first-child {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                justify-content: center !important;
+            }
+
+            .coordinator-navbar > .d-flex:last-child {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                justify-content: center !important;
+                overflow: visible !important;
+            }
+
+            .coordinator-navbar .student-top-nav {
+                display: flex !important;
+                flex: 1 1 auto !important;
+                width: auto !important;
+                max-width: 100%;
+                min-width: 0;
+                justify-content: center;
+                gap: .1rem;
+                margin: 0 !important;
+                overflow-x: auto;
+                scrollbar-width: none;
+            }
+
+            .coordinator-navbar .student-top-nav::-webkit-scrollbar { display: none; }
+            .coordinator-navbar .student-top-nav a[href*="/messaging"] { display: inline-flex !important; }
+            .coordinator-navbar .student-nav-link { padding: .4rem .5rem !important; }
+            .coordinator-navbar .student-nav-link span { display: none !important; }
+            .coordinator-navbar > .d-flex:last-child > .text-end { flex: 0 0 auto; margin-left: .2rem; }
+        }
     </style>
 </head>
-<body data-admin-theme="{{ Auth::check() && Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator() ? (Auth::user()->admin_theme ?? 'light') : 'light' }}">
+<body data-admin-theme="{{ Auth::check() && Auth::user()->role === 'admin' ? (Auth::user()->admin_theme ?? 'light') : 'light' }}">
     <div id="app" class="main-wrapper {{ request()->routeIs('splash') ? 'splash-wrapper' : '' }}">
 
         @auth
@@ -3559,7 +3788,10 @@
                         <a href="{{ route('student.messaging') }}" class="nav-link-custom {{ Request::is('student/messaging*') ? 'active' : '' }}">
                             <i class="bi bi-chat-dots-fill"></i> Messages
                         </a>
-                        @elseif(Auth::user()->role !== 'admin')
+                        <a href="{{ route('admin.settings', ['section' => 'feedback']) }}" class="nav-link-custom {{ request()->query('section') === 'feedback' ? 'active' : '' }}">
+                            <i class="bi bi-star-half"></i> Ratings &amp; Reviews
+                        </a>
+                        @else
                         <a href="{{ route('student.dashboard') }}" class="nav-link-custom {{ Request::is('student/dashboard*') ? 'active' : '' }}">
                             <i class="bi bi-house-door-fill"></i> Dashboard
                         </a>
@@ -3606,7 +3838,7 @@
 
         <main class="{{ Auth::check() ? 'main-content ' . (Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator() ? 'admin-main' : '') . (!request()->routeIs('admin.dashboard', 'student.dashboard') ? ' page-load-motion' : '') : (request()->routeIs('login', 'register', 'password.*') ? 'auth-main' : 'container py-5') }}">
             @auth
-                <header class="top-navbar {{ in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true) || Auth::user()->isGadCoordinator() ? 'student-navbar' : 'admin-navbar' }} {{ Auth::user()->role !== 'admin' ? 'student-floating-enabled' : '' }}">
+                <header class="top-navbar {{ in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true) || Auth::user()->isGadCoordinator() ? 'student-navbar' : 'admin-navbar' }} {{ Auth::user()->role !== 'admin' ? 'student-floating-enabled' : '' }} {{ Auth::user()->isGadCoordinator() ? 'coordinator-navbar' : '' }}">
                     <div class="d-flex align-items-center gap-3">
                         @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
                             <button type="button" class="sidebar-toggle admin-mobile-sidebar-toggle" id="adminMobileSidebarToggle" onclick="toggleSidebar()" aria-label="Open admin menu" aria-controls="mainSidebar" aria-expanded="false">
@@ -3646,11 +3878,11 @@
                     <div class="d-flex align-items-center gap-3">
                         @if(Auth::user()->isGadCoordinator())
                             <nav class="student-top-nav me-3" aria-label="Coordinator main navigation">
-                                <a href="{{ route('admin.dashboard') }}" class="student-nav-link {{ Request::is('admin/dashboard*') ? 'active' : '' }}">
+                                <a href="{{ route('admin.dashboard') }}" class="student-nav-link {{ Request::is('admin/dashboard*') ? 'active' : '' }}" aria-label="GAD Report Analytics" title="GAD Report Analytics">
                                     <i class="bi bi-bar-chart-fill"></i>
                                     <span>GAD Report Analytics</span>
                                 </a>
-                                <a href="{{ route('admin.report-tracking') }}" class="student-nav-link {{ Request::is('admin/report-tracking*') ? 'active' : '' }}">
+                                <a href="{{ route('admin.report-tracking') }}" class="student-nav-link {{ Request::is('admin/report-tracking*') ? 'active' : '' }}" aria-label="Report Details" title="Report Details">
                                     <i class="bi bi-clipboard-data-fill"></i>
                                     <span>Report Details</span>
                                 </a>
@@ -3662,6 +3894,14 @@
                                     <i class="bi bi-chat-dots-fill"></i>
                                     <span>Messages</span>
                                 </a>
+                                <a href="{{ route('admin.settings') }}" class="student-nav-link {{ Request::is('admin/settings*') && request()->query('section', 'appearance') === 'appearance' ? 'active' : '' }}" aria-label="Settings" title="Settings">
+                                    <i class="bi bi-gear-fill"></i>
+                                    <span>Settings</span>
+                                </a>
+                                <button type="submit" form="logout-form" class="student-nav-link coordinator-logout-link" aria-label="Log out" title="Log out">
+                                    <i class="bi bi-box-arrow-left"></i>
+                                    <span>Log out</span>
+                                </button>
                             </nav>
                         @elseif(Auth::user()->role !== 'admin')
                             <nav class="student-top-nav me-3" aria-label="Student main navigation">
@@ -3741,7 +3981,7 @@
                                         <i class="bi bi-person-lines-fill"></i>
                                         View Profile
                                     </a>
-                                    <a href="{{ route('student.settings') }}" class="profile-dropdown-action text-decoration-none">
+                                    <a href="{{ Auth::user()->isGadCoordinator() ? route('admin.settings') : route('student.settings') }}" class="profile-dropdown-action text-decoration-none">
                                         <i class="bi bi-gear-fill"></i>
                                         Settings
                                     </a>

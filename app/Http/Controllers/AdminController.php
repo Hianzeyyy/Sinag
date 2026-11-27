@@ -56,11 +56,30 @@ class AdminController extends Controller
                 ->get();
             $reportCountsByStatus = $reportStatusCounts->pluck('total', 'status');
             $totalReports = (int) $reportStatusCounts->sum('total');
+            $reportCountsByPriority = Report::notArchived()
+                ->selectRaw("COALESCE(priority, 'Unspecified') as priority, COUNT(*) as total")
+                ->groupBy('priority')
+                ->orderBy('priority')
+                ->get();
+            $feedbackCount = 0;
+            $averageRating = 0.0;
+            $recentFeedback = collect();
+            if (Schema::hasTable('customer_satisfaction_surveys')) {
+                $feedbackQuery = CustomerSatisfactionSurvey::query();
+                $feedbackCount = (clone $feedbackQuery)->count();
+                $averageRating = (float) ((clone $feedbackQuery)->avg('rating') ?? 0);
+                $recentFeedback = $feedbackQuery->with('user')->latest()->take(5)->get();
+            }
+
             return view('admin.coordinator-dashboard', compact(
                 'reportStatusCounts',
                 'reportNatureCounts',
                 'reportCountsByStatus',
-                'totalReports'
+                'reportCountsByPriority',
+                'totalReports',
+                'feedbackCount',
+                'averageRating',
+                'recentFeedback'
             ));
         }
 
@@ -263,6 +282,9 @@ class AdminController extends Controller
     public function updateStatus(Request $request, $id)
     {
         if (strtolower(trim((string) optional(Auth::user())->role)) !== 'admin') return redirect()->route('home');
+        $reportUpdateRedirect = fn () => Auth::user()?->isGadCoordinator()
+            ? redirect()->route('admin.report-tracking', ['report_id' => $id])
+            : back();
 
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:Pending,Under Review,Resolved'],
@@ -369,10 +391,10 @@ class AdminController extends Controller
                     'message' => $exception->getMessage(),
                 ]);
 
-                return back()->with('warning', "Report #{$report->incident_id} was resolved and the in-app notice was sent, but the email could not be sent. The survey is now available in the user's Evidence Vault.{$coordinatorNotice}");
+                return $reportUpdateRedirect()->with('warning', "Report #{$report->incident_id} was resolved and the in-app notice was sent, but the email could not be sent. The survey is now available in the user's Evidence Vault.{$coordinatorNotice}");
             }
 
-            return back()->with('success', "Report #{$report->incident_id} was resolved and the user was notified by email and in-app.{$coordinatorNotice}");
+            return $reportUpdateRedirect()->with('success', "Report #{$report->incident_id} was resolved and the user was notified by email and in-app.{$coordinatorNotice}");
         }
 
         $report = Report::findOrFail($id);
@@ -381,7 +403,7 @@ class AdminController extends Controller
             ? ' and forwarded to the GAD Coordinator'
             : '';
 
-        return back()->with('success', "Report #{$report->incident_id} updated successfully{$coordinatorNotice}.");
+        return $reportUpdateRedirect()->with('success', "Report #{$report->incident_id} updated successfully{$coordinatorNotice}.");
     }
 
     /**
@@ -404,11 +426,13 @@ class AdminController extends Controller
             'report_id' => ['nullable', 'integer', 'min:1'],
         ]);
         $relations = Schema::hasTable('report_status_updates')
-            ? ['user', 'statusUpdates']
+            ? ['user', 'statusUpdates.admin']
             : ['user'];
         $reports = Report::notArchived()
             ->with($relations)
             ->when(isset($validated['report_id']), fn ($query) => $query->whereKey($validated['report_id']))
+            ->orderByRaw("CASE WHEN priority = 'High' THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN status = 'Emergency' THEN 0 ELSE 1 END")
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -423,11 +447,19 @@ class AdminController extends Controller
             ->orderByDesc('total')
             ->limit(8)
             ->get();
+        $reportCountsByPriority = Report::notArchived()
+            ->selectRaw("COALESCE(priority, 'Unspecified') as priority, COUNT(*) as total")
+            ->groupBy('priority')
+            ->orderByDesc('total')
+            ->get();
+        $totalReports = (int) $reportCountsByStatus->sum();
 
         return view('admin.coordinator-reports', compact(
             'reports',
             'reportCountsByStatus',
-            'reportCategories'
+            'reportCategories',
+            'reportCountsByPriority',
+            'totalReports'
         ));
     }
 
@@ -516,6 +548,7 @@ class AdminController extends Controller
     {
         $section = $request->query('section', 'appearance');
         abort_unless(in_array($section, ['appearance', 'archive', 'activity', 'feedback'], true), 404);
+        abort_if(Auth::user()?->isGadCoordinator() && ! in_array($section, ['appearance', 'feedback'], true), 403);
 
         $data = ['section' => $section];
         if ($section === 'archive') {
@@ -570,6 +603,11 @@ class AdminController extends Controller
 
     public function updateSettings(Request $request)
     {
+        abort_unless(
+            Auth::user()?->isGadCoordinator() || strtolower(trim((string) Auth::user()?->role)) === 'admin',
+            403
+        );
+
         $validated = $request->validate([
             'theme' => ['required', 'in:light,dark'],
         ]);

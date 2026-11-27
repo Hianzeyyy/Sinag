@@ -25,6 +25,18 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             $table->string('account_type')->nullable();
             $table->string('account_status')->nullable();
             $table->string('cloak_alias')->nullable();
+            $table->string('admin_theme')->default('light');
+            $table->timestamps();
+        });
+
+        Schema::create('customer_satisfaction_surveys', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->string('subject')->nullable();
+            $table->unsignedBigInteger('subject_id')->nullable();
+            $table->unsignedTinyInteger('rating');
+            $table->text('feedback')->nullable();
+            $table->json('responses')->nullable();
             $table->timestamps();
         });
 
@@ -94,7 +106,7 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
         });
     }
 
-    public function test_coordinator_can_view_read_only_report_analytics_but_not_admin_tools(): void
+    public function test_coordinator_can_view_report_analytics_but_not_admin_tools(): void
     {
         $coordinator = User::create([
             'name' => 'GAD Coordinator',
@@ -142,8 +154,11 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
                 && (int) $counts->get('Resolved') === 2)
             ->assertViewMissing('registeredUserSummary')
             ->assertSee('GAD Report Analytics')
-            ->assertSeeText('Export PDF')
-            ->assertSeeText('Export Excel')
+            ->assertSeeText('Export report')
+            ->assertSeeText('Preview export')
+            ->assertSeeText('Export now')
+            ->assertSee('value="pdf"', false)
+            ->assertSee('value="excel"', false)
             ->assertSee(route('student.boses'), false)
             ->assertSeeText('Suggestions')
             ->assertSee(route('student.messaging'), false)
@@ -213,6 +228,126 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertSee('SN-TRACK-1')
             ->assertDontSee('SN-TRACK-2')
             ->assertSee('Assigned to the GAD review team.');
+    }
+
+    public function test_coordinator_can_update_report_status_priority_and_reporter_visible_note(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'account_status' => 'active',
+        ]);
+        $report = Report::create([
+            'incident_id' => 'SN-UPDATE-1',
+            'nature' => 'Stalking',
+            'status' => 'Pending',
+            'priority' => 'Medium',
+        ]);
+
+        $this->actingAs($coordinator)
+            ->post(route('admin.report-tracking.update', $report->id), [
+                'status' => 'Under Review',
+                'priority' => 'High',
+                'admin_comment' => 'A coordinator is reviewing this report.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('reports', [
+            'id' => $report->id,
+            'status' => 'Under Review',
+            'priority' => 'High',
+            'admin_comment' => 'A coordinator is reviewing this report.',
+        ]);
+        $this->assertDatabaseHas('report_status_updates', [
+            'report_id' => $report->id,
+            'admin_id' => $coordinator->id,
+            'to_status' => 'Under Review',
+            'details' => 'A coordinator is reviewing this report.',
+        ]);
+        Report::create([
+            'incident_id' => 'SN-UPDATE-LOW',
+            'nature' => 'Catcalling',
+            'status' => 'Pending',
+            'priority' => 'Low',
+        ]);
+
+        $this->get(route('admin.report-tracking', ['report_id' => $report->id]))
+            ->assertOk()
+            ->assertSee('A coordinator is reviewing this report.');
+
+        $this->get(route('admin.report-tracking'))
+            ->assertOk()
+            ->assertSeeInOrder(['SN-UPDATE-1', 'SN-UPDATE-LOW'])
+            ->assertSee('High priority first');
+    }
+
+    public function test_coordinator_can_save_theme_and_open_reviews_but_not_admin_settings_sections(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'account_status' => 'active',
+        ]);
+
+        $this->actingAs($coordinator)
+            ->get(route('admin.settings'))
+            ->assertOk()
+            ->assertSee('Coordinator profile')
+            ->assertSee('Dark Mode');
+
+        $this->patch(route('admin.settings.update'), ['theme' => 'dark'])
+            ->assertRedirect();
+        $this->assertDatabaseHas('users', ['id' => $coordinator->id, 'admin_theme' => 'dark']);
+
+        $this->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('data-student-theme-enabled="true"', false)
+            ->assertSee('data-student-theme="dark"', false)
+            ->assertSee('coordinator-navbar')
+            ->assertSeeText('Settings')
+            ->assertSeeText('Log out');
+
+        $this->get(route('admin.settings', ['section' => 'archive']))->assertForbidden();
+        $this->get(route('admin.settings', ['section' => 'activity']))->assertForbidden();
+        $this->get(route('admin.settings', ['section' => 'feedback']))->assertOk();
+    }
+
+    public function test_coordinator_dashboard_links_named_recent_reviews_to_review_settings(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'account_status' => 'active',
+        ]);
+        $reviewer = User::create([
+            'name' => 'Review Author',
+            'email' => 'reviewer@example.test',
+            'password' => 'password',
+            'role' => 'student',
+            'account_type' => 'student',
+            'account_status' => 'active',
+        ]);
+        \App\Models\CustomerSatisfactionSurvey::create([
+            'user_id' => $reviewer->id,
+            'subject' => 'platform',
+            'rating' => 5,
+            'feedback' => 'Helpful and easy to use.',
+        ]);
+
+        $this->actingAs($coordinator)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Review Author')
+            ->assertSee(route('admin.settings', ['section' => 'feedback']), false);
     }
 
     public function test_gad_coordinator_can_open_messages_and_send_a_message(): void
