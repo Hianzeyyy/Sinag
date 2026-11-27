@@ -697,7 +697,9 @@
     }
 
     .sign-in-pane .login-input {
-        width:85%;
+        width:auto;
+        flex:1 1 0;
+        min-width:0;
         height:100%;
         margin-left:6px;
         padding:0 .6rem !important;
@@ -712,9 +714,13 @@
     .sign-in-pane .login-password-eye {
         width:2.8rem;
         min-width:2.8rem;
+        flex:0 0 2.8rem;
+        padding:0 !important;
         border-radius:0 10px 10px 0 !important;
         color:#6b55c4 !important;
         background:#fff !important;
+        position:relative;
+        z-index:1;
     }
 
     .sign-in-pane .form-check-label { color:#514b63 !important; }

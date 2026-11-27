@@ -2495,6 +2495,15 @@
                 padding-right: 5.5rem;
             }
 
+            .top-navbar.student-navbar > .d-flex:first-child {
+                justify-content: flex-start !important;
+            }
+
+            .top-navbar.student-navbar > .d-flex:first-child > .student-sidebar-toggle {
+                flex: 0 0 42px;
+                margin: 0 !important;
+            }
+
             .student-navbar > .d-flex:first-child > .navbar-brand-custom {
                 display: grid !important;
                 grid-template-columns: auto minmax(0, 1fr);
