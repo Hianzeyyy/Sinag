@@ -30,7 +30,7 @@
                 <section class="coordinator-card coordinator-metric h-100">
                     <div class="coordinator-metric-icon"><i class="bi {{ $icon }}" aria-hidden="true"></i></div>
                     <div class="small fw-bold text-uppercase text-muted">{{ $label }}</div>
-                    <div class="coordinator-metric-value">{{ number_format($value) }}</div>
+                    <div class="coordinator-metric-value" data-count-up="{{ $value }}">{{ number_format($value) }}</div>
                     <div class="small text-muted">{{ $hint }}</div>
                 </section>
             </div>
@@ -50,7 +50,7 @@
                             $percentage = $totalReports > 0 ? ($row->total / $totalReports) * 100 : 0;
                         @endphp
                         <div class="analytics-item">
-                            <div class="analytics-row"><span>{{ $row->status }}</span><strong>{{ number_format($row->total) }} <small>({{ number_format($percentage, 1) }}%)</small></strong></div>
+                            <div class="analytics-row"><span>{{ $row->status }}</span><strong><span data-count-up="{{ $row->total }}">{{ number_format($row->total) }}</span> <small>({{ number_format($percentage, 1) }}%)</small></strong></div>
                             <div class="analytics-track"><span style="--bar-width:{{ $percentage }}%"></span></div>
                         </div>
                     @empty
@@ -76,7 +76,7 @@
                                     $percentage = $natureTotal > 0 ? ($row->total / $natureTotal) * 100 : 0;
                                 @endphp
                                 <div class="analytics-item">
-                                    <div class="analytics-row"><span>{{ $row->nature }}</span><strong>{{ number_format($row->total) }} <small>({{ number_format($percentage, 1) }}%)</small></strong></div>
+                                    <div class="analytics-row"><span>{{ $row->nature }}</span><strong><span data-count-up="{{ $row->total }}">{{ number_format($row->total) }}</span> <small>({{ number_format($percentage, 1) }}%)</small></strong></div>
                                     <div class="analytics-track"><span style="--bar-width:{{ $percentage }}%"></span></div>
                                 </div>
                             @empty
@@ -101,7 +101,7 @@
                                         @endphp
                                         <circle class="nature-pie-segment" cx="21" cy="21" r="15.9155" pathLength="100"
                                             stroke="{{ $natureColors[$index % count($natureColors)] }}"
-                                            stroke-dasharray="{{ $share }} {{ 100 - $share }}"
+                                            style="--pie-dasharray:{{ $share }} {{ 100 - $share }}"
                                             stroke-dashoffset="{{ -$natureOffset }}"
                                             transform="rotate(-90 21 21)"></circle>
                                         @php
@@ -109,7 +109,7 @@
                                         @endphp
                                     @endforeach
                                     <circle class="nature-pie-center" cx="21" cy="21" r="11"></circle>
-                                    <text class="nature-pie-total" x="21" y="20">{{ (int) $natureTotal }}</text>
+                                    <text class="nature-pie-total" x="21" y="20" data-count-up="{{ (int) $natureTotal }}">{{ (int) $natureTotal }}</text>
                                     <text class="nature-pie-caption" x="21" y="24">reports</text>
                                 </svg>
                                 <div class="nature-pie-legend" aria-label="Report totals by nature">
@@ -119,7 +119,7 @@
                                         @endphp
                                         <div class="nature-legend-item">
                                             <span class="nature-legend-label"><i style="background:{{ $natureColors[$index % count($natureColors)] }}"></i><span>{{ $row->nature }}</span></span>
-                                            <strong>{{ $row->total }} <small>({{ $share }}%)</small></strong>
+                                            <strong><span data-count-up="{{ $row->total }}">{{ number_format($row->total) }}</span> <small>({{ $share }}%)</small></strong>
                                         </div>
                                     @empty
                                         <p class="text-muted small mb-0">No report data to chart.</p>
@@ -146,7 +146,7 @@
                     @endphp
                     <div class="col-md-4">
                         <div class="priority-tile">
-                            <div class="analytics-row"><span>{{ $priorityRow->priority }} priority</span><strong>{{ number_format($priorityRow->total) }}</strong></div>
+                            <div class="analytics-row"><span>{{ $priorityRow->priority }} priority</span><strong data-count-up="{{ $priorityRow->total }}">{{ number_format($priorityRow->total) }}</strong></div>
                             <div class="analytics-track"><span style="--bar-width:{{ $priorityPercentage }}%"></span></div>
                         </div>
                     </div>
@@ -164,8 +164,8 @@
         </div>
         <div class="coordinator-card-body">
             <a class="coordinator-rating-summary" href="{{ route('admin.settings', ['section' => 'feedback']) }}">
-                <strong>{{ number_format($averageRating, 1) }}</strong>
-                <span><span class="rating-stars" aria-label="{{ number_format($averageRating, 1) }} out of 5 stars">★★★★★</span><small>{{ number_format($feedbackCount) }} ratings · View all reviews</small></span>
+                <strong data-count-up="{{ $averageRating }}" data-count-decimals="1">{{ number_format($averageRating, 1) }}</strong>
+                <span><span class="rating-stars" aria-label="{{ number_format($averageRating, 1) }} out of 5 stars">★★★★★</span><small><span data-count-up="{{ $feedbackCount }}">{{ number_format($feedbackCount) }}</span> ratings · View all reviews</small></span>
             </a>
             <div class="row g-3 mt-1">
                 @forelse($recentFeedback->take(3) as $feedback)
@@ -214,7 +214,8 @@
     .analytics-row strong { color:#34205f;white-space:nowrap; }
     .analytics-row small { color:#827991;font-weight:600; }
     .analytics-track { height:9px;overflow:hidden;border-radius:999px;background:#eee9f7; }
-    .analytics-track span { display:block;width:var(--bar-width);height:100%;border-radius:inherit;background:linear-gradient(90deg,#facc15,#34205f); }
+    .analytics-track span { display:block;width:var(--bar-width);height:100%;border-radius:inherit;background:linear-gradient(90deg,#facc15,#34205f);animation:coordinatorBarGrow .9s cubic-bezier(.2,.72,.25,1) both; }
+    @keyframes coordinatorBarGrow { from { width:0; } to { width:var(--bar-width); } }
     .priority-tile { padding:1rem;border:1px solid #eee8f5;border-radius:.9rem;background:#fcfbfe; }
     .coordinator-flip-card { min-height:24rem;perspective:1100px; }
     .coordinator-flip-inner { position:relative;min-height:24rem;height:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.2,.72,.25,1); }
@@ -226,6 +227,8 @@
     .nature-pie-layout { display:grid;grid-template-columns:minmax(125px,40%) 1fr;align-items:center;gap:1rem;min-height:15rem; }
     .nature-pie { display:block;width:min(100%,190px);margin:auto; }
     .nature-pie-track,.nature-pie-segment { fill:none;stroke-width:8; }
+    .nature-pie-segment { stroke-dasharray:var(--pie-dasharray);animation:coordinatorPieDraw 1s cubic-bezier(.2,.72,.25,1) both; }
+    @keyframes coordinatorPieDraw { from { stroke-dasharray:0 100; } to { stroke-dasharray:var(--pie-dasharray); } }
     .nature-pie-track { stroke:#eee9f7; }
     .nature-pie-center { fill:#fff; }
     .nature-pie-total { fill:#34205f;font-size:5px;font-weight:900;text-anchor:middle; }
@@ -283,9 +286,53 @@
     body[data-admin-theme="dark"] #exportGadFormatModal .export-section-choice { background:#241b35;color:#eee8ff;border-color:#49365f; }
     body[data-admin-theme="dark"] #exportGadFormatModal .form-select { background:#241b35;color:#eee8ff;border-color:#49365f; }
     @media(max-width:575.98px) { .nature-pie-layout { grid-template-columns:1fr; }.nature-pie { width:150px; }.coordinator-card-heading { flex-wrap:wrap; } }
-    @media(prefers-reduced-motion:reduce) { .coordinator-flip-inner { transition:none; } }
+    @media(prefers-reduced-motion:reduce) {
+        .coordinator-flip-inner { transition:none; }
+        .analytics-track span,.nature-pie-segment { animation:none; }
+    }
 </style>
 <script>
+    const coordinatorDashboard = document.querySelector('.coordinator-dashboard');
+    const reduceDashboardMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (coordinatorDashboard && !reduceDashboardMotion) {
+        const counters = coordinatorDashboard.querySelectorAll('[data-count-up]');
+        const targets = Array.from(counters, function (counter) {
+            const target = Number(counter.dataset.countUp);
+            const decimals = Number(counter.dataset.countDecimals || 0);
+
+            if (!Number.isFinite(target)) {
+                return null;
+            }
+
+            const numberFormatter = new Intl.NumberFormat(undefined, {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+            counter.textContent = numberFormatter.format(0);
+
+            return { counter: counter, target: target, numberFormatter: numberFormatter };
+        }).filter(Boolean);
+
+        const startedAt = performance.now();
+        const duration = 1000;
+
+        function updateCounters(now) {
+            const progress = Math.min((now - startedAt) / duration, 1);
+            const easedProgress = 1 - Math.pow(1 - progress, 3);
+
+            targets.forEach(function (item) {
+                item.counter.textContent = item.numberFormatter.format(item.target * easedProgress);
+            });
+
+            if (progress < 1) {
+                requestAnimationFrame(updateCounters);
+            }
+        }
+
+        requestAnimationFrame(updateCounters);
+    }
+
     document.querySelectorAll('#natureChartCard [data-nature-toggle]').forEach(function (button) {
         button.addEventListener('click', function () {
             const card = document.getElementById('natureChartCard');
