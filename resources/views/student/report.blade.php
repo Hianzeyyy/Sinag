@@ -42,23 +42,46 @@
         border-left: 6px solid #8f72f5;
         box-shadow: 0 2px 12px #a594f922;
     }
+    /* From Uiverse.io by adamgiebl - https://uiverse.io/adamgiebl/new-bird-34
+       MIT License, Copyright (c) adamgiebl (Adam Giebl) */
     .report-btn {
-        background: linear-gradient(135deg, #8f72f5 0%, #6748c7 100%);
-        color: #fff;
-        font-weight: 700;
-        font-size: 1.05rem;
-        min-height: 3rem;
-        box-shadow: 0 2px 12px #a594f933;
-        border: none;
-        transition: transform 0.12s, box-shadow 0.12s;
-        border-radius: 10px;
+        position:relative;
+        display:flex;
+        align-items:center;
+        overflow:hidden;
+        height:2.8em;
+        padding:.35em 3.3em .35em 1.2em;
+        border:0;
+        border-radius:.9em;
+        color:#fff;
+        background:#7658df;
+        box-shadow:inset 0 0 1.6em -.6em #4a2d96;
+        font-size:1rem;
+        font-weight:700;
+        letter-spacing:.05em;
+        cursor:pointer;
+        transition:background-color .2s ease;
     }
-    .report-btn:hover {
-        background: #A594F9;
-        color: #fff;
-        transform: scale(1.04);
-        box-shadow: 0 6px 24px #a594f944;
+    .report-btn-icon {
+        position:absolute;
+        right:.3em;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width:2.2em;
+        height:2.2em;
+        margin-left:1em;
+        border-radius:.7em;
+        color:#7658df;
+        background:#fff;
+        box-shadow:.1em .1em .6em .2em #4a2d96;
+        transition:all .3s ease;
     }
+    .report-btn-icon svg { width:1.1em; transition:transform .3s ease; }
+    .report-btn:hover .report-btn-icon { width:calc(100% - .6em); }
+    .report-btn:hover .report-btn-icon svg { transform:translateX(.1em); }
+    .report-btn:active .report-btn-icon { transform:scale(.95); }
+    .report-btn:focus-visible { outline:3px solid #4a2d96; outline-offset:3px; }
     .report-help {
         background: rgba(255,255,255,0.95);
         border-radius: 15px;
@@ -291,8 +314,14 @@
                         {{-- Action Buttons --}}
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <button type="reset" class="btn btn-light px-4 fw-bold text-muted" style="border-radius: 10px;">Clear Form</button>
-                            <button type="submit" class="btn px-5 fw-bold shadow-sm report-btn">
-                                <i class="bi bi-send-fill me-2"></i> Submit Report
+                            <button type="submit" class="report-btn">
+                                Submit Report
+                                <span class="report-btn-icon" aria-hidden="true">
+                                    <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path>
+                                    </svg>
+                                </span>
                             </button>
                         </div>
                         <input type="hidden" name="privacy_consent" id="reportPrivacyConsent" value="{{ old('privacy_consent') }}">

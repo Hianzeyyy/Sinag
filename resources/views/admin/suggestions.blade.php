@@ -61,7 +61,7 @@
                                     <form action="{{ route('admin.suggestions.delete', $suggestion->id) }}" method="POST" class="m-0" onsubmit="return confirm('Move this suggestion to the archive?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" aria-label="Archive suggestion" title="Archive suggestion">
+                                        <button type="submit" class="suggestion-archive-button" aria-label="Archive suggestion" title="Archive suggestion">
                                             <i class="bi bi-archive"></i>
                                         </button>
                                     </form>
@@ -203,6 +203,19 @@
 .sinag-status-rejected { background: #f7c4dd; color: #9d285d; }
 .sinag-status-pending { background: #ede9fe; color: #6d55d9; }
 .suggestion-row-actions { display:inline-flex; align-items:center; justify-content:flex-end; gap:.65rem; }
+/* From Uiverse.io by vinodjangid07 - https://uiverse.io/vinodjangid07/smart-emu-83
+   MIT License, Copyright (c) vinodjangid07 (Vinod Jangid) */
+.suggestion-archive-button {
+    position:relative; display:inline-flex; width:50px; height:50px; align-items:center; justify-content:center;
+    overflow:hidden; border:0; border-radius:50%; background:#211936; color:#fff;
+    box-shadow:0 0 20px rgba(0,0,0,.16); transition:width .3s ease,border-radius .3s ease,background-color .3s ease;
+}
+.suggestion-archive-button::before { position:absolute; top:-20px; left:50%; content:"Archive"; color:#fff; font-size:2px; opacity:0; transform:translateX(-50%); transition:all .3s ease; }
+.suggestion-archive-button i { font-size:12px; transition:transform .3s ease; }
+.suggestion-archive-button:hover,.suggestion-archive-button:focus-visible { width:140px; border-radius:50px; background:#ff4545; }
+.suggestion-archive-button:hover::before,.suggestion-archive-button:focus-visible::before { font-size:13px; opacity:1; transform:translate(-50%,30px); }
+.suggestion-archive-button:hover i,.suggestion-archive-button:focus-visible i { transform:translateY(60%); }
+.suggestion-archive-button:focus-visible { outline:3px solid #a594f9; outline-offset:2px; }
 .suggestion-approve-btn { background: #d8cdfc; color: #5b4b9b; font-weight: 700; }
 .suggestion-reject-btn { background: #facc15; color: #4a3500; border: 0; font-weight: 700; }
 .suggestion-reject-btn:hover { background: #e5b900; color: #4a3500; }

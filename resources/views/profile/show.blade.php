@@ -215,6 +215,53 @@
         border-color: rgba(143,114,245,0.55);
         box-shadow: 0 0 0 0.2rem rgba(165,148,249,0.14);
     }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-page,
+    body[data-admin-theme="dark"] .profile-page {
+        background:#15101f;
+        color:#eee8ff;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-hero,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-card,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-stat,
+    body[data-admin-theme="dark"] .profile-hero,
+    body[data-admin-theme="dark"] .profile-card,
+    body[data-admin-theme="dark"] .profile-stat {
+        border-color:#3a2d50;
+        background:#1b1529;
+        color:#eee8ff;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-card.soft-panel,
+    body[data-admin-theme="dark"] .profile-card.soft-panel {
+        background:linear-gradient(180deg,#1b1529,#20192d);
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-name,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-value,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-section-title,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-detail .value,
+    body[data-admin-theme="dark"] .profile-name,
+    body[data-admin-theme="dark"] .profile-value,
+    body[data-admin-theme="dark"] .profile-section-title,
+    body[data-admin-theme="dark"] .profile-detail .value {
+        color:#eee8ff;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-label,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-detail .label,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-meta,
+    body[data-admin-theme="dark"] .profile-label,
+    body[data-admin-theme="dark"] .profile-detail .label,
+    body[data-admin-theme="dark"] .profile-meta {
+        color:#bdb1d1;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .profile-detail,
+    body[data-admin-theme="dark"] .profile-detail {
+        border-color:#3a2d50;
+    }
 </style>
 
 <div class="profile-page">

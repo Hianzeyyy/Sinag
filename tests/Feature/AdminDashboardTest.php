@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\AppointmentRequest;
 use App\Models\Report;
 use App\Models\ReportStatusUpdate;
+use App\Models\CustomerSatisfactionSurvey;
+use App\Models\Suggestion;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -62,7 +64,9 @@ class AdminDashboardTest extends TestCase
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('category')->nullable();
+            $table->text('message')->nullable();
             $table->string('status')->nullable();
+            $table->boolean('is_anonymous')->default(false);
             $table->timestamp('archived_at')->nullable();
             $table->unsignedBigInteger('archived_by')->nullable();
             $table->timestamps();
@@ -168,6 +172,18 @@ class AdminDashboardTest extends TestCase
             'priority' => 'Medium',
             'is_anonymous' => false,
         ]);
+        Suggestion::create([
+            'user_id' => $reporter->id,
+            'category' => 'Safe spaces',
+            'message' => 'Student idea for safer spaces',
+            'is_anonymous' => true,
+            'status' => 'new',
+        ]);
+        CustomerSatisfactionSurvey::create([
+            'user_id' => $reporter->id,
+            'rating' => 5,
+            'feedback' => 'Helpful and clear.',
+        ]);
         $appointment = AppointmentRequest::create([
             'user_id' => $reporter->id,
             'full_name' => 'Mara Santos',
@@ -225,6 +241,10 @@ class AdminDashboardTest extends TestCase
             ->assertSee('category-pie')
             ->assertSee('avatar-orbit')
             ->assertSee('Ratings & feedback', false)
+            ->assertSee('Anonymous 1')
+            ->assertSee('Recent suggestions')
+            ->assertSee('Student idea for safer spaces')
+            ->assertSee('From: Anonymous')
             ->assertSee('Export report')
             ->assertSee('exportGadFilePreview')
             ->assertSee('admin-sidebar-toggle-floating')
@@ -554,6 +574,8 @@ class AdminDashboardTest extends TestCase
             ->assertSee('4.0')
             ->assertSee('Total ratings')
             ->assertSee('Written reviews')
+            ->assertSee('Anonymous 1')
+            ->assertDontSee('Mara Santos')
             ->assertSee('The reporting process felt clear and supportive.')
             ->assertSee('Rating distribution');
     }

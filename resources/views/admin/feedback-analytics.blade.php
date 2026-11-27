@@ -68,7 +68,7 @@
                             <article class="feedback-review rounded-4 border p-3">
                                 <div class="d-flex justify-content-between align-items-start gap-3">
                                     <div>
-                                        <strong class="d-block">{{ $review->user?->name ?? 'Former user' }}</strong>
+                                        <strong class="d-block">Anonymous {{ $recentReviews instanceof \Illuminate\Contracts\Pagination\Paginator ? $recentReviews->firstItem() + $loop->index : $loop->iteration }}</strong>
                                         <small class="text-muted">{{ $review->subject ? ucfirst($review->subject) : 'System feedback' }} · {{ $review->created_at?->format('M d, Y') }}</small>
                                     </div>
                                     <span class="feedback-review-rating text-warning text-nowrap" aria-label="{{ $review->rating }} out of 5 stars">

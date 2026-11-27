@@ -125,6 +125,11 @@ class AdminController extends Controller
             ->orderByDesc('total')
             ->limit(6)
             ->get();
+        $recentSuggestions = Suggestion::notArchived()
+            ->with('user')
+            ->latest()
+            ->take(2)
+            ->get();
         $feedbackCount = 0;
         $averageRating = 0.0;
         $recentFeedback = collect();
@@ -160,6 +165,7 @@ class AdminController extends Controller
             'upcomingAppointments',
             'reportCategories',
             'suggestionCategories',
+            'recentSuggestions',
             'feedbackCount',
             'averageRating',
             'recentFeedback',

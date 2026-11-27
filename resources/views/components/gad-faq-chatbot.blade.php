@@ -22,7 +22,7 @@
         <div class="gad-faq-footnote"><i class="bi bi-shield-heart"></i> FAQ guide only · For personal support, message the GAD Office.</div>
     </section>
     <button type="button" class="gad-faq-launcher" id="gadFaqLauncher" aria-label="Open GAD FAQ assistant" aria-expanded="false" title="GAD Guide — drag to move">
-        <span class="gad-faq-badge-words" aria-hidden="true"><strong>GAD</strong><strong>Guide</strong></span>
+        <span class="gad-faq-launcher-tooltip" aria-hidden="true">GAD Guide</span>
         <svg class="gad-faq-launcher-badge" viewBox="0 0 100 112" aria-hidden="true">
             <defs>
                 <filter id="gadFaqBadgeShadow" x="-30%" y="-30%" width="160%" height="160%">
@@ -86,29 +86,49 @@
         overflow: visible;
         filter: drop-shadow(0 7px 12px rgba(76, 29, 149, .20));
     }
-    .gad-faq-badge-words {
+    /* From Uiverse.io by vinodjangid07 - https://uiverse.io/vinodjangid07/funny-panther-79
+       MIT License, Copyright (c) vinodjangid07 (Vinod Jangid) */
+    .gad-faq-launcher-tooltip {
         position: absolute;
-        top: -.05rem;
+        top: -.25rem;
         left: 50%;
         z-index: 2;
-        display: flex;
-        align-items: baseline;
-        gap: .32rem;
-        transform: translateX(-50%);
-        font-family: 'Nunito', sans-serif;
+        padding:.35rem .7rem;
+        border-radius:.4rem;
+        color:#fff;
+        background:linear-gradient(147deg,#ffe53b 0%,#ff2525 74%);
+        font-size:.75rem;
+        font-weight:800;
+        letter-spacing:.04em;
+        opacity:0;
+        pointer-events:none;
+        transform:translate(-50%,0);
+        transition:top .3s ease,opacity .3s ease;
         white-space: nowrap;
-        line-height: 1;
-        text-shadow: 0 2px 5px rgba(76, 29, 149, .12);
     }
-    .gad-faq-badge-words strong:first-child {
-        color: #5b43b2;
-        font-size: .72rem;
-        letter-spacing: .08em;
+    .gad-faq-launcher-tooltip::before {
+        position:absolute;
+        bottom:-.2rem;
+        left:calc(50% - .25rem);
+        width:.5rem;
+        height:.5rem;
+        content:"";
+        background:#ff2525;
+        transform:rotate(45deg);
     }
-    .gad-faq-badge-words strong:last-child {
-        color: #7257d9;
-        font-size: .82rem;
-        letter-spacing: .02em;
+    .gad-faq-launcher:hover .gad-faq-launcher-tooltip,
+    .gad-faq-launcher:focus-visible .gad-faq-launcher-tooltip {
+        top:-2.3rem;
+        opacity:1;
+    }
+    .gad-faq-launcher:hover .gad-faq-launcher-badge { animation:gadFaqJelloVertical .7s both; }
+    @keyframes gadFaqJelloVertical {
+        0%,100% { transform:scale3d(1,1,1); }
+        30% { transform:scale3d(.75,1.25,1); }
+        40% { transform:scale3d(1.25,.75,1); }
+        50% { transform:scale3d(.85,1.15,1); }
+        65% { transform:scale3d(1.05,.95,1); }
+        75% { transform:scale3d(.95,1.05,1); }
     }
     .gad-faq-badge-heart {
         filter: drop-shadow(0 3px 2px rgba(67, 43, 143, .38));
@@ -242,11 +262,6 @@
     html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-input button {
         background: #7658df;
     }
-    html[data-student-theme-enabled="true"][data-student-theme="dark"] .gad-faq-badge-words strong {
-        color: #ded3f4;
-        text-shadow: 0 2px 6px rgba(0, 0, 0, .6);
-    }
-
     @media (max-width: 575.98px) {
         .gad-faq-widget { right: .65rem; bottom: max(.65rem, env(safe-area-inset-bottom)); }
         .gad-faq-launcher { width: 5rem; height: 5.15rem; }

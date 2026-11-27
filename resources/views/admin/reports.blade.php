@@ -31,6 +31,31 @@
     body[data-admin-theme="dark"] .reports-table-wrap .reporter-priority-icon { color: #f8cb12 !important; }
 </style>
 <style>
+    /* From Uiverse.io by vinodjangid07 - https://uiverse.io/vinodjangid07/smart-emu-83
+       MIT License, Copyright (c) vinodjangid07 (Vinod Jangid) */
+    .report-archive-button {
+        position:relative; display:inline-flex; width:50px; height:50px; align-items:center; justify-content:center;
+        overflow:hidden; border:0 !important; border-radius:50%; background:#211936 !important; color:#fff !important;
+        box-shadow:0 0 20px rgba(0,0,0,.16); transition:width .3s ease,border-radius .3s ease,background-color .3s ease;
+    }
+    .report-archive-button::before { position:absolute; top:-20px; left:50%; content:"Archive"; color:#fff; font-size:2px; opacity:0; transform:translateX(-50%); transition:all .3s ease; }
+    .report-archive-button i { font-size:12px; transition:transform .3s ease; }
+    .report-archive-button:hover,.report-archive-button:focus-visible { width:140px; border-radius:50px; background:#ff4545 !important; }
+    .report-archive-button:hover::before,.report-archive-button:focus-visible::before { font-size:13px; opacity:1; transform:translate(-50%,30px); }
+    .report-archive-button:hover i,.report-archive-button:focus-visible i { transform:translateY(60%); }
+    .report-archive-button:focus-visible { outline:3px solid #a594f9; outline-offset:2px; }
+
+    /* From Uiverse.io by Itskrish01 - https://uiverse.io/Itskrish01/soft-skunk-68
+       MIT License, Copyright (c) devdojo - https://devdojo.com/tailwindcss/buttons, Itskrish01 (itsKrish01) */
+    .report-review-button { position:relative; display:inline-flex; align-items:center; overflow:hidden; padding:.45rem .9rem; border:0; border-radius:.45rem; color:#fff; background:#7658df; font-size:.82rem; font-weight:700; isolation:isolate; }
+    .report-review-button::before,.report-review-button::after { position:absolute; z-index:-1; width:1rem; height:1rem; border-radius:.25rem; background:#4a2d96; box-shadow:inset -7px 7px 0 #fff; content:""; transition:all .5s ease-in-out; }
+    .report-review-button::before { top:0; right:0; }
+    .report-review-button::after { bottom:0; left:0; }
+    .report-review-button:hover::before { top:-.4rem; right:-.4rem; }
+    .report-review-button:hover::after { bottom:-.4rem; left:-.4rem; }
+    .report-review-button span { position:relative; z-index:1; }
+    .report-review-button:focus-visible { outline:3px solid #c4b5fd; outline-offset:2px; }
+
     .sinag-violet-badge { background: #d8cdfc; color: #5b4b9b; border-color: #c4b5fd !important; }
     .sinag-yellow-badge { background: #f8cb12; color: #4a3500; border-color: #e5b900 !important; }
     
@@ -139,12 +164,11 @@
                                         @endif
                                     </td>
                                     <td class="text-end pe-4">
-                                        <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" 
-                                                style="background: #A594F9; border: none;"
+                                        <button class="report-review-button"
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#modal-{{ $report->id }}"
                                                 data-report-id="{{ $report->id }}">
-                                            Review Details
+                                            <span>Review</span>
                                         </button>
                                         <form action="{{ route('admin.reports.delete', $report->id) }}" method="POST" style="display:inline-block;">
                                             @csrf

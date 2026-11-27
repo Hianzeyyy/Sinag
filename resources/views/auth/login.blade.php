@@ -669,6 +669,93 @@
     }
 </style>
 
+<style>
+    /* From Uiverse.io by micaelgomestavares - https://uiverse.io/micaelgomestavares/dull-walrus-66
+       MIT License, Copyright (c) JohnnyCSilva, JohnnyCSilva (João Silva), micaelgomestavares (Micael G. Tavares) */
+    .sign-in-pane {
+        padding:clamp(1.5rem,3vw,2.4rem);
+        border-radius:1.25rem;
+        color:#25213e;
+        background:#fff;
+    }
+
+    .sign-in-pane .form-label {
+        color:#25213e !important;
+        font-weight:700;
+    }
+
+    .sign-in-pane .login-input-group {
+        height:50px;
+        overflow:hidden;
+        border:1.5px solid #ecedec;
+        border-radius:10px;
+        background:#fff;
+        box-shadow:none !important;
+    }
+
+    .sign-in-pane .login-input-group:focus-within {
+        border-color:#7658df;
+        box-shadow:0 0 0 3px rgba(118,88,223,.15) !important;
+        transform:none;
+    }
+
+    .sign-in-pane .login-input-icon {
+        padding-inline:10px;
+        color:#6b55c4 !important;
+        background:#fff !important;
+    }
+
+    .sign-in-pane .login-input {
+        width:85%;
+        height:100%;
+        margin-left:6px;
+        padding:0 .6rem !important;
+        border:0 !important;
+        border-radius:10px;
+        color:#25213e !important;
+        background:#fff !important;
+        font-size:.95rem !important;
+        box-shadow:none !important;
+    }
+
+    .sign-in-pane .login-password-eye {
+        width:2.8rem;
+        min-width:2.8rem;
+        border-radius:0 10px 10px 0 !important;
+        color:#6b55c4 !important;
+        background:#fff !important;
+    }
+
+    .sign-in-pane .form-check-label { color:#514b63 !important; }
+
+    .sign-in-pane .login-submit {
+        min-height:50px;
+        border-radius:10px !important;
+        color:#fff !important;
+        background:#7658df !important;
+        box-shadow:inset 0 0 1.2em -.6em #4a2d96 !important;
+        font-size:1rem !important;
+        letter-spacing:.06em !important;
+    }
+
+    .sign-in-pane .login-submit:hover,
+    .sign-in-pane .login-submit:focus-visible {
+        color:#7658df !important;
+        background:#fff !important;
+        box-shadow:0 0 0 2px #7658df !important;
+    }
+
+    .sign-in-pane .login-submit:active,
+    .sign-in-pane .login-submit.is-pressed {
+        color:#4a3500 !important;
+        background:#facc15 !important;
+        box-shadow:none !important;
+        transform:translateY(3px);
+    }
+
+    .sign-in-pane .login-submit::after { display:none; }
+</style>
+
 <div class="login-page d-flex align-items-center justify-content-center">
 
     <div class="login-shell">
@@ -704,7 +791,7 @@
                                 @csrf
 
                                 <div class="mb-4">
-                                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing: 1px;">Username</label>
+                                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing: 1px;">Email</label>
                                     <div class="login-input-group input-group shadow-sm">
                                         <span class="login-input-icon input-group-text border-0">
                                             <i class="bi bi-envelope-at fs-5"></i>

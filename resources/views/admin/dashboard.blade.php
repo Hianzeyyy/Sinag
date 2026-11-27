@@ -19,8 +19,11 @@
     .dashboard-greeting { color: #28164f; }
     .dashboard-greeting h1 { font-weight: 900; letter-spacing: -.035em; font-size: clamp(1.7rem, 3vw, 2.35rem); }
     .dashboard-greeting p { color: #756c89; }
-    .dashboard-export-button { background: linear-gradient(135deg,#7658df,#a594f9); border:0; color:#fff; font-weight:800; border-radius:999px; box-shadow:0 10px 24px #7658df33; }
-    .dashboard-export-button:hover { color:#fff; transform:translateY(-2px); box-shadow:0 14px 28px #7658df44; }
+    /* From Uiverse.io by Gautammsharma - https://uiverse.io/Gautammsharma/wicked-cobra-3
+       MIT License, Copyright (c) Gautammsharma (Gautam Sharma) */
+    .dashboard-export-button { display:inline-block; padding:.55rem 1.15rem; background:#7658df; color:#fff; border:2px solid #34205f; border-radius:.65rem; box-shadow:4px 4px 0 #34205f; font-weight:800; transition:all .3s ease; cursor:pointer; }
+    .dashboard-export-button:hover { color:#7658df; background:#fff; border-color:#7658df; box-shadow:4px 4px 0 #7658df; }
+    .dashboard-export-button:active { background:#facc15; box-shadow:none; transform:translateY(4px); }
     .dashboard-card { background:#fff; border:1px solid #eee9f8; border-radius:1.25rem; box-shadow:0 12px 30px rgba(48,27,90,.07); height:100%; overflow:hidden; transition:transform .2s ease, box-shadow .2s ease, background-color .3s ease; }
     .dashboard-card:hover { box-shadow:0 17px 36px rgba(76,42,157,.12); }
     .dashboard-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; padding:1.15rem 1.25rem .4rem; }
@@ -41,6 +44,16 @@
     .resolved-ratio { display:flex; align-items:baseline; gap:.3rem; margin:.35rem 0 .7rem; color:var(--purple-dark); }
     .resolved-ratio strong { font-size:2.55rem; font-weight:900; letter-spacing:-.06em; }
     .resolved-ratio span { font-weight:700; color:#958aa9; }
+    /* From Uiverse.io by themrsami - https://uiverse.io/themrsami/lovely-yak-39
+       MIT License, Copyright (c) themrsami (themrsami) */
+    .resolved-cases-card { position:relative; isolation:isolate; border:0; background:linear-gradient(120deg,#7658df,#a594f9 52%,#db8db8); padding:2px; }
+    .resolved-cases-card::before { content:""; position:absolute; inset:0; z-index:-1; border-radius:inherit; background:linear-gradient(120deg,#7658df,#a594f9 52%,#db8db8); opacity:.24; filter:blur(8px); transition:opacity .3s ease; }
+    .resolved-cases-card:hover::before { opacity:.48; }
+    .resolved-cases-card-inner { height:100%; min-height:10.4rem; border-radius:calc(1.25rem - 2px); background:#fff; }
+    .resolved-cases-card .dashboard-card-head { padding-top:1.05rem; }
+    .resolved-cases-card .dashboard-card-body { padding-top:.7rem; }
+    body[data-admin-theme="dark"] .resolved-cases-card-inner { background:#1b1529; }
+    body[data-admin-theme="dark"] .resolved-cases-card .resolved-ratio { color:#d5c6ff; }
     .ratio-track,.analytics-track { height:9px; background:#eee9f7; border-radius:999px; overflow:hidden; }
     .ratio-track span,.analytics-track span { display:block; height:100%; width:var(--bar-width); border-radius:inherit; transform:scaleX(0); transform-origin:left; background:linear-gradient(90deg,#4a2d96,#8f72f5); animation:barGrow .85s .1s ease-out forwards; }
     @keyframes barGrow { to { transform:scaleX(1); } }
@@ -81,6 +94,13 @@
     .feedback-stars { color:#e6b800; letter-spacing:.05em; }
     .feedback-entry { border-top:1px solid #f0edf5; padding-top:.7rem; margin-top:.7rem; }
     .feedback-entry p { font-size:.75rem; color:#6f667c; margin:.35rem 0 0; }
+    /* From Uiverse.io by Yaya12085 - https://uiverse.io/Yaya12085/tall-goose-27
+       MIT License, Copyright (c) Yaya12085 (Yaya Mohamed) */
+    .recent-suggestion-card { position:relative; max-width:100%; padding:1rem; border-radius:1rem; color:#c0c3d7; background:#30344c; box-shadow:4px 4px 20px rgba(0,0,0,.2); transition:transform .2s ease,box-shadow .2s ease; }
+    .recent-suggestion-card:hover { transform:translateY(-3px); box-shadow:5px 9px 24px rgba(48,52,76,.26); }
+    .recent-suggestion-card p { margin:0 0 .4rem; color:#f0efff; white-space:pre-line; overflow-wrap:anywhere; line-height:1.5; }
+    .recent-suggestion-meta { display:flex; align-items:center; justify-content:space-between; gap:.75rem; color:#c6e1ed; font-size:.78rem; font-weight:700; }
+    .recent-suggestion-footer { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-top:.7rem; padding-top:.65rem; border-top:1px solid rgba(255,255,255,.14); color:#c0c3d7; font-size:.75rem; }
     .admin-dashboard-table { min-width:650px; }
     .admin-dashboard-table thead th { background:#f7f4ff; color:#635188; font-size:.69rem; text-transform:uppercase; letter-spacing:.08em; border:0; padding:1rem; }
     .admin-dashboard-table tbody td { border-color:#f0edf5; padding:1rem; }
@@ -104,6 +124,7 @@
     body[data-admin-theme="dark"] .dashboard-greeting { color:#f0e9ff; }
     body[data-admin-theme="dark"] .dashboard-greeting p { color:#c0b4d7; }
     body[data-admin-theme="dark"] .dashboard-card { background:#1b1529; border-color:#302443; color:#eee8ff; }
+    body[data-admin-theme="dark"] .dashboard-card.resolved-cases-card { border:0; background:linear-gradient(120deg,#7658df,#a594f9 52%,#db8db8); }
     body[data-admin-theme="dark"] .dashboard-card-head h2,
     body[data-admin-theme="dark"] .dashboard-analytics-row strong { color:#e5dcff; }
     body[data-admin-theme="dark"] .dashboard-card-head p,
@@ -196,15 +217,17 @@
                 </section>
             </div>
             <div class="col-xl-3 col-lg-3">
-                <a href="{{ route('admin.reports', ['status' => 'Resolved']) }}" class="dashboard-card d-block text-decoration-none">
-                    <div class="dashboard-card-head">
-                        <div><h2>Resolved cases</h2><p>Resolved reports out of all reports received.</p></div>
-                        <i class="bi bi-check2-circle fs-4" style="color:#8f72f5;"></i>
-                    </div>
-                    <div class="dashboard-card-body">
-                        <div class="resolved-ratio"><strong>{{ $resolvedReports }}</strong><span>/ {{ $totalReports }}</span></div>
-                        <div class="ratio-track"><span style="--bar-width:{{ $resolvedPercentage }}%;"></span></div>
-                        <div class="d-flex justify-content-between small text-muted mt-2"><span>{{ $resolvedPercentage }}% resolved</span><span>Open cases {{ max(0, $totalReports - $resolvedReports) }}</span></div>
+                <a href="{{ route('admin.reports', ['status' => 'Resolved']) }}" class="dashboard-card resolved-cases-card d-block text-decoration-none">
+                    <div class="resolved-cases-card-inner">
+                        <div class="dashboard-card-head">
+                            <div><h2>Resolved cases</h2><p>Resolved reports out of all reports received.</p></div>
+                            <i class="bi bi-check2-circle fs-4" style="color:#8f72f5;"></i>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <div class="resolved-ratio"><strong>{{ $resolvedReports }}</strong><span>/ {{ $totalReports }}</span></div>
+                            <div class="ratio-track"><span style="--bar-width:{{ $resolvedPercentage }}%;"></span></div>
+                            <div class="d-flex justify-content-between small text-muted mt-2"><span>{{ $resolvedPercentage }}% resolved</span><span>Open cases {{ max(0, $totalReports - $resolvedReports) }}</span></div>
+                        </div>
                     </div>
                 </a>
             </div>
@@ -390,7 +413,7 @@
                         <div class="feedback-score"><strong>{{ number_format($averageRating, 1) }}</strong><span><span class="feedback-stars">★★★★★</span><small class="d-block text-muted">{{ $feedbackCount }} ratings</small></span></div>
                         @forelse($recentFeedback->take(3) as $feedback)
                             <div class="feedback-entry">
-                                <div class="d-flex justify-content-between gap-2 small"><strong>{{ $feedback->user?->first_name ?: 'User' }}</strong><span class="feedback-stars">{{ str_repeat('★', (int) $feedback->rating) }}</span></div>
+                                <div class="d-flex justify-content-between gap-2 small"><strong>Anonymous {{ $loop->iteration }}</strong><span class="feedback-stars">{{ str_repeat('★', (int) $feedback->rating) }}</span></div>
                                 @if($feedback->feedback)<p>{{ \Illuminate\Support\Str::limit($feedback->feedback, 90) }}</p>@else<p class="fst-italic">No written feedback.</p>@endif
                             </div>
                         @empty
@@ -398,6 +421,7 @@
                         @endforelse
                     </div>
                 </section>
+
             </div>
         </div>
 
@@ -424,6 +448,39 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <section class="dashboard-card mb-4">
+            <div class="dashboard-card-head">
+                <div><h2>Recent suggestions</h2><p>The latest two community suggestions</p></div>
+                <a href="{{ route('admin.suggestions') }}" class="dashboard-link">Manage suggestions <i class="bi bi-arrow-up-right"></i></a>
+            </div>
+            <div class="dashboard-card-body">
+                <div class="row g-3">
+                    @forelse($recentSuggestions as $suggestion)
+                        @php
+                            $suggestionAuthor = $suggestion->is_anonymous
+                                ? 'Anonymous'
+                                : (optional($suggestion->user)->cloak_alias ?: optional($suggestion->user)->name ?: 'Unknown user');
+                        @endphp
+                        <div class="col-12 col-md-6">
+                            <article class="recent-suggestion-card h-100">
+                                <div class="recent-suggestion-meta">
+                                    <span>{{ $suggestion->category ?: 'General' }}</span>
+                                    <time datetime="{{ optional($suggestion->created_at)->toISOString() }}">{{ optional($suggestion->created_at)->format('M d, Y') }}</time>
+                                </div>
+                                <p class="mt-2">{{ \Illuminate\Support\Str::limit($suggestion->message, 240) }}</p>
+                                <div class="recent-suggestion-footer">
+                                    <span>From: {{ $suggestionAuthor }}</span>
+                                    <span>{{ $suggestion->admin_status_label ?: 'Received' }}</span>
+                                </div>
+                            </article>
+                        </div>
+                    @empty
+                        <div class="col-12"><p class="text-muted small mb-0">No suggestions have been submitted yet.</p></div>
+                    @endforelse
+                </div>
             </div>
         </section>
     </div>

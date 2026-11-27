@@ -58,7 +58,7 @@ body {
     height: 100%;
     position: relative;
     transform-style: preserve-3d;
-    transform: rotateY(-15deg) rotateX(3deg);
+    transform: rotateY(0deg) rotateX(0deg);
     transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     filter: drop-shadow(12px 18px 30px rgba(100,70,200,0.22));
 }
@@ -75,7 +75,7 @@ body {
 }
 
 .book-wrapper:hover .book {
-    transform: rotateY(-8deg) rotateX(2deg) translateY(-8px);
+    transform: rotate3d(0, 1, 0, 35deg) translateY(-8px);
     filter: drop-shadow(20px 28px 40px rgba(100,70,200,0.32));
 }
 

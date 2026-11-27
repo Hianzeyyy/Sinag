@@ -217,6 +217,82 @@
     .pd-textarea {
         min-height: 108px;
     }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-page,
+    body[data-admin-theme="dark"] .pd-page {
+        color:#eee8ff;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-card,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-form-card,
+    body[data-admin-theme="dark"] .pd-card,
+    body[data-admin-theme="dark"] .pd-form-card {
+        border-color:#3a2d50;
+        background:#1b1529;
+        color:#eee8ff;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-item,
+    body[data-admin-theme="dark"] .pd-item {
+        border-color:#49365f;
+        background:linear-gradient(180deg,#241b35,#211a2e);
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-section-title,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-value,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-form-section,
+    body[data-admin-theme="dark"] .pd-section-title,
+    body[data-admin-theme="dark"] .pd-value,
+    body[data-admin-theme="dark"] .pd-form-section {
+        color:#eee8ff;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-label,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-note,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-form-note,
+    body[data-admin-theme="dark"] .pd-label,
+    body[data-admin-theme="dark"] .pd-note,
+    body[data-admin-theme="dark"] .pd-form-note {
+        color:#bdb1d1;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-table-wrap,
+    body[data-admin-theme="dark"] .pd-table-wrap {
+        border-color:#49365f;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-table th,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-table td,
+    body[data-admin-theme="dark"] .pd-table th,
+    body[data-admin-theme="dark"] .pd-table td {
+        border-color:#49365f;
+        color:#eee8ff;
+        background:#1b1529;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-table th,
+    body[data-admin-theme="dark"] .pd-table th {
+        color:#ddd1ff;
+        background:#241b35;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-pill,
+    body[data-admin-theme="dark"] .pd-pill {
+        border-color:#594478;
+        color:#ded3f4;
+        background:#302348;
+    }
+
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-input,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-textarea,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .pd-select,
+    body[data-admin-theme="dark"] .pd-input,
+    body[data-admin-theme="dark"] .pd-textarea,
+    body[data-admin-theme="dark"] .pd-select {
+        border-color:#49365f;
+        color:#eee8ff;
+        background:#241b35;
+    }
 </style>
 
 <div class="pd-page">
