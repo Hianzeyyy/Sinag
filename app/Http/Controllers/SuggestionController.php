@@ -12,6 +12,27 @@ use App\Support\ContentModeration;
 
 class SuggestionController extends Controller
 {
+    public function recordView(Request $request, Suggestion $suggestion)
+    {
+        $suggestion = Suggestion::notArchived()->findOrFail($suggestion->getKey());
+        $viewer = $request->user();
+        $isCoordinator = $viewer->isGadCoordinator();
+
+        abort_unless($viewer->can('student-access') || $isCoordinator, 403);
+        abort_if(!$isCoordinator && !$viewer->hasCompletedPersonalData(), 403);
+
+        $isApproved = strtolower(trim((string) $suggestion->status)) === 'approved';
+        $isOwner = (int) $suggestion->user_id === (int) $viewer->id;
+
+        abort_unless($isApproved || $isOwner, 404);
+
+        $suggestion->increment('views_count');
+
+        return response()->json([
+            'views_count' => (int) $suggestion->fresh()->views_count,
+        ]);
+    }
+
     public function upvote($id)
     {
         $suggestion = Suggestion::notArchived()->findOrFail($id);

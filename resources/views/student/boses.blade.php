@@ -796,7 +796,7 @@
                                     ? rtrim(mb_substr($sugg->message, 0, $suggestionPreviewLimit)) . '…'
                                     : $sugg->message;
                             @endphp
-                            <article class="card suggestion-card border-0" data-suggestion-card data-suggestion-text="{{ e($suggestionText) }}" tabindex="0" aria-label="Suggestion post. Activate to show comments.">
+                            <article class="card suggestion-card border-0" data-suggestion-card data-suggestion-view-url="{{ route('suggestions.view', $sugg) }}" data-suggestion-text="{{ e($suggestionText) }}" tabindex="0" aria-label="Suggestion post. Activate to show comments.">
                                 <div class="suggestion-top">
                                     <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
                                         <div class="d-flex align-items-center gap-3">
@@ -1260,6 +1260,50 @@
         const searchInput = document.getElementById('suggestion-search');
         const cards = document.querySelectorAll('[data-suggestion-card]');
         const upvoteForms = document.querySelectorAll('[data-upvote-form]');
+        const viewCards = document.querySelectorAll('[data-suggestion-card][data-suggestion-view-url]');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+        const recordSuggestionView = function (card) {
+            const viewUrl = card.getAttribute('data-suggestion-view-url');
+            if (!viewUrl || !csrfToken) {
+                console.error('Suggestion view tracking requires a view URL and CSRF token.');
+                return;
+            }
+
+            fetch(viewUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Suggestion view tracking failed with status ' + response.status + '.');
+                }
+            }).catch(function (error) {
+                console.error('Unable to record suggestion view.', error);
+            });
+        };
+
+        if ('IntersectionObserver' in window) {
+            const countedCards = new WeakSet();
+            const suggestionViewObserver = new IntersectionObserver(function (entries, observer) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.35 && !countedCards.has(entry.target)) {
+                        countedCards.add(entry.target);
+                        observer.unobserve(entry.target);
+                        recordSuggestionView(entry.target);
+                    }
+                });
+            }, { threshold: [0.35] });
+
+            viewCards.forEach(function (card) {
+                suggestionViewObserver.observe(card);
+            });
+        } else {
+            viewCards.forEach(recordSuggestionView);
+        }
 
         const applySuggestionFilters = function () {
             const query = searchInput?.value.trim().toLowerCase() || '';

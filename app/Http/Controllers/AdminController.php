@@ -127,6 +127,7 @@ class AdminController extends Controller
             ->get();
         $recentSuggestions = Suggestion::notArchived()
             ->with('user')
+            ->withCount(['comments', 'upvotes'])
             ->latest()
             ->take(2)
             ->get();

@@ -334,8 +334,8 @@
                         @if($verificationImage && $verificationImageAvailable)
                             <div class="profile-detail align-items-start">
                                 <div class="label">ID Verification</div>
-                                <button type="button" class="btn p-0 border-0 bg-transparent" data-bs-toggle="modal" data-bs-target="#verificationImageModal" aria-label="View ID verification image">
-                                    <img src="{{ route('profile.verification-image', $user) }}" alt="Student ID photo" class="img-thumbnail profile-verification-image">
+                                <button type="button" class="btn p-0 border-0 bg-transparent user-verification-image-trigger" data-bs-toggle="modal" data-bs-target="#verificationImageModal" aria-label="View ID verification image">
+                                    <img src="{{ route('profile.verification-image', $user) }}" alt="Student ID photo" class="img-thumbnail profile-verification-image user-verification-image">
                                 </button>
                             </div>
                         @elseif($verificationImage)

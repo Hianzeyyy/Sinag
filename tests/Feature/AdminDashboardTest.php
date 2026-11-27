@@ -67,6 +67,7 @@ class AdminDashboardTest extends TestCase
             $table->text('message')->nullable();
             $table->string('status')->nullable();
             $table->boolean('is_anonymous')->default(false);
+            $table->unsignedBigInteger('views_count')->default(0);
             $table->timestamp('archived_at')->nullable();
             $table->unsignedBigInteger('archived_by')->nullable();
             $table->timestamps();
@@ -172,13 +173,20 @@ class AdminDashboardTest extends TestCase
             'priority' => 'Medium',
             'is_anonymous' => false,
         ]);
-        Suggestion::create([
+        $suggestion = Suggestion::create([
             'user_id' => $reporter->id,
             'category' => 'Safe spaces',
             'message' => 'Student idea for safer spaces',
             'is_anonymous' => true,
             'status' => 'new',
         ]);
+        $suggestion->comments()->create([
+            'user_id' => $reporter->id,
+            'comment' => 'This would help students.',
+        ]);
+        $suggestion->upvotes()->attach($reporter->id);
+        $suggestion->views_count = 7;
+        $suggestion->save();
         CustomerSatisfactionSurvey::create([
             'user_id' => $reporter->id,
             'rating' => 5,
@@ -221,9 +229,11 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Newest sign-ups; hover for a first name or open a profile.')
             ->assertSeeText('Approved accounts: 2')
             ->assertSeeText('Pending review: 1')
-            ->assertSee('Resolved cases')
+            ->assertSee('Resolved Cases')
             ->assertSee('Resolved reports out of all reports received.')
             ->assertSeeText('100% resolved')
+            ->assertSee('Resolved / total reports')
+            ->assertSeeText('1 / 1')
             ->assertSee('data-admin-theme="dark"', false)
             ->assertSee('main-content admin-main', false)
             ->assertSee('body[data-admin-theme="dark"] .admin-main :is(table, .table) :is(th, td)', false)
@@ -245,6 +255,9 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Recent suggestions')
             ->assertSee('Student idea for safer spaces')
             ->assertSee('From: Anonymous')
+            ->assertSee('1 like')
+            ->assertSee('1 comment')
+            ->assertSee('7 views')
             ->assertSee('Export report')
             ->assertSee('exportGadFilePreview')
             ->assertSee('admin-sidebar-toggle-floating')

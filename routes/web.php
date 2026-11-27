@@ -179,6 +179,9 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     Route::get('/suggestions/{suggestion}', [SuggestionController::class, 'show'])->name('suggestions.show');
     Route::post('/submit-suggestion', [SuggestionController::class, 'store'])->middleware('profile.complete')->name('suggestions.store');
     Route::post('/upvote-suggestion/{id}', [SuggestionController::class, 'upvote'])->name('suggestions.upvote');
+    Route::post('/suggestions/{suggestion}/view', [SuggestionController::class, 'recordView'])
+        ->middleware('throttle:120,1')
+        ->name('suggestions.view');
     Route::post('/suggestions/{suggestion}/comment', [App\Http\Controllers\SuggestionCommentController::class, 'store'])->name('suggestions.comment');
     Route::put('/suggestions/{id}', [SuggestionController::class, 'update'])->name('suggestions.update');
     Route::delete('/suggestions/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');

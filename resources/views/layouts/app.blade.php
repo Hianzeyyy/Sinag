@@ -3297,6 +3297,168 @@
                 transition: none;
             }
         }
+
+        /* From Uiverse.io by ommanav_2060 - https://uiverse.io/ommanav_2060/odd-falcon-79
+           MIT License, Copyright (c) ommanav_2060 (Om Manav) */
+        .user-verification-image-trigger {
+            perspective: 1000px;
+        }
+
+        .user-verification-image {
+            transform-style: preserve-3d;
+            transition: transform .35s cubic-bezier(.25, 1, .5, 1), box-shadow .35s ease;
+            will-change: transform;
+        }
+
+        .user-verification-image:hover,
+        .user-verification-image-trigger:hover .user-verification-image,
+        .user-verification-image-trigger:focus-visible .user-verification-image {
+            transform: perspective(1000px) rotateY(-7deg) rotateX(3deg) translateY(-4px) scale(1.02);
+            box-shadow: 14px 18px 30px rgba(48, 35, 105, .28);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .user-verification-image {
+                transition: none;
+                will-change: auto;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1199.98px) {
+            .student-navbar {
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+                align-items: stretch !important;
+                gap: .65rem !important;
+                padding: .8rem 1rem !important;
+            }
+
+            .student-navbar > .d-flex:first-child {
+                display: flex !important;
+                flex: 0 0 auto !important;
+                width: 100% !important;
+                min-width: 0;
+                justify-content: center !important;
+                padding: 0 !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom {
+                display: flex !important;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                width: min(100%, 900px);
+                max-width: 100%;
+                min-width: 0;
+                margin: 0 !important;
+                gap: .25rem .55rem !important;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > div {
+                flex: 0 0 auto;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > span:not(.brand-descriptor) {
+                flex: 0 0 auto;
+            }
+
+            .student-navbar > .d-flex:first-child > .navbar-brand-custom > .brand-descriptor {
+                display: block !important;
+                flex: 0 0 100%;
+                max-width: 100%;
+                min-width: 0;
+                text-align: center !important;
+                font-size: clamp(.68rem, 1vw, .8rem) !important;
+                line-height: 1.2;
+            }
+
+            .student-navbar > .d-flex:last-child,
+            .student-floating-enabled > .d-flex:last-child {
+                position: relative !important;
+                inset: auto !important;
+                display: flex !important;
+                flex: 0 0 auto !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0;
+                margin: 0 !important;
+                padding: .35rem .5rem !important;
+                gap: .35rem !important;
+                overflow: visible !important;
+                transform: none !important;
+            }
+
+            .student-navbar .student-top-nav,
+            .student-floating-enabled > .d-flex:last-child .student-top-nav {
+                display: flex !important;
+                flex: 1 1 0%;
+                width: auto;
+                max-width: 100%;
+                min-width: 0;
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+                order: 0;
+                gap: .1rem;
+                margin: 0 !important;
+                overflow-x: auto;
+                overflow-y: hidden;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .student-navbar .student-top-nav::-webkit-scrollbar {
+                display: none;
+            }
+
+            .student-navbar .student-top-nav:has(.dropdown-menu.show),
+            .student-floating-enabled > .d-flex:last-child .student-top-nav:has(.dropdown-menu.show) {
+                overflow: visible !important;
+            }
+
+            .student-navbar .student-nav-link {
+                flex: 0 0 auto;
+                min-width: 0;
+                padding: .45rem .5rem;
+                font-size: .75rem;
+                white-space: nowrap;
+            }
+
+            .student-navbar .student-nav-link span {
+                display: inline !important;
+            }
+
+            .student-navbar > .d-flex:last-child > a[href*="/messaging"] {
+                display: inline-flex !important;
+                flex: 0 0 auto;
+                order: 1;
+                margin: 0 !important;
+                padding: .45rem .6rem !important;
+            }
+
+            .student-navbar > .d-flex:last-child > .text-end {
+                position: static !important;
+                top: auto !important;
+                right: auto !important;
+                order: 2;
+                flex: 0 0 auto;
+                margin: 0 0 0 auto !important;
+                transform: none !important;
+            }
+
+            .student-navbar .profile-mini-name {
+                display: none !important;
+            }
+        }
+
+        html[data-student-theme-enabled="true"][data-student-theme="dark"] .student-floating-enabled > .d-flex:last-child {
+            background: #211a2e;
+            border-color: #49365f;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, .28);
+        }
     </style>
 </head>
 <body data-admin-theme="{{ Auth::check() && Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator() ? (Auth::user()->admin_theme ?? 'light') : 'light' }}">

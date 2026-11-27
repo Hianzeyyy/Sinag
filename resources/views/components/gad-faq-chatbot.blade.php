@@ -96,7 +96,7 @@
         padding:.35rem .7rem;
         border-radius:.4rem;
         color:#fff;
-        background:linear-gradient(147deg,#ffe53b 0%,#ff2525 74%);
+        background:linear-gradient(120deg,#7658df 0%,#a594f9 58%,#db8db8 100%);
         font-size:.75rem;
         font-weight:800;
         letter-spacing:.04em;
@@ -113,7 +113,7 @@
         width:.5rem;
         height:.5rem;
         content:"";
-        background:#ff2525;
+        background:#db8db8;
         transform:rotate(45deg);
     }
     .gad-faq-launcher:hover .gad-faq-launcher-tooltip,

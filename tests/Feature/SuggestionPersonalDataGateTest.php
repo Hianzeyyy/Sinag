@@ -104,6 +104,38 @@ class SuggestionPersonalDataGateTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_visible_suggestion_views_are_counted_and_private_suggestions_are_protected(): void
+    {
+        $this->createUsersTable();
+        $this->createSuggestionTables();
+
+        $viewer = $this->makeCompletedStudent(['email' => 'viewer@example.test']);
+        $author = $this->makeCompletedStudent(['email' => 'author@example.test']);
+        $approvedSuggestionId = $this->createSuggestion($author, 'Approved', 'A published suggestion for student support.');
+        $pendingSuggestionId = $this->createSuggestion($author, 'Pending', 'A private suggestion awaiting approval.');
+
+        $this->actingAs($viewer)
+            ->get(route('student.boses'))
+            ->assertOk()
+            ->assertSee('data-suggestion-view-url="' . route('suggestions.view', $approvedSuggestionId) . '"', false);
+
+        $this->actingAs($viewer)
+            ->postJson(route('suggestions.view', $approvedSuggestionId))
+            ->assertOk()
+            ->assertJson(['views_count' => 1]);
+
+        $this->postJson(route('suggestions.view', $pendingSuggestionId))->assertNotFound();
+
+        $this->assertDatabaseHas('suggestions', [
+            'id' => $approvedSuggestionId,
+            'views_count' => 1,
+        ]);
+        $this->assertDatabaseHas('suggestions', [
+            'id' => $pendingSuggestionId,
+            'views_count' => 0,
+        ]);
+    }
+
     public function test_suggestions_page_displays_its_empty_state_instead_of_a_blank_page(): void
     {
         $this->createUsersTable();
@@ -842,6 +874,7 @@ class SuggestionPersonalDataGateTest extends TestCase
                 $table->string('image_path')->nullable();
             }
             $table->boolean('is_anonymous')->default(true);
+            $table->unsignedBigInteger('views_count')->default(0);
             $table->string('status')->default('Pending');
             $table->timestamps();
         });

@@ -14,8 +14,14 @@
             <a href="{{ route('student.gad-schedule') }}" class="btn btn-lg fw-semibold btn-outline-secondary" style="border-radius: 0.75rem;">
                 <i class="bi bi-calendar3 me-1"></i> GAD Office Hours
             </a>
-            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold appointment-primary-action" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none; border-radius: 0.75rem;">
-                <i class="bi bi-plus-circle"></i> New Appointment
+            <a href="{{ route('student.schedule-appointment') }}" class="appointment-primary-action" aria-label="Create a new appointment">
+                <span class="appointment-primary-action__text">New Appointment</span>
+                <span class="appointment-primary-action__icon" aria-hidden="true">
+                    <svg class="appointment-primary-action__svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </span>
             </a>
         </div>
     </div>
@@ -39,8 +45,14 @@
             </div>
             <h5 class="text-muted">No Appointments Yet</h5>
             <p class="text-muted mb-4">You haven't submitted any appointment requests yet.</p>
-            <a href="{{ route('student.schedule-appointment') }}" class="btn btn-lg fw-semibold appointment-primary-action appointment-action-button" style="background: linear-gradient(135deg, #A594F9 0%, #c4b5fd 100%); color: white; border: none;">
-                <i class="bi bi-calendar-plus"></i> Schedule Your First Appointment
+            <a href="{{ route('student.schedule-appointment') }}" class="appointment-primary-action appointment-primary-action--wide appointment-action-button" aria-label="Schedule your first appointment">
+                <span class="appointment-primary-action__text">Schedule Your First Appointment</span>
+                <span class="appointment-primary-action__icon" aria-hidden="true">
+                    <svg class="appointment-primary-action__svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </span>
             </a>
         </div>
     @else
@@ -254,15 +266,33 @@
         color: #fff;
         background: #d94b87;
     }
+    /* From Uiverse.io by andrew-demchenk0 - https://uiverse.io/andrew-demchenk0/mighty-moose-66
+       MIT License, Copyright (c) andrew-demchenk0 (A) */
     .appointment-primary-action {
-        transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+        position:relative;
+        display:inline-flex;
+        width:11rem;
+        height:40px;
+        flex:0 0 auto;
+        align-items:center;
+        overflow:hidden;
+        border:1px solid #7658df;
+        color:#fff;
+        background:#8f72f5;
+        text-decoration:none;
+        transition:all .3s;
     }
-    .appointment-primary-action:hover,
-    .appointment-primary-action:focus-visible {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 22px rgba(143, 114, 245, .28);
-        filter: brightness(.98);
-    }
+
+    .appointment-primary-action--wide { width:18rem; }
+    .appointment-primary-action__text { position:relative; z-index:1; margin-left:12px; margin-right:46px; color:#fff; font-size:.8rem; font-weight:700; white-space:nowrap; transition:all .3s; }
+    .appointment-primary-action__icon { position:absolute; top:0; right:0; left:auto; display:flex; width:39px; height:100%; align-items:center; justify-content:center; color:#fff; background:#7658df; transition:all .3s; }
+    .appointment-primary-action__svg { width:24px; height:24px; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; transition:all .3s; }
+    .appointment-primary-action:hover,.appointment-primary-action:focus-visible { color:#fff; background:#7658df; }
+    .appointment-primary-action:hover .appointment-primary-action__text,.appointment-primary-action:focus-visible .appointment-primary-action__text { color:transparent; }
+    .appointment-primary-action:hover .appointment-primary-action__icon,.appointment-primary-action:focus-visible .appointment-primary-action__icon { width:calc(100% - 2px); }
+    .appointment-primary-action:active { border-color:#5b43b2; }
+    .appointment-primary-action:active .appointment-primary-action__icon { background:#5b43b2; }
+    .appointment-primary-action:focus-visible { outline:3px solid #c4b5fd; outline-offset:3px; }
 
     @media (max-width: 991.98px) {
         .appointment-list-card {
@@ -295,11 +325,10 @@
         }
 
         .appointment-page-actions .btn,
+        .appointment-page-actions .appointment-primary-action,
         .appointment-action-button {
             width: 100%;
             min-height: 2.75rem;
-            padding: .55rem .85rem;
-            font-size: .92rem;
         }
 
         .appointment-list-card {

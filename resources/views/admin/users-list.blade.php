@@ -128,7 +128,7 @@
         <div class="d-flex flex-wrap gap-2 mb-3" aria-label="Account status filters">
             <button type="submit" name="status" value="active" class="btn btn-sm sinag-violet-badge rounded-pill px-3 status-filter-btn">Active: {{ $activeCount }}</button>
             <button type="submit" name="status" value="pending" class="btn btn-sm sinag-yellow-badge rounded-pill px-3 status-filter-btn">Pending: {{ $pendingCount }}</button>
-            <button type="submit" name="status" value="rejected" class="btn btn-sm bg-secondary-subtle text-secondary rounded-pill px-3 status-filter-btn">Rejected: {{ $rejectedCount }}</button>
+            <button type="submit" name="status" value="rejected" class="btn btn-sm sinag-violet-badge rounded-pill px-3 status-filter-btn">Rejected: {{ $rejectedCount }}</button>
         </div>
 
         <div class="row g-2 mb-4 users-filter-row">
@@ -210,7 +210,7 @@
                             <td>
                                 @if(in_array($accountStatus, ['active', 'approved'], true))<span class="badge sinag-violet-badge rounded-pill px-3 py-2">ACTIVE</span>
                                 @elseif($accountStatus === 'pending')<span class="badge sinag-yellow-badge rounded-pill px-3 py-2">PENDING</span>
-                                @else<span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2">REJECTED</span>@endif
+                                @else<span class="badge sinag-violet-badge rounded-pill px-3 py-2">REJECTED</span>@endif
                             </td>
                             <td class="text-end pe-4">
                                 <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm view-user-btn" style="background:#A594F9;border:none;" data-bs-toggle="modal" data-bs-target="#viewUserModal" data-user-record-id="{{ $user->id }}"

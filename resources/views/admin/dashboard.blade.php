@@ -41,21 +41,37 @@
     .recent-user-avatar:hover { z-index:6; transform:scale(1.13) !important; box-shadow:0 12px 25px rgba(76,42,157,.28); }
     .recent-user-avatar img { width:100%;height:100%;object-fit:cover; }
     @keyframes avatarFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
-    .resolved-ratio { display:flex; align-items:baseline; gap:.3rem; margin:.35rem 0 .7rem; color:var(--purple-dark); }
-    .resolved-ratio strong { font-size:2.55rem; font-weight:900; letter-spacing:-.06em; }
-    .resolved-ratio span { font-weight:700; color:#958aa9; }
     /* From Uiverse.io by themrsami - https://uiverse.io/themrsami/lovely-yak-39
        MIT License, Copyright (c) themrsami (themrsami) */
-    .resolved-cases-card { position:relative; isolation:isolate; border:0; background:linear-gradient(120deg,#7658df,#a594f9 52%,#db8db8); padding:2px; }
-    .resolved-cases-card::before { content:""; position:absolute; inset:0; z-index:-1; border-radius:inherit; background:linear-gradient(120deg,#7658df,#a594f9 52%,#db8db8); opacity:.24; filter:blur(8px); transition:opacity .3s ease; }
-    .resolved-cases-card:hover::before { opacity:.48; }
-    .resolved-cases-card-inner { height:100%; min-height:10.4rem; border-radius:calc(1.25rem - 2px); background:#fff; }
-    .resolved-cases-card .dashboard-card-head { padding-top:1.05rem; }
-    .resolved-cases-card .dashboard-card-body { padding-top:.7rem; }
-    body[data-admin-theme="dark"] .resolved-cases-card-inner { background:#1b1529; }
-    body[data-admin-theme="dark"] .resolved-cases-card .resolved-ratio { color:#d5c6ff; }
-    .ratio-track,.analytics-track { height:9px; background:#eee9f7; border-radius:999px; overflow:hidden; }
-    .ratio-track span,.analytics-track span { display:block; height:100%; width:var(--bar-width); border-radius:inherit; transform:scaleX(0); transform-origin:left; background:linear-gradient(90deg,#4a2d96,#8f72f5); animation:barGrow .85s .1s ease-out forwards; }
+    .resolved-cases-card { position:relative; isolation:isolate; overflow:visible; border:0; padding:2px; color:#34284c; background:linear-gradient(120deg,#7658df,#a594f9 52%,#db8db8); }
+    .resolved-cases-card::before { content:""; position:absolute; inset:0; z-index:-1; border-radius:inherit; background:linear-gradient(120deg,#7658df,#a594f9 52%,#db8db8); opacity:.22; filter:blur(9px); transition:opacity .3s ease; }
+    .resolved-cases-card:hover::before { opacity:.5; }
+    .resolved-cases-card-inner { display:flex; height:100%; min-height:18rem; flex-direction:column; gap:.8rem; padding:1rem; border-radius:calc(1.25rem - 2px); color:#34284c; background:#fff; }
+    .resolved-cases-head { display:flex; align-items:center; justify-content:space-between; gap:.65rem; }
+    .resolved-cases-title { display:flex; min-width:0; align-items:center; gap:.55rem; }
+    .resolved-cases-icon { display:grid; width:2rem; height:2rem; flex:0 0 auto; place-items:center; border-radius:.6rem; color:#fff; background:linear-gradient(135deg,#7658df,#a594f9); }
+    .resolved-cases-title h2 { margin:0; color:#34284c; font-size:.86rem; font-weight:800; }
+    .resolved-cases-title p { margin:.12rem 0 0; color:#756c89; font-size:.65rem; }
+    .resolved-cases-live { display:inline-flex; align-items:center; gap:.3rem; padding:.28rem .5rem; border-radius:999px; color:#5b4b9b; background:#eee8ff; font-size:.6rem; font-weight:800; white-space:nowrap; }
+    .resolved-cases-live::before { width:.35rem; height:.35rem; border-radius:50%; background:#8f72f5; content:""; }
+    .resolved-cases-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.55rem; }
+    .resolved-cases-stat { min-width:0; padding:.6rem; border:1px solid #eee8fb; border-radius:.65rem; background:#f7f4ff; }
+    .resolved-cases-stat small,.resolved-cases-stat strong,.resolved-cases-stat span { display:block; }
+    .resolved-cases-stat small { color:#756c89; font-size:.62rem; font-weight:700; }
+    .resolved-cases-stat strong { margin:.16rem 0; color:#34284c; font-size:1.15rem; line-height:1.1; }
+    .resolved-cases-stat span { color:#6b4bd4; font-size:.62rem; font-weight:700; }
+    .resolved-cases-chart { display:flex; min-height:5rem; flex:1; flex-direction:column; justify-content:center; gap:.55rem; padding:.75rem; border-radius:.7rem; background:#f4f0ff; }
+    .resolved-cases-chart-head,.resolved-cases-chart-legend { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+    .resolved-cases-chart-head small { color:#756c89; font-size:.62rem; font-weight:700; }
+    .resolved-cases-chart-head strong { color:#4a2d96; font-size:.68rem; }
+    .resolved-cases-bar-track { width:100%; height:.7rem; overflow:hidden; border-radius:999px; background:#d8cdfc; }
+    .resolved-cases-bar-track span { display:block; width:var(--bar-width); height:100%; border-radius:inherit; background:linear-gradient(90deg,#7658df,#a594f9); transition:width .3s ease; }
+    .resolved-cases-chart-legend { color:#756c89; font-size:.62rem; }
+    .resolved-cases-chart-legend span:first-child { color:#6b4bd4; font-weight:800; }
+    .resolved-cases-footer { display:flex; align-items:center; justify-content:space-between; gap:.4rem; color:#756c89; font-size:.63rem; }
+    .resolved-cases-view-details { display:inline-flex; align-items:center; gap:.25rem; color:#6b4bd4; font-weight:800; }
+    .analytics-track { height:9px; background:#eee9f7; border-radius:999px; overflow:hidden; }
+    .analytics-track span { display:block; height:100%; width:var(--bar-width); border-radius:inherit; transform:scaleX(0); transform-origin:left; background:linear-gradient(90deg,#4a2d96,#8f72f5); animation:barGrow .85s .1s ease-out forwards; }
     @keyframes barGrow { to { transform:scaleX(1); } }
     .category-flip-card { min-height:24rem; perspective:1100px; }
     .category-flip-inner { position:relative; height:100%; min-height:24rem; transform-style:preserve-3d; transition:transform .65s cubic-bezier(.2,.72,.25,1); }
@@ -86,6 +102,26 @@
     .appointment-person { min-width:0; flex:1; }
     .appointment-person strong,.appointment-person small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .appointment-person small { color:#877e94; font-size:.74rem; }
+    /* From Uiverse.io by juyi_2230 - https://uiverse.io/juyi_2230/hot-moth-33
+       MIT License, Copyright (c) juyi_2230 (Camille Ferros) */
+    .admin-meeting-card { background:#f4f0ff; border-color:#e8e1f5; }
+    .admin-meeting-card .dashboard-card-body { padding-top:.6rem; }
+    .meeting-card-header { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.8rem; }
+    .meeting-card-title { color:#302348; font-size:1.15rem; font-weight:900; line-height:1.15; }
+    .meeting-month-selector { display:inline-flex; align-items:center; gap:.35rem; padding:.45rem .7rem; border:1px solid #d8cdfc; border-radius:999px; color:#5b43b2; background:#fff; font-size:.75rem; font-weight:800; text-decoration:none; white-space:nowrap; }
+    .meeting-month-selector:hover { color:#4a2d96; background:#f7f4ff; }
+    .meeting-calls-info { display:flex; align-items:center; gap:.45rem; margin-bottom:.85rem; color:#5b4b78; font-size:.73rem; font-weight:700; }
+    .meeting-date-nav { position:relative; margin-bottom:.8rem; }
+    .meeting-date-nav-container { display:flex; align-items:flex-start; justify-content:space-between; gap:.2rem; margin-bottom:.65rem; padding:.5rem .3rem; border-radius:.85rem; background:#fff; }
+    .meeting-day-item { display:flex; min-width:0; flex:1; flex-direction:column; align-items:center; padding:.2rem .05rem; border-radius:.65rem; color:#42375c; text-decoration:none; transition:background .2s ease,color .2s ease; }
+    .meeting-day-item:hover { color:#4a2d96; background:#f8f6ff; }
+    .meeting-day-number { display:grid; width:2rem; height:1.65rem; place-items:center; border-radius:.7rem .7rem .15rem .15rem; font-size:.85rem; font-weight:900; }
+    .meeting-day-name { width:2rem; padding:.1rem 0; border-radius:.15rem .15rem .7rem .7rem; color:#81788d; font-size:.58rem; text-align:center; }
+    .meeting-day-item.is-active .meeting-day-number,.meeting-day-item.is-active .meeting-day-name { color:#fff; background:#8f72f5; }
+    .meeting-indicators { position:relative; display:flex; justify-content:space-between; padding:0 1.15rem; }
+    .meeting-indicators::before { position:absolute; top:50%; right:1.4rem; left:1.4rem; border-top:1px dashed #c4b5fd; content:""; }
+    .meeting-indicator-dot { position:relative; z-index:1; width:.45rem; height:.45rem; border:1px solid #f4f0ff; border-radius:50%; background:#c4b5fd; }
+    .meeting-indicator-dot.is-active { background:#7658df; box-shadow:0 0 0 2px #e6deff; }
     .dashboard-analytics-row { display:flex; justify-content:space-between; gap:1rem; font-size:.79rem; margin-bottom:.35rem; color:#635a71; }
     .dashboard-analytics-row strong { color:#483675; }
     .dashboard-analytics-item { margin-bottom:1rem; }
@@ -101,6 +137,9 @@
     .recent-suggestion-card p { margin:0 0 .4rem; color:#f0efff; white-space:pre-line; overflow-wrap:anywhere; line-height:1.5; }
     .recent-suggestion-meta { display:flex; align-items:center; justify-content:space-between; gap:.75rem; color:#c6e1ed; font-size:.78rem; font-weight:700; }
     .recent-suggestion-footer { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-top:.7rem; padding-top:.65rem; border-top:1px solid rgba(255,255,255,.14); color:#c0c3d7; font-size:.75rem; }
+    .recent-suggestion-engagement { display:flex; flex-wrap:wrap; gap:1rem; margin-top:.65rem; color:#c6b7f5; font-size:.73rem; font-weight:700; }
+    .recent-suggestion-engagement span { display:inline-flex; align-items:center; gap:.35rem; }
+    .recent-suggestion-engagement span:last-child { margin-left:auto; }
     .admin-dashboard-table { min-width:650px; }
     .admin-dashboard-table thead th { background:#f7f4ff; color:#635188; font-size:.69rem; text-transform:uppercase; letter-spacing:.08em; border:0; padding:1rem; }
     .admin-dashboard-table tbody td { border-color:#f0edf5; padding:1rem; }
@@ -108,7 +147,7 @@
     .dashboard-report-status { font-weight:800; }
     .dashboard-report-status.status-warning { background:#f8cb12; color:#4a3500; }
     .dashboard-report-status.status-info { background:#c9e8ff; color:#174b70; }
-    .dashboard-report-status.status-success { background:#c9f0dc; color:#145c38; }
+    .dashboard-report-status.status-success { background:#e6dcff; color:#4a2d96; }
     .dashboard-report-status.status-danger { background:#f7c4dd; color:#7e204b; }
     .dashboard-report-status.status-secondary { background:#e9e3f2; color:#4d435b; }
     .dashboard-link { color:#7658df; font-size:.78rem; font-weight:800; text-decoration:none; white-space:nowrap; }
@@ -125,6 +164,23 @@
     body[data-admin-theme="dark"] .dashboard-greeting p { color:#c0b4d7; }
     body[data-admin-theme="dark"] .dashboard-card { background:#1b1529; border-color:#302443; color:#eee8ff; }
     body[data-admin-theme="dark"] .dashboard-card.resolved-cases-card { border:0; background:linear-gradient(120deg,#7658df,#a594f9 52%,#db8db8); }
+    body[data-admin-theme="dark"] .resolved-cases-card-inner { color:#eee8ff; background:#211936; }
+    body[data-admin-theme="dark"] .resolved-cases-title h2 { color:#f0e9ff; }
+    body[data-admin-theme="dark"] .resolved-cases-title p,
+    body[data-admin-theme="dark"] .resolved-cases-stat small,
+    body[data-admin-theme="dark"] .resolved-cases-chart-head small,
+    body[data-admin-theme="dark"] .resolved-cases-chart-legend { color:#bdb1d1; }
+    body[data-admin-theme="dark"] .resolved-cases-live { color:#d8c8ff; background:#3a2a57; }
+    body[data-admin-theme="dark"] .resolved-cases-live::before { background:#a594f9; }
+    body[data-admin-theme="dark"] .resolved-cases-stat { border-color:#49365f; background:#302348; }
+    body[data-admin-theme="dark"] .resolved-cases-stat strong { color:#fff; }
+    body[data-admin-theme="dark"] .resolved-cases-stat span,
+    body[data-admin-theme="dark"] .resolved-cases-chart-legend span:first-child { color:#d8c8ff; }
+    body[data-admin-theme="dark"] .resolved-cases-chart { background:#2a203e; }
+    body[data-admin-theme="dark"] .resolved-cases-chart-head strong { color:#e5dcff; }
+    body[data-admin-theme="dark"] .resolved-cases-bar-track { background:#49365f; }
+    body[data-admin-theme="dark"] .resolved-cases-footer { color:#bdb1d1; }
+    body[data-admin-theme="dark"] .resolved-cases-view-details { color:#c4b5fd; }
     body[data-admin-theme="dark"] .dashboard-card-head h2,
     body[data-admin-theme="dark"] .dashboard-analytics-row strong { color:#e5dcff; }
     body[data-admin-theme="dark"] .dashboard-card-head p,
@@ -132,7 +188,6 @@
     body[data-admin-theme="dark"] .appointment-person small,
     body[data-admin-theme="dark"] .feedback-entry p { color:#bdb1d1; }
     body[data-admin-theme="dark"] .recent-user-avatar { border-color:#1b1529; background:#2b2040; }
-    body[data-admin-theme="dark"] .ratio-track,
     body[data-admin-theme="dark"] .analytics-track { background:#332846; }
     body[data-admin-theme="dark"] .category-flip-face { background:#1b1529; }
     body[data-admin-theme="dark"] .dashboard-chart-toggle { background:#302348; border-color:#49365f; color:#d5c6ff; }
@@ -142,16 +197,28 @@
     body[data-admin-theme="dark"] .category-pie-total { fill:#e5dcff; }
     body[data-admin-theme="dark"] .category-pie-caption,
     body[data-admin-theme="dark"] .category-pie-legend-item { fill:#bdb1d1; color:#bdb1d1; }
-    body[data-admin-theme="dark"] .resolved-ratio { color:#d5c6ff; }
     body[data-admin-theme="dark"] .appointment-row { color:#e8e0f7; }
     body[data-admin-theme="dark"] .appointment-row:hover { background:#2a203e;color:#fff; }
     body[data-admin-theme="dark"] .appointment-date-chip { background:#352851;color:#d9cbff; }
+    body[data-admin-theme="dark"] .admin-meeting-card { background:#241b35; border-color:#3a2d50; }
+    body[data-admin-theme="dark"] .meeting-card-title { color:#f0e9ff; }
+    body[data-admin-theme="dark"] .meeting-month-selector,
+    body[data-admin-theme="dark"] .meeting-date-nav-container { border-color:#49365f; color:#e5dcff; background:#302348; }
+    body[data-admin-theme="dark"] .meeting-month-selector:hover,
+    body[data-admin-theme="dark"] .meeting-day-item:hover { background:#3a2d50; }
+    body[data-admin-theme="dark"] .meeting-calls-info,
+    body[data-admin-theme="dark"] .meeting-day-item { color:#d5c6ff; }
+    body[data-admin-theme="dark"] .meeting-day-name { color:#bdb1d1; }
+    body[data-admin-theme="dark"] .meeting-day-item.is-active .meeting-day-number,
+    body[data-admin-theme="dark"] .meeting-day-item.is-active .meeting-day-name { color:#fff; background:#7658df; }
+    body[data-admin-theme="dark"] .meeting-indicator-dot { border-color:#302348; }
+    body[data-admin-theme="dark"] .meeting-indicator-dot.is-active { box-shadow:0 0 0 2px #49365f; }
     body[data-admin-theme="dark"] .admin-dashboard-table thead th { background:#241b35;color:#ddd1ff; }
     body[data-admin-theme="dark"] .admin-dashboard-table tbody td { color:#eee8ff;border-color:#332846; }
     body[data-admin-theme="dark"] .admin-dashboard-table tbody tr:hover { background:#251d38; }
     body[data-admin-theme="dark"] .dashboard-report-status.status-warning { background:#594916; color:#ffe989; }
     body[data-admin-theme="dark"] .dashboard-report-status.status-info { background:#173951; color:#c5e8ff; }
-    body[data-admin-theme="dark"] .dashboard-report-status.status-success { background:#174431; color:#b8f1d0; }
+    body[data-admin-theme="dark"] .dashboard-report-status.status-success { background:#3a2a57; color:#d8c8ff; }
     body[data-admin-theme="dark"] .dashboard-report-status.status-danger { background:#54243b; color:#ffd0df; }
     body[data-admin-theme="dark"] .dashboard-report-status.status-secondary { background:#3a3047; color:#e4d9f2; }
     body[data-admin-theme="dark"] .feedback-entry { border-color:#332846; }
@@ -162,8 +229,8 @@
         .category-pie-layout { grid-template-columns:minmax(100px, 38%) 1fr; gap:.7rem; }
     }
     @media(prefers-reduced-motion:reduce) {
-        .admin-dashboard-page,.recent-user-avatar,.ratio-track span,.analytics-track span { animation:none;transform:none; }
-        .dashboard-card,.dashboard-export-button,.appointment-row,.category-flip-inner,.dashboard-chart-toggle { transition:none; }
+        .admin-dashboard-page,.recent-user-avatar,.analytics-track span { animation:none;transform:none; }
+        .dashboard-card,.dashboard-export-button,.appointment-row,.meeting-day-item,.resolved-cases-card::before,.resolved-cases-bar-track span,.category-flip-inner,.dashboard-chart-toggle { transition:none; }
     }
 </style>
 
@@ -217,27 +284,97 @@
                 </section>
             </div>
             <div class="col-xl-3 col-lg-3">
+                @php
+                    $openCases = max(0, $totalReports - $resolvedReports);
+                    $resolvedBarPercentage = min(100, max(0, (int) $resolvedPercentage));
+                @endphp
                 <a href="{{ route('admin.reports', ['status' => 'Resolved']) }}" class="dashboard-card resolved-cases-card d-block text-decoration-none">
                     <div class="resolved-cases-card-inner">
-                        <div class="dashboard-card-head">
-                            <div><h2>Resolved cases</h2><p>Resolved reports out of all reports received.</p></div>
-                            <i class="bi bi-check2-circle fs-4" style="color:#8f72f5;"></i>
+                        <div class="resolved-cases-head">
+                            <div class="resolved-cases-title">
+                                <span class="resolved-cases-icon"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></span>
+                                <div><h2>Resolved Cases</h2><p>Resolved reports out of all reports received.</p></div>
+                            </div>
+                            <span class="resolved-cases-live">Live</span>
                         </div>
-                        <div class="dashboard-card-body">
-                            <div class="resolved-ratio"><strong>{{ $resolvedReports }}</strong><span>/ {{ $totalReports }}</span></div>
-                            <div class="ratio-track"><span style="--bar-width:{{ $resolvedPercentage }}%;"></span></div>
-                            <div class="d-flex justify-content-between small text-muted mt-2"><span>{{ $resolvedPercentage }}% resolved</span><span>Open cases {{ max(0, $totalReports - $resolvedReports) }}</span></div>
+                        <div class="resolved-cases-stats">
+                            <div class="resolved-cases-stat">
+                                <small>Resolved</small>
+                                <strong>{{ number_format($resolvedReports) }}</strong>
+                                <span>{{ $resolvedPercentage }}% resolved</span>
+                            </div>
+                            <div class="resolved-cases-stat">
+                                <small>Total reports</small>
+                                <strong>{{ number_format($totalReports) }}</strong>
+                                <span>{{ number_format($openCases) }} open</span>
+                            </div>
+                        </div>
+                        <div class="resolved-cases-chart" role="img" aria-label="{{ $resolvedReports }} of {{ $totalReports }} reports resolved; {{ $openCases }} open">
+                            <div class="resolved-cases-chart-head">
+                                <small>Resolved / total reports</small>
+                                <strong>{{ number_format($resolvedReports) }} / {{ number_format($totalReports) }}</strong>
+                            </div>
+                            <div class="resolved-cases-bar-track" aria-hidden="true"><span style="--bar-width:{{ $resolvedBarPercentage }}%;"></span></div>
+                            <div class="resolved-cases-chart-legend">
+                                <span>{{ $resolvedBarPercentage }}% resolved</span>
+                                <span>{{ number_format($openCases) }} open</span>
+                            </div>
+                        </div>
+                        <div class="resolved-cases-footer">
+                            <span>All active reports</span>
+                            <span class="resolved-cases-view-details">View Details <i class="bi bi-chevron-right" aria-hidden="true"></i></span>
                         </div>
                     </div>
                 </a>
             </div>
             <div class="col-xl-5 col-lg-5">
-                <section class="dashboard-card">
-                    <div class="dashboard-card-head">
-                        <div><h2>Appointments</h2><p>Today and upcoming requests</p></div>
-                        <a class="dashboard-link" href="{{ route('admin.appointments') }}">All appointments <i class="bi bi-arrow-up-right"></i></a>
-                    </div>
-                    <div class="dashboard-card-body pt-2">
+                @php
+                    $appointmentDateGroups = $upcomingAppointments
+                        ->groupBy(fn ($appointment) => optional($appointment->scheduled_date)->format('Y-m-d'))
+                        ->take(6);
+                    $nextAppointment = $upcomingAppointments->first();
+                @endphp
+                <section class="dashboard-card admin-meeting-card">
+                    <div class="dashboard-card-body">
+                        <div class="meeting-card-header">
+                            <div class="meeting-card-title">Upcoming<br>Appointments</div>
+                            <a class="meeting-month-selector" href="{{ route('admin.appointments') }}" aria-label="View all appointments">
+                                <span>{{ optional($nextAppointment?->scheduled_date)->format('F') ?: now()->format('F') }}</span>
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                        <div class="meeting-calls-info">
+                            <i class="bi bi-calendar2-week" aria-hidden="true"></i>
+                            <span>
+                                @if($nextAppointment)
+                                    {{ $upcomingAppointments->count() }} requests shown · Next {{ optional($nextAppointment->scheduled_date)->format('D, d') }}
+                                @else
+                                    No upcoming appointment requests
+                                @endif
+                            </span>
+                        </div>
+                        <div class="meeting-date-nav">
+                            <div class="meeting-date-nav-container" aria-label="Dates with upcoming appointments">
+                                @forelse($appointmentDateGroups as $dayAppointments)
+                                    @php
+                                        $dayAppointment = $dayAppointments->first();
+                                    @endphp
+                                    <a class="meeting-day-item {{ $loop->first ? 'is-active' : '' }}" href="{{ route('admin.appointments', ['open' => $dayAppointment->id]) }}#appointmentModal{{ $dayAppointment->id }}" aria-label="{{ optional($dayAppointment->scheduled_date)->format('l, F j') }} appointment">
+                                        <span class="meeting-day-number">{{ optional($dayAppointment->scheduled_date)->format('d') }}</span>
+                                        <span class="meeting-day-name">{{ optional($dayAppointment->scheduled_date)->format('D') }}</span>
+                                    </a>
+                                @empty
+                                    <span class="small text-muted px-2">No dates scheduled</span>
+                                @endforelse
+                            </div>
+                            @if($appointmentDateGroups->isNotEmpty())
+                                <div class="meeting-indicators" aria-hidden="true">
+                                    @foreach($appointmentDateGroups as $dayAppointments)
+                                        <span class="meeting-indicator-dot {{ $loop->first ? 'is-active' : '' }}"></span>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                         <div class="appointments-list">
                             @forelse($upcomingAppointments as $appointment)
                                 @php
@@ -441,7 +578,7 @@
                                 <td>{{ $report->reporter_display_name }}</td>
                                 <td><span class="badge rounded-pill dashboard-report-status status-{{ $report->status_color }}">{{ $report->status }}</span></td>
                                 <td class="small text-muted">{{ $report->created_at?->format('M d, Y') }}</td>
-                                <td class="text-end pe-4"><a class="btn btn-sm btn-outline-primary rounded-pill px-3" href="{{ route('admin.reports', ['q' => $report->incident_id]) }}">Review</a></td>
+                                <td class="text-end pe-4"><a class="sinag-review-button" href="{{ route('admin.reports', ['q' => $report->incident_id]) }}">Review</a></td>
                             </tr>
                         @empty
                             <tr><td colspan="6" class="text-center text-muted py-4">No active reports.</td></tr>
@@ -474,6 +611,11 @@
                                 <div class="recent-suggestion-footer">
                                     <span>From: {{ $suggestionAuthor }}</span>
                                     <span>{{ $suggestion->admin_status_label ?: 'Received' }}</span>
+                                </div>
+                                <div class="recent-suggestion-engagement" aria-label="{{ number_format($suggestion->upvotes_count) }} {{ \Illuminate\Support\Str::plural('like', $suggestion->upvotes_count) }}, {{ number_format($suggestion->comments_count) }} {{ \Illuminate\Support\Str::plural('comment', $suggestion->comments_count) }}, and {{ number_format($suggestion->views_count ?? 0) }} {{ \Illuminate\Support\Str::plural('view', $suggestion->views_count ?? 0) }}">
+                                    <span><i class="bi bi-heart-fill" aria-hidden="true"></i> {{ number_format($suggestion->upvotes_count) }} {{ \Illuminate\Support\Str::plural('like', $suggestion->upvotes_count) }}</span>
+                                    <span><i class="bi bi-chat-dots-fill" aria-hidden="true"></i> {{ number_format($suggestion->comments_count) }} {{ \Illuminate\Support\Str::plural('comment', $suggestion->comments_count) }}</span>
+                                    <span><i class="bi bi-eye-fill" aria-hidden="true"></i> {{ number_format($suggestion->views_count ?? 0) }} {{ \Illuminate\Support\Str::plural('view', $suggestion->views_count ?? 0) }}</span>
                                 </div>
                             </article>
                         </div>

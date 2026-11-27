@@ -221,32 +221,74 @@
                                                 @endif
                                                 <div class="col-12">
                                                     <label class="small text-muted d-block mb-2">Report Tracking</label>
-                                                    <div class="report-tracking-timeline">
-                                                        @php
-                                                            $reportStatusUpdates = $report->relationLoaded('statusUpdates') ? $report->statusUpdates : collect();
-                                                        @endphp
-                                                        @forelse($reportStatusUpdates as $update)
-                                                            <div class="report-tracking-event">
-                                                                <span class="report-tracking-dot"></span>
-                                                                <div>
-                                                                    <div class="d-flex flex-wrap align-items-center gap-2">
-                                                                        <strong>{{ $update->to_status }}</strong>
-                                                                        <small class="text-muted">{{ $update->created_at->format('M d, Y h:i A') }}</small>
+                                                    @php
+                                                        $reportStatusUpdates = $report->relationLoaded('statusUpdates') ? $report->statusUpdates : collect();
+                                                        $reportStatusUpdates = $reportStatusUpdates->sortBy('created_at')->values();
+                                                        $reportIsPending = strtolower((string) $report->status) === 'pending';
+                                                        $reportIsResolved = in_array(strtolower((string) $report->status), ['resolved', 'dismissed'], true);
+                                                    @endphp
+                                                    <div class="vault-report-stepper" aria-label="Report tracking timeline">
+                                                        <div class="vault-report-step {{ $reportStatusUpdates->isEmpty() && $reportIsPending ? 'is-active' : 'is-complete' }}">
+                                                            <span class="vault-report-step-circle">
+                                                                @if($reportStatusUpdates->isEmpty() && $reportIsPending)
+                                                                    1
+                                                                @else
+                                                                    <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                                                @endif
+                                                            </span>
+                                                            @if($reportStatusUpdates->isNotEmpty() || !$reportIsPending)
+                                                                <span class="vault-report-step-line" aria-hidden="true"></span>
+                                                            @endif
+                                                            <div class="vault-report-step-content">
+                                                                <div class="vault-report-step-title">Report received</div>
+                                                                <span class="vault-report-step-status">{{ $reportStatusUpdates->isEmpty() && $reportIsPending ? 'In progress' : 'Completed' }}</span>
+                                                                <div class="vault-report-step-time">{{ $report->created_at->format('M d, Y h:i A') }}</div>
+                                                            </div>
+                                                        </div>
+
+                                                        @if($reportStatusUpdates->isNotEmpty())
+                                                            @foreach($reportStatusUpdates as $update)
+                                                                @php
+                                                                    $isCurrentUpdate = $loop->last;
+                                                                    $isCompletedUpdate = !$isCurrentUpdate || $reportIsResolved;
+                                                                @endphp
+                                                                <div class="vault-report-step {{ $isCompletedUpdate ? 'is-complete' : 'is-active' }}">
+                                                                    <span class="vault-report-step-circle">
+                                                                        @if($isCompletedUpdate)
+                                                                            <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                                                        @else
+                                                                            {{ $loop->iteration + 1 }}
+                                                                        @endif
+                                                                    </span>
+                                                                    @unless($loop->last)
+                                                                        <span class="vault-report-step-line" aria-hidden="true"></span>
+                                                                    @endunless
+                                                                    <div class="vault-report-step-content">
+                                                                        <div class="vault-report-step-title">{{ $update->to_status }}</div>
+                                                                        <span class="vault-report-step-status">{{ $isCurrentUpdate ? ($reportIsResolved ? 'Completed' : 'Current') : 'Completed' }}</span>
+                                                                        <div class="vault-report-step-time">{{ optional($update->created_at)->format('M d, Y h:i A') }}</div>
+                                                                        @if($update->details)
+                                                                            <p class="vault-report-step-detail">{{ $update->details }}</p>
+                                                                        @endif
                                                                     </div>
-                                                                    @if($update->details)
-                                                                        <p class="small text-muted mb-0 mt-1" style="white-space:pre-wrap;">{{ $update->details }}</p>
+                                                                </div>
+                                                            @endforeach
+                                                        @elseif(!$reportIsPending)
+                                                            <div class="vault-report-step {{ $reportIsResolved ? 'is-complete' : 'is-active' }}">
+                                                                <span class="vault-report-step-circle">
+                                                                    @if($reportIsResolved)
+                                                                        <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                                                    @else
+                                                                        2
                                                                     @endif
+                                                                </span>
+                                                                <div class="vault-report-step-content">
+                                                                    <div class="vault-report-step-title">{{ $report->status }}</div>
+                                                                    <span class="vault-report-step-status">{{ $reportIsResolved ? 'Completed' : 'Current' }}</span>
+                                                                    <div class="vault-report-step-time">{{ optional($report->updated_at)->format('M d, Y h:i A') }}</div>
                                                                 </div>
                                                             </div>
-                                                        @empty
-                                                            <div class="report-tracking-event">
-                                                                <span class="report-tracking-dot"></span>
-                                                                <div>
-                                                                    <strong>{{ $report->status }}</strong>
-                                                                    <small class="d-block text-muted">{{ $report->created_at->format('M d, Y h:i A') }} · Report received</small>
-                                                                </div>
-                                                            </div>
-                                                        @endforelse
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 <div class="col-12">
@@ -399,9 +441,34 @@
     });
 </script>
 <style>
-    .report-tracking-timeline { display:grid; gap:.9rem; border-left:2px solid #e8defc; margin-left:.45rem; padding-left:1rem; }
-    .report-tracking-event { position:relative; }
-    .report-tracking-dot { position:absolute; width:.65rem;height:.65rem;border-radius:50%;background:#8f72f5;left:-1.38rem;top:.28rem;box-shadow:0 0 0 4px #f1eaff; }
+    /* From Uiverse.io by PriyanshuGupta28 - https://uiverse.io/PriyanshuGupta28/orange-newt-23
+       MIT License, Copyright (c) PriyanshuGupta28 (Priyanshu Gupta) */
+    .vault-report-stepper { padding:1.25rem; border:1px solid #ede9fe; border-radius:12px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.05); }
+    .vault-report-step { display:flex; position:relative; margin-bottom:1.25rem; }
+    .vault-report-step:last-child { margin-bottom:0; }
+    .vault-report-step-circle { z-index:2; display:flex; width:2.5rem; height:2.5rem; flex:0 0 2.5rem; align-items:center; justify-content:center; margin-right:1rem; border:2px solid #e2e8f0; border-radius:50%; color:#94a3b8; background:#fff; font-weight:800; }
+    .vault-report-step.is-complete .vault-report-step-circle { border-color:#0f172a; color:#fff; background:#0f172a; }
+    .vault-report-step.is-active .vault-report-step-circle { border-color:#7658df; color:#5b43b2; background:#f4f0ff; }
+    .vault-report-step-line { position:absolute; top:2.5rem; bottom:-1.25rem; left:1.18rem; z-index:1; width:2px; background:#e2e8f0; }
+    .vault-report-step.is-complete .vault-report-step-line { background:#7658df; }
+    .vault-report-step-content { min-width:0; flex:1; }
+    .vault-report-step-title { margin-bottom:.2rem; color:#0f172a; font-weight:700; }
+    .vault-report-step-status { display:inline-block; margin-top:.15rem; padding:.12rem .5rem; border-radius:12px; color:#166534; background:#dcfce7; font-size:.75rem; }
+    .vault-report-step.is-active .vault-report-step-status { color:#5b43b2; background:#ede9fe; }
+    .vault-report-step-time { margin-top:.2rem; color:#94a3b8; font-size:.75rem; }
+    .vault-report-step-detail { margin:.35rem 0 0; color:#64748b; font-size:.85rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-stepper { border-color:#3a2d50; background:#1b1529; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step-circle { border-color:#49365f; color:#c0b4d7; background:#241b35; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step.is-complete .vault-report-step-circle { border-color:#7658df; color:#fff; background:#7658df; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step.is-active .vault-report-step-circle { border-color:#a594f9; color:#e5dcff; background:#302348; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step-line { background:#49365f; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step.is-complete .vault-report-step-line { background:#7658df; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step-title { color:#f0e9ff; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step-status { color:#b8f1d0; background:#174431; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step.is-active .vault-report-step-status { color:#e5dcff; background:#352851; }
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step-time,
+    html[data-student-theme-enabled="true"][data-student-theme="dark"] .vault-report-step-detail { color:#bdb1d1; }
+    @media(max-width:575.98px) { .vault-report-stepper { padding:1rem; } .vault-report-step-circle { margin-right:.75rem; } }
 </style>
 
 @endsection

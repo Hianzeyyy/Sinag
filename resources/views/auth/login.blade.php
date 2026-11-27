@@ -201,50 +201,42 @@
     .login-actions { min-width: 0; }
     .login-actions > * { min-height: 52px; min-width: 0; }
 
+    /* From Uiverse.io by AqFox - https://uiverse.io/AqFox/pretty-lionfish-11
+       MIT License, Copyright (c) AqFox (Aquilix) */
     .login-submit {
-        position: relative;
-        overflow: visible;
-        min-height: 48px;
+        justify-self: center;
+        width: 130px;
+        height: 40px;
+        min-height: 40px;
+        padding: 10px 25px !important;
         border: 0 !important;
-        border-radius: .55rem !important;
-        padding: .55rem 1.2rem !important;
+        border-radius: 5px !important;
         color: #fff !important;
-        background: linear-gradient(180deg, #3984ff 0%, #0d6efd 52%, #0b5ed7 100%) !important;
-        letter-spacing: .16em !important;
-        box-shadow: inset 0 .0625em 0 rgba(255,255,255,.38), 0 .0625em 0 #0b5ed7,
-            0 .125em 0 #0a55c5, 0 .25em 0 #094db4, 0 .3125em 0 #0847a8,
-            0 .375em 0 #073f98, 0 .425em 0 #063783, 0 .425em .5em rgba(0, 35, 90, .35) !important;
-        transition: transform .25s ease, box-shadow .25s ease;
+        background: linear-gradient(0deg, #7658df 0%, #7658df 100%) !important;
+        box-shadow: inset 2px 2px 2px 0 rgba(255,255,255,.5),
+            7px 7px 20px 0 rgba(0,0,0,.1), 4px 4px 5px 0 rgba(0,0,0,.1) !important;
+        font-size: 15px !important;
+        font-weight: 500 !important;
+        letter-spacing: normal !important;
+        transition: all .3s ease;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
     }
-    .login-submit::after {
-        position: absolute;
-        z-index: 0;
-        content: '';
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: calc(100% + .375em);
-        border-radius: inherit;
-        background: transparent;
-        pointer-events: none;
-        transition: height .25s ease;
-    }
+
     .login-submit:hover,
-    .login-submit:focus-visible,
+    .login-submit:focus-visible {
+        box-shadow: 4px 4px 6px 0 rgba(255,255,255,.5),
+            -4px -4px 6px 0 rgba(116,125,136,.5),
+            inset -4px -4px 6px 0 rgba(255,255,255,.2),
+            inset 4px 4px 6px 0 rgba(0,0,0,.4) !important;
+    }
+
     .login-submit:active,
     .login-submit.is-pressed {
-        transform: translateY(.19em);
-        box-shadow: inset 0 .03em 0 rgba(255,255,255,.32), 0 .03em 0 #0b5ed7,
-            0 .0625em 0 #0a55c5, 0 .125em 0 #094db4, 0 .1875em 0 #0847a8,
-            0 .225em 0 #073f98, 0 .225em .375em rgba(0, 35, 90, .34) !important;
+        transform: translateY(2px);
     }
-    .login-submit:hover::after,
-    .login-submit:focus-visible::after,
-    .login-submit:active::after,
-    .login-submit.is-pressed::after { height: calc(100% + .19em); }
-    .login-submit:focus-visible { outline: 3px solid #facc15; outline-offset: 4px; }
+
+    .login-submit:focus-visible { outline: 3px solid #c4b5fd; outline-offset: 4px; }
 
     .login-alert { background: #f3efff; color: #5b4b9b; border-left: 4px solid #8f72f5; }
 
@@ -664,7 +656,6 @@
         .auth-pane,
         .auth-overlay,
         .login-submit,
-        .login-submit::after,
         .register-submit-loader { animation: none; transition: none; }
     }
 </style>
@@ -728,32 +719,6 @@
 
     .sign-in-pane .form-check-label { color:#514b63 !important; }
 
-    .sign-in-pane .login-submit {
-        min-height:50px;
-        border-radius:10px !important;
-        color:#fff !important;
-        background:#7658df !important;
-        box-shadow:inset 0 0 1.2em -.6em #4a2d96 !important;
-        font-size:1rem !important;
-        letter-spacing:.06em !important;
-    }
-
-    .sign-in-pane .login-submit:hover,
-    .sign-in-pane .login-submit:focus-visible {
-        color:#7658df !important;
-        background:#fff !important;
-        box-shadow:0 0 0 2px #7658df !important;
-    }
-
-    .sign-in-pane .login-submit:active,
-    .sign-in-pane .login-submit.is-pressed {
-        color:#4a3500 !important;
-        background:#facc15 !important;
-        box-shadow:none !important;
-        transform:translateY(3px);
-    }
-
-    .sign-in-pane .login-submit::after { display:none; }
 </style>
 
 <div class="login-page d-flex align-items-center justify-content-center">
@@ -816,7 +781,7 @@
                                                   name="login_password" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" data-lpignore="true" data-1p-ignore="true" style="font-size: 1rem;">
                                               <input type="hidden" name="password" id="passwordValue" autocomplete="off">
                                             <button class="login-password-eye input-group-text login-password-toggle" type="button" id="togglePassword"
-                                                    title="Toggle password visibility" aria-label="Toggle password visibility">
+                                                    title="Show password" aria-label="Show password" aria-pressed="false">
                                                 <i class="bi bi-eye-slash fs-5" id="eyeIcon" style="opacity: 0.9; transition: opacity 0.2s ease, transform 0.2s ease;"></i>
                                             </button>
                                         </div>
@@ -1128,6 +1093,7 @@
         eyeIcon.classList.toggle('bi-eye-slash', !isHidden);
         togglePassword.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
         togglePassword.setAttribute('aria-pressed', String(isHidden));
+        togglePassword.setAttribute('title', isHidden ? 'Hide password' : 'Show password');
     });
 
     loginPassword.addEventListener('input', updatePasswordHint);

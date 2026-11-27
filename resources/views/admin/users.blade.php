@@ -272,15 +272,6 @@
                                             @endif
                                             <div><h4 class="mb-1">{{ $user->name }}</h4><div class="text-muted">{{ ucfirst($accountType) }}{{ $user->employee_category ? ' - ' . ucfirst(str_replace('_', ' ', $user->employee_category)) : '' }}</div></div>
                                         </div>
-                                        <div class="account-id-card" tabindex="0" aria-label="Account ID UID-{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}">
-                                            <div class="account-id-card-header"><span class="account-id-card-brand">SINAG</span><i class="bi bi-wifi" aria-hidden="true"></i></div>
-                                            <div class="account-id-card-chip" aria-hidden="true"></div>
-                                            <div class="account-id-card-number">UID-{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}</div>
-                                            <div class="account-id-card-footer">
-                                                <div><small>ACCOUNT HOLDER</small><strong>{{ strtoupper($user->name) }}</strong></div>
-                                                <div><small>ACCOUNT TYPE</small><strong>{{ strtoupper($accountType) }}</strong></div>
-                                            </div>
-                                        </div>
                                         <div class="resume-grid">
                                             <div><span>Alias</span><strong>{{ $user->cloak_alias ?: 'Not set' }}</strong></div>
                                             <div><span>Email</span><strong>{{ $user->email }}</strong></div>
@@ -294,7 +285,7 @@
                                             <div class="small text-uppercase text-muted fw-bold mb-2">ID Verification</div>
                                             @php($verificationImage = $user->id_image_path ?: $user->selfie_image_path)
                                             @if($verificationImage)
-                                                <img src="{{ route('profile.verification-image', $user) }}" alt="ID verification" class="resume-id-image">
+                                                <img src="{{ route('profile.verification-image', $user) }}" alt="ID verification" class="resume-id-image user-verification-image">
                                             @else
                                                 <div class="text-muted small">No ID image uploaded.</div>
                                             @endif
@@ -343,29 +334,6 @@
     .resume-grid > div { padding: 0.75rem; border: 1px solid #ede9fe; border-radius: 0.6rem; background: #faf9ff; }
     .resume-grid span { display: block; color: #6b7280; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em; }
     .resume-grid strong { display: block; margin-top: .25rem; color: #111827; overflow-wrap: anywhere; }
-    /* From Uiverse.io by ommanav_2060 - https://uiverse.io/ommanav_2060/odd-falcon-79
-       MIT License, Copyright (c) ommanav_2060 (Om Manav) */
-    .account-id-card {
-        position:relative; isolation:isolate; display:flex; flex-direction:column; justify-content:space-between;
-        width:min(100%,380px); min-height:205px; margin:1rem auto; padding:1.15rem 1.35rem; overflow:hidden;
-        border:1px solid rgba(255,255,255,.2); border-radius:1rem; color:#d1d1d1;
-        background:linear-gradient(135deg,#2b2b2b,#111 55%,#050505);
-        box-shadow:0 15px 35px rgba(0,0,0,.4);
-        transform:perspective(900px) rotateY(-7deg); transform-style:preserve-3d;
-        transition:transform .4s cubic-bezier(.25,1,.5,1),box-shadow .4s ease;
-    }
-    .account-id-card::before { content:""; position:absolute; inset:-50%; z-index:-1; pointer-events:none; opacity:0; background:radial-gradient(circle at center,rgba(255,255,255,.18),transparent 50%); transition:opacity .4s ease,transform .4s ease; }
-    .account-id-card:hover,.account-id-card:focus-visible { transform:perspective(900px) rotateY(0) rotateX(5deg) translateY(-3px); box-shadow:0 22px 42px rgba(0,0,0,.48); outline:none; }
-    .account-id-card:hover::before,.account-id-card:focus-visible::before { opacity:1; transform:translate(12%,8%); }
-    .account-id-card-header,.account-id-card-footer { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
-    .account-id-card-brand { color:#fff; font-size:.82rem; font-weight:900; letter-spacing:.2em; }
-    .account-id-card-chip { position:relative; width:2.6rem; height:2rem; overflow:hidden; border:1px solid #e0c879; border-radius:.4rem; background:linear-gradient(135deg,#e0c879,#a67c00); }
-    .account-id-card-chip::before,.account-id-card-chip::after { position:absolute; content:""; inset:33% 0 auto; border-top:1px solid rgba(0,0,0,.35); }
-    .account-id-card-chip::after { inset:66% 0 auto; }
-    .account-id-card-number { color:#f1eff8; font:700 1rem/1.3 monospace; letter-spacing:.08em; overflow-wrap:anywhere; }
-    .account-id-card-footer small,.account-id-card-footer strong { display:block; }
-    .account-id-card-footer small { color:rgba(255,255,255,.5); font-size:.56rem; font-weight:700; letter-spacing:.1em; }
-    .account-id-card-footer strong { max-width:14rem; margin-top:.2rem; overflow:hidden; color:#ddd; font-size:.72rem; letter-spacing:.07em; text-overflow:ellipsis; white-space:nowrap; }
     .resume-id-section { border-top: 1px solid #ede9fe; padding-top: 1rem; }
     .resume-id-image { display: block; width: 100%; max-height: 420px; object-fit: contain; border: 1px solid #e5e7eb; border-radius: .75rem; background: #f8fafc; }
     @media (max-width: 575.98px) { .resume-grid { grid-template-columns: 1fr; } }

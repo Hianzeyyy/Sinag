@@ -45,17 +45,6 @@
     .report-archive-button:hover i,.report-archive-button:focus-visible i { transform:translateY(60%); }
     .report-archive-button:focus-visible { outline:3px solid #a594f9; outline-offset:2px; }
 
-    /* From Uiverse.io by Itskrish01 - https://uiverse.io/Itskrish01/soft-skunk-68
-       MIT License, Copyright (c) devdojo - https://devdojo.com/tailwindcss/buttons, Itskrish01 (itsKrish01) */
-    .report-review-button { position:relative; display:inline-flex; align-items:center; overflow:hidden; padding:.45rem .9rem; border:0; border-radius:.45rem; color:#fff; background:#7658df; font-size:.82rem; font-weight:700; isolation:isolate; }
-    .report-review-button::before,.report-review-button::after { position:absolute; z-index:-1; width:1rem; height:1rem; border-radius:.25rem; background:#4a2d96; box-shadow:inset -7px 7px 0 #fff; content:""; transition:all .5s ease-in-out; }
-    .report-review-button::before { top:0; right:0; }
-    .report-review-button::after { bottom:0; left:0; }
-    .report-review-button:hover::before { top:-.4rem; right:-.4rem; }
-    .report-review-button:hover::after { bottom:-.4rem; left:-.4rem; }
-    .report-review-button span { position:relative; z-index:1; }
-    .report-review-button:focus-visible { outline:3px solid #c4b5fd; outline-offset:2px; }
-
     .sinag-violet-badge { background: #d8cdfc; color: #5b4b9b; border-color: #c4b5fd !important; }
     .sinag-yellow-badge { background: #f8cb12; color: #4a3500; border-color: #e5b900 !important; }
     
@@ -164,7 +153,7 @@
                                         @endif
                                     </td>
                                     <td class="text-end pe-4">
-                                        <button class="report-review-button"
+                                        <button class="sinag-review-button"
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#modal-{{ $report->id }}"
                                                 data-report-id="{{ $report->id }}">
