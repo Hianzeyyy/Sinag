@@ -442,6 +442,7 @@ class StudentController extends Controller
     {
         $this->authorizeGadOfficeMessaging();
         $userId = Auth::id();
+        $canSendAnonymously = !Auth::user()->isGadCoordinator();
         $admins = $this->gadOfficeAdmins();
         $adminIds = array_map('intval', $admins->modelKeys());
         $admin = $admins->first();
@@ -471,7 +472,7 @@ class StudentController extends Controller
             'office_email' => $admin?->email ?: 'gad@psu.edu.ph',
         ]);
 
-        return view('student.messaging', compact('messages', 'admin', 'officeInfo'));
+        return view('student.messaging', compact('messages', 'admin', 'officeInfo', 'canSendAnonymously'));
     }
 
     /**
@@ -645,6 +646,7 @@ class StudentController extends Controller
             'message' => 'required|string|max:1000',
             'is_anonymous' => ['sometimes', 'boolean'],
         ]);
+        $canSendAnonymously = !Auth::user()->isGadCoordinator();
 
         $admin = $this->gadOfficeAdmins()->first();
 
@@ -661,7 +663,7 @@ class StudentController extends Controller
             'updated_at' => now(),
         ];
         if (Schema::hasColumn('messages', 'is_anonymous')) {
-            $messageValues['is_anonymous'] = (bool) ($validated['is_anonymous'] ?? false);
+            $messageValues['is_anonymous'] = $canSendAnonymously && (bool) ($validated['is_anonymous'] ?? false);
         }
 
         $messageId = \App\Support\CompatibleInsert::insert('messages', $messageValues);
@@ -676,6 +678,7 @@ class StudentController extends Controller
     public function messageFeed(Request $request)
     {
         $this->authorizeGadOfficeMessaging();
+        $canSendAnonymously = !Auth::user()->isGadCoordinator();
         $adminIds = array_map('intval', $this->gadOfficeAdmins()->modelKeys());
         abort_unless($adminIds !== [], 404, 'GAD Office is unavailable.');
         $messages = Message::where(function ($query) use ($adminIds) {
@@ -699,7 +702,7 @@ class StudentController extends Controller
                 'original_message' => $message->original_message,
                 'deleted_at' => $message->deleted_at?->toIso8601String(),
                 'sender_id' => $message->sender_id,
-                'is_anonymous' => (bool) $message->is_anonymous,
+                'is_anonymous' => $canSendAnonymously && (bool) $message->is_anonymous,
                 'created_at' => $message->created_at?->toIso8601String(),
             ]),
         ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');

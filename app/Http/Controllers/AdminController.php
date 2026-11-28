@@ -205,6 +205,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'in:Pending,Under Review,Resolved,Emergency'],
+            'report_id' => ['nullable', 'integer', 'min:1'],
         ]);
         $query = trim($validated['q'] ?? '');
         $escapedQuery = '%' . addcslashes($query, '\\%_') . '%';
@@ -212,7 +213,9 @@ class AdminController extends Controller
         $relations = Schema::hasTable('report_status_updates')
             ? ['user', 'statusUpdates']
             : ['user'];
-        $reports = Report::notArchived()->with($relations)
+        $reports = Report::query()->with($relations)
+            ->when(!isset($validated['report_id']), fn ($reports) => $reports->notArchived())
+            ->when(isset($validated['report_id']), fn ($reports) => $reports->whereKey($validated['report_id']))
             ->when($query !== '', fn ($reports) => $reports->where(function ($search) use ($escapedQuery) {
                 $search->where('incident_id', 'like', $escapedQuery)
                     ->orWhere('cloak_alias', 'like', $escapedQuery);
@@ -428,8 +431,9 @@ class AdminController extends Controller
         $relations = Schema::hasTable('report_status_updates')
             ? ['user', 'statusUpdates.admin']
             : ['user'];
-        $reports = Report::notArchived()
+        $reports = Report::query()
             ->with($relations)
+            ->when(!isset($validated['report_id']), fn ($query) => $query->notArchived())
             ->when(isset($validated['report_id']), fn ($query) => $query->whereKey($validated['report_id']))
             ->orderByRaw("CASE WHEN priority = 'High' THEN 0 ELSE 1 END")
             ->orderByRaw("CASE WHEN status = 'Emergency' THEN 0 ELSE 1 END")
@@ -1643,7 +1647,7 @@ class AdminController extends Controller
                 'original_message' => $message->original_message,
                 'deleted_at' => $message->deleted_at?->toIso8601String(),
                 'sender_id' => $message->sender_id,
-                'is_anonymous' => (bool) $message->is_anonymous,
+                'is_anonymous' => !$student->isGadCoordinator() && (bool) $message->is_anonymous,
                 'created_at' => $message->created_at?->toIso8601String(),
             ]),
             'unread_count' => $unreadQuery->count(),

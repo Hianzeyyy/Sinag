@@ -373,14 +373,17 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->get(route('student.messaging'))
             ->assertOk()
             ->assertViewIs('student.messaging')
-            ->assertSeeText('GAD Office');
+            ->assertSeeText('GAD Office')
+            ->assertDontSee('Send as Anonymous');
 
         $this->get(route('admin.messages'))->assertForbidden();
 
         $this->postJson(route('student.messages.store'), [
             'message' => 'Hello from the GAD Coordinator',
+            'is_anonymous' => true,
         ])->assertOk()
-            ->assertJsonPath('message.message', 'Hello from the GAD Coordinator');
+            ->assertJsonPath('message.message', 'Hello from the GAD Coordinator')
+            ->assertJsonPath('message.is_anonymous', false);
 
         $this->assertDatabaseHas('messages', [
             'sender_id' => $coordinator->id,
@@ -410,6 +413,7 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->getJson(route('student.messages.feed'))
             ->assertOk()
             ->assertJsonCount(2, 'messages')
+            ->assertJsonPath('messages.0.is_anonymous', false)
             ->assertJsonPath('messages.1.message', 'Reply from the GAD Administrator');
     }
 

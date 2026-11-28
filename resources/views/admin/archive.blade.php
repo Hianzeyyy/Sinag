@@ -29,6 +29,9 @@
                             <td class="text-muted small">{{ optional($report->archived_at)->format('M d, Y h:i A') }}</td>
                             <td class="text-end pe-4">
                                 <div class="d-inline-flex align-items-center gap-2">
+                                <a href="{{ route('admin.reports', ['report_id' => $report->id]) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" target="_blank" rel="noopener">
+                                    <i class="bi bi-eye me-1"></i>View report
+                                </a>
                                 <form method="POST" action="{{ route('admin.archive.reports.restore', $report->id) }}" class="m-0">
                                     @csrf @method('PATCH')
                                     <button class="btn btn-sm btn-outline-primary rounded-pill px-3" type="submit"><i class="bi bi-arrow-counterclockwise me-1"></i>Restore</button>
@@ -68,6 +71,9 @@
                             <td class="text-muted small">{{ optional($suggestion->archived_at)->format('M d, Y h:i A') }}</td>
                             <td class="text-end pe-4">
                                 <div class="d-inline-flex align-items-center gap-2">
+                                <a href="{{ route('suggestions.show', $suggestion->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" target="_blank" rel="noopener">
+                                    <i class="bi bi-eye me-1"></i>View suggestion
+                                </a>
                                 <form method="POST" action="{{ route('admin.archive.suggestions.restore', $suggestion->id) }}" class="m-0">
                                     @csrf @method('PATCH')
                                     <button class="btn btn-sm btn-outline-primary rounded-pill px-3" type="submit"><i class="bi bi-arrow-counterclockwise me-1"></i>Restore</button>

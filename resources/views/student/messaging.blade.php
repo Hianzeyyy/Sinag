@@ -246,6 +246,7 @@ body {
     line-height: 1.55;
     word-break: break-word;
 }
+.msg-bubble a { color: inherit; text-decoration: underline; text-underline-offset: .15em; overflow-wrap: anywhere; }
 .msg-bubble.msg-deleted {
     color: #5b4b9b !important;
     background: #f3efff !important;
@@ -676,7 +677,7 @@ body {
                                 @if($message->sender_id !== Auth::id())
                                     <div class="msg-sender-name">GAD Office</div>
                                 @else
-                                    <div class="msg-sender-name msg-identity-label">{{ $message->is_anonymous ? 'Anonymous' : (Auth::user()->cloak_alias ?: 'Campus alias') }}</div>
+                                    <div class="msg-sender-name msg-identity-label">{{ $message->is_anonymous && $canSendAnonymously ? 'Anonymous' : (Auth::user()->cloak_alias ?: Auth::user()->name) }}</div>
                                 @endif
 
                                 <div class="msg-bubble {{ $message->deleted_at ? 'msg-deleted' : '' }}" id="bubble-{{ $message->id }}">
@@ -703,16 +704,18 @@ body {
             </div>
 
             {{-- Input area --}}
+            @if($canSendAnonymously)
             <div class="msg-identity-control" role="group" aria-label="Message identity">
                 <label class="msg-identity-choice" for="sendAnonymously">
                     <input type="checkbox" id="sendAnonymously">
                     <span>Send as Anonymous</span>
                 </label>
                 <small class="msg-identity-note">
-                    When off, your campus alias ({{ Auth::user()->cloak_alias ?: 'Campus alias' }}) is shown.
+                    When off, your campus alias or name ({{ Auth::user()->cloak_alias ?: Auth::user()->name }}) is shown.
                     Your account stays linked so the GAD Office can reply.
                 </small>
             </div>
+            @endif
             <div class="msg-input-area">
                 <textarea class="msg-textarea" id="messageInput"
                           placeholder="Type your message…" rows="2"></textarea>
@@ -789,6 +792,7 @@ body {
 
 <script>
 const CSRF = '{{ csrf_token() }}';
+const canSendAnonymously = @json($canSendAnonymously);
 const currentUserId = {{ Auth::id() }};
 
 document.querySelector('.msg-info-toggle')?.addEventListener('click', function () {
@@ -812,6 +816,39 @@ window.addEventListener('pageshow', resetOfficeInfo);
 function escapeHtml(text) {
     const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' };
     return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function linkifyMessageText(root) {
+    root.querySelectorAll('.message-text').forEach(element => {
+        const text = element.textContent || '';
+        const pattern = /https?:\/\/[^\s<>"']+/gi;
+        const fragment = document.createDocumentFragment();
+        let previousIndex = 0;
+
+        for (const match of text.matchAll(pattern)) {
+            const rawUrl = match[0];
+            const trailing = rawUrl.match(/[.,!?;:)\]]+$/)?.[0] || '';
+            const candidate = trailing ? rawUrl.slice(0, -trailing.length) : rawUrl;
+            fragment.append(document.createTextNode(text.slice(previousIndex, match.index)));
+            try {
+                const url = new URL(candidate);
+                if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Unsupported message link protocol.');
+                const link = document.createElement('a');
+                link.href = url.href;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = candidate;
+                fragment.append(link);
+            } catch {
+                fragment.append(document.createTextNode(candidate));
+            }
+            fragment.append(document.createTextNode(trailing));
+            previousIndex = match.index + rawUrl.length;
+        }
+
+        fragment.append(document.createTextNode(text.slice(previousIndex)));
+        element.replaceChildren(fragment);
+    });
 }
 
 function formatUserLocalMessageTime(value) {
@@ -849,7 +886,7 @@ function sendMessage() {
         },
         body: JSON.stringify({
             message,
-            is_anonymous: anonymousToggle.checked
+            is_anonymous: Boolean(anonymousToggle?.checked && canSendAnonymously)
         })
     })
     .then(async r => {
@@ -881,9 +918,9 @@ function sendMessage() {
                 data.message.deleted_at,
                 data.message.is_anonymous
             ]);
-            const identity = data.message.is_anonymous
+            const identity = data.message.is_anonymous && canSendAnonymously
                 ? 'Anonymous'
-                : @json(Auth::user()->cloak_alias ?: 'Campus alias');
+                : @json(Auth::user()->cloak_alias ?: Auth::user()->name);
             el.innerHTML = `
                 <div class="msg-bubble-wrap">
                     <div class="msg-sender-name msg-identity-label">${escapeHtml(identity)}</div>
@@ -893,6 +930,7 @@ function sendMessage() {
                     <button class="msg-action-btn delete" onclick="confirmDelete(${data.message.id})">Delete</button></div>
                 </div>`;
             thread.appendChild(el);
+            linkifyMessageText(el);
             input.value = '';
         }
 
@@ -914,7 +952,7 @@ function studentMessageMarkup(message) {
         ? `<div class="msg-original" id="original-${id}"><strong>Original message:</strong> ${escapeHtml(message.original_message)}</div>`
         : '';
     const state = JSON.stringify([message.message, message.original_message, message.deleted_at, message.is_anonymous]);
-    const identity = message.is_anonymous ? 'Anonymous' : @json(Auth::user()->cloak_alias ?: 'Campus alias');
+    const identity = message.is_anonymous && canSendAnonymously ? 'Anonymous' : @json(Auth::user()->cloak_alias ?: Auth::user()->name);
     return `<div class="msg-group ${own ? 'user' : 'admin'}" data-message-id="${id}" data-message-state="${escapeHtml(state)}">
         ${own ? '' : '<img src="{{ asset('images/gadlogo.png') }}" alt="GAD" class="msg-admin-avatar">'}
         <div class="msg-bubble-wrap">${own ? `<div class="msg-sender-name msg-identity-label">${escapeHtml(identity)}</div>` : '<div class="msg-sender-name">GAD Office</div>'}<div class="msg-bubble${deleted ? ' msg-deleted' : ''}" id="bubble-${id}"><span class="message-text" id="message-text-${id}">${escapeHtml(content)}</span></div>${editedControl}
@@ -939,6 +977,7 @@ async function refreshMessages() {
             if (existing) existing.outerHTML = studentMessageMarkup(message);
             else thread.insertAdjacentHTML('beforeend', studentMessageMarkup(message));
         }
+        linkifyMessageText(thread);
         if (wasNearBottom) thread.scrollTop = thread.scrollHeight;
     } catch (error) {
         console.error('Unable to refresh GAD messages:', error);
@@ -947,6 +986,7 @@ async function refreshMessages() {
 const messagingThread = document.getElementById('messagingThread');
 if (messagingThread) {
     requestAnimationFrame(() => { messagingThread.scrollTop = messagingThread.scrollHeight; });
+    linkifyMessageText(messagingThread);
 }
 setInterval(refreshMessages, 3000);
 

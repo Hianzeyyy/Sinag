@@ -98,7 +98,7 @@
     <section class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="card-header bg-white border-0 p-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div><h2 class="h5 fw-bold mb-1">Report tracking</h2><p class="small text-muted mb-0">Case details and reporter-visible progress updates.</p></div>
-            <span class="badge rounded-pill px-3 py-2 coordinator-report-count">{{ $reports->total() }} active reports · High priority first</span>
+            <span class="badge rounded-pill px-3 py-2 coordinator-report-count">{{ $reports->total() }} {{ request()->filled('report_id') ? 'matching report' : 'active reports · High priority first' }}</span>
         </div>
         <div class="table-responsive">
             <table class="table align-middle mb-0 admin-aesthetic-table">
@@ -172,6 +172,7 @@
                                 @endforeach
                             </div>
                         @endif
+                        @if(!$report->archived_at)
                         <hr class="my-4">
                         <section aria-label="Update report tracking">
                             <h3 class="h6 fw-bold mb-1">Update report</h3>
@@ -205,6 +206,9 @@
                                 </div>
                             </form>
                         </section>
+                        @else
+                            <div class="alert alert-secondary mb-0" role="status">This report is archived and available for viewing only.</div>
+                        @endif
                     </div>
                 </div>
             </div>

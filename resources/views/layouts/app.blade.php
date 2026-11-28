@@ -396,7 +396,7 @@
             height: 2.5rem;
             padding: 0;
             border: 1px solid #d9cdf5;
-            border-radius: 50%;
+            border-radius: 12px;
             background: #fff;
             color: #6b4bd4;
             box-shadow: 0 8px 20px rgba(39, 23, 73, .2);
@@ -412,17 +412,48 @@
             transform: scale(1.08);
         }
 
-        .admin-sidebar-toggle-floating .admin-sidebar-toggle-icon {
-            margin: 0;
-            font-size: 1.05rem;
+        .sidebar-menu-button {
+            overflow: hidden;
+            background: #8f72f5;
+            border-color: #8f72f5;
+            color: #fff;
+            box-shadow: 0 5px 14px rgba(143, 114, 245, .3);
+            transition: left .24s ease, background-color .18s ease, color .18s ease, transform .18s ease;
         }
 
-        .admin-sidebar-toggle-icon {
-            transition: transform .24s ease;
+        .sidebar-menu-button:hover,
+        .sidebar-menu-button:focus-visible {
+            background: #795ce4;
+            border-color: #795ce4;
+            color: #fff;
         }
 
-        .admin-sidebar-toggle-floating[aria-expanded="true"] .admin-sidebar-toggle-icon {
-            transform: rotate(180deg);
+        .sidebar-menu-line {
+            position: absolute;
+            width: 24px;
+            height: 3px;
+            border-radius: 999px;
+            background: currentColor;
+            transition: transform .4s ease, width .4s ease;
+        }
+
+        .sidebar-menu-line--top,
+        .sidebar-menu-line--bottom { width: 18px; }
+        .sidebar-menu-line--top { transform: translateY(-7px); }
+        .sidebar-menu-line--bottom { transform: translateY(7px); }
+        .sidebar-menu-button.active {
+            background: #fff;
+            border-color: #8f72f5;
+            color: #8f72f5;
+        }
+        .sidebar-menu-button.active .sidebar-menu-line--center { transform: translateX(-3rem); }
+        .sidebar-menu-button.active .sidebar-menu-line--top { width: 24px; transform: rotate(45deg); }
+        .sidebar-menu-button.active .sidebar-menu-line--bottom { width: 24px; transform: rotate(-45deg); }
+
+        body[data-admin-theme="dark"] .admin-sidebar-toggle-floating.active {
+            background: #fff;
+            border-color: #8f72f5;
+            color: #8f72f5;
         }
 
         .admin-sidebar .admin-nav-group {
@@ -1310,9 +1341,14 @@
             padding: 0;
             border: 0;
             border-radius: 10px;
-            background: #A594F9;
+            background: #8f72f5;
             color: #fff;
             box-shadow: 0 2px 8px rgba(165, 148, 249, .2);
+        }
+
+        .admin-mobile-sidebar-toggle,
+        .student-sidebar-toggle {
+            position: relative;
         }
 
         .student-top-nav {
@@ -3762,8 +3798,10 @@
                     </div>
                 </nav>
             </aside>
-            <button type="button" id="adminSidebarToggle" class="admin-sidebar-toggle-floating" onclick="toggleSidebar()" aria-label="Expand admin sidebar" aria-controls="mainSidebar" aria-expanded="false" title="Expand sidebar">
-                <i class="bi bi-chevron-right admin-sidebar-toggle-icon" aria-hidden="true"></i>
+            <button type="button" id="adminSidebarToggle" class="admin-sidebar-toggle-floating sidebar-menu-button" onclick="toggleSidebar()" aria-label="Expand admin sidebar" aria-controls="mainSidebar" aria-expanded="false" title="Expand sidebar">
+                <span class="sidebar-menu-line sidebar-menu-line--top" aria-hidden="true"></span>
+                <span class="sidebar-menu-line sidebar-menu-line--center" aria-hidden="true"></span>
+                <span class="sidebar-menu-line sidebar-menu-line--bottom" aria-hidden="true"></span>
             </button>
             <button type="button" class="sidebar-backdrop d-none" id="adminSidebarBackdrop" aria-label="Close navigation menu"></button>
             @endif
@@ -3850,13 +3888,17 @@
                 <header class="top-navbar {{ in_array(strtolower((string) Auth::user()->role), ['student', 'employee', 'security'], true) || Auth::user()->isGadCoordinator() ? 'student-navbar' : 'admin-navbar' }} {{ Auth::user()->role !== 'admin' ? 'student-floating-enabled' : '' }} {{ Auth::user()->isGadCoordinator() ? 'coordinator-navbar' : '' }}">
                     <div class="d-flex align-items-center gap-3">
                         @if(Auth::user()->role === 'admin' && !Auth::user()->isGadCoordinator())
-                            <button type="button" class="sidebar-toggle admin-mobile-sidebar-toggle" id="adminMobileSidebarToggle" onclick="toggleSidebar()" aria-label="Open admin menu" aria-controls="mainSidebar" aria-expanded="false">
-                                <i class="bi bi-list fs-5" aria-hidden="true"></i>
+                            <button type="button" class="sidebar-toggle admin-mobile-sidebar-toggle sidebar-menu-button" id="adminMobileSidebarToggle" onclick="toggleSidebar()" aria-label="Open admin menu" aria-controls="mainSidebar" aria-expanded="false">
+                                <span class="sidebar-menu-line sidebar-menu-line--top" aria-hidden="true"></span>
+                                <span class="sidebar-menu-line sidebar-menu-line--center" aria-hidden="true"></span>
+                                <span class="sidebar-menu-line sidebar-menu-line--bottom" aria-hidden="true"></span>
                             </button>
                         @endif
                         @if(Auth::user()->role !== 'admin' || Auth::user()->isGadCoordinator())
-                            <button type="button" class="student-sidebar-toggle" onclick="toggleSidebar('studentSidebar', 'studentSidebarBackdrop')" aria-label="Open navigation menu" aria-controls="studentSidebar" aria-expanded="false">
-                                <i class="bi bi-list fs-5"></i>
+                            <button type="button" class="student-sidebar-toggle sidebar-menu-button" onclick="toggleSidebar('studentSidebar', 'studentSidebarBackdrop')" aria-label="Open navigation menu" aria-controls="studentSidebar" aria-expanded="false">
+                                <span class="sidebar-menu-line sidebar-menu-line--top" aria-hidden="true"></span>
+                                <span class="sidebar-menu-line sidebar-menu-line--center" aria-hidden="true"></span>
+                                <span class="sidebar-menu-line sidebar-menu-line--bottom" aria-hidden="true"></span>
                             </button>
                         @endif
                         <!-- Option 1: Modern & Spaced with Soft Shadows -->
@@ -4036,11 +4078,14 @@
                 }
                 document.querySelectorAll(`[aria-controls="${sidebarId}"]`).forEach(function (toggle) {
                     toggle.setAttribute('aria-expanded', String(isOpen));
+                    toggle.classList.toggle('active', isOpen);
                     if (toggle.id === 'adminSidebarToggle') {
                         toggle.setAttribute('aria-label', isOpen ? 'Collapse admin sidebar' : 'Expand admin sidebar');
                         toggle.setAttribute('title', isOpen ? 'Collapse sidebar' : 'Expand sidebar');
                     } else if (toggle.id === 'adminMobileSidebarToggle') {
                         toggle.setAttribute('aria-label', isOpen ? 'Close admin menu' : 'Open admin menu');
+                    } else if (toggle.classList.contains('student-sidebar-toggle')) {
+                        toggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
                     }
                 });
                 if (sidebarId === 'mainSidebar') {

@@ -460,6 +460,7 @@
         word-wrap: break-word;
     }
     .message-bubble.is-deleted { color: #6b5b91; background: #f3efff !important; border: 1px dashed #c4b5fd !important; font-style: italic; }
+    .message-link { color: inherit; text-decoration: underline; text-underline-offset: .15em; overflow-wrap: anywhere; }
     .message-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; }
     .message-action, .message-edited-link { padding: 0; border: 0; color: #7658df; background: transparent; font-size: .7rem; }
     .msg-content { position: relative; }
@@ -714,7 +715,8 @@
                                     $messageLocalTime = $message->created_at?->copy()->timezone('Asia/Manila')->format('g:i A') ?? '';
                                     $isAdmin = $message->sender_id === Auth::id();
                                     $bubbleInitials = $isAdmin ? 'G' : $selInitials;
-                                    $messageIdentity = $message->is_anonymous ? 'Anonymous' : ($selectedStudent->cloak_alias ?: 'Campus alias');
+                                    $messageIsAnonymous = $message->is_anonymous && !$selectedStudent->isGadCoordinator();
+                                    $messageIdentity = $messageIsAnonymous ? 'Anonymous' : ($selectedStudent->cloak_alias ?: $selectedStudent->name);
                                 @endphp
 
                                 <div class="message-group {{ $isAdmin ? 'user' : 'admin' }}" data-message-id="{{ $message->id }}" data-message-timestamp="{{ $messageTimestamp }}">
@@ -722,7 +724,7 @@
                                         @if($isAdmin)
                                             <img src="{{ route('profile.photo', Auth::user()) }}" alt="{{ Auth::user()->name }} profile photo">
                                         @else
-                                            <i class="bi {{ $message->is_anonymous ? 'bi-incognito' : 'bi-person-fill' }}" aria-hidden="true"></i>
+                                            <i class="bi {{ $messageIsAnonymous ? 'bi-incognito' : 'bi-person-fill' }}" aria-hidden="true"></i>
                                         @endif
                                     </div>
                                     <div class="msg-content">
@@ -813,13 +815,15 @@
 
     if (adminMessageThread) {
         requestAnimationFrame(() => { adminMessageThread.scrollTop = adminMessageThread.scrollHeight; });
+        linkifyMessageText(adminMessageThread);
     }
 
     function adminMessageMarkup(message) {
         const id = Number(message.id);
         const own = Number(message.sender_id) === Number(adminId);
         const deleted = Boolean(message.deleted_at);
-        const identity = message.is_anonymous ? 'Anonymous' : @json(optional($selectedStudent)->cloak_alias ?: 'Campus alias');
+        const messageAnonymous = Boolean(message.is_anonymous && !@json(optional($selectedStudent)?->isGadCoordinator()));
+        const identity = messageAnonymous ? 'Anonymous' : @json(optional($selectedStudent)->cloak_alias ?: optional($selectedStudent)->name);
         const classes = `message-bubble${deleted ? ' is-deleted' : ''}`;
         const content = deleted ? 'This message was deleted.' : message.message;
         const actions = deleted ? '' : `${own ? `<button class="message-action" type="button" onclick="startAdminEdit(${id})">Edit</button><button class="message-action delete" type="button" onclick="deleteAdminMessage(${id})">Delete</button>` : ''}`;
@@ -828,7 +832,7 @@
             : '';
         const state = JSON.stringify([message.message, message.original_message, message.deleted_at, message.is_anonymous]);
         return `<div class="message-group ${own ? 'user' : 'admin'}" data-message-id="${id}" data-message-state="${escapeHtml(state)}" data-message-timestamp="${escapeHtml(message.created_at || '')}">
-            <div class="msg-avatar ${own ? 'outgoing-av' : 'incoming-av'}">${own ? 'G' : (message.is_anonymous ? '<i class="bi bi-incognito"></i>' : '<i class="bi bi-person-fill"></i>')}</div>
+            <div class="msg-avatar ${own ? 'outgoing-av' : 'incoming-av'}">${own ? 'G' : (messageAnonymous ? '<i class="bi bi-incognito"></i>' : '<i class="bi bi-person-fill"></i>')}</div>
             <div class="msg-content">
                 ${own ? '' : `<div class="message-identity-label">${escapeHtml(identity)}</div>`}
                 <div class="${classes}" id="messageBubble${id}">${escapeHtml(content)}</div>
@@ -853,7 +857,10 @@
 
     function cancelAdminEdit(id) {
         const bubble = document.getElementById(`messageBubble${id}`);
-        if (bubble) bubble.textContent = bubble.dataset.editOriginal || '';
+        if (bubble) {
+            bubble.textContent = bubble.dataset.editOriginal || '';
+            linkifyMessageText(bubble);
+        }
     }
 
     async function checkAdminMessageResponse(response, action) {
@@ -949,6 +956,7 @@
                 if (emptyState) emptyState.remove();
 
                 thread.insertAdjacentHTML('beforeend', adminMessageMarkup({ ...data.message, sender_id: adminId }));
+                linkifyMessageText(thread);
 
                 input.value = '';
                 input.style.height = 'auto';
@@ -969,6 +977,41 @@
     function escapeHtml(text) {
         const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
         return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function linkifyMessageText(root) {
+        root.querySelectorAll('.message-bubble:not(.is-deleted)').forEach(element => {
+            if (element.querySelector('textarea')) return;
+            const text = element.textContent || '';
+            const pattern = /https?:\/\/[^\s<>"']+/gi;
+            const fragment = document.createDocumentFragment();
+            let previousIndex = 0;
+
+            for (const match of text.matchAll(pattern)) {
+                const rawUrl = match[0];
+                const trailing = rawUrl.match(/[.,!?;:)\]]+$/)?.[0] || '';
+                const candidate = trailing ? rawUrl.slice(0, -trailing.length) : rawUrl;
+                fragment.append(document.createTextNode(text.slice(previousIndex, match.index)));
+                try {
+                    const url = new URL(candidate);
+                    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Unsupported message link protocol.');
+                    const link = document.createElement('a');
+                    link.className = 'message-link';
+                    link.href = url.href;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.textContent = candidate;
+                    fragment.append(link);
+                } catch {
+                    fragment.append(document.createTextNode(candidate));
+                }
+                fragment.append(document.createTextNode(trailing));
+                previousIndex = match.index + rawUrl.length;
+            }
+
+            fragment.append(document.createTextNode(text.slice(previousIndex)));
+            element.replaceChildren(fragment);
+        });
     }
 
     function formatUserLocalTime(value, format = 'message') {
@@ -1069,6 +1112,7 @@
                 }
                 localizeUserTimes(thread);
                 updateLocalDateDividers();
+                linkifyMessageText(thread);
                 if (wasNearBottom) thread.scrollTop = thread.scrollHeight;
             }
         } catch (error) {

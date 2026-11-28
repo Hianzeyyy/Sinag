@@ -38,6 +38,10 @@ class GoogleAuthenticationTest extends TestCase
             'services.google.client_secret' => 'client-secret',
         ]);
         $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('with')
+            ->once()
+            ->with(['prompt' => 'select_account'])
+            ->andReturnSelf();
         $provider->shouldReceive('redirect')
             ->once()
             ->andReturn(new RedirectResponse('https://accounts.google.com/oauth'));
@@ -49,6 +53,23 @@ class GoogleAuthenticationTest extends TestCase
         $this->get(route('auth.google.redirect', ['intent' => 'signup']))
             ->assertRedirect('https://accounts.google.com/oauth')
             ->assertSessionHas('google_auth_intent', 'signup');
+    }
+
+    public function test_google_redirect_uses_the_render_callback_and_account_chooser_prompt(): void
+    {
+        config([
+            'services.google.client_id' => 'client-id',
+            'services.google.client_secret' => 'client-secret',
+            'services.google.redirect' => 'https://sinag-system.onrender.com/auth/google/callback',
+        ]);
+
+        $response = $this->get(route('auth.google.redirect', ['intent' => 'login']));
+        $response->assertRedirect();
+
+        parse_str((string) parse_url($response->headers->get('Location'), PHP_URL_QUERY), $query);
+
+        $this->assertSame('https://sinag-system.onrender.com/auth/google/callback', $query['redirect_uri']);
+        $this->assertSame('select_account', $query['prompt']);
     }
 
     public function test_login_and_signup_forms_render_google_actions_with_their_own_intents(): void

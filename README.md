@@ -145,7 +145,14 @@ deployment.
 
 Google sign-in requires an OAuth 2.0 Web application client. In Google Cloud
 Console, add the app's callback URL as an authorized redirect URI. It must
-exactly match `GOOGLE_REDIRECT_URI` (by default, `${APP_URL}/auth/google/callback`).
+exactly match `GOOGLE_REDIRECT_URI` (Render default:
+`https://sinag-system.onrender.com/auth/google/callback`).
+Google sign-in requests the account chooser on every attempt. On Render, set
+`APP_URL=https://sinag-system.onrender.com` and
+`GOOGLE_REDIRECT_URI=https://sinag-system.onrender.com/auth/google/callback`,
+then add that exact callback URL to the Google OAuth client's authorized
+redirect URIs. Do not mix a Render hostname with a second alias; OAuth state is
+bound to the browser session that starts the login.
 
 Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in
 local `.env` and in the deployment environment. Keep the client secret out of

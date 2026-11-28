@@ -57,7 +57,9 @@ class LoginController extends Controller
 
         $request->session()->put('google_auth_intent', $intent);
 
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+            ->with(['prompt' => 'select_account'])
+            ->redirect();
     }
 
     public function handleGoogleCallback(Request $request)

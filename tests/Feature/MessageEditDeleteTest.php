@@ -128,7 +128,7 @@ class MessageEditDeleteTest extends TestCase
             ->get(route('student.messaging'))
             ->assertOk()
             ->assertSee('Send as Anonymous')
-            ->assertSee('When off, your campus alias (Silver Sparrow) is shown.')
+            ->assertSee('When off, your campus alias or name (Silver Sparrow) is shown.')
             ->assertSee('Your account stays linked so the GAD Office can reply.');
     }
 

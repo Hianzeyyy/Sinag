@@ -263,7 +263,7 @@ class AdminDashboardTest extends TestCase
             ->assertSee('admin-sidebar-toggle-floating')
             ->assertSee('admin-mobile-sidebar-toggle')
             ->assertSee('admin-dashboard-nav-row')
-            ->assertSee('bi-chevron-right admin-sidebar-toggle-icon')
+            ->assertSee('sidebar-menu-line--center')
             ->assertDontSee('aria-label="Close admin navigation"');
     }
 
@@ -525,8 +525,15 @@ class AdminDashboardTest extends TestCase
         $this->actingAs($admin);
         $this->get(route('admin.settings', ['section' => 'archive']))
             ->assertOk()
+            ->assertSee(route('admin.reports', ['report_id' => $archivedReport->id]), false)
+            ->assertSee(route('suggestions.show', $archivedSuggestion->id), false)
             ->assertSee(route('admin.archive.reports.delete', $archivedReport->id), false)
             ->assertSee(route('admin.archive.suggestions.delete', $archivedSuggestion->id), false);
+
+        $this->get(route('admin.reports', ['report_id' => $archivedReport->id]))
+            ->assertOk()
+            ->assertSee('SN-ARCHIVED-1')
+            ->assertSee('This report is archived and available for viewing only.');
 
         $this->delete(route('admin.archive.reports.delete', $activeReport->id))
             ->assertNotFound();

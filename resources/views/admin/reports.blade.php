@@ -76,7 +76,7 @@
                 <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-0">
                     <div>
                         <h4 class="fw-bold mb-0 text-dark">Confidential Abuse Inbox</h4>
-                        <p class="text-muted small mb-0">Managing <span class="badge bg-primary-subtle text-primary">{{ $reports->total() }} Active Cases</span> </p>
+                        <p class="text-muted small mb-0">Managing <span class="badge bg-primary-subtle text-primary">{{ $reports->total() }} {{ request()->filled('report_id') && $reports->first()?->archived_at ? 'Archived Report' : 'Active Cases' }}</span> </p>
                     </div>
                     <div class="d-flex gap-2">
                         <form method="GET" action="{{ route('admin.reports') }}" class="input-group input-group-sm" style="width: 250px;">
@@ -159,17 +159,19 @@
                                                 data-report-id="{{ $report->id }}">
                                             <span>Review</span>
                                         </button>
-                                        <form action="{{ route('admin.reports.delete', $report->id) }}" method="POST" style="display:inline-block;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="btn btn-sm rounded-pill ms-2 text-white report-archive-button"
-                                                    aria-label="Move report {{ $report->incident_id }} to archive"
-                                                    title="Archive report"
-                                                    onclick="return confirm('Move this report to the archive?')">
-                                                <i class="bi bi-archive" aria-hidden="true"></i>
-                                            </button>
-                                        </form>
+                                        @unless($report->archived_at)
+                                            <form action="{{ route('admin.reports.delete', $report->id) }}" method="POST" style="display:inline-block;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="btn btn-sm rounded-pill ms-2 text-white report-archive-button"
+                                                        aria-label="Move report {{ $report->incident_id }} to archive"
+                                                        title="Archive report"
+                                                        onclick="return confirm('Move this report to the archive?')">
+                                                    <i class="bi bi-archive" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                        @endunless
                                     </td>
                                 </tr>
 
@@ -253,8 +255,8 @@
                                                     </div>
                                                 </div>
 
+                                                @if(!$report->archived_at)
                                                 <hr class="my-4">
-
                                                 <form action="{{ route('admin.reports.update', $report->id) }}" method="POST">
                                                     @csrf
                                                     <input type="hidden" name="_report_id" value="{{ $report->id }}">
@@ -328,6 +330,9 @@
                                                         </div>
                                                     </div>
                                                 </form>
+                                                @else
+                                                    <div class="alert alert-secondary mb-0" role="status">This report is archived and available for viewing only.</div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -398,6 +403,12 @@
                 // Fail silently: UI will update on next full page load.
             });
         });
+    });
+
+    window.addEventListener('load', function () {
+        const reportId = @json(request('report_id'));
+        const modal = reportId ? document.getElementById(`modal-${reportId}`) : null;
+        if (modal) window.bootstrap.Modal.getOrCreateInstance(modal).show();
     });
 </script>
 
