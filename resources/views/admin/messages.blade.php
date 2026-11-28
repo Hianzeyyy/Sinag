@@ -35,7 +35,24 @@
     .messages-page[data-has-conversation="true"] .left-panel { display: none; }
     .messages-page[data-has-conversation="true"] .right-panel { width: min(100%, 1040px); height: min(72dvh, 52rem); margin-inline: auto; }
     .messages-page[data-has-conversation="false"] .left-panel { height: min(72dvh, 52rem); }
-    .message-back-link { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; }
+    .message-back-link {
+        display: inline-flex;
+        flex: 0 0 2.65rem;
+        width: 2.65rem;
+        height: 2.65rem;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e4ddf7;
+        border-radius: .9rem;
+        background: #f7f4ff;
+        color: #6550c4;
+        box-shadow: 0 4px 12px rgba(74, 53, 134, .1);
+        transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .message-back-link:hover { transform: translateX(-2px); background: #ede7ff; color: #4b36aa; box-shadow: 0 7px 16px rgba(74, 53, 134, .16); }
+    .message-back-link:focus-visible { outline: 3px solid #bcaeff; outline-offset: 2px; }
+    body[data-admin-theme="dark"] .message-back-link { border-color: #493a67; background: #302348; color: #e4dbff; }
+    body[data-admin-theme="dark"] .message-back-link:hover { background: #3a2a57; color: #fff; }
     .admin-video-call {
         border: 0 !important;
         color: #fff !important;
@@ -678,7 +695,7 @@
 
                     {{-- Header --}}
                     <div class="messaging-header">
-                        <a class="message-back-link btn btn-sm btn-outline-secondary" href="{{ route('admin.messages') }}" aria-label="Back to conversations"><i class="bi bi-arrow-left"></i></a>
+                        <a class="message-back-link btn" href="{{ route('admin.messages') }}" aria-label="Back to conversations" title="Back to conversations"><i class="bi bi-arrow-left"></i></a>
                         <div class="msg-header-left">
                             <div class="header-avatar">
                                 <img src="{{ route('profile.photo', $selectedStudent) }}" alt="{{ $selectedStudent->name }} profile photo">
@@ -984,6 +1001,42 @@
             if (element.querySelector('textarea')) return;
             const text = element.textContent || '';
             const pattern = /https?:\/\/[^\s<>"']+/gi;
+            const reportId = text.match(/Report\s+#([^\s]+)/i);
+            const reportUrl = text.match(pattern);
+            if (reportId && reportUrl) {
+                const rawUrl = reportUrl[0];
+                const trailing = rawUrl.match(/[.,!?;:)\]]+$/)?.[0] || '';
+                const candidate = trailing ? rawUrl.slice(0, -trailing.length) : rawUrl;
+                try {
+                    const url = new URL(candidate);
+                    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Unsupported report link protocol.');
+                    const urlIndex = text.indexOf(rawUrl);
+                    const lineStart = text.lastIndexOf('\n', urlIndex - 1) + 1;
+                    const lineEndIndex = text.indexOf('\n', urlIndex);
+                    const lineEnd = lineEndIndex === -1 ? text.length : lineEndIndex;
+                    const urlLine = text.slice(lineStart, lineEnd);
+                    const remainingText = `${text.slice(0, lineStart)}${text.slice(lineEndIndex === -1 ? lineEnd : lineEndIndex + 1)}`
+                        .replace(/\n{3,}/g, '\n\n')
+                        .replace(/\n+$/, '');
+                    const incidentId = `#${reportId[1]}`;
+                    const reportStart = remainingText.toLowerCase().indexOf(incidentId.toLowerCase());
+                    const reportEnd = reportStart + incidentId.length;
+                    const link = document.createElement('a');
+                    link.className = 'message-link';
+                    link.href = url.href;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.textContent = incidentId;
+                    const fragment = document.createDocumentFragment();
+                    fragment.append(document.createTextNode(remainingText.slice(0, reportStart)));
+                    fragment.append(link);
+                    fragment.append(document.createTextNode(remainingText.slice(reportEnd)));
+                    if (urlLine.trim()) element.replaceChildren(fragment);
+                    return;
+                } catch (error) {
+                    console.error('Unable to create the forwarded report link:', error);
+                }
+            }
             const fragment = document.createDocumentFragment();
             let previousIndex = 0;
 
@@ -1109,6 +1162,15 @@
                         thread.querySelector('.empty-state')?.remove();
                         thread.insertAdjacentHTML('beforeend', adminMessageMarkup(message));
                     }
+                }
+                const activeMessageIds = new Set(data.messages.map(message => Number(message.id)));
+                thread.querySelectorAll('[data-message-id]').forEach(message => {
+                    if (!activeMessageIds.has(Number(message.dataset.messageId))) message.remove();
+                });
+                if (activeMessageIds.size === 0 && !thread.querySelector('.empty-state')) {
+                    thread.innerHTML = '<div class="empty-state"><i class="bi bi-chat-dots"></i><p>No messages yet. Start the conversation!</p></div>';
+                } else if (activeMessageIds.size > 0) {
+                    thread.querySelector('.empty-state')?.remove();
                 }
                 localizeUserTimes(thread);
                 updateLocalDateDividers();

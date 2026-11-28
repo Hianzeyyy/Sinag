@@ -230,6 +230,27 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertSee('Assigned to the GAD review team.');
     }
 
+    public function test_coordinator_dashboard_emergency_card_counts_active_high_priority_reports(): void
+    {
+        $coordinator = User::create([
+            'name' => 'GAD Coordinator',
+            'email' => 'gadcoordinator@example.test',
+            'password' => 'password',
+            'role' => 'admin',
+            'account_type' => 'coordinator',
+            'account_status' => 'active',
+        ]);
+        Report::create(['incident_id' => 'HIGH-ACTIVE', 'status' => 'Under Review', 'priority' => 'High']);
+        Report::create(['incident_id' => 'HIGH-RESOLVED', 'status' => 'Resolved', 'priority' => 'High']);
+        Report::create(['incident_id' => 'STATUS-EMERGENCY', 'status' => 'Emergency', 'priority' => 'Low']);
+
+        $this->actingAs($coordinator)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Emergency')
+            ->assertSee('data-count-up="2"', false);
+    }
+
     public function test_coordinator_can_update_report_status_priority_and_reporter_visible_note(): void
     {
         $coordinator = User::create([
@@ -299,7 +320,10 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->get(route('admin.settings'))
             ->assertOk()
             ->assertSee('Coordinator profile')
-            ->assertSee('Dark Mode');
+            ->assertSee('Dark Mode')
+            ->assertSee('requestSubmit()', false)
+            ->assertSee('saved automatically')
+            ->assertDontSee('Save appearance');
 
         $this->patch(route('admin.settings.update'), ['theme' => 'dark'])
             ->assertRedirect();
@@ -543,11 +567,17 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->get(route('student.messaging'))
             ->assertOk()
             ->assertDontSee('data-message-id="' . $deletedMessage->id . '"');
+        $this->getJson(route('student.messages.feed'))
+            ->assertOk()
+            ->assertJsonCount(0, 'messages');
 
         $this->actingAs($gadAdmin)
             ->get(route('admin.messages', ['student_id' => $coordinator->id]))
             ->assertOk()
             ->assertDontSee('data-message-id="' . $deletedMessage->id . '"');
+        $this->getJson(route('admin.messages.feed', ['student_id' => $coordinator->id]))
+            ->assertOk()
+            ->assertJsonCount(0, 'messages');
     }
 
     public function test_unavailable_message_recipient_returns_to_conversation_list_instead_of_404(): void

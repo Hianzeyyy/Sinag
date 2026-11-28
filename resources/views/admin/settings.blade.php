@@ -34,7 +34,7 @@
                 <div class="card-body p-4">
                     <h2 class="h5 fw-bold mb-1"><i class="bi bi-palette me-2" style="color:#8f72f5;"></i>Dashboard appearance</h2>
                     <p class="small text-muted mb-4">Choose light mode or dark mode for your dashboard.</p>
-                    <form method="POST" action="{{ route('admin.settings.update') }}">
+                    <form id="adminThemeForm" method="POST" action="{{ route('admin.settings.update') }}">
                         @csrf @method('PATCH')
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -52,7 +52,7 @@
                                 </label>
                             </div>
                         </div>
-                        <button class="btn text-white rounded-pill px-4 mt-4" style="background:#8f72f5;" type="submit"><i class="bi bi-check2 me-1"></i>Save appearance</button>
+                        <p class="small text-muted mt-3 mb-0">Your appearance preference is saved automatically when you choose a mode.</p>
                     </form>
                 </div>
             </section>
@@ -100,4 +100,9 @@
     body[data-admin-theme="dark"] .theme-choice { border-color:#3a2d50; }
     body[data-admin-theme="dark"] .theme-choice small { color:#c1b6d7; }
 </style>
+<script>
+    document.querySelectorAll('#adminThemeForm input[name="theme"]').forEach((radio) => {
+        radio.addEventListener('change', () => radio.form.requestSubmit());
+    });
+</script>
 @endsection

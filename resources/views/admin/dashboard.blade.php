@@ -116,7 +116,7 @@
     .meeting-day-item { display:flex; min-width:0; flex:1; flex-direction:column; align-items:center; padding:.2rem .05rem; border-radius:.65rem; color:#42375c; text-decoration:none; transition:background .2s ease,color .2s ease; }
     .meeting-day-item:hover { color:#4a2d96; background:#f8f6ff; }
     .meeting-day-number { display:grid; width:2rem; height:1.65rem; place-items:center; border-radius:.7rem .7rem .15rem .15rem; font-size:.85rem; font-weight:900; }
-    .meeting-day-name { width:2rem; padding:.1rem 0; border-radius:.15rem .15rem .7rem .7rem; color:#81788d; font-size:.58rem; text-align:center; }
+    .meeting-day-name { min-width:4.2rem; padding:.1rem .15rem; border-radius:.15rem .15rem .7rem .7rem; color:#81788d; font-size:.58rem; text-align:center; }
     .meeting-day-item.is-active .meeting-day-number,.meeting-day-item.is-active .meeting-day-name { color:#fff; background:#8f72f5; }
     .meeting-indicators { position:relative; display:flex; justify-content:space-between; padding:0 1.15rem; }
     .meeting-indicators::before { position:absolute; top:50%; right:1.4rem; left:1.4rem; border-top:1px dashed #c4b5fd; content:""; }
@@ -263,7 +263,7 @@
                             @forelse($recentUsers as $index => $user)
                                 @php
                                     $accountName = trim((string) ($user->first_name ?: explode(' ', trim($user->name))[0]));
-                                    $avatarSizes = [58, 48, 42, 36, 34];
+                                    $avatarSizes = [66, 56, 48, 42, 40];
                                     $avatarLeft = [7, 29, 48, 67, 83];
                                     $avatarTop = [25, 4, 39, 12, 47];
                                 @endphp
@@ -329,9 +329,18 @@
             </div>
             <div class="col-xl-5 col-lg-5">
                 @php
-                    $appointmentDateGroups = $upcomingAppointments
-                        ->groupBy(fn ($appointment) => optional($appointment->scheduled_date)->format('Y-m-d'))
-                        ->take(6);
+                    $today = now('Asia/Manila')->startOfDay();
+                    $appointmentDateGroups = collect([
+                        ['date' => $today->copy()->subDay(), 'label' => 'Yesterday'],
+                        ['date' => $today->copy(), 'label' => 'Today'],
+                        ['date' => $today->copy()->addDay(), 'label' => 'Tomorrow'],
+                    ])->map(function (array $day) use ($upcomingAppointments) {
+                        $day['appointment'] = $upcomingAppointments->first(
+                            fn ($appointment) => optional($appointment->scheduled_date)->isSameDay($day['date'])
+                        );
+
+                        return $day;
+                    });
                     $nextAppointment = $upcomingAppointments->first();
                 @endphp
                 <section class="dashboard-card admin-meeting-card">
@@ -355,22 +364,29 @@
                         </div>
                         <div class="meeting-date-nav">
                             <div class="meeting-date-nav-container" aria-label="Dates with upcoming appointments">
-                                @forelse($appointmentDateGroups as $dayAppointments)
+                                @forelse($appointmentDateGroups as $day)
                                     @php
-                                        $dayAppointment = $dayAppointments->first();
+                                        $dayAppointment = $day['appointment'];
                                     @endphp
-                                    <a class="meeting-day-item {{ $loop->first ? 'is-active' : '' }}" href="{{ route('admin.appointments', ['open' => $dayAppointment->id]) }}#appointmentModal{{ $dayAppointment->id }}" aria-label="{{ optional($dayAppointment->scheduled_date)->format('l, F j') }} appointment">
-                                        <span class="meeting-day-number">{{ optional($dayAppointment->scheduled_date)->format('d') }}</span>
-                                        <span class="meeting-day-name">{{ optional($dayAppointment->scheduled_date)->format('D') }}</span>
-                                    </a>
+                                    @if($dayAppointment)
+                                        <a class="meeting-day-item {{ $day['label'] === 'Today' ? 'is-active' : '' }}" href="{{ route('admin.appointments', ['open' => $dayAppointment->id]) }}#appointmentModal{{ $dayAppointment->id }}" aria-label="{{ $day['label'] }}, {{ $day['date']->format('F j') }} appointment">
+                                            <span class="meeting-day-number">{{ $day['date']->format('d') }}</span>
+                                            <span class="meeting-day-name">{{ $day['label'] }}</span>
+                                        </a>
+                                    @else
+                                        <span class="meeting-day-item {{ $day['label'] === 'Today' ? 'is-active' : '' }}" aria-label="{{ $day['label'] }}, {{ $day['date']->format('F j') }}">
+                                            <span class="meeting-day-number">{{ $day['date']->format('d') }}</span>
+                                            <span class="meeting-day-name">{{ $day['label'] }}</span>
+                                        </span>
+                                    @endif
                                 @empty
                                     <span class="small text-muted px-2">No dates scheduled</span>
                                 @endforelse
                             </div>
                             @if($appointmentDateGroups->isNotEmpty())
                                 <div class="meeting-indicators" aria-hidden="true">
-                                    @foreach($appointmentDateGroups as $dayAppointments)
-                                        <span class="meeting-indicator-dot {{ $loop->first ? 'is-active' : '' }}"></span>
+                                    @foreach($appointmentDateGroups as $day)
+                                        <span class="meeting-indicator-dot {{ $day['label'] === 'Today' ? 'is-active' : '' }}"></span>
                                     @endforeach
                                 </div>
                             @endif

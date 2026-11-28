@@ -688,6 +688,7 @@ class StudentController extends Controller
             })
             ->orderBy('id')
             ->get()
+            ->reject(fn (Message $message) => $message->deleted_at)
             ->values();
 
         Message::whereIn('sender_id', $adminIds)

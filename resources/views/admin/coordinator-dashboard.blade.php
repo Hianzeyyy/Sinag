@@ -5,7 +5,6 @@
     $natureTotal = (float) $reportNatureCounts->sum('total');
     $natureColors = ['#34205f', '#5b3ca8', '#7658df', '#facc15', '#8f72f5', '#c6b7f5', '#9c7d27', '#453563'];
     $natureOffset = 0.0;
-    $highestPriorityCount = (int) $reportCountsByPriority->firstWhere('priority', 'High')?->total;
 @endphp
 <div class="container-fluid coordinator-dashboard">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
@@ -22,7 +21,7 @@
     <div class="row g-3 mb-4">
         @foreach([
             ['Total Reports', $totalReports, 'All active incident reports', 'bi-clipboard-data'],
-            ['High Priority', $highestPriorityCount, 'Requires prompt attention', 'bi-exclamation-triangle'],
+            ['Emergency', $emergencyReportCount, 'High-priority or emergency reports needing attention', 'bi-exclamation-triangle'],
             ['Pending', (int) $reportCountsByStatus->get('Pending', 0), 'Awaiting review', 'bi-hourglass-split'],
             ['Resolved', (int) $reportCountsByStatus->get('Resolved', 0), 'Cases marked resolved', 'bi-check2-circle'],
         ] as [$label, $value, $hint, $icon])

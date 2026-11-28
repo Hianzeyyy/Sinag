@@ -61,6 +61,16 @@ class AdminController extends Controller
                 ->groupBy('priority')
                 ->orderBy('priority')
                 ->get();
+            $emergencyReportCount = Report::notArchived()
+                ->where(function ($query): void {
+                    $query->where('priority', 'High')
+                        ->orWhere('status', 'Emergency');
+                })
+                ->where(function ($query): void {
+                    $query->whereNull('status')
+                        ->orWhere('status', '<>', 'Resolved');
+                })
+                ->count();
             $feedbackCount = 0;
             $averageRating = 0.0;
             $recentFeedback = collect();
@@ -76,6 +86,7 @@ class AdminController extends Controller
                 'reportNatureCounts',
                 'reportCountsByStatus',
                 'reportCountsByPriority',
+                'emergencyReportCount',
                 'totalReports',
                 'feedbackCount',
                 'averageRating',
@@ -1613,6 +1624,9 @@ class AdminController extends Controller
         $unreadQuery = Message::whereIn('receiver_id', $adminIds)
             ->whereNotIn('sender_id', $adminIds)
             ->whereNull('read_at');
+        if (Schema::hasColumn('messages', 'deleted_at')) {
+            $unreadQuery->whereNull('deleted_at');
+        }
         if (empty($validated['student_id'])) {
             $latestUnread = (clone $unreadQuery)->latest('id')->first();
 
@@ -1633,7 +1647,9 @@ class AdminController extends Controller
                 $query->where('sender_id', $student->id)->whereIn('receiver_id', $adminIds);
             })
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->reject(fn (Message $message) => $message->deleted_at)
+            ->values();
 
         Message::where('sender_id', $student->id)
             ->whereIn('receiver_id', $adminIds)

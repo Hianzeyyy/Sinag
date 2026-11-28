@@ -396,7 +396,7 @@
             height: 2.5rem;
             padding: 0;
             border: 1px solid #d9cdf5;
-            border-radius: 12px;
+            border-radius: 50%;
             background: #fff;
             color: #6b4bd4;
             box-shadow: 0 8px 20px rgba(39, 23, 73, .2);
@@ -450,10 +450,17 @@
         .sidebar-menu-button.active .sidebar-menu-line--top { width: 24px; transform: rotate(45deg); }
         .sidebar-menu-button.active .sidebar-menu-line--bottom { width: 24px; transform: rotate(-45deg); }
 
-        body[data-admin-theme="dark"] .admin-sidebar-toggle-floating.active {
-            background: #fff;
-            border-color: #8f72f5;
-            color: #8f72f5;
+        .admin-sidebar-toggle-floating .admin-sidebar-toggle-icon {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .admin-sidebar-toggle-icon {
+            transition: transform .24s ease;
+        }
+
+        .admin-sidebar-toggle-floating[aria-expanded="true"] .admin-sidebar-toggle-icon {
+            transform: rotate(180deg);
         }
 
         .admin-sidebar .admin-nav-group {
@@ -3798,10 +3805,8 @@
                     </div>
                 </nav>
             </aside>
-            <button type="button" id="adminSidebarToggle" class="admin-sidebar-toggle-floating sidebar-menu-button" onclick="toggleSidebar()" aria-label="Expand admin sidebar" aria-controls="mainSidebar" aria-expanded="false" title="Expand sidebar">
-                <span class="sidebar-menu-line sidebar-menu-line--top" aria-hidden="true"></span>
-                <span class="sidebar-menu-line sidebar-menu-line--center" aria-hidden="true"></span>
-                <span class="sidebar-menu-line sidebar-menu-line--bottom" aria-hidden="true"></span>
+            <button type="button" id="adminSidebarToggle" class="admin-sidebar-toggle-floating" onclick="toggleSidebar()" aria-label="Expand admin sidebar" aria-controls="mainSidebar" aria-expanded="false" title="Expand sidebar">
+                <i class="bi bi-chevron-right admin-sidebar-toggle-icon" aria-hidden="true"></i>
             </button>
             <button type="button" class="sidebar-backdrop d-none" id="adminSidebarBackdrop" aria-label="Close navigation menu"></button>
             @endif
@@ -4078,7 +4083,9 @@
                 }
                 document.querySelectorAll(`[aria-controls="${sidebarId}"]`).forEach(function (toggle) {
                     toggle.setAttribute('aria-expanded', String(isOpen));
-                    toggle.classList.toggle('active', isOpen);
+                    if (toggle.classList.contains('sidebar-menu-button')) {
+                        toggle.classList.toggle('active', isOpen);
+                    }
                     if (toggle.id === 'adminSidebarToggle') {
                         toggle.setAttribute('aria-label', isOpen ? 'Collapse admin sidebar' : 'Expand admin sidebar');
                         toggle.setAttribute('title', isOpen ? 'Collapse sidebar' : 'Expand sidebar');

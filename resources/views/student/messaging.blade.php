@@ -822,6 +822,44 @@ function linkifyMessageText(root) {
     root.querySelectorAll('.message-text').forEach(element => {
         const text = element.textContent || '';
         const pattern = /https?:\/\/[^\s<>"']+/gi;
+        const reportId = text.match(/Report\s+#([^\s]+)/i);
+        const reportUrl = text.match(pattern);
+        if (reportId && reportUrl) {
+            const rawUrl = reportUrl[0];
+            const trailing = rawUrl.match(/[.,!?;:)\]]+$/)?.[0] || '';
+            const candidate = trailing ? rawUrl.slice(0, -trailing.length) : rawUrl;
+            try {
+                const url = new URL(candidate);
+                if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Unsupported report link protocol.');
+                const urlIndex = text.indexOf(rawUrl);
+                const lineStart = text.lastIndexOf('\n', urlIndex - 1) + 1;
+                const lineEndIndex = text.indexOf('\n', urlIndex);
+                const lineEnd = lineEndIndex === -1 ? text.length : lineEndIndex;
+                const urlLine = text.slice(lineStart, lineEnd);
+                const remainingText = `${text.slice(0, lineStart)}${text.slice(lineEndIndex === -1 ? lineEnd : lineEndIndex + 1)}`
+                    .replace(/\n{3,}/g, '\n\n')
+                    .replace(/\n+$/, '');
+                const incidentId = `#${reportId[1]}`;
+                const reportStart = remainingText.toLowerCase().indexOf(incidentId.toLowerCase());
+                const reportEnd = reportStart + incidentId.length;
+                const link = document.createElement('a');
+                link.className = 'message-link';
+                link.href = url.href;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = incidentId;
+                const fragment = document.createDocumentFragment();
+                fragment.append(document.createTextNode(remainingText.slice(0, reportStart)));
+                fragment.append(link);
+                fragment.append(document.createTextNode(remainingText.slice(reportEnd)));
+                if (urlLine.trim()) {
+                    element.replaceChildren(fragment);
+                    return;
+                }
+            } catch (error) {
+                console.error('Unable to create the forwarded report link:', error);
+            }
+        }
         const fragment = document.createDocumentFragment();
         let previousIndex = 0;
 
@@ -977,6 +1015,15 @@ async function refreshMessages() {
             if (existing) existing.outerHTML = studentMessageMarkup(message);
             else thread.insertAdjacentHTML('beforeend', studentMessageMarkup(message));
         }
+        const activeMessageIds = new Set(data.messages.map(message => Number(message.id)));
+        thread.querySelectorAll('[data-message-id]').forEach(message => {
+            if (!activeMessageIds.has(Number(message.dataset.messageId))) message.remove();
+        });
+        if (activeMessageIds.size === 0 && !thread.querySelector('.msg-empty')) {
+            thread.innerHTML = '<div class="msg-empty"><i class="bi bi-chat-dots"></i><p>No messages yet. Start the conversation!</p></div>';
+        } else if (activeMessageIds.size > 0) {
+            thread.querySelector('.msg-empty')?.remove();
+        }
         linkifyMessageText(thread);
         if (wasNearBottom) thread.scrollTop = thread.scrollHeight;
     } catch (error) {
@@ -1105,13 +1152,8 @@ function confirmDelete(id) {
     .then(data => {
         if (data.success) {
             const row = document.querySelector(`[data-message-id="${id}"]`);
-            const bubble = document.getElementById('bubble-' + id);
-            if (bubble) {
-                bubble.classList.add('msg-deleted');
-                bubble.textContent = 'This message was deleted.';
-                row?.querySelector('.msg-message-meta')?.querySelectorAll('.msg-action-btn').forEach(button => button.remove());
-                document.getElementById('original-' + id)?.remove();
-            }
+            row?.remove();
+            refreshMessages();
         } else alert('Failed to delete message');
     })
     .catch(error => alert(error.message || 'Failed to delete message'));

@@ -264,7 +264,15 @@ class AdminDashboardTest extends TestCase
             ->assertSee('admin-mobile-sidebar-toggle')
             ->assertSee('admin-dashboard-nav-row')
             ->assertSee('sidebar-menu-line--center')
+            ->assertSee('bi-chevron-right admin-sidebar-toggle-icon', false)
+            ->assertDontSee('id="adminSidebarToggle" class="admin-sidebar-toggle-floating sidebar-menu-button"', false)
             ->assertDontSee('aria-label="Close admin navigation"');
+        $this->assertSame(1, $xpath->query(
+            '//*[contains(concat(" ", normalize-space(@class), " "), " meeting-day-item ") and contains(concat(" ", normalize-space(@class), " "), " is-active ")]/span[@class="meeting-day-name" and normalize-space(text())="Today"]'
+        )->length);
+        $response->assertSee('Yesterday')
+            ->assertSee('Today')
+            ->assertSee('Tomorrow');
     }
 
     public function test_admin_report_list_displays_latest_tracking_details(): void
@@ -463,7 +471,10 @@ class AdminDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Dark Mode')
             ->assertSee('Light Mode')
-            ->assertDontSee('Midnight Purple');
+            ->assertDontSee('Midnight Purple')
+            ->assertSee('requestSubmit()', false)
+            ->assertSee('saved automatically')
+            ->assertDontSee('Save appearance');
 
         $this->get(route('admin.archive'))
             ->assertRedirect(route('admin.settings', ['section' => 'archive']));
@@ -525,8 +536,13 @@ class AdminDashboardTest extends TestCase
         $this->actingAs($admin);
         $this->get(route('admin.settings', ['section' => 'archive']))
             ->assertOk()
-            ->assertSee(route('admin.reports', ['report_id' => $archivedReport->id]), false)
-            ->assertSee(route('suggestions.show', $archivedSuggestion->id), false)
+            ->assertSee('data-bs-target="#archiveReportModal' . $archivedReport->id . '"', false)
+            ->assertSee('data-bs-target="#archiveSuggestionModal' . $archivedSuggestion->id . '"', false)
+            ->assertSee('SN-ARCHIVED-1')
+            ->assertSee('data-bs-dismiss="modal"', false)
+            ->assertDontSee(route('admin.reports', ['report_id' => $archivedReport->id]), false)
+            ->assertDontSee(route('suggestions.show', $archivedSuggestion->id), false)
+            ->assertDontSee('target="_blank"', false)
             ->assertSee(route('admin.archive.reports.delete', $archivedReport->id), false)
             ->assertSee(route('admin.archive.suggestions.delete', $archivedSuggestion->id), false);
 
