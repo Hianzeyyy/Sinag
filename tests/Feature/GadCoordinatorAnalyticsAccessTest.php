@@ -398,6 +398,9 @@ class GadCoordinatorAnalyticsAccessTest extends TestCase
             ->assertOk()
             ->assertViewIs('student.messaging')
             ->assertSeeText('GAD Office')
+            ->assertSee(str_replace('/', '\\/', route('admin.report-tracking', ['report_id' => '__REPORT_ID__'])), false)
+            ->assertSee('message-report-id-link fw-bold', false)
+            ->assertSee("link.target = '_self'", false)
             ->assertDontSee('Send as Anonymous');
 
         $this->get(route('admin.messages'))->assertForbidden();

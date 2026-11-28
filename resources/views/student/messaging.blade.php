@@ -794,6 +794,9 @@ body {
 const CSRF = '{{ csrf_token() }}';
 const canSendAnonymously = @json($canSendAnonymously);
 const currentUserId = {{ Auth::id() }};
+const reportManagementUrlTemplate = @json(Auth::user()->isGadCoordinator()
+    ? route('admin.report-tracking', ['report_id' => '__REPORT_ID__'])
+    : route('admin.reports', ['report_id' => '__REPORT_ID__']));
 
 document.querySelector('.msg-info-toggle')?.addEventListener('click', function () {
     const details = document.getElementById('officeInfoDetails');
@@ -843,10 +846,12 @@ function linkifyMessageText(root) {
                 const reportStart = remainingText.toLowerCase().indexOf(incidentId.toLowerCase());
                 const reportEnd = reportStart + incidentId.length;
                 const link = document.createElement('a');
-                link.className = 'message-link';
-                link.href = url.href;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
+                const linkedReportId = url.searchParams.get('report_id');
+                link.className = 'message-link message-report-id-link fw-bold';
+                link.href = /^\d+$/.test(linkedReportId || '')
+                    ? reportManagementUrlTemplate.replace('__REPORT_ID__', encodeURIComponent(linkedReportId))
+                    : url.href;
+                link.target = '_self';
                 link.textContent = incidentId;
                 const fragment = document.createDocumentFragment();
                 fragment.append(document.createTextNode(remainingText.slice(0, reportStart)));

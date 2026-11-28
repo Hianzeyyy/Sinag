@@ -31,12 +31,16 @@ class ProfileBasicsUpdateTest extends TestCase
             'id' => $user->id,
             'name' => 'Updated Student Name',
             'email' => 'student@example.test',
+            'first_name' => 'Updated',
+            'middle_name' => 'Student',
+            'last_name' => 'Name',
             'age' => 22,
             'gender' => 'Female',
             'department' => 'BS Information Technology',
             'phone_number' => '09123456780',
             'cloak_alias' => 'StudentNew',
         ]);
+        $this->assertSame('Updated Student Name', User::findOrFail($user->id)->name);
     }
 
     public function test_profile_rejects_phone_numbers_longer_than_eleven_digits(): void
@@ -64,11 +68,27 @@ class ProfileBasicsUpdateTest extends TestCase
         ]);
     }
 
+    public function test_profile_page_links_to_the_full_personal_data_editor(): void
+    {
+        $this->createUsersTable();
+        $user = $this->createUser();
+
+        $this->actingAs($user)
+            ->get(route('profile.show'))
+            ->assertOk()
+            ->assertSee('Edit Basic Information')
+            ->assertSee('Edit Full Profile')
+            ->assertSee(route('personal-data.edit'), false);
+    }
+
     private function createUsersTable(): void
     {
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
+            $table->string('first_name')->nullable();
+            $table->string('middle_name')->nullable();
+            $table->string('last_name')->nullable();
             $table->string('email')->unique();
             $table->string('password');
             $table->string('role')->default('student');
@@ -86,6 +106,8 @@ class ProfileBasicsUpdateTest extends TestCase
     {
         return User::create([
             'name' => 'Student User',
+            'first_name' => 'Student',
+            'last_name' => 'User',
             'email' => 'student@example.test',
             'password' => 'password',
             'role' => 'student',

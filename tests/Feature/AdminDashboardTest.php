@@ -386,6 +386,12 @@ class AdminDashboardTest extends TestCase
             route('admin.report-tracking', ['report_id' => $report->id]),
             \App\Models\Message::where('receiver_id', $coordinator->id)->value('message')
         );
+
+        $this->get(route('admin.messages', ['student_id' => $coordinator->id]))
+            ->assertOk()
+            ->assertSee(str_replace('/', '\\/', route('admin.reports', ['report_id' => '__REPORT_ID__'])), false)
+            ->assertSee('message-report-id-link fw-bold', false)
+            ->assertSee("link.target = '_self'", false);
     }
 
     public function test_forwarding_without_a_coordinator_is_reported_and_does_not_save_a_false_forward(): void

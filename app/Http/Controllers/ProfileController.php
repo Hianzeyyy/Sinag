@@ -7,6 +7,7 @@ use App\Support\CloudinaryMedia;
 use App\Support\MediaResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
@@ -90,7 +91,19 @@ class ProfileController extends Controller
             'cloak_alias' => ['nullable', 'string', 'max:255', Rule::unique('users', 'cloak_alias')->ignore($user->id)],
         ]);
 
-        $user->update($validated);
+        $updates = $validated;
+        $nameParts = preg_split('/\s+/', trim($validated['name']), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $updates['name'] = trim($validated['name']);
+
+        if (Schema::hasColumn('users', 'first_name')
+            && Schema::hasColumn('users', 'middle_name')
+            && Schema::hasColumn('users', 'last_name')) {
+            $updates['first_name'] = array_shift($nameParts) ?? '';
+            $updates['last_name'] = $nameParts ? array_pop($nameParts) : null;
+            $updates['middle_name'] = $nameParts ? implode(' ', $nameParts) : null;
+        }
+
+        $user->update($updates);
 
         return redirect()->route('profile.show')->with('status', 'Profile information updated.');
     }

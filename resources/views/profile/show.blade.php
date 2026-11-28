@@ -285,7 +285,10 @@
                         <div class="profile-action-row justify-content-center justify-content-md-start">
                             @if(auth()->id() === $user->id)
                                 <button type="button" class="profile-action-btn" onclick="document.getElementById('profilePhotoInput').click();">Change Profile</button>
-                                <button type="button" class="profile-action-btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Information</button>
+                                <button type="button" class="profile-action-btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Basic Information</button>
+                                @if(auth()->user()->role !== 'admin')
+                                    <a href="{{ route('personal-data.edit') }}" class="profile-action-btn text-decoration-none">Edit Full Profile</a>
+                                @endif
                             @endif
                             @if(auth()->user()->role === 'admin' && auth()->id() !== $user->id)
                                 <a href="{{ route('admin.users.personal-data', $user->id) }}" class="profile-action-btn text-decoration-none">View Full Information</a>

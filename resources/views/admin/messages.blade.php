@@ -478,6 +478,7 @@
     }
     .message-bubble.is-deleted { color: #6b5b91; background: #f3efff !important; border: 1px dashed #c4b5fd !important; font-style: italic; }
     .message-link { color: inherit; text-decoration: underline; text-underline-offset: .15em; overflow-wrap: anywhere; }
+    .message-report-id-link { font-weight: 800; }
     .message-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; }
     .message-action, .message-edited-link { padding: 0; border: 0; color: #7658df; background: transparent; font-size: .7rem; }
     .msg-content { position: relative; }
@@ -828,6 +829,7 @@
     const adminId = {{ Auth::id() }};
     const selectedStudentId = {{ (int) ($selectedStudentId ?? 0) }};
     const adminCsrf = '{{ csrf_token() }}';
+    const reportManagementUrlTemplate = @json(route('admin.reports', ['report_id' => '__REPORT_ID__']));
     const adminMessageThread = document.getElementById('messagingThread');
 
     if (adminMessageThread) {
@@ -1022,10 +1024,12 @@
                     const reportStart = remainingText.toLowerCase().indexOf(incidentId.toLowerCase());
                     const reportEnd = reportStart + incidentId.length;
                     const link = document.createElement('a');
-                    link.className = 'message-link';
-                    link.href = url.href;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
+                    const linkedReportId = url.searchParams.get('report_id');
+                    link.className = 'message-link message-report-id-link fw-bold';
+                    link.href = /^\d+$/.test(linkedReportId || '')
+                        ? reportManagementUrlTemplate.replace('__REPORT_ID__', encodeURIComponent(linkedReportId))
+                        : url.href;
+                    link.target = '_self';
                     link.textContent = incidentId;
                     const fragment = document.createDocumentFragment();
                     fragment.append(document.createTextNode(remainingText.slice(0, reportStart)));
